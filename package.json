@@ -1,0 +1,39 @@
+{
+  "name": "jgengine-games",
+  "private": true,
+  "type": "module",
+  "description": "Playable games built with JGengine — probe games for engine gaps. Each game is a standalone Vite app on published @jgengine/* packages.",
+  "workspaces": {
+    "packages": [
+      "*"
+    ],
+    "catalog": {
+      "@react-three/drei": "^10.7.7",
+      "@tailwindcss/vite": "^4.0.15",
+      "@types/react": "^19",
+      "@types/react-dom": "^19",
+      "@types/three": "^0.182.0",
+      "@vitejs/plugin-react": "^4.3.4",
+      "tailwindcss": "^4.0.15",
+      "typescript": "^5",
+      "vite": "^6.2.2"
+    }
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:games": "bun test",
+    "check-types": "bun --filter='*' run check-types",
+    "dev:claudecraft": "bun run --cwd claudecraft dev",
+    "dev:duet-keys": "bun run --cwd duet-keys dev",
+    "dev:ironhold": "bun run --cwd ironhold dev",
+    "dev:loopline": "bun run --cwd loopline dev",
+    "dev:spire-cards": "bun run --cwd spire-cards dev",
+    "dev:starhome": "bun run --cwd starhome dev",
+    "dev:studio-showcase": "bun run --cwd studio-showcase dev",
+    "dev:the-robots": "bun run --cwd the-robots dev",
+    "dev:tower-guard": "bun run --cwd tower-guard dev",
+    "dev:vice-isle": "bun run --cwd vice-isle dev",
+    "dev:wreckway": "bun run --cwd wreckway dev"
+  },
+  "packageManager": "bun@1.3.8"
+}

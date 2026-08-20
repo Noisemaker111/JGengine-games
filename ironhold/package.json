@@ -11,11 +11,11 @@
     "test": "bun test src"
   },
   "dependencies": {
-    "@jgengine/assets": "workspace:*",
-    "@jgengine/core": "workspace:*",
-    "@jgengine/editor": "workspace:*",
-    "@jgengine/react": "workspace:*",
-    "@jgengine/shell": "workspace:*",
+    "@jgengine/assets": "^0.18.0",
+    "@jgengine/core": "^0.18.0",
+    "@jgengine/editor": "^0.18.0",
+    "@jgengine/react": "^0.18.0",
+    "@jgengine/shell": "^0.18.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "react": "19.2.3",
@@ -23,7 +23,7 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "@jgengine/node": "workspace:*",
+    "@jgengine/node": "^0.18.0",
     "@tailwindcss/vite": "^4.0.15",
     "@types/react": "^19",
     "@types/react-dom": "^19",

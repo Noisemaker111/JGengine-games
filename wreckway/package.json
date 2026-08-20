@@ -9,26 +9,26 @@
     "test": "bun test src"
   },
   "dependencies": {
-    "@jgengine/assets": "workspace:*",
-    "@jgengine/core": "workspace:*",
-    "@jgengine/editor": "workspace:*",
-    "@jgengine/react": "workspace:*",
-    "@jgengine/shell": "workspace:*",
-    "@jgengine/ws": "workspace:*",
+    "@jgengine/assets": "^0.18.0",
+    "@jgengine/core": "^0.18.0",
+    "@jgengine/editor": "^0.18.0",
+    "@jgengine/react": "^0.18.0",
+    "@jgengine/shell": "^0.18.0",
+    "@jgengine/ws": "^0.18.0",
     "@react-three/fiber": "^9.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@types/three": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
-    "tailwindcss": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:"
+    "@tailwindcss/vite": "^4.0.15",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.182.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.15",
+    "typescript": "^5",
+    "vite": "^6.2.2"
   },
   "exports": {
     ".": "./src/index.tsx",
