@@ -48,6 +48,6 @@ export function tickConstruction(ctx: GameContext, dt: number): void {
     if (event.type !== "completed") continue;
     const { towerId, plotId, instanceId, position } = event.output;
     ctx.scene.entity.spawn(towerId, { id: instanceId, position, role: "prop" });
-    session.towers.set(instanceId, { instanceId, catalogId: towerId, plotId, cooldownSeconds: 0 });
+    session.towers.set(instanceId, { instanceId, catalogId: towerId, plotId, level: 1, cooldownSeconds: 0 });
   }
 }

@@ -5,6 +5,7 @@ import { fieldkitVars } from "@/components/ui/jg-theme";
 import { BuildBar } from "./components/BuildBar";
 import { EndScreens } from "./components/EndScreens";
 import { Hud } from "./components/Hud";
+import { TowerPanel } from "./components/TowerPanel";
 
 function GameUIInner() {
   const layout = useHudLayout({ storageKey: "tower-guard" });
@@ -18,6 +19,9 @@ function GameUIInner() {
       </HudPanel>
       <HudPanel id="build-bar" anchor="bottom" inset={{ x: 0, y: 18 }}>
         <BuildBar />
+      </HudPanel>
+      <HudPanel id="tower" anchor="right" inset={{ x: 18, y: 0 }}>
+        <TowerPanel />
       </HudPanel>
       <EndScreens />
     </HudCanvas>
