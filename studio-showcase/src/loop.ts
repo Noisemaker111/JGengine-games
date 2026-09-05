@@ -3,6 +3,7 @@ import { authoredSpawnPosition, type GameContext } from "@jgengine/shell/gameKit
 import { editorLayers } from "./editorLayers";
 import { createControlGroupManager, HOME_BOOKMARK, type ControlGroupManager } from "./game/controlGroups";
 import { player } from "./game/entities/players/catalog";
+import { tickHealth } from "./game/health";
 import { tickAuthoredTriggers } from "./game/triggers";
 
 type PlayerMeta = { kind: "player" };
@@ -44,7 +45,6 @@ function onNewPlayer(ctx: GameContext): void {
 }
 
 function onTick(ctx: GameContext, dt: number): void {
-  void dt;
   const entity = ctx.scene.entity.get(ctx.player.userId);
   if (entity === null) return;
   void entityMetaOf(entity, isPlayerMeta);
@@ -52,6 +52,7 @@ function onTick(ctx: GameContext, dt: number): void {
   if (ctx.input.justPressed("recallGroup1")) groups.recallGroup(1);
   if (ctx.input.justPressed("recallHome")) groups.recallHome();
   tickAuthoredTriggers(ctx);
+  tickHealth(ctx, dt);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
