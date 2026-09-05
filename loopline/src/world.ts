@@ -9,7 +9,10 @@ import {
   type WorldFeature,
 } from "@jgengine/core/world/features";
 
-import { groundMaterial } from "./game/assets";
+import { groundMaterial, plasterMaterial, roofTileMaterial } from "./game/assets";
+
+const plasterWall = (color: string) => ({ color, maps: plasterMaterial.maps, repeat: [1.6, 1.2] as const, roughness: 0.92 });
+const tiledRoof = (color: string) => ({ color, maps: roofTileMaterial.maps, repeat: [4, 3] as const, roughness: 0.8 });
 
 export const world: WorldFeature = environment({
   terrain: terrain({
@@ -51,7 +54,7 @@ export const world: WorldFeature = environment({
       stories: [2, 5],
       spacing: 6,
       style: "coastal",
-      palette: { wall: "#ecdcc0", roof: "#c85a44" },
+      palette: { wall: plasterWall("#ecdcc0"), roof: tiledRoof("#f0a48e") },
       seed: "loopline-town",
     }),
     building({
@@ -61,7 +64,7 @@ export const world: WorldFeature = environment({
       stories: [1, 3],
       spacing: 6,
       style: "village",
-      palette: { wall: "#f0e3c8", roof: "#5a86b0" },
+      palette: { wall: plasterWall("#f0e3c8"), roof: tiledRoof("#a6c4e0") },
       seed: "loopline-west",
     }),
     building({
@@ -71,7 +74,7 @@ export const world: WorldFeature = environment({
       stories: [1, 3],
       spacing: 6,
       style: "village",
-      palette: { wall: "#f0e3c8", roof: "#c8a24a" },
+      palette: { wall: plasterWall("#f0e3c8"), roof: tiledRoof("#f0d090") },
       seed: "loopline-east",
     }),
   ],
