@@ -111,13 +111,18 @@ function pickupWorldItem(ctx: GameContext): void {
   ctx.scene.entity.floatText({ instanceId: userId, text: gear.name.toUpperCase(), kind: "pickup" });
 }
 
-function openRedChest(ctx: GameContext, instanceId: string): void {
+function claimChest(ctx: GameContext, instanceId: string): boolean {
   const opened = openedChestsStore.read(ctx);
   if (opened.includes(instanceId)) {
     ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "CHEST EMPTY", kind: "warn" });
-    return;
+    return false;
   }
   openedChestsStore.write(ctx, [...opened, instanceId]);
+  return true;
+}
+
+function openRedChest(ctx: GameContext, instanceId: string): void {
+  if (!claimChest(ctx, instanceId)) return;
   const object = ctx.scene.object.get(instanceId);
   const at = object?.position ?? ctx.scene.entity.get(ctx.player.userId)?.position ?? [0, 0, 0];
   const chestLevel = Math.max(playerLevel(ctx), zoneLevelAt(at[0], at[2]));
@@ -134,6 +139,7 @@ function openRedChest(ctx: GameContext, instanceId: string): void {
 }
 
 function openAmmoChest(ctx: GameContext, instanceId: string): void {
+  if (!claimChest(ctx, instanceId)) return;
   const object = ctx.scene.object.get(instanceId);
   const at = object?.position ?? [0, 0, 0];
   const pools: readonly AmmoPool[] = ["pistol", "smg", "shotgun", "rifle"];
