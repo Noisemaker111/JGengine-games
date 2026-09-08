@@ -1,4 +1,5 @@
 import type { PathFollowState } from "@jgengine/core/nav/pathFollow";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { createSpawnDirectorState, type SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
 import { createStats, type Stats } from "@jgengine/core/stats/statModifiers";
 import { createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
@@ -18,6 +19,7 @@ export interface TowerRuntime {
   instanceId: string;
   catalogId: string;
   plotId: string;
+  level: number;
   cooldownSeconds: number;
 }
 
@@ -28,6 +30,8 @@ export interface SessionState {
   towers: Map<string, TowerRuntime>;
   plotOccupant: Map<string, string | null>;
   selectedTowerId: string | null;
+  /** The placed tower whose sell/upgrade panel is open; set by clicking its plot. */
+  inspectedTowerId: string | null;
   gameOver: boolean;
   victory: boolean;
   creepSeq: number;
@@ -44,6 +48,7 @@ function freshState(): SessionState {
     towers: new Map(),
     plotOccupant,
     selectedTowerId: null,
+    inspectedTowerId: null,
     gameOver: false,
     victory: false,
     creepSeq: 0,
@@ -69,6 +74,11 @@ export function nextTowerInstanceId(): string {
 
 export function newSpeedStats(baseSpeed: number): Stats<"speed"> {
   return createStats<"speed">({ speed: baseSpeed });
+}
+
+/** Game clock in milliseconds — the unit `Stats` expiry (`expiresAtMs`) is written and read in. */
+export function gameClockMs(ctx: GameContext): number {
+  return ctx.time.now() * 1000;
 }
 
 export function currentWaveNumber(): number {

@@ -5,7 +5,7 @@ import { advancePathFollow, createPathFollow } from "@jgengine/core/nav/pathFoll
 
 import { BASE_ENTITY_ID } from "../entities/base/catalog";
 import { creepDef } from "../entities/enemies/catalog";
-import { session, nextCreepInstanceId, newSpeedStats } from "../session";
+import { gameClockMs, session, nextCreepInstanceId, newSpeedStats } from "../session";
 import { SPAWN_DIRECTOR_CONFIG } from "./manifest";
 import { PATH_WAYPOINTS } from "../world/path";
 
@@ -49,9 +49,9 @@ export function tickWaves(ctx: GameContext, dt: number): void {
   session.director = step.state;
   for (const spawn of step.spawns) spawnCreep(ctx, spawn.entryId);
 
-  const now = ctx.time.now();
+  const nowMs = gameClockMs(ctx);
   for (const creep of Array.from(session.creeps.values())) {
-    const speed = creep.speedStats.get("speed", now);
+    const speed = creep.speedStats.get("speed", nowMs);
     const next = advancePathFollow({ waypoints: PATH_WAYPOINTS, speed }, creep.path, dt);
     creep.path = next;
     ctx.scene.entity.setPose(creep.instanceId, { position: next.position, rotationY: next.heading, dt });

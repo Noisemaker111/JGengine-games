@@ -7,6 +7,7 @@ import { useGameStore } from "@jgengine/react/hooks";
 import { editorLayers } from "../../editorLayers";
 import { GOLD_CURRENCY } from "../entities/base/catalog";
 import { towerDef } from "../entities/towers/catalog";
+import { towerStats } from "../entities/towers/progression";
 import { session } from "../session";
 import { activeProjectiles } from "../combat/pendingProjectiles";
 import { BUILD_PLOTS, SPAWN_POINT } from "./path";
@@ -44,6 +45,29 @@ function BuildPlots() {
         );
       })}
     </>
+  );
+}
+
+/** Selection ring plus the live firing radius of the tower whose sell/upgrade panel is open. */
+function InspectedTower() {
+  const inspectedId = useGameStore(() => session.inspectedTowerId);
+  const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
+  const tower = inspectedId === null ? undefined : session.towers.get(inspectedId);
+  if (tower === undefined || level === 0) return null;
+  const plot = BUILD_PLOTS.find((candidate) => candidate.id === tower.plotId);
+  if (plot === undefined) return null;
+  const range = towerStats(towerDef(tower.catalogId, editorLayers), tower.level).range;
+  return (
+    <group position={[plot.position[0], plot.position[1], plot.position[2]]}>
+      <mesh position-y={0.33} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.5, 1.75, 32]} />
+        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.8} roughness={0.5} />
+      </mesh>
+      <mesh position-y={0.2} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[range - 0.12, range, 64]} />
+        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.5} transparent opacity={0.55} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </group>
   );
 }
 
@@ -107,6 +131,7 @@ export function TowerGuardWorldOverlay() {
     <>
       <SpawnGate />
       <BuildPlots />
+      <InspectedTower />
       <ProjectileBolts />
     </>
   );

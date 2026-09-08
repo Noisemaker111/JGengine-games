@@ -3,6 +3,8 @@ import { defineGame } from "@jgengine/shell/gameKit";
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
+import { GOLD_CURRENCY } from "./game/entities/base/catalog";
+import { currentWaveNumber, session } from "./game/session";
 import { keybinds } from "./game/keybinds";
 import { entityModels, scatterModels } from "./game/models";
 import { systems } from "./game/systems";
@@ -34,6 +36,30 @@ export const game = defineGame({
   WorldOverlay: TowerGuardWorldOverlay,
   worldHealthBars: { statId: "health" },
   pointer: { moveCommand: "tower.build" },
+  capture: {
+    states: {
+      "two-towers": [
+        "buildTower1",
+        { name: "tower.build", input: { point: [-12, 0, -3.2] } },
+        "buildTower1",
+        "buildTower2",
+        { name: "tower.build", input: { point: [0, 0, 4] } },
+      ],
+      "cannon-plot-1": ["buildTower2", { name: "tower.build", input: { point: [-36, 0, -15.2] } }, "buildTower2"],
+      "inspect-tower": [
+        "buildTower2",
+        { name: "tower.build", input: { point: [0, 0, 4] } },
+        "buildTower2",
+        { name: "tower.build", input: { point: [0, 0, 4] } },
+      ],
+    },
+    probe: (ctx) => ({
+      gold: ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY),
+      towers: session.towers.size,
+      creeps: session.creeps.size,
+      wave: currentWaveNumber(),
+    }),
+  },
   shadows: true,
   // Warm low sun rakes the relief so mounds, towers, and the keep cast long readable shadows; a cool
   // hemisphere fill keeps the shadow sides from going muddy black.

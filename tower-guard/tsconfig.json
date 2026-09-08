@@ -14,7 +14,12 @@
     "verbatimModuleSyntax": true,
     "types": [
       "vite/client"
-    ]
+    ],
+    "paths": {
+      "@/components/ui/*": [
+        "../../registry/jgengine/*"
+      ]
+    }
   },
   "include": [
     "src"

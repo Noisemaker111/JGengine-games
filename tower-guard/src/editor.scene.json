@@ -11,7 +11,7 @@
     { "id": "plot-6", "kind": "prop", "position": { "x": 6, "y": 0, "z": 14 }, "label": "Build plot", "meta": { "clearance": 3 } },
     { "id": "plot-7", "kind": "prop", "position": { "x": 24, "y": 0, "z": 16 }, "label": "Build plot", "meta": { "clearance": 3 } },
     { "id": "plot-8", "kind": "prop", "position": { "x": 12, "y": 0, "z": 16 }, "label": "Build plot", "meta": { "clearance": 3 } },
-    { "id": "plot-9", "kind": "prop", "position": { "x": 24, "y": 0, "z": 18 }, "label": "Build plot", "meta": { "clearance": 3 } }
+    { "id": "plot-9", "kind": "prop", "position": { "x": 30, "y": 0, "z": 18 }, "label": "Build plot", "meta": { "clearance": 3 } }
   ],
   "volumes": [],
   "paths": [

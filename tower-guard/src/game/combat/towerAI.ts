@@ -6,7 +6,8 @@ import { distance } from "@jgengine/core/world/vec3";
 
 import { editorLayers } from "../../editorLayers";
 import { towerDef, type TowerDef } from "../entities/towers/catalog";
-import { session } from "../session";
+import { towerStats, type TowerCombatStats } from "../entities/towers/progression";
+import { gameClockMs, session } from "../session";
 import { pushProjectile } from "./pendingProjectiles";
 
 const TOWER_ID = "__tower__";
@@ -36,29 +37,30 @@ export function chooseTarget(
   });
 }
 
-function applyDamage(ctx: GameContext, def: TowerDef, towerId: string, targetId: string): void {
-  ctx.scene.entity.effect({ from: towerId, to: targetId, effect: "damage", via: { amount: def.damage } });
-  if (def.splashRadius <= 0) return;
+function applyDamage(ctx: GameContext, stats: TowerCombatStats, towerId: string, targetId: string): void {
+  ctx.scene.entity.effect({ from: towerId, to: targetId, effect: "damage", via: { amount: stats.damage } });
+  if (stats.splashRadius <= 0) return;
   const target = ctx.scene.entity.get(targetId);
   if (target === null) return;
-  const splashTargets = ctx.scene.entity.inRadius(target.position, def.splashRadius, (id) => id !== targetId);
+  const splashTargets = ctx.scene.entity.inRadius(target.position, stats.splashRadius, (id) => id !== targetId);
   for (const id of splashTargets) {
     if (!session.creeps.has(id)) continue;
-    ctx.scene.entity.effect({ from: towerId, to: id, effect: "damage", via: { amount: def.damage * 0.5 } });
+    ctx.scene.entity.effect({ from: towerId, to: id, effect: "damage", via: { amount: stats.damage * 0.5 } });
   }
 }
 
-function applySlow(_ctx: GameContext, def: TowerDef, targetId: string, nowSeconds: number): void {
+function applySlow(def: TowerDef, targetId: string, nowMs: number): void {
   if (def.slow === undefined) return;
   const creep = session.creeps.get(targetId);
   if (creep === undefined) return;
   creep.speedStats.addSource(`slow:${def.id}`, { speed: { multiply: def.slow.factor } }, {
-    expiresAtMs: nowSeconds + def.slow.durationMs / 1000,
+    expiresAtMs: nowMs + def.slow.durationMs,
   });
 }
 
 export function tickTowers(ctx: GameContext, dt: number): void {
   const now = ctx.time.now();
+  const nowMs = gameClockMs(ctx);
   const candidates: TargetCandidate[] = [];
   for (const creep of session.creeps.values()) {
     const entity = ctx.scene.entity.get(creep.instanceId);
@@ -72,9 +74,10 @@ export function tickTowers(ctx: GameContext, dt: number): void {
   const scratch: PursuitState = { attackCooldown: 0 };
   for (const tower of session.towers.values()) {
     const def = towerDef(tower.catalogId, editorLayers);
+    const stats = towerStats(def, tower.level);
     const entity = ctx.scene.entity.get(tower.instanceId);
     const targetId =
-      entity === null ? null : chooseTarget(def.targeting, entity.position, def.range, candidates);
+      entity === null ? null : chooseTarget(def.targeting, entity.position, stats.range, candidates);
 
     scratch.attackCooldown = tower.cooldownSeconds;
     const action = advancePursuit(scratch, dt, targetId === null ? null : 0, Number.POSITIVE_INFINITY, "always");
@@ -84,10 +87,10 @@ export function tickTowers(ctx: GameContext, dt: number): void {
     const target = ctx.scene.entity.get(targetId);
     if (target === null) continue;
 
-    applyDamage(ctx, def, tower.instanceId, targetId);
-    applySlow(ctx, def, targetId, now);
-    pushProjectile(entity.position, target.position, def.boltColor, def.splashRadius, now);
-    armPursuit(scratch, 1 / def.fireRateHz);
+    applyDamage(ctx, stats, tower.instanceId, targetId);
+    applySlow(def, targetId, nowMs);
+    pushProjectile(entity.position, target.position, def.boltColor, stats.splashRadius, now);
+    armPursuit(scratch, 1 / stats.fireRateHz);
     tower.cooldownSeconds = scratch.attackCooldown;
   }
 }
