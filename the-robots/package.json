@@ -9,6 +9,7 @@
     "test": "bun test src"
   },
   "dependencies": {
+    "@jgengine/assets": "^0.18.1",
     "@jgengine/core": "^0.18.0",
     "@jgengine/editor": "^0.18.0",
     "@jgengine/react": "^0.18.0",
