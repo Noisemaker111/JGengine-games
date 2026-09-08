@@ -34,6 +34,10 @@ cd vice-isle && bun run dev
 
 Each game is a standalone Vite harness: `index.html` + `vite.config.ts` + `src/index.tsx`.
 
+See [published-package verification](GAME-PR-VERIFICATION.md) for the Loopline,
+Studio Showcase and Robots dependency pin, asset provisioning, checks and remaining
+playtest limits.
+
 ## Engine version
 
 Games depend on published `@jgengine/*@0.18.0` from npm. Bump via:

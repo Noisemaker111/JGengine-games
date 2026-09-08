@@ -1,4 +1,5 @@
 import { useGameStore } from "@jgengine/react/hooks";
+import type {} from "@react-three/fiber";
 
 import { session } from "../session";
 

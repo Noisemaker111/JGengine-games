@@ -197,7 +197,7 @@ describe("campaign chain", () => {
 });
 
 describe("settlement building kits", () => {
-  const publicRoot = join(import.meta.dir, "../../../../../apps/dev/public");
+  const publicRoot = join(import.meta.dir, "../../../public");
 
   test("every bound model is a file the game actually serves", () => {
     for (const kit of Object.values(SETTLEMENT_KITS)) {
