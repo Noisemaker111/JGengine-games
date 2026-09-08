@@ -5,7 +5,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
-import { noteEquipped, noteGameNow, noteLevelUp } from "./game/feel";
+import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
 import { enemyById, levelXpFor } from "./game/entities/enemies/catalog";
 import { lootTables } from "./game/entities/enemies/loot-tables";
@@ -277,6 +277,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickReloads(ctx, dt);
   tickFfyl(ctx, nowMs);
   tickZoneAndStations(ctx, nowMs);
+  notePlayerHealth(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? null);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };

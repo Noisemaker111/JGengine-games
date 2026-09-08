@@ -64,6 +64,18 @@ export function lastHurtAtMs(): number {
   return signals.lastHurtAtMs;
 }
 
+let lastHealth: number | null = null;
+
+/**
+ * Feed the player's current health once per tick; a drop from the previous reading counts as a hurt.
+ * Reading the stat covers every damage source — bullets, auras, burn ticks — without each one
+ * remembering to call {@link noteHurt}.
+ */
+export function notePlayerHealth(nowMs: number, health: number | null): void {
+  if (lastHealth !== null && health !== null && health < lastHealth) noteHurt(nowMs);
+  lastHealth = health;
+}
+
 export function noteLevelUp(atMs: number): void {
   signals.lastLevelUpAtMs = atMs;
 }
@@ -94,6 +106,7 @@ export function equippedGun(): string | null {
 
 export function resetFeel(): void {
   equippedGunId = null;
+  lastHealth = null;
   signals.lastShotAtMs = NEVER_MS;
   signals.lastHit = { atMs: NEVER_MS, crit: false, kill: false };
   signals.lastHurtAtMs = NEVER_MS;

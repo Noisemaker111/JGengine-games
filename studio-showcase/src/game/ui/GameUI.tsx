@@ -1,19 +1,9 @@
 import { useSyncExternalStore } from "react";
 
-import { useEntityStat, usePlayer } from "@jgengine/react/hooks";
+import { HealthBar } from "@jgengine/react/bars";
 import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/shell/gameKit";
 
 import { currentAnnouncement, subscribeAnnouncement } from "../triggers";
-
-function HealthPill() {
-  const { userId } = usePlayer();
-  const health = useEntityStat(userId, "health");
-  return (
-    <div className="rounded-sm bg-black/70 px-3 py-1 text-sm font-bold text-emerald-300">
-      {Math.round(health?.current ?? 0)} / {Math.round(health?.max ?? 0)} HP
-    </div>
-  );
-}
 
 function TriggerBanner() {
   const announcement = useSyncExternalStore(subscribeAnnouncement, currentAnnouncement, () => null);
@@ -36,7 +26,7 @@ export function GameUI() {
   return (
     <HudCanvas layout={layout} className="z-20 font-sans text-slate-100">
       <HudPanel id="health" anchor="bottom-left" compact="keep" interactive={false}>
-        <HealthPill />
+        <HealthBar label="HP" shape="pill" width={220} />
       </HudPanel>
       <HudPanel id="trigger-banner" anchor="top" compact="keep" interactive={false}>
         <TriggerBanner />
