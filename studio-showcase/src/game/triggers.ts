@@ -4,6 +4,7 @@ import {
   getTriggerAction,
   listTriggerActions,
   registerBuiltinTriggerActions,
+  registerTriggerAction,
   type AuthoredTriggerRuntime,
   type TriggerDispatchEvent,
 } from "@jgengine/core/scene/authoredTriggers";
@@ -15,11 +16,33 @@ import { editorLayers } from "../editorLayers";
 // now, so the showcase just registers the built-ins and supplies a handler — no bespoke action schema.
 registerBuiltinTriggerActions();
 
+/** Game-declared trigger action: a zone that drains the entering actor's health until it leaves. */
+export const HAZARD_ACTION = "hazard";
+
+registerTriggerAction({
+  id: HAZARD_ACTION,
+  label: "Hazard (drain health)",
+  schema: {
+    fields: [
+      { type: "number", key: "damagePerSecond", label: "Damage per second", default: 10, min: 0, step: 1 },
+      { type: "text", key: "message", label: "Message", default: "Hazard — health draining" },
+    ],
+  },
+  targets: ["volume"],
+  events: ["enter"],
+});
+
 export type Announcement = {
   message: string;
   tone: string;
   at: number;
 };
+
+export interface ActiveHazard {
+  /** Volume id the actor entered; `tickHealth` keeps draining while the actor is still inside it. */
+  sourceId: string;
+  damagePerSecond: number;
+}
 
 // Single-slot announcement store on top of the shared toast-feed primitive. `cap: 1` gives the same
 // replace-on-next-announce behavior the hand-rolled `lastAnnouncement` variable had; unlike a HUD toast,
@@ -27,10 +50,18 @@ export type Announcement = {
 const announcementQueue: ToastQueue<Announcement> = createToastQueue<Announcement>({ cap: 1 });
 
 let runtime: AuthoredTriggerRuntime | null = null;
+let activeHazard: ActiveHazard | null = null;
 const listeners = new Set<() => void>();
 
 function notify(): void {
   for (const listener of listeners) listener();
+}
+
+/** Replace the HUD banner text; `tone` is one of the announce action's `info`/`warn`/`good`. */
+export function announce(message: string, tone: string): void {
+  const at = Date.now();
+  announcementQueue.push({ message, tone, at }, at, Number.POSITIVE_INFINITY);
+  notify();
 }
 
 function ensureRuntime(): AuthoredTriggerRuntime {
@@ -44,13 +75,11 @@ function ensureRuntime(): AuthoredTriggerRuntime {
     triggers,
     handlers: {
       announce: (event: TriggerDispatchEvent) => {
-        const at = Date.now();
-        announcementQueue.push(
-          { message: String(event.params.message ?? "Entered zone"), tone: String(event.params.tone ?? "info"), at },
-          at,
-          Number.POSITIVE_INFINITY,
-        );
-        notify();
+        announce(String(event.params.message ?? "Entered zone"), String(event.params.tone ?? "info"));
+      },
+      [HAZARD_ACTION]: (event: TriggerDispatchEvent) => {
+        activeHazard = { sourceId: event.sourceId, damagePerSecond: Number(event.params.damagePerSecond ?? 10) };
+        announce(String(event.params.message ?? "Hazard — health draining"), "warn");
       },
     },
   });
@@ -68,6 +97,15 @@ export function subscribeAnnouncement(listener: () => void): () => void {
   return () => {
     listeners.delete(listener);
   };
+}
+
+/** The hazard zone the player most recently entered, until `clearHazard` runs. */
+export function currentHazard(): ActiveHazard | null {
+  return activeHazard;
+}
+
+export function clearHazard(): void {
+  activeHazard = null;
 }
 
 /** Watch authored triggers against the local player; call from onTick. */
