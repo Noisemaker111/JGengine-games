@@ -226,7 +226,7 @@ const SCRAP = { metalness: 0.55, roughness: 0.68, maps: SCRAP_METAL_MAPS } as co
 export const objectModels: Record<string, ModelConfig> = resolveModelPlan(assets, {
   red_chest: {
     model: `${SCIFI}/Prop_Chest`,
-    fallbackModel: "dungeon/chest",
+    fallbackModel: `${SCIFI}/Prop_Crate4`,
     style: { scale: 2.3, material: { color: "#8f2d24", ...PANEL, emissive: "#e23c2e", emissiveIntensity: 0.35 } },
   },
   ammo_chest: {

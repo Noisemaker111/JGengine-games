@@ -8,6 +8,7 @@ import {
   muzzleFlashVisible,
   noteHit,
   noteHurt,
+  notePlayerHealth,
   noteShot,
   recoilAt,
   resetFeel,
@@ -47,6 +48,21 @@ describe("feel signals", () => {
     expect(lastHurtAtMs()).toBe(9100);
     resetFeel();
     expect(lastHit().atMs).toBe(NEVER_MS);
+    expect(lastHurtAtMs()).toBe(NEVER_MS);
+  });
+
+  test("a health drop between ticks marks a hurt; the first reading and heals do not", () => {
+    resetFeel();
+    notePlayerHealth(1000, 90);
+    expect(lastHurtAtMs()).toBe(NEVER_MS);
+    notePlayerHealth(1100, 90);
+    expect(lastHurtAtMs()).toBe(NEVER_MS);
+    notePlayerHealth(1200, 70);
+    expect(lastHurtAtMs()).toBe(1200);
+    notePlayerHealth(1300, 90);
+    expect(lastHurtAtMs()).toBe(1200);
+    resetFeel();
+    notePlayerHealth(2000, 40);
     expect(lastHurtAtMs()).toBe(NEVER_MS);
   });
 });
