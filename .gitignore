@@ -8,3 +8,7 @@ shots/
 **/public/materials/*
 !**/public/materials/imported/
 *.tsbuildinfo
+
+# One checkout home and one scratch folder (JonsOCsetup docs/worktrees.md)
+.claude/worktrees/
+.scratch/
