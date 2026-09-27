@@ -10,3 +10,5 @@ export const assets: AssetCatalog = buildCatalog({
 export const materials = buildMaterialCatalog({ basePath: "/materials" });
 
 export const groundMaterial = materials.resolve("ambientcg-grass001")!;
+export const plasterMaterial = materials.resolve("ambientcg-plaster001")!;
+export const roofTileMaterial = materials.resolve("ambientcg-roofingtiles001")!;
