@@ -1,0 +1,111 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #14100c;
+}
+
+.scrap-plate {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+/*
+ * Legibility bed for the readouts that float over the world instead of sitting on a panel. Ferralon
+ * is a bright desert: sunlit sand runs near 200 luminance, which swallows the small grey type on the
+ * ammo plate entirely. A soft corner falloff — no edge, no border — gives that type its own value
+ * without turning a floating readout into another box.
+ */
+.scrap-scrim-corner {
+  background: radial-gradient(
+    120% 150% at 100% 100%,
+    rgba(8, 9, 11, 0.72) 0%,
+    rgba(8, 9, 11, 0.44) 42%,
+    rgba(8, 9, 11, 0) 76%
+  );
+}
+
+.scrap-hitmarker {
+  animation: scrap-hit-pop 220ms ease-out forwards;
+}
+
+@keyframes scrap-hit-pop {
+  0% {
+    transform: scale(1.6);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.scrap-levelup {
+  animation: scrap-levelup-in 2200ms ease-out forwards;
+}
+
+.scrap-levelup-ring {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border: 4px solid #ffb400;
+  border-radius: 9999px;
+  animation: scrap-levelup-ring 900ms ease-out forwards;
+}
+
+@keyframes scrap-levelup-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 0;
+  }
+}
+
+@keyframes scrap-levelup-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(6);
+    opacity: 0;
+  }
+}
+
+.scrap-banner {
+  animation: scrap-banner-in 4000ms ease-out forwards;
+}
+
+@keyframes scrap-banner-in {
+  0% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+  8% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

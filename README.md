@@ -2,40 +2,40 @@
 
 Playable probe games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the published `@jgengine/*` packages (`^0.18.0`).
 
-These are **not templates** — they are engine-gap probes (some recreate well-known titles for feel testing) and their content is not licensed for reuse. To build a new game, use `npx jgengine create` in the engine repo, not a copy of a game here.
+These games use familiar genres with their own titles, settings, characters, and authored content. They also probe engine capabilities. To build a new game, use `npx jgengine create`; assets and upstream source retain their individual licenses.
 
 ## Games
 
 | Game | Id | Description |
 | --- | --- | --- |
-| Claudecraft | `claudecraft` | World of Warcraft homage |
-| Duet Keys | `duet-keys` | Co-op puzzle |
-| Ironhold | `ironhold` | Warcraft III RTS skirmish |
-| Loopline | `loopline` | Park-builder tycoon |
-| Spire Cards | `spire-cards` | Deckbuilder |
-| Starhome | `starhome` | Alien household sim |
-| Studio Showcase | `studio-showcase` | Environment studios showcase |
-| The Robots | `the-robots` | Looter-shooter |
-| Tower Guard | `tower-guard` | Tower defense |
-| Vaultbreak | `vaultbreak` | Extraction RPG |
-| Vice Isle | `vice-isle` | GTA / Borderlands open world |
-| Wreckway | `wreckway` | Physics racer |
+| Lantern Reach | `lantern-reach` | Lantern-lit frontier adventure |
+| Resonant Crossing | `resonant-crossing` | Co-op puzzle |
+| Ember Command | `ember-command` | Highland command skirmish |
+| Brightway Park | `brightway-park` | Park-builder tycoon |
+| Wayfarer Deck | `wayfarer-deck` | Deckbuilder |
+| Odd Orbit | `odd-orbit` | Alien household sim |
+| Field Station | `field-station` | Environment studios showcase |
+| Scrap Signal | `scrap-signal` | Looter-shooter |
+| Beacon Bastion | `beacon-bastion` | Tower defense |
+| Deepward | `deepward` | Extraction RPG design (no playable app yet) |
+| Harbor Heat | `harbor-heat` | Coastal courier and crew adventure |
+| Drift Foundry | `drift-foundry` | Physics racer |
 
-See [CLASSICS.md](./CLASSICS.md) for inspirations.
+See [the genre roadmap](./CLASSICS.md) for planned mechanics and [content provenance](./CONTENT-PROVENANCE.md) for source and asset attribution.
 
 ## Develop
 
 ```sh
 bun install
-bun run dev:vice-isle   # or any game id
+bun run dev:harbor-heat   # or any game id
 # or inside a game:
-cd vice-isle && bun run dev
+cd harbor-heat && bun run dev
 ```
 
 Each game is a standalone Vite harness: `index.html` + `vite.config.ts` + `src/index.tsx`.
 
-See [published-package verification](GAME-PR-VERIFICATION.md) for the Loopline,
-Studio Showcase and Robots dependency pin, asset provisioning, checks and remaining
+See [published-package verification](GAME-PR-VERIFICATION.md) for the Brightway Park,
+Field Station and Scrap Signal dependency pin, asset provisioning, checks and remaining
 playtest limits.
 
 ## Engine version

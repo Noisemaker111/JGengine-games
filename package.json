@@ -23,17 +23,17 @@
     "test": "bun test",
     "test:games": "bun test",
     "check-types": "bun --filter='*' run check-types",
-    "dev:claudecraft": "bun run --cwd claudecraft dev",
-    "dev:duet-keys": "bun run --cwd duet-keys dev",
-    "dev:ironhold": "bun run --cwd ironhold dev",
-    "dev:loopline": "bun run --cwd loopline dev",
-    "dev:spire-cards": "bun run --cwd spire-cards dev",
-    "dev:starhome": "bun run --cwd starhome dev",
-    "dev:studio-showcase": "bun run --cwd studio-showcase dev",
-    "dev:the-robots": "bun run --cwd the-robots dev",
-    "dev:tower-guard": "bun run --cwd tower-guard dev",
-    "dev:vice-isle": "bun run --cwd vice-isle dev",
-    "dev:wreckway": "bun run --cwd wreckway dev"
+    "dev:lantern-reach": "bun --cwd=lantern-reach run dev",
+    "dev:resonant-crossing": "bun --cwd=resonant-crossing run dev",
+    "dev:ember-command": "bun --cwd=ember-command run dev",
+    "dev:brightway-park": "bun --cwd=brightway-park run dev",
+    "dev:wayfarer-deck": "bun --cwd=wayfarer-deck run dev",
+    "dev:odd-orbit": "bun --cwd=odd-orbit run dev",
+    "dev:field-station": "bun --cwd=field-station run dev",
+    "dev:scrap-signal": "bun --cwd=scrap-signal run dev",
+    "dev:beacon-bastion": "bun --cwd=beacon-bastion run dev",
+    "dev:harbor-heat": "bun --cwd=harbor-heat run dev",
+    "dev:drift-foundry": "bun --cwd=drift-foundry run dev"
   },
   "overrides": {
     "@jgengine/editor": "0.18.0"
