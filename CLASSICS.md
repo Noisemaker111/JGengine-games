@@ -1,6 +1,6 @@
-# Classic Games Roadmap
+# Original Games Genre Roadmap
 
-The master catalog of classic puzzle, card, arcade, and parlor games for JGengine — every game here either ships under `Games/*` or is queued for a wave. Mechanics are homages; names, art, and levels are original. Lineage credits live in [`CREDITS.md`](../CREDITS.md) and on each game's HUD.
+Genre ideas for independently authored JGengine games. A queued mechanic is not a promise to reproduce another game’s names, characters, art, or levels. Source and asset acknowledgments belong in [content provenance](./CONTENT-PROVENANCE.md) and the appropriate game credits.
 
 Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 
@@ -22,7 +22,7 @@ Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 | Gin Rummy | W3 | |
 | Spades | W3 | |
 | Cribbage | W3 | |
-| Deckbuilder roguelike | ✅ | `spire-cards` |
+| Deckbuilder roguelike | ✅ | `wayfarer-deck` |
 
 ## Grid logic
 
@@ -32,19 +32,19 @@ Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 | Minesweeper (co-op 3D) | ❌ | |
 | 2048 | ❌ | |
 | 15 Puzzle | ❌ | |
-| Sokoban | ❌ | |
+| Crate-pushing puzzle | ❌ | |
 | Sudoku | ❌ | |
-| Nonogram / Picross | ❌ | |
+| Picture logic | ❌ | |
 | Lights Out | ❌ | |
 | Peg Solitaire | ❌ | |
-| Mastermind | ❌ | |
-| Simon | ❌ | |
+| Code-breaking pegs | ❌ | |
+| Sequence memory | ❌ | |
 | Tic-Tac-Toe | W2 | |
-| Connect Four | ❌ | |
-| Reversi / Othello | ❌ | |
-| Battleship | W2 | |
+| Four-in-a-row | ❌ | |
+| Disc reversal | ❌ | |
+| Hidden fleet search | W2 | |
 | Dots and Boxes | W2 | |
-| Pipe Mania | W2 | |
+| Pipe routing | W2 | |
 | Checkers | W3 | |
 | Chess | W3 | |
 | Hangman | W3 | |
@@ -58,23 +58,23 @@ Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 
 | Game | Status | id |
 | --- | --- | --- |
-| Falling blocks (Tetris lineage) | ❌ | |
-| Maze chase (Pac-Man lineage) | ❌ | |
+| Falling blocks | ❌ | |
+| Maze chase | ❌ | |
 | Match-3 | ❌ | |
 | Snake | ❌ | |
-| Breakout | ❌ | |
-| Pong | ❌ | |
-| Columns | W2 | |
-| Chain-drop (Puyo lineage) | W2 | |
+| Brick-bounce arcade | ❌ | |
+| Paddle rally | ❌ | |
+| Vertical trio matching | W2 | |
+| Chain-drop matching | W2 | |
 | Bubble shooter | ❌ | |
-| Space Invaders | ❌ | |
-| Asteroids | ❌ | |
-| Missile Command | W2 | |
-| Lunar Lander | W2 | |
-| Centipede | W3 | |
-| Dig Dug lineage | W3 | |
-| Q*bert lineage | W3 | |
-| Klax | W3 | |
+| Formation shooter | ❌ | |
+| Inertial space survival | ❌ | |
+| Intercept defense | W2 | |
+| Fuel-limited landing | W2 | |
+| Segmented crawler shooter | W3 | |
+| Underground excavation | W3 | |
+| Isometric tile hopping | W3 | |
+| Tile-catching stacks | W3 | |
 
 ## Physics & parlor
 
@@ -82,10 +82,10 @@ Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 | --- | --- | --- |
 | Pachinko | ❌ | |
 | Pinball | ❌ | |
-| Peg-bounce scorer (Peggle lineage) | W2 | |
+| Peg-bounce scoring | W2 | |
 | Mahjong Solitaire | ❌ | |
-| Yahtzee | ❌ | |
-| Skee-ball | W3 | |
+| Five-dice scoring | ❌ | |
+| Ramp ball scoring | W3 | |
 | Air hockey | W3 | |
 | Darts | W3 | |
 | Dominoes | W3 | |
