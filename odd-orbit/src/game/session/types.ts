@@ -29,7 +29,18 @@ export interface LifeEvent {
   tone: "info" | "good" | "milestone";
 }
 
+export interface OrbitChallenge {
+  phase: "welcome" | "active" | "won" | "recovery" | "sandbox";
+  elapsed: number;
+  earned: number;
+  built: number;
+  comfort: number;
+}
+
 export interface HouseholdState {
+  /** Optional for compatibility with households saved before the first-orbit challenge. */
+  orbit?: OrbitChallenge;
+  saveMessage?: string;
   seed: string;
   members: Record<string, MemberState>;
   order: string[];
@@ -52,6 +63,7 @@ export function pairKey(a: string, b: string): string {
 export function createHousehold(seed: string): HouseholdState {
   return {
     seed,
+    orbit: { phase: "welcome", elapsed: 0, earned: 0, built: 0, comfort: 0 },
     members: {},
     order: [],
     relationships: {},

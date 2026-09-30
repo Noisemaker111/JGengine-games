@@ -69,6 +69,9 @@ export function Inspector(): ReactNode {
         </div>
       </div>
 
+      <div className="oo-care" aria-label="Direct selected being">
+        {[ ["hunger", "Nourish"], ["energy", "Rest"], ["social", "Bond"], ["fun", "Play"], ["work", "Work"], ["auto", "Free will"] ].map(([goal, label]) => <button key={goal} onClick={() => commands.run("member.direct", { goal })}>{label}</button>)}
+      </div>
       <p className="rounded-md bg-white/5 px-2 py-1.5 text-[10px] leading-snug text-slate-400">
         Click a furnishing to send {member.name.split(" ")[0]} to use it.
       </p>

@@ -35,6 +35,7 @@ export function TopBar(): ReactNode {
           onClick={() => commands.run("pauseToggle", {})}
           className="rounded-md bg-white/10 px-2 py-1 text-xs font-bold text-slate-100 hover:bg-white/20"
           title="Pause / resume (Space)"
+          aria-label={clock.paused ? "Resume time" : "Pause household"}
         >
           {clock.paused ? "▶" : "❚❚"}
         </button>
