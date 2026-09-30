@@ -65,7 +65,9 @@ test("saved run reload retains piles, turn, energy and subsequent outcomes", () 
     second.run.resume(second.ctx);
     first.run.endTurn(first.ctx); second.run.endTurn(second.ctx);
     expect(second.combat.getSnapshot()).toEqual(first.combat.getSnapshot());
-    second.ctx.scene.entity.effect({ from: second.ctx.player.userId, to: ENEMY_ID, effect: "strike", via: { amount: 999 } });
+    second.ctx.scene.entity.stats.set(ENEMY_ID, "health", {current: 1});
+    const finisher = second.combat.getSnapshot().hand.find(entry => entry.card.effects.damage && entry.card.cost <= second.combat.getSnapshot().energy.current)!;
+    second.run.playCard(second.ctx, finisher.id);
     const reward = JSON.parse(storage.get(SAVE_KEY)!);
     expect(validRoadSave(reward)).toBe(true);
     const third = boot();
@@ -79,6 +81,16 @@ test("saved run reload retains piles, turn, energy and subsequent outcomes", () 
     expect(preview.run.getSnapshot().canContinue).toBe(false);
     preview.run.start(preview.ctx); preview.run.endTurn(preview.ctx);
     expect(storage.get(SAVE_KEY)).toBe(beforePreview);
+    third.run.start(third.ctx);
+    for (let turn = 0; turn < 20 && third.run.getSnapshot().phase === "combat"; turn++) third.run.endTurn(third.ctx);
+    expect(third.run.getSnapshot().phase).toBe("defeat");
+    expect(third.combat.getSnapshot().hero.hp).toBe(0);
+    expect(third.combat.getSnapshot().hero.maxHp).toBe(72);
+    expect(validRoadSave(JSON.parse(storage.get(SAVE_KEY)!))).toBe(true);
+    const lost = boot();
+    expect(lost.run.getSnapshot().phase).toBe("defeat");
+    lost.run.resume(lost.ctx);
+    expect(gamePhase(lost.ctx)).toBe("ended");
     const bad = structuredClone(saved); bad.combat.turn.pools.hero.energy = -1;
     expect(validRoadSave(bad)).toBe(false);
     storage.set(SAVE_KEY, "broken save");

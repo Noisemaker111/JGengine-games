@@ -264,7 +264,8 @@ export function createCombatStore(): CombatStore {
       },
       hero: {
         hp: heroHealth.current,
-        maxHp: heroHealth.max,
+        // The host death system removes stats before the final combat sync.
+        maxHp: heroHealth.max || snapshot.hero.maxHp || 72,
         block: statValue(ctx, hero, "block").current,
         strength: strengthOf(ctx, hero),
         weak: weakOf(ctx, hero),
@@ -274,7 +275,7 @@ export function createCombatStore(): CombatStore {
         name: current.enemy.name,
         tier: current.enemy.tier,
         hp: enemyHealth.current,
-        maxHp: enemyHealth.max,
+        maxHp: enemyHealth.max || current.enemy.maxHp,
         block: statValue(ctx, ENEMY_ID, "block").current,
         strength: strengthOf(ctx, ENEMY_ID),
         weak: weakOf(ctx, ENEMY_ID),
