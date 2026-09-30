@@ -19,7 +19,10 @@ export function SessionUI() {
   const save = useGameStore((ctx) => ctx.game.save);
   // Saves have their own signal; the paused world cannot drive this status label.
   const saveStatus = useSyncExternalStore<keyof typeof SAVE_LABELS>(save?.subscribe ?? ignoreSaveChanges, () => save?.status() ?? "unavailable", () => "unavailable");
-  useEffect(() => { commands.run("session.settings", { open: settings.isOpen }); }, [commands, settings.isOpen]);
+  useEffect(() => {
+    // A restored snapshot can reset transient stores while the settings provider stays open.
+    if (session.settings !== settings.isOpen) commands.run("session.settings", { open: settings.isOpen });
+  }, [commands, settings.isOpen, session.settings]);
   useEffect(() => {
     function key(event: KeyboardEvent) {
       if (event.code !== "KeyP" || event.repeat || !started || settings.isOpen || session.notice) return;
