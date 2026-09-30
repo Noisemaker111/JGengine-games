@@ -41,6 +41,7 @@ export function tickHealth(ctx: GameContext, dt: number): boolean {
     const [x, y, z] = entity.position;
     if (volume === undefined || !pointInVolume(volume, { x, y, z })) {
       clearHazard();
+      resetDamageFeedback();
       hazard = null;
       announce("Clear of the hazard — health regenerating", "good");
     }
@@ -52,6 +53,7 @@ export function tickHealth(ctx: GameContext, dt: number): boolean {
     regenPerSecond: player.regenPerSecond,
     dt,
   });
+  if (hazard === null) resetDamageFeedback();
   if (delta === 0 || (delta > 0 && health.current >= health.max)) return false;
   ctx.scene.entity.stats.delta(id, "health", delta);
   if (delta > 0) return false;
