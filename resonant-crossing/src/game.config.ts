@@ -52,6 +52,7 @@ export const game = defineGame({
     beforeCommit(frame) {
       const store = duetStore.peek(frame.ctx);
       if (store === undefined) return undefined;
+      if (store.status !== "playing") return frame.current;
       const room = ROOMS[store.roomIndex];
       if (room === undefined) return undefined;
       const state = currentRoomState(frame.ctx, room);
@@ -61,9 +62,9 @@ export const game = defineGame({
     },
   },
   lighting: {
-    ambient: { color: "#43518a", intensity: 0.6 },
-    hemisphere: { skyColor: "#33417a", groundColor: "#0b1020", intensity: 0.55 },
-    directional: [{ color: "#e6ecff", intensity: 1.05, position: [8, 20, 10], castShadow: true, shadowCameraSize: 22 }],
+    ambient: { color: "#7eacc2", intensity: 0.8 },
+    hemisphere: { skyColor: "#bbdce4", groundColor: "#283247", intensity: 0.8 },
+    directional: [{ color: "#ffe5bd", intensity: 2.2, position: [4, 16, 6], castShadow: true, shadowCameraSize: 22 }],
   },
   backdrop: {
     background: "#080b18",
