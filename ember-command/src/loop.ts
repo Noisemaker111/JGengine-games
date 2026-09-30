@@ -1,6 +1,6 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { session } from "./game/session";
+import { matchRunning } from "./game/session";
 import { setupSkirmish } from "./game/world/scene";
 
 /** @internal Spawn the roster and wire the skirmish once, at world boot. */
@@ -11,11 +11,12 @@ export function onInit(ctx: GameContext): void {
 /** @internal No avatar — Ember Command is a commander-view RTS, so a joining player controls the army. */
 export function onNewPlayer(_ctx: GameContext): void {}
 
-/** @internal Keyboard verbs the pointer can't carry: the command-card grid hotkeys (Q W E R · A S
- * D · Z X C) map straight onto the console buttons. */
+/** @internal Command-card hotkeys mirror the buttons without conflicting with camera panning. */
 export function onTick(ctx: GameContext, _dt: number): void {
-  if (session.over) return;
-  if (ctx.input.justPressed("attackMove")) session.attackMoveArmed = true;
+  if (!matchRunning()) return;
+  if (ctx.input.justPressed("attackMove")) ctx.game.commands.run("unit.attackMove", {});
+  if (ctx.input.justPressed("rally")) ctx.game.commands.run("unit.rally", {});
+  if (ctx.input.justPressed("hold")) ctx.game.commands.run("unit.hold", {});
   if (ctx.input.justPressed("trainPeasant")) ctx.game.commands.run("train.peasant", {});
   if (ctx.input.justPressed("trainFootman")) ctx.game.commands.run("train.footman", {});
   if (ctx.input.justPressed("trainRifleman")) ctx.game.commands.run("train.rifleman", {});

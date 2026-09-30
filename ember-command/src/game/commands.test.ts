@@ -3,7 +3,8 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
 import { canTrain, orderSelection } from "./commands";
-import { activeJobs, queuedJobs } from "@jgengine/core/gameplay";
+import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
+import { TRAINING_CONFIG } from "./production";
 import { resetSession, session } from "./session";
 
 function ctxWith(positions: Map<string, EntityPosition>, wallet: Record<string, number> = {}): GameContext {
@@ -41,6 +42,8 @@ describe("right-click order routing", () => {
     orderSelection(ctx, { selection: ["f1", "f2"], point: [10, 0, 10] });
     expect(session.units.get("f1")!.command.kind).toBe("move");
     expect(session.units.get("f2")!.command.kind).toBe("move");
+    expect(session.units.get("f1")!.guardPoint?.x).toBeGreaterThan(5);
+    expect(session.units.get("f1")!.guardPoint?.z).toBeGreaterThan(5);
   });
 
   test("clicking a hostile focus-fires it", () => {
@@ -105,6 +108,32 @@ describe("base building", () => {
     session.buildArmed = "farm";
     orderSelection(ctx, { selection: [], point: [0, 0, -30] });
     expect(activeJobs(session.buildQueue).length + queuedJobs(session.buildQueue).length).toBe(0);
+    expect(session.buildArmed).toBe("farm"); // keep the tool armed for a retry
+  });
+
+  test("construction reserves its footprint before a building appears", () => {
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
+    session.buildArmed = "farm";
+    orderSelection(ctx, { selection: [], point: [10, 0, 10] });
+    session.buildArmed = "farm";
+    orderSelection(ctx, { selection: [], point: [11, 0, 10] });
+    expect(activeJobs(session.buildQueue).length + queuedJobs(session.buildQueue).length).toBe(1);
+    expect(session.buildArmed).toBe("farm");
+  });
+
+  test("queued recruits reserve supply and paused orders cannot spend gold", () => {
+    session.units.set("hall", { id: "hall", catalogId: "keep_player", faction: "player", kind: "building", command: { kind: "idle" }, leash: 0, attackCooldown: 0 });
+    session.supplyCap = 1;
+    const result = enqueue(session.production, TRAINING_CONFIG, { unitId: "peasant" });
+    if (!result.ok) throw new Error("Failed to queue a peasant");
+    session.production = result.state;
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
+    expect(canTrain(ctx, "peasant")).toBe(false);
+    session.paused = true;
+    session.buildArmed = "farm";
+    orderSelection(ctx, { selection: [], point: [10, 0, 10] });
+    expect(ctx.game.economy.balance("commander", "gold")).toBe(500);
+    expect(activeJobs(session.buildQueue).length).toBe(0);
   });
 
   test("Footman/Rifleman need a Barracks; Peasant does not", () => {

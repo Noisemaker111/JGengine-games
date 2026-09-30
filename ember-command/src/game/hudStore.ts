@@ -2,7 +2,7 @@
  * counts into it a few times a second; the death handler stamps the final outcome. Kept separate
  * from `session` so React reads an immutable snapshot and only re-renders when a field changes. */
 
-export type MatchPhase = "playing" | "won" | "lost";
+export type MatchPhase = "ready" | "playing" | "paused" | "won" | "lost";
 
 /** One live entry in the army row: a player combat unit with its current health. */
 export interface ArmyUnit {
@@ -13,6 +13,10 @@ export interface ArmyUnit {
 }
 
 export interface HudSnapshot {
+  elapsed: number;
+  foodReserved: number;
+  rallyArmed: boolean;
+  notice: string;
   phase: MatchPhase;
   gold: number;
   lumber: number;
@@ -50,6 +54,10 @@ export interface HudSnapshot {
 }
 
 const initial: HudSnapshot = {
+  elapsed: 0,
+  foodReserved: 0,
+  rallyArmed: false,
+  notice: "Select your workers and right-click a gold seam or logging camp.",
   phase: "playing",
   gold: 0,
   lumber: 0,
@@ -95,6 +103,10 @@ const listeners = new Set<() => void>();
 function changed(next: HudSnapshot): boolean {
   const p = snapshot;
   return (
+    p.elapsed !== next.elapsed ||
+    p.foodReserved !== next.foodReserved ||
+    p.rallyArmed !== next.rallyArmed ||
+    p.notice !== next.notice ||
     p.phase !== next.phase ||
     p.gold !== next.gold ||
     p.lumber !== next.lumber ||
