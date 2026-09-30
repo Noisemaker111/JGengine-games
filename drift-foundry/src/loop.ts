@@ -2,6 +2,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
 
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
+import { upgradeBodies } from "./game/art/upgrades";
 import { createRunSession, runSessionStore, type RunSession } from "./game/run/session";
 import { createWorldRuntime, driveInputStore, worldRuntimeStore } from "./game/run/store";
 import { createDriveInput } from "./game/vehicle/input";
@@ -83,6 +84,7 @@ export function onTick(ctx: GameContext, dt: number): void {
   );
 
   syncPickupMarkers(ctx, snapshot.collectedIds, currentWorld.removedMarkers);
+  ctx.scene.entity.bind("installed-upgrades").sync(upgradeBodies(ctx.player.userId, snapshot), dt);
   syncClearedGates(ctx, snapshot.clearedGateIds, currentWorld.removedGates);
   syncCompactorRow(ctx, snapshot.compactorZ, currentWorld.propRows, currentWorld.cursor);
   currentWorld.lastRunTime = snapshot.runTime;
