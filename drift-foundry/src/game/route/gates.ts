@@ -107,12 +107,15 @@ export function inLane(x: number, laneX: readonly [number, number]): boolean {
   return x >= laneX[0] && x <= laneX[1];
 }
 
-export function blockedZ(x: number, currentZ: number, candidateZ: number, tuning: KartTuning): number {
+/** Springs alone cannot clear a stack: the chassis must actually be above its 0.52m crest. */
+export const JUMP_CLEARANCE = 0.65;
+
+export function blockedZ(x: number, currentZ: number, candidateZ: number, tuning: KartTuning, airHeight = 0): number {
   let maxZ = candidateZ;
   for (const gate of ROUTE_GATES) {
     if (!inLane(x, gate.laneX)) continue;
     if (currentZ > gate.atZ) continue;
-    if (gateSatisfied(gate, tuning)) continue;
+    if (gateSatisfied(gate, tuning) && (gate.requirement === "plow" || airHeight >= JUMP_CLEARANCE)) continue;
     if (candidateZ > gate.atZ) maxZ = Math.min(maxZ, gate.atZ);
   }
   return maxZ;

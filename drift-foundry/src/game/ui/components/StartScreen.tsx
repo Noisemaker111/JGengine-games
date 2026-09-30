@@ -1,88 +1,31 @@
-import { actionLabel } from "@jgengine/core/input/actionBindings";
-import { ControlsList, KeyHint, SettingsTrigger, StartScreen as MenuScreen } from "@jgengine/react";
+import { SettingsTrigger } from "@jgengine/react";
+import type { RunRecords } from "../../run/records";
 
-import { keybinds } from "../../keybinds";
-import { PARTS, PART_SLOTS } from "../../parts/catalog";
-import { PartIcon } from "./PartIcon";
-
-interface StartScreenProps {
-  onStart: () => void;
-  onCredits: () => void;
-}
-
-export function StartScreen({ onStart, onCredits }: StartScreenProps) {
-  return (
-    <MenuScreen
-      className="pointer-events-auto absolute inset-0 flex items-center justify-center overflow-y-auto bg-[#1c1a17]/90 p-4"
-      settings={<SettingsTrigger />}
-      settingsWrapperClassName="absolute right-4 top-4 z-10"
-    >
-      <div className="w-full max-w-3xl rounded-lg border-2 border-[#b7410e] bg-[#241f19] p-6 shadow-[0_0_40px_rgba(0,0,0,0.6)] sm:p-8">
-        <p className="text-xs font-black tracking-[0.3em] text-[#f0c419]">PIT RADIO — CHANNEL 6</p>
-        <h1 className="mt-1 text-4xl font-black tracking-tight text-[#fef3e0] sm:text-6xl">DRIFT FOUNDRY</h1>
-        <p className="mt-3 max-w-xl text-sm text-[#c9b8a4] sm:text-base">
-          The compactor line is crushing the yard behind you. Bolt on whatever you drive over, keep her ahead of the crushers,
-          and hit the exit gate before Row Six catches up.
-        </p>
-
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          <div>
-            <h2 className="text-xs font-black tracking-[0.2em] text-[#f0c419]">CONTROLS</h2>
-            <ControlsList
-              bindings={keybinds}
-              controls={[
-                { action: "throttle", label: "Throttle" },
-                { action: "brake", label: "Brake" },
-                { action: "steerLeft", label: "Steer left" },
-                { action: "steerRight", label: "Steer right" },
-                { action: "jumpHop", label: "Jump (springs for real air)" },
-                { action: "plowBrace", label: "Plow brace (with plow)" },
-                { action: "restart", label: "Restart" },
-                { action: "startRun", label: "Start" },
-              ]}
-              className="mt-2 flex flex-col gap-1.5"
-              rowClassName="flex items-center gap-2 text-sm text-[#e7ddce]"
-              renderKey={(key) => (
-                <span className="flex min-w-[2.4rem] items-center justify-center rounded border border-[#8d99a6]/50 bg-[#1c1a17] px-2 py-0.5 text-xs font-bold text-[#f0c419]">
-                  {key}
-                </span>
-              )}
-            />
-          </div>
-
-          <div>
-            <h2 className="text-xs font-black tracking-[0.2em] text-[#f0c419]">PART LEGEND</h2>
-            <div className="mt-2 grid max-h-56 grid-cols-2 gap-x-3 gap-y-1.5 overflow-y-auto pr-1">
-              {PART_SLOTS.map((slot) =>
-                PARTS.filter((part) => part.category === slot).map((part) => (
-                  <div key={part.id} className="flex items-center gap-1.5 text-xs text-[#c9b8a4]">
-                    <PartIcon partId={part.id} className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{part.label}</span>
-                  </div>
-                )),
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={onStart}
-            className="w-full rounded border-2 border-[#f0c419] bg-[#b7410e] py-3 text-lg font-black tracking-widest text-[#fef3e0] transition hover:bg-[#d94f14] sm:w-auto sm:px-10"
-          >
-            BOLT IT ON, GO GO
-            <KeyHint> — {actionLabel(keybinds, "startRun") ?? "ENTER"}</KeyHint>
-          </button>
-          <button
-            type="button"
-            onClick={onCredits}
-            className="w-full rounded border-2 border-[#8d99a6]/60 py-3 text-sm font-black tracking-widest text-[#c9b8a4] transition hover:border-[#f0c419] hover:text-[#fef3e0] sm:w-auto sm:px-8"
-          >
-            CREDITS
-          </button>
-        </div>
-      </div>
-    </MenuScreen>
-  );
+export function StartScreen({ onStart, onCredits, records }: { onStart: () => void; onCredits: () => void; records: RunRecords }) {
+  return <div className="df-overlay df-title">
+    <div className="df-title-art" aria-hidden="true">
+      <svg viewBox="0 0 600 300"><path d="M0 243L600 182M0 275L600 214" stroke="#edc565" strokeWidth="3" opacity=".25"/>
+        <path d="M80 205L155 110L260 72L402 90L470 178L485 215L195 250Z" fill="#182d32" stroke="#758d96" strokeWidth="5"/>
+        <path d="M155 110L175 194L324 174L260 72M260 72L328 80L379 159M175 194L379 159" fill="none" stroke="#edc565" strokeWidth="7"/>
+        <path d="M176 199L381 159L451 181L308 224L196 238Z" fill="#cc5936"/>
+        <path d="M325 173L350 181L400 169L378 162" fill="#edc565"/>
+        <path d="M210 193L255 184L267 210L220 220Z" fill="#f1dfbf"/>
+        <text x="225" y="210" fill="#182d32" fontSize="24" fontWeight="900">06</text>
+        <ellipse cx="160" cy="230" rx="35" ry="45" fill="#161c20" stroke="#758d96" strokeWidth="7"/>
+        <ellipse cx="427" cy="193" rx="31" ry="40" fill="#161c20" stroke="#758d96" strokeWidth="7"/>
+        <ellipse cx="160" cy="230" rx="15" ry="22" fill="#edc565"/><ellipse cx="427" cy="193" rx="12" ry="18" fill="#edc565"/>
+        <path d="M166 109L153 22L218 34L160 60" fill="#edc565" stroke="#758d96" strokeWidth="3"/>
+      </svg>
+      <span>ROW SIX / SALVAGE SPECIAL</span>
+    </div>
+    <section className="df-card df-title-card">
+      <div className="df-eyebrow">PIT RADIO / CHANNEL 06</div>
+      <h1>DRIFT<br/><em>FOUNDRY</em></h1>
+      <p className="df-intro">One welded buggy. Three salvage yards. A compactor that never stops.</p>
+      <p>Drive through salvage stations to bolt on upgrades. Collect the plow and springs, then jump the striped stacks on the teal launch marks. Escape through the gate at 470m.</p>
+      <div className="df-controls-legend"><span><kbd>W ↑</kbd> Throttle</span><span><kbd>A D</kbd> Steer</span><span><kbd>S ↓</kbd> Brake / reverse</span><span><kbd>Space</kbd> Jump</span><span><kbd>Shift</kbd> Brace plow</span><span><kbd>P</kbd> Pause</span></div>
+      <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes · {records.attempts} finished runs</span></div>
+      <div className="df-actions"><button className="df-primary" onClick={onStart}>START ENGINE <kbd>Enter</kbd></button><SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><button onClick={onCredits}>CREDITS</button></div>
+    </section>
+  </div>;
 }

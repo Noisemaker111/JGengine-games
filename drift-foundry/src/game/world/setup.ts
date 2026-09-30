@@ -6,7 +6,8 @@ import {
   EXIT_GATE_ARCH,
   GATE_BARRICADE_JUMP,
   GATE_BARRICADE_PLOW,
-  PICKUP_MARKER,
+  PICKUP_STATIONS,
+  JUMP_CUE,
   PROP_YARD_LAMP,
   PROP_YARD_TOWER,
 } from "../objects/catalog";
@@ -14,6 +15,7 @@ import { PICKUPS } from "../run/pickups";
 import { EXIT_Z, RUN_SEED } from "../run/constants";
 import { ROUTE_GATES } from "../route/gates";
 import { ZONES } from "../zones/catalog";
+import { partById } from "../parts/catalog";
 
 const CORRIDOR_AVOID = { minX: -21, maxX: 21 };
 const PROP_COUNT_PER_ZONE = 46;
@@ -92,13 +94,17 @@ function placeYardTowers(ctx: GameContext): PropRow[] {
 
 /** Width covered by a single barricade prop — segments are tiled to seal a wider span. */
 const BARRICADE_SEGMENT_WIDTH = 8;
+const gateSegments = (span: number) => Math.max(1, Math.ceil(span / BARRICADE_SEGMENT_WIDTH) + 1);
 
 export function placeGateBarricades(ctx: GameContext): void {
   for (const gate of ROUTE_GATES) {
     const catalogId = gate.requirement === "plow" ? GATE_BARRICADE_PLOW : GATE_BARRICADE_JUMP;
     const span = gate.laneX[1] - gate.laneX[0];
     // +1 so the even spacing lands at <= one segment width apart and the props seal the span solidly.
-    const segments = Math.max(1, Math.ceil(span / BARRICADE_SEGMENT_WIDTH) + 1);
+    const segments = gateSegments(span);
+    if (gate.requirement === "jump") {
+      placeIdempotent(ctx, JUMP_CUE, 0, ctx.world.groundHeightAt(0, gate.atZ - 10) + .03, gate.atZ - 10, `cue-${gate.id}`);
+    }
     for (let i = 0; i < segments; i += 1) {
       // Even spacing across [laneX[0], laneX[1]] so a corridor-spanning gate reads as a solid wall.
       const t = segments === 1 ? 0.5 : i / (segments - 1);
@@ -112,7 +118,8 @@ export function placeGateBarricades(ctx: GameContext): void {
 export function placePickupMarkers(ctx: GameContext): void {
   for (const pickup of PICKUPS) {
     const y = ctx.world.groundHeightAt(pickup.position[0], pickup.position[2]);
-    placeIdempotent(ctx, PICKUP_MARKER, pickup.position[0], y, pickup.position[2], `marker-${pickup.id}`);
+    const slot = partById(pickup.partId)!.category;
+    placeIdempotent(ctx, PICKUP_STATIONS[slot], pickup.position[0], y, pickup.position[2], `marker-${pickup.id}`);
   }
 }
 
@@ -134,5 +141,14 @@ export function syncCompactorRow(ctx: GameContext, compactorZ: number, rows: rea
   while (cursor.index < rows.length && rows[cursor.index]!.z < compactorZ - margin) {
     ctx.scene.object.remove(rows[cursor.index]!.instanceId);
     cursor.index += 1;
+  }
+}
+
+export function syncClearedGates(ctx: GameContext, cleared: ReadonlySet<string>, removed: Set<string>): void {
+  for (const gate of ROUTE_GATES) {
+    if (!cleared.has(gate.id) || removed.has(gate.id)) continue;
+    removed.add(gate.id);
+    for (let i = 0; i < gateSegments(gate.laneX[1] - gate.laneX[0]); i++) ctx.scene.object.remove(`gate-${gate.id}-${i}`);
+    ctx.scene.object.remove(`cue-${gate.id}`);
   }
 }

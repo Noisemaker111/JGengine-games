@@ -1,76 +1,56 @@
-import { AxisChannel, NEUTRAL_AXIS, type AxisBindingMap, type AxisInput } from "@jgengine/core/input/axisInput";
+import type { InputSnapshot } from "@jgengine/core/runtime/inputSnapshot";
+import type { DriveAxis } from "./controller";
+import { createActionStateTracker, toActionStateBindingMap, type ActionCodesMap } from "@jgengine/core/input/actionBindings";
+import { applyBindingOverrides, loadBindingOverrides } from "@jgengine/core/input/bindingOverrides";
+import { keybinds } from "../keybinds";
 
-const DRIFT_FOUNDRY_AXIS_BINDINGS: AxisBindingMap = {
-  throttle: { positive: ["KeyW", "ArrowUp"] },
-  brake: { positive: ["KeyS", "ArrowDown"] },
-  steer: { positive: ["KeyD", "ArrowRight"], negative: ["KeyA", "ArrowLeft"] },
-  handbrake: { positive: [] },
-};
-
+/** Host semantic actions keep native controls and keyboard rebinds in agreement. */
 export interface DriveInput {
-  attach(): void;
-  detach(): void;
-  sample(dt: number): AxisInput;
-  isPlowBracing(): boolean;
+  sample(dt: number, input: InputSnapshot, active: boolean): DriveAxis;
+  reset(): void;
+  press(action: string): void;
+  release(action: string): void;
   consumeJump(): boolean;
-  consumeRestart(): boolean;
-  consumeStart(): boolean;
+  keyDown(code: string): string | null;
+  keyUp(code: string): void;
+  isDown(action: string): boolean;
+  refreshBindings(): void;
 }
 
-export function createDriveInput(): DriveInput {
-  const held = new Set<string>();
-  const channel = new AxisChannel({ bindings: DRIFT_FOUNDRY_AXIS_BINDINGS, smoothing: 6 });
-  let attached = false;
-  let jumpRequested = false;
-  let restartRequested = false;
-  let startRequested = false;
-
-  function onKeyDown(event: KeyboardEvent): void {
-    held.add(event.code);
-    if (event.code === "Space") jumpRequested = true;
-    if (event.code === "KeyR") restartRequested = true;
-    if (event.code === "Enter") startRequested = true;
-  }
-
-  function onKeyUp(event: KeyboardEvent): void {
-    held.delete(event.code);
-  }
-
+export function createDriveInput(bindings: () => ActionCodesMap = () => applyBindingOverrides(keybinds, loadBindingOverrides("Drift Foundry"))): DriveInput {
+  let axis: DriveAxis = { throttle: 0, brake: 0, steer: 0 };
+  const touchHeld = new Set<string>();
+  let jump = false;
+  const makeKeyboard = () => createActionStateTracker(toActionStateBindingMap(bindings()));
+  let keyboard = makeKeyboard();
   return {
-    attach() {
-      if (attached || typeof window === "undefined") return;
-      attached = true;
-      window.addEventListener("keydown", onKeyDown);
-      window.addEventListener("keyup", onKeyUp);
+    reset() { axis = { throttle: 0, brake: 0, steer: 0 }; touchHeld.clear(); keyboard.reset(); jump = false; },
+    // Published shell 0.18.1 builds an empty tracker in the menu and does not
+    // rebuild it on phase changes. Own keyboard capture shares its persisted
+    // bindings while semantic host input still supports gamepads and touch.
+    refreshBindings() { this.reset(); keyboard = makeKeyboard(); },
+    keyDown(code) {
+      const action = keyboard.handleDown(code);
+      if (action === "jumpHop" && keyboard.wasPressed(action)) jump = true;
+      return action;
     },
-    detach() {
-      if (!attached || typeof window === "undefined") return;
-      attached = false;
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      held.clear();
-      channel.reset();
-    },
-    sample(dt) {
-      return attached ? channel.sample(dt, (code) => held.has(code)) : NEUTRAL_AXIS;
-    },
-    isPlowBracing() {
-      return held.has("ShiftLeft") || held.has("ShiftRight");
-    },
-    consumeJump() {
-      if (!jumpRequested) return false;
-      jumpRequested = false;
-      return true;
-    },
-    consumeRestart() {
-      if (!restartRequested) return false;
-      restartRequested = false;
-      return true;
-    },
-    consumeStart() {
-      if (!startRequested) return false;
-      startRequested = false;
-      return true;
+    keyUp(code) { keyboard.handleUp(code); },
+    isDown(action) { return keyboard.isDown(action) || touchHeld.has(action); },
+    press(action) { if (action === "jumpHop" && !touchHeld.has(action)) jump = true; touchHeld.add(action); },
+    release(action) { touchHeld.delete(action); },
+    consumeJump() { const pressed = jump; jump = false; return pressed; },
+    sample(dt, input, active) {
+      if (!active) { this.reset(); return axis; }
+      const value = (action: string) => Math.max(input.value(action), this.isDown(action) ? 1 : 0);
+      const target = { throttle: value("throttle"), brake: value("brake"), steer: value("steerRight") - value("steerLeft") };
+      const blend = 1 - Math.exp(-6 * Math.max(0, Math.min(dt, .05)));
+      axis = {
+        throttle: axis.throttle + (target.throttle - axis.throttle) * blend,
+        brake: axis.brake + (target.brake - axis.brake) * blend,
+        steer: axis.steer + (target.steer - axis.steer) * blend,
+      };
+      keyboard.endFrame();
+      return axis;
     },
   };
 }

@@ -97,6 +97,7 @@ export function createVehicleController(spawn: {
    */
   let frameTuning: KartTuning | null = null;
   let blockedByGate = false;
+  let airHeight = 0;
 
   const vehicle: KinematicVehicle = createKinematicVehicle(
     // Placeholder stats: the first tick retunes to the kart's real, part-derived numbers.
@@ -107,7 +108,7 @@ export function createVehicleController(spawn: {
       clampMove: (from, to) => {
         const x = Math.max(-CORRIDOR_DRIVE_HALF_WIDTH, Math.min(CORRIDOR_DRIVE_HALF_WIDTH, to[0]));
         if (frameTuning === null) return [x, to[1]];
-        const allowedZ = blockedZ(x, from[1], to[1], frameTuning);
+        const allowedZ = blockedZ(x, from[1], to[1], frameTuning, airHeight);
         blockedByGate = allowedZ < to[1] - 1e-6;
         return [x, Math.min(to[1], allowedZ)];
       },
@@ -136,6 +137,7 @@ export function createVehicleController(spawn: {
         { ...NEUTRAL_AXIS, throttle: axis.throttle, brake: axis.brake, steer: axis.steer },
         { groundHeight: groundHeightAt, modifiers: braced ? BRACED : undefined },
       );
+      airHeight = drive.step.airOffset;
 
       return {
         position: drive.pose.position,
@@ -148,6 +150,7 @@ export function createVehicleController(spawn: {
     resetTo(position, resetHeading) {
       vehicle.resetTo(position, resetHeading);
       blockedByGate = false;
+      airHeight = 0;
     },
   };
 }

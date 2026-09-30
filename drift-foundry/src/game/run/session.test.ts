@@ -3,17 +3,24 @@ import { describe, expect, test } from "bun:test";
 import { steerToward } from "@jgengine/core/movement/steering";
 
 import { EXIT_Z } from "./constants";
+import { ROUTE_GATES } from "../route/gates";
 import { PICKUPS } from "./pickups";
 import { createRunSession, type RunSession } from "./session";
 
 const DT = 1 / 30;
 const PAR_SECONDS = 100;
 
+function shouldJump(session: RunSession): boolean {
+  const snap = session.snapshot();
+  const next = ROUTE_GATES.find(g => g.atZ >= snap.pose.position[2]);
+  return next?.requirement === "jump" && !snap.pose.airborne && next.atZ - snap.pose.position[2] < Math.max(5, snap.pose.speedKmh / 3.6 * .5);
+}
+
 function driveStraight(session: RunSession, seconds: number): void {
   let elapsed = 0;
   while (elapsed < seconds) {
     if (session.snapshot().phase !== "running") return;
-    session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: shouldJump(session), plowBracing: false });
     elapsed += DT;
   }
 }
@@ -31,12 +38,22 @@ function driveCollectingPickups(session: RunSession, seconds: number): void {
     const target = PICKUPS.find((p) => !snap.collectedIds.has(p.id) && p.position[2] > snap.pose.position[2] - 6);
     const targetX = target?.position[0] ?? 0;
     const steer = steerTowardX(snap.pose.heading, targetX - snap.pose.position[0]);
-    session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: false, plowBracing: false });
+    session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false });
     elapsed += DT;
   }
 }
 
 describe("drift-foundry run session", () => {
+  test("holding throttle without jumping stops at the tire stack and loses", () => {
+    const session = createRunSession();
+    session.start();
+    for (let i = 0; i < 3000 && session.snapshot().phase === "running"; i++) {
+      session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    }
+    expect(session.snapshot().phase).toBe("crushed");
+    expect(session.snapshot().pose.position[2]).toBeLessThanOrEqual(150);
+    expect(session.snapshot().clearedGateIds.size).toBe(1);
+  });
   test("does nothing while waiting on the start screen", () => {
     const session = createRunSession();
     session.tick(1, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
@@ -53,7 +70,7 @@ describe("drift-foundry run session", () => {
     expect(snapshot.ticker[0]?.text).toBe("BOLT IT ON, GO GO");
   });
 
-  test("a straight run down the centerline grabs the route parts and smashes through every barricade to the exit", () => {
+  test("a centerline run with timed jumps collects the route parts and escapes", () => {
     const session = createRunSession();
     session.start();
     driveStraight(session, PAR_SECONDS);
@@ -142,7 +159,7 @@ describe("drift-foundry run session", () => {
       const target = PICKUPS.find((p) => !snap.collectedIds.has(p.id) && p.position[2] > snap.pose.position[2] - 6);
       const targetX = target?.position[0] ?? 0;
       const steer = steerTowardX(snap.pose.heading, targetX - snap.pose.position[0]);
-      session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: false, plowBracing: false });
+      session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false });
       armElapsed += DT;
     }
     const armed = session.snapshot();
