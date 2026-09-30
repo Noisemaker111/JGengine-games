@@ -4,7 +4,7 @@ import { advancePursuit, armPursuit } from "@jgengine/core/ai/pursuit";
 
 import { combatantDef, isHostile } from "../catalog";
 import { ARRIVE_RADIUS, DEPOT_RANGE, HARVEST_RANGE, HARVEST_SECONDS } from "../tuning";
-import { playerDepot, session, type UnitRuntime } from "../session";
+import { matchRunning, playerDepot, session, type UnitRuntime } from "../session";
 import { resolveDamage } from "../upgrades";
 import { heroAttackBonus } from "../hero";
 
@@ -127,8 +127,8 @@ function tickUnit(ctx: GameContext, dt: number, u: UnitRuntime): void {
     target = hostileTarget(ctx, u, u.command.targetId);
     if (target === null) u.command = { kind: "idle" };
   }
-  if (target === null && (u.command.kind === "attackMove" || u.command.kind === "idle")) {
-    const acquired = acquireNearest(ctx, u, self.position, def.aggroRadius);
+  if (target === null && (u.command.kind === "attackMove" || u.command.kind === "idle" || u.command.kind === "hold")) {
+    const acquired = acquireNearest(ctx, u, self.position, u.command.kind === "hold" ? def.attackRange : def.aggroRadius);
     if (acquired !== null) target = session.units.get(acquired) ?? null;
   }
 
@@ -180,6 +180,6 @@ function tickUnit(ctx: GameContext, dt: number, u: UnitRuntime): void {
 
 /** One AI pass over every commanded unit. Bounded by the roster; no whole-world scan. */
 export function tickUnits(ctx: GameContext, dt: number): void {
-  if (session.over) return;
+  if (!matchRunning()) return;
   for (const u of session.units.values()) tickUnit(ctx, dt, u);
 }

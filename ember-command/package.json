@@ -8,7 +8,8 @@
     "build": "vite build",
     "desktop": "jgengine desktop",
     "check-types": "tsgo --noEmit -p tsconfig.json",
-    "test": "bun test src"
+    "test": "bun test src",
+    "art:author": "node scripts/author-models.mjs"
   },
   "dependencies": {
     "@jgengine/assets": "^0.18.0",

@@ -91,4 +91,19 @@ describe("unit AI", () => {
     tickUnits(rec.ctx, 0.5);
     expect(rec.damages.length).toBe(0);
   });
+
+  test("hold fights within reach without chasing or returning to an old guard point", () => {
+    addUnit("f1", "footman", "player", { kind: "hold" });
+    session.units.get("f1")!.guardPoint = { x: 20, z: 20 };
+    addUnit("e1", "grunt", "enemy", { kind: "hold" });
+    const positions = new Map<string, EntityPosition>([["f1", [0, 0, 0]], ["e1", [6, 0, 0]]]);
+    const rec = fakeCtx(positions);
+    tickUnits(rec.ctx, 0.5);
+    expect(rec.moves).toEqual([]);
+    expect(rec.damages).toEqual([]);
+    positions.set("e1", [1.5, 0, 0]);
+    tickUnits(rec.ctx, 0.5);
+    expect(rec.moves).toEqual([]);
+    expect(rec.damages.some((d) => d.from === "f1" && d.to === "e1")).toBe(true);
+  });
 });
