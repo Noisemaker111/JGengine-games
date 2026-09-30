@@ -59,6 +59,30 @@
         "vite": "^6.2.2",
       },
     },
+    "deepward": {
+      "name": "@games/deepward",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/core": "^0.18.0",
+        "@jgengine/editor": "0.18.0",
+        "@jgengine/react": "^0.18.0",
+        "@jgengine/shell": "^0.18.0",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
     "drift-foundry": {
       "name": "@games/drift-foundry",
       "version": "0.1.0",
@@ -428,6 +452,8 @@
     "@games/beacon-bastion": ["@games/beacon-bastion@workspace:beacon-bastion"],
 
     "@games/brightway-park": ["@games/brightway-park@workspace:brightway-park"],
+
+    "@games/deepward": ["@games/deepward@workspace:deepward"],
 
     "@games/drift-foundry": ["@games/drift-foundry@workspace:drift-foundry"],
 

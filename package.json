@@ -33,7 +33,8 @@
     "dev:scrap-signal": "bun --cwd=scrap-signal run dev",
     "dev:beacon-bastion": "bun --cwd=beacon-bastion run dev",
     "dev:harbor-heat": "bun --cwd=harbor-heat run dev",
-    "dev:drift-foundry": "bun --cwd=drift-foundry run dev"
+    "dev:drift-foundry": "bun --cwd=drift-foundry run dev",
+    "dev:deepward": "bun --cwd=deepward run dev"
   },
   "overrides": {
     "@jgengine/editor": "0.18.0"

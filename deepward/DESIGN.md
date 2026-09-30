@@ -11,8 +11,11 @@ your hands. You start the game with one hand and end it with four.
 You die and the character is over. Some of what it was carrying comes back, and
 the vault and everyone in it survive.
 
-Status: design only. No code exists yet. This document records decisions and
-marks what is still open. Anything labelled a proposal has not been approved.
+Status: a playable desktop extraction slice now implements walking, salvage,
+grid packing, oxygen, return extraction and durable stash/loss records. See
+[the implementation guide](README.md) for verified behavior and remaining limits.
+This document describes the larger design; proposals and unimplemented systems
+are not claims about the current game.
 
 **The words.**
 
@@ -865,4 +868,4 @@ entry recording the actual source and asset licenses used.
 
 ## Content provenance
 
-This is an original design document, with no playable code or commissioned art yet. Its setting, homefolk, maker identities, item fiction, and vault terminology are authored for Deepward. If implementation incorporates third-party code or assets, retain their required notices in the project credits.
+Deepward's setting, homefolk, maker identities, item fiction and vault terminology are original. The playable slice uses original procedural geometry and a scene authored through the published editor's RPC host. It consumes published JGengine packages; package licenses and implementation provenance are recorded in [CREDITS.md](CREDITS.md). No commissioned bitmap artwork is claimed.
