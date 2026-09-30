@@ -17,7 +17,7 @@ These games use familiar genres with their own titles, settings, characters, and
 | Field Station | `field-station` | Environment studios showcase |
 | Scrap Signal | `scrap-signal` | Looter-shooter |
 | Beacon Bastion | `beacon-bastion` | Tower defense |
-| Deepward | `deepward` | Extraction RPG design (no playable app yet) |
+| Deepward | `deepward` | First-person extraction slice: salvage, pack, return and bank |
 | Harbor Heat | `harbor-heat` | Coastal courier and crew adventure |
 | Drift Foundry | `drift-foundry` | Physics racer |
 
@@ -40,7 +40,8 @@ bun run dev:harbor-heat   # or another playable game id
 ```
 
 Wayfarer Deck uses authored interface artwork and does not need downloaded 3D
-packs. Deepward is a design document and has no dev script.
+packs. Deepward uses original procedural industrial geometry and needs no downloaded
+asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).
 
 Each playable game is a standalone Vite harness: `index.html` loads
 `src/main.tsx`, and `vite.config.ts` resolves published packages. Run commands from
