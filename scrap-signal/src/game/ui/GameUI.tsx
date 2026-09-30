@@ -9,11 +9,13 @@ import { CharacterSelect, TalentsPanel } from "./components/Talents";
 import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
+import { Operations } from "./components/Operations";
 
 export function GameUI() {
   const layout = useHudLayout({ storageKey: "scrap-signal" });
   return (
     <HudCanvas layout={layout} className="z-20 font-sans text-stone-100">
+      <Operations />
       <HudPanel id="missions" anchor="left" compact="hide" interactive={false}>
         <MissionTracker />
       </HudPanel>
