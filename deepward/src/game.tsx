@@ -1,23 +1,25 @@
 import "./style.css";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Group, Vector3 } from "three";
+import { Group, PointLight, Vector3 } from "three";
 import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 import type { SceneEntity } from "@jgengine/core/scene/entityStore";
 import type { GameContextContent, GameContextEntityEntry } from "@jgengine/core/runtime/gameContext";
 import { defineGame } from "@jgengine/shell/defineGame";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
-import { distance, floorAt, GARAGE, EXIT, PROPS, PRINT_ID, SALVAGE, STEAM, STASH, wallTiles, walkable, world, physics, editorLayers, WORLD_BOUNDS, ROOMS, RETURN_SPINE, DECOR, decorPoint, type Place, type Point } from "./world";
-import { PALETTE as C, signTexture } from "./game/art";
+import { distance, GARAGE, EXIT, PROPS, PRINT_ID, SALVAGE, STEAM, STASH, walkable, world, physics, editorLayers, ROOMS, RETURN_SPINE, DECOR, decorPoint, type Place, type Point } from "./world";
+import { PALETTE as C, signTexture, IndustrialBox, SALVAGE_PLACARD, type Triple } from "./game/art";
+import { surfaceMaterial, type IndustrialSurface } from "./game/industrialMaterials";
+import { FitterModel } from "./game/fitterArt";
+import { ServiceWeapon, serviceWeaponPose } from "./game/weaponArt";
+import { activeRoomLamps, deriveRoomPresentation, ROOM_LIGHT_BUDGET, ROOM_LIGHT_REACH, type RoomSurface } from "./game/roomPresentation";
 import { initialize, keybinds, seatPlayer, setAim, tick, viewStore } from "./game/controls";
 import { ITEMS } from "./game/state";
 import { GameUI } from "./game/ui/GameUI";
 
-type Triple = [number, number, number];
-function Block({ at, size, color = C.panel, glow = false }: { at: Triple; size: Triple; color?: string; glow?: boolean }) {
-  return <mesh position={at} castShadow receiveShadow><boxGeometry args={size} />
-    <meshStandardMaterial color={color} roughness={0.7} metalness={0.35} emissive={glow ? color : "#000000"} emissiveIntensity={glow ? 0.8 : 0} /></mesh>;
+function Block({ at, size, color = C.panel, glow = false, surface }: { at: Triple; size: Triple; color?: string; glow?: boolean; surface?: IndustrialSurface }) {
+  return <IndustrialBox at={at} size={size} color={color} surface={surface ?? (glow ? "lamp" : color === C.steel ? "steel" : color === C.brass ? "brass" : "paint")} emission={glow ? 0.8 : 0} />;
 }
 function Sign({ at, title, sub, color = C.cyan, turn = 0, width = 3.8 }: { at: Triple; title: string; sub: string; color?: string; turn?: number; width?: number }) {
   const texture = useMemo(() => signTexture(title, sub, color), [title, sub, color]);
@@ -25,7 +27,7 @@ function Sign({ at, title, sub, color = C.cyan, turn = 0, width = 3.8 }: { at: T
   return <mesh position={at} rotation-y={turn}><planeGeometry args={[width, width / 3]} /><meshBasicMaterial map={texture} /></mesh>;
 }
 function Tube({ at, radius = 0.18, height = 1, color = C.steel }: { at: Triple; radius?: number; height?: number; color?: string }) {
-  return <mesh position={at} castShadow><cylinderGeometry args={[radius, radius, height, 12]} /><meshStandardMaterial color={color} metalness={0.65} roughness={0.4} /></mesh>;
+  return <mesh position={at} castShadow><cylinderGeometry args={[radius, radius, height, 12]} /><meshStandardMaterial {...surfaceMaterial(color === C.steel ? "steel" : color === C.brass ? "brass" : "paint", color)} /></mesh>;
 }
 function RailCart({ at, home = false }: { at: Triple; home?: boolean }) {
   return <group position={at}>
@@ -37,32 +39,26 @@ function RailCart({ at, home = false }: { at: Triple; home?: boolean }) {
     <Sign at={[0, 2.7, 0.9]} title={home ? "THE GARAGE" : "RETURN TO MARROW"} sub={home ? "BELLWETHER / LINE 06" : "THE WAY OUT IS THE WAY IN"} width={4.7} turn={home ? 0 : Math.PI} />
   </group>;
 }
+function WallPanel({ surface: s }: { surface: RoomSurface }) {
+  const alongX = s.axis === "x", length = alongX ? s.size[0] : s.size[2];
+  const bays = Math.max(1, Math.ceil(length / 3));
+  return <group position={s.at}>
+    <Block at={[0, 0, 0]} size={s.size} color={C.wall} surface="paint" />
+    <Block at={[0, -s.size[1] / 2 + 0.14, 0]} size={[s.size[0] + 0.02, 0.18, s.size[2] + 0.02]} color={C.steel} />
+    <Block at={[0, 0.46, 0]} size={[s.size[0] + 0.025, 0.065, s.size[2] + 0.025]} color={C.brass} />
+    {Array.from({ length: bays + 1 }, (_, i) => {
+      const offset = -length / 2 + i * length / bays;
+      return <Block key={i} at={alongX ? [offset, 0, 0] : [0, 0, offset]} size={alongX ? [0.07, s.size[1], s.size[2] + 0.025] : [s.size[0] + 0.025, s.size[1], 0.07]} color={C.panel} />;
+    })}
+  </group>;
+}
 function Architecture({ place }: { place: Place }) {
-  const walls = useMemo(() => wallTiles(place), [place]);
-  const floors = useMemo(() => {
-    const strips: { x: number; z: number; width: number }[] = [];
-    for (let z = WORLD_BOUNDS.minZ + 0.5; z < WORLD_BOUNDS.maxZ; z++) {
-      let start: number | null = null;
-      for (let x = WORLD_BOUNDS.minX + 0.5; x <= WORLD_BOUNDS.maxX + 0.5; x++) {
-        const filled = floorAt(x, z, place);
-        if (filled && start === null) start = x;
-        if (!filled && start !== null) { strips.push({ x: (start + x - 1) / 2, z, width: x - start }); start = null; }
-      }
-    }
-    return strips;
-  }, [place]);
+  const plan = useMemo(() => deriveRoomPresentation(place), [place]);
   return <group>
-    {floors.map((f, i) => <group key={i}>
-      <Block at={[f.x, -0.08, f.z]} size={[f.width, 0.14, 1]} color={i % 3 === 0 ? "#223336" : C.floor} />
-      <Block at={[f.x, 3.9, f.z]} size={[f.width, 0.16, 1]} color={C.panel} />
-    </group>)}
-    {walls.map((w, i) => <group key={i}>
-      <Block at={[w.x, 1.9, w.z]} size={[1, 3.8, 1]} color={i % 4 === 0 ? C.wall : C.panel} />
-      <Block at={[w.x, 0.15, w.z]} size={[1.03, 0.15, 1.03]} color={C.steel} />
-    </group>)}
-    {ROOMS.filter(room => room.place === place).map(room => <group key={room.id} position={[room.x, 0, room.z]}>
-      <Block at={[0, 3.68, 0]} size={[Math.min(4, room.w - 1), 0.12, 0.16]} color={place === "home" ? C.amber : C.cyan} glow />
-      <pointLight position={[0, 3.1, 0]} color={place === "home" ? "#f3c390" : "#a4ded2"} intensity={17} distance={15} decay={2} />
+    {plan.surfaces.map(s => s.kind === "wall" ? <WallPanel key={s.id} surface={s} /> : <IndustrialBox key={s.id} at={s.at} size={s.size} surface={s.kind === "floor" ? "floor" : "paint"} color={s.kind === "ceiling" ? C.panel : undefined} />)}
+    {plan.lamps.map(lamp => <group key={lamp.id} position={lamp.fixture}>
+      <Block at={[0, 0.05, 0]} size={[lamp.width + 0.16, 0.1, 0.32]} color={C.steel} />
+      <Block at={[0, -0.02, 0]} size={[lamp.width, 0.045, 0.2]} color={place === "home" ? C.amber : C.cyan} glow />
     </group>)}
     {place === "vault" && <>
       {[-1, 1].map(side => <Block key={side} at={[RETURN_SPINE!.x + side * RETURN_SPINE!.w * 0.27, 0.006, RETURN_SPINE!.z]} size={[0.075, 0.022, RETURN_SPINE!.d]} color={C.brass} glow />)}
@@ -75,6 +71,22 @@ function Architecture({ place }: { place: Place }) {
     </>}
   </group>;
 }
+/** Fixed pool selected on the render frame; no timers, actor hiding, or graphics-profile changes. */
+function RoomLights() {
+  const view = useStore(viewStore), refs = useRef<(PointLight | null)[]>([]);
+  const place = view.mode === "home" || view.dive === null ? "home" : "vault";
+  const lamps = useMemo(() => deriveRoomPresentation(place).lamps, [place]);
+  useFrame(({ camera }) => {
+    const closest = activeRoomLamps(lamps, [camera.position.x, camera.position.y, camera.position.z]);
+    for (let i = 0; i < ROOM_LIGHT_BUDGET; i++) {
+      const light = refs.current[i], candidate = closest[i];
+      if (!light) continue;
+      light.intensity = candidate ? 17 : 0;
+      if (candidate) light.position.set(...candidate.light);
+    }
+  });
+  return <>{Array.from({ length: ROOM_LIGHT_BUDGET }, (_, i) => <pointLight key={i} ref={light => { refs.current[i] = light; }} intensity={0} color={place === "home" ? "#f3c390" : "#a4ded2"} distance={ROOM_LIGHT_REACH} decay={2} />)}</>;
+}
 function SalvageModel({ kind, empty }: { kind: keyof typeof ITEMS; empty: boolean }) {
   const color = empty ? C.panel : ITEMS[kind].color;
   return <group>
@@ -85,22 +97,12 @@ function SalvageModel({ kind, empty }: { kind: keyof typeof ITEMS; empty: boolea
       : <Tube at={[0, 0.95, 0]} radius={kind === "ink" ? 0.22 : 0.14} height={0.38} color={color} />)}
   </group>;
 }
-function Fitter({ winding }: { winding: boolean }) {
+function SalvagePlacard({ id, kind }: { id: string; kind: keyof typeof ITEMS }) {
+  const { face, backing, supports } = SALVAGE_PLACARD;
   return <group>
-    {[-1, 1].map(side => <group key={side}>
-      <Block at={[side * 0.19, 0.35, 0]} size={[0.23, 0.65, 0.3]} color={C.panel} />
-      <Block at={[side * 0.19, 0.09, 0.13]} size={[0.3, 0.16, 0.5]} color={C.steel} />
-    </group>)}
-    <Block at={[0, 1.02, 0]} size={[0.65, 0.7, 0.42]} color={C.brass} />
-    <Block at={[0, 1.05, 0.24]} size={[0.34, 0.18, 0.06]} color={C.danger} glow />
-    <Tube at={[0, 1.6, 0]} radius={0.24} height={0.35} color={C.steel} />
-    <Block at={[0, 1.65, 0.22]} size={[0.35, 0.07, 0.06]} color={C.danger} glow />
-    <Block at={[-0.43, 1.05, 0.1]} size={[0.2, 0.62, 0.24]} color={C.wall} />
-    <group position={[0.4, winding ? 1.5 : 1.03, 0.35]} rotation-x={winding ? -0.9 : 0}>
-      <Block at={[0, 0, 0]} size={[0.18, 0.22, 1.05]} color={C.steel} />
-      <Block at={[0, 0, 0.58]} size={[0.08, 0.08, 0.22]} color={C.black} />
-      <Block at={[0, -0.2, 0]} size={[0.13, 0.3, 0.15]} color={C.brass} />
-    </group>
+    {supports.map(part => <Block key={part.at[0]} at={part.at} size={part.size} color={C.steel} />)}
+    <Block at={backing.at} size={backing.size} color={C.panel} />
+    <Sign at={face.at} title={id.toUpperCase()} sub={id === "ink" ? "PRINTER RESERVE" : "SHIFT SUPPLIES"} width={face.width} color={ITEMS[kind].color} />
   </group>;
 }
 function renderEntity(entity: SceneEntity): ReactNode {
@@ -108,7 +110,10 @@ function renderEntity(entity: SceneEntity): ReactNode {
 }
 function PrintPresentation() {
   const view = useStore(viewStore);
-  return <Fitter winding={view.dive?.print.mode === "winding"} />;
+  const print = view.dive?.print;
+  if (!print || print.health <= 0) return null;
+  const hit = view.trace !== null && print.health < 80 && Math.hypot(view.trace.to[0] - print.at[0], view.trace.to[2] - print.at[2]) < 0.3;
+  return <FitterModel print={print} hit={hit} />;
 }
 function Tracer({ from, to }: { from: Point; to: Point }) {
   const midpoint = new Vector3((from[0] + to[0]) / 2, (from[1] + to[1]) / 2, (from[2] + to[2]) / 2);
@@ -129,19 +134,16 @@ function Hand() {
     hand.position.copy(camera.position); hand.quaternion.copy(camera.quaternion);
     hand.translateX(0.26); hand.translateY(-0.26); hand.translateZ(-0.55);
   });
-  const rifle = view.dive?.hand === "service-rifle", flash = (view.dive?.flash ?? 0) > 0;
+  const pose = view.dive === null ? null : serviceWeaponPose(view.dive);
   return <group ref={ref} visible={view.mode === "dive"}>
-    <Block at={[0, -0.09, 0.12]} size={[0.11, 0.22, 0.14]} color={C.brass} />
-    <Block at={[0, 0, rifle ? -0.1 : 0]} size={[0.12, 0.13, rifle ? 0.64 : 0.32]} color={C.steel} />
-    <Block at={[0, 0.09, -0.07]} size={[0.025, 0.035, 0.06]} color={C.cyan} glow />
-    {flash && <mesh position={[0, 0, rifle ? -0.5 : -0.22]}><octahedronGeometry args={[0.095]} /><meshBasicMaterial color="#ffe4a0" /></mesh>}
+    {pose !== null && view.dive !== null && <group position={pose.at} rotation={pose.turn}><ServiceWeapon kind={view.dive.hand} flash={pose.flash} kick={pose.kick} magazineOffset={pose.magazineOffset} /></group>}
   </group>;
 }
 function WorldOverlay() {
   const view = useStore(viewStore), dive = view.dive;
   const steamOn = dive !== null && dive.elapsed % 8 < 3;
   return <>
-    <Architecture place="home" /><Architecture place="vault" />
+    <Architecture place="home" /><Architecture place="vault" /><RoomLights />
     <RailCart at={[GARAGE[0], GARAGE[1], GARAGE[2] - 0.7]} home /><RailCart at={[EXIT[0], EXIT[1], EXIT[2] + 0.5]} />
     <group position={[EXIT[0], 0, EXIT[2]]}>{[-0.8, 0.8].map(x => <Block key={x} at={[x, 0.01, 0]} size={[0.08, 0.04, 6]} color={C.steel} />)}</group>
     <group position={[STASH[0] - 0.4, 0, STASH[2]]}>
@@ -163,7 +165,7 @@ function WorldOverlay() {
     <Sign at={decorPoint("sign-shift")} title="SHIFT 406" sub="REPORT TO YOUR POST" color={C.amber} />
     {SALVAGE.map(s => <group key={s.id} position={[s.at[0], 0, s.at[2]]}>
       <SalvageModel kind={s.kind} empty={dive?.collected.includes(s.id) ?? false} />
-      <Sign at={[0, 1.65, -0.38]} title={s.id.toUpperCase()} sub={s.id === "ink" ? "PRINTER RESERVE" : "SHIFT SUPPLIES"} width={1.35} color={ITEMS[s.kind].color} />
+      <SalvagePlacard id={s.id} kind={s.kind} />
     </group>)}
     {PROPS.map((p, i) => <group key={i} position={[p.x, 0, p.z]}>
       <Block at={[0, 0.7, 0]} size={[p.w, 1.4, p.d]} color={C.wall} />
@@ -181,9 +183,8 @@ function WorldOverlay() {
         {[-1, 0, 1].map(x => <mesh key={x} position={[x, 1.1, 0]}><cylinderGeometry args={[0.7, 0.25, 2.1, 10]} /><meshBasicMaterial color="#dec9b6" transparent opacity={0.16} depthWrite={false} /></mesh>)}
       </>}
     </group>
-    {dive?.print.drop !== null && dive?.print.drop !== undefined && !dive.collected.includes("fitter") && <group position={[dive.print.drop[0], 0.12, dive.print.drop[2]]}>
-      <Block at={[0, 0, 0]} size={[1.1, 0.18, 0.22]} color={ITEMS["service-rifle"].color} glow />
-      <Block at={[0, -0.08, 0]} size={[0.2, 0.3, 0.15]} color={C.brass} />
+    {dive?.print.drop !== null && dive?.print.drop !== undefined && !dive.collected.includes("fitter") && <group position={[dive.print.drop[0], dive.print.drop[1] + 0.1, dive.print.drop[2]]} rotation={[0, Math.PI / 2, Math.PI / 2]} scale={1.35}>
+      <ServiceWeapon kind="service-rifle" />
     </group>}
     {view.trace !== null && <Tracer from={view.trace.from} to={view.trace.to} />}
     <Hand />

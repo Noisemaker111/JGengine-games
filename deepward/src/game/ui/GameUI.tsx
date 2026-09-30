@@ -86,7 +86,7 @@ export function GameUI() {
       <section className="dw-vitals"><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
         <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{dive.reload > 0 ? `RELOADING ${dive.reload.toFixed(1)}s` : `${dive.magazine} / 6`} <small>{dive.reserve} reserve</small></div>
       </section>
-      <section className="dw-haul"><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} items</strong>
+      <section className="dw-haul"><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} {dive.cache.length === 1 ? "item" : "items"}</strong>
         <p>{dive.cache.map(i => ITEMS[i.kind].name).join(" · ") || "Nothing carried yet"}</p>
         <button onClick={() => command("cache")}>Open cache / Tab</button>
       </section>
@@ -94,7 +94,7 @@ export function GameUI() {
     {view.mode === "home" && view.panel === null && <aside className="dw-home">
       <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Last shift at Bellwether</h2>
       <p>The staff kept printing after the lights went out. Take their supplies. Come back before your tank is empty.</p>
-      <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} items</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
+      <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
       <p className="dw-note">Garage ahead · stash on your left. Returning stores the haul immediately. Death or reload during a dive loses what you carry.</p>
       {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
     </aside>}
