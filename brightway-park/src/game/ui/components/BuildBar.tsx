@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 
 import {
@@ -25,15 +25,18 @@ export function BuildBar() {
     (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
   );
   const unlockedSet = new Set(unlocked.length === 0 ? [] : unlocked.split(","));
+  useEffect(()=>{ if(selected&&BUILDABLES[selected]) setCategory(BUILDABLES[selected]!.category); },[selected]);
 
   const items = Object.values(BUILDABLES).filter((d) => d.category === category);
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="park-catalog">
       <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/85 p-1 shadow-lg backdrop-blur">
         {CATEGORY_ORDER.map((c) => (
           <button
             key={c}
+            aria-label={CATEGORY_LABEL[c]}
+            aria-pressed={category===c}
             className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold transition ${
               category === c ? "bg-amber-400 text-slate-900" : "text-slate-200 hover:bg-slate-700"
             }`}
@@ -55,6 +58,7 @@ export function BuildBar() {
             <button
               key={def.id}
               disabled={disabled}
+              aria-pressed={isSelected}
               className={`pointer-events-auto flex w-[92px] flex-col items-center gap-0.5 rounded-lg border-2 p-2 text-center transition ${
                 isSelected
                   ? "border-amber-400 bg-amber-400/15"
@@ -81,11 +85,9 @@ export function BuildBar() {
         })}
       </div>
 
-      {selected !== null ? (
-        <div className="pointer-events-auto rounded-full border border-amber-400/40 bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-amber-200 shadow-lg backdrop-blur">
-          Click the park to place · {BUILDABLES[selected]?.label} · right-click / X to cancel
-        </div>
-      ) : null}
+      <div className="park-build-hint">
+        {selected ? <><span>Place {BUILDABLES[selected]?.label} · green plots are buildable</span><button onClick={()=>commands.run("build.clear", {})}>Cancel ×</button></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
+      </div>
     </div>
   );
 }

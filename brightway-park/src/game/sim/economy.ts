@@ -83,6 +83,8 @@ export function economyDayTick(ctx: GameContext): void {
     session.bankruptDays += 1;
     if (session.bankruptDays >= BANKRUPT_LIMIT) {
       session.gameOver = true;
+      session.open = false;
+      ctx.time.pause();
       setGamePhase(ctx, "ended");
       pushToast("Bankrupt! The park has closed for good.", "bad", now);
     } else {
@@ -102,7 +104,7 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
   const ease = 1 - Math.exp(-dt * 0.25);
   session.rating += (target - session.rating) * ease;
 
-  session.litter = Math.max(0, session.litter - metrics.cleaning * 0.01 * dt);
+  session.litter = Math.max(0, session.litter - metrics.cleaning * 0.08 * dt);
 
   const now = ctx.time.now();
   for (const milestone of MILESTONES) {

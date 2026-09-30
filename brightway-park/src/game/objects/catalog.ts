@@ -229,7 +229,6 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     upkeep: 28,
     color: "#2b6db0",
     trim: "#ffd24a",
-    requires: "tier_janitor",
     appeal: 0,
     footprint: 4,
     staff: { cleaning: 26 },

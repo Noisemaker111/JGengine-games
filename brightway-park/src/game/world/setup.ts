@@ -8,8 +8,17 @@ import { placeObject } from "../build/placement";
 import { buildableDef } from "../objects/catalog";
 import { seedGuests } from "../sim/guests";
 import { resetSession, session } from "../session";
+import { restorePark, savePark } from "../persistence";
+import { traceNative, tracePark } from "../evidence";
 
 const TRACK_PATH_ID = "coaster-track";
+const cleanups = new WeakMap<GameContext, () => void>();
+
+export function disposeWorld(ctx: GameContext): void {
+  savePark(ctx);
+  cleanups.get(ctx)?.();
+  cleanups.delete(ctx);
+}
 
 export interface SeedPlacement {
   catalogId: string;
@@ -55,7 +64,23 @@ function seedStarterPark(ctx: GameContext): void {
 export function setupWorld(ctx: GameContext): void {
   resetSession();
   registerBuildCommands(ctx);
-  seedStarterPark(ctx);
-  seedGuests(ctx, 24);
-  session.started = true;
+  if (!restorePark(ctx)) {
+    seedStarterPark(ctx);
+    seedGuests(ctx, 24);
+  }
+  ctx.time.pause();
+  if (typeof localStorage !== "undefined") {
+    try { ctx.game.store.set("park.reduced-motion",localStorage.getItem("brightway-park.reduced-motion")==="true"); } catch { /* Browser storage may be disabled. */ }
+  }
+  if (typeof window !== "undefined") {
+    const abort = new AbortController();
+    cleanups.set(ctx, () => abort.abort());
+    window.addEventListener("pagehide", () => savePark(ctx), { signal: abort.signal });
+    if (import.meta.env.DEV && import.meta.env.VITE_PARK_EVIDENCE === "1") {
+      tracePark(ctx,"boot");
+      window.addEventListener("keydown",e=>traceNative("keyboard",{code:e.code,key:e.key,target:(e.target as HTMLElement)?.tagName}),{capture:true,signal:abort.signal});
+      window.addEventListener("error",e=>traceNative("runtime-error",{message:e.message,file:e.filename,line:e.lineno}),{signal:abort.signal});
+      window.addEventListener("unhandledrejection",e=>traceNative("runtime-rejection",String(e.reason)),{signal:abort.signal});
+    }
+  }
 }

@@ -6,9 +6,9 @@ import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
 import { nextGuestId, session, type GuestState, type PlacedObject } from "../session";
 import { coasterThrill, demand } from "./rating";
 
-const HUNGER_RATE = 3.1;
-const THIRST_RATE = 3.8;
-const HAPPY_DRIFT = 0.7;
+const HUNGER_RATE = 1.2;
+const THIRST_RATE = 1.5;
+const HAPPY_DRIFT = 0.18;
 const ARRIVE_DISTANCE = 2.2;
 const MAX_VISITS = 6;
 const MIN_SPEND = 6;
@@ -197,12 +197,12 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
     guest.souvenir = Math.min(1, guest.souvenir + 0.02 * dt);
     guest.happy = Math.max(
       0,
-      guest.happy - HAPPY_DRIFT * dt - session.litter * 0.004 * dt - needPressure(guest.hunger) * dt,
+      guest.happy - HAPPY_DRIFT * dt - session.litter * 0.002 * dt - needPressure(guest.hunger) * dt * 0.5 - needPressure(guest.thirst) * dt * 0.3,
     );
     guest.litterTimer -= dt;
     if (guest.litterTimer <= 0) {
       guest.litterTimer = 5 + ctx.rng() * 6;
-      session.litter = Math.min(100, session.litter + 0.5);
+      session.litter = Math.min(100, session.litter + 0.12);
     }
 
     const ent = ctx.scene.entity.get(guest.id);
