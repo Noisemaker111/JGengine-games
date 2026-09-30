@@ -6,11 +6,12 @@ import {
 } from "@jgengine/core/combat/damageInterceptors";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
-import { createTurnLoop, type TurnLoop } from "@jgengine/core/turn/turnLoop";
+import { createTurnLoop, type TurnLoop, type TurnLoopSnapshot } from "@jgengine/core/turn/turnLoop";
 
 import { buildStartingDeck, cardOf, type CardData } from "./cards";
 import {
   ENEMY_CATALOG_ID,
+  ENCOUNTERS,
   ENEMY_ID,
   ENERGY_POOL,
   HAND_SIZE,
@@ -48,6 +49,7 @@ export interface CombatSnapshot {
   enemy: CombatantView & { name: string; tier: EnemyTier };
   intent: Intent | null;
   hand: readonly HandCard[];
+  cards: readonly CardData[];
   deckCount: number;
   discardCount: number;
   exhaustCount: number;
@@ -63,6 +65,7 @@ const EMPTY_SNAPSHOT: CombatSnapshot = {
   enemy: { ...EMPTY_VIEW, name: "", tier: "normal" },
   intent: null,
   hand: [],
+  cards: [],
   deckCount: 0,
   discardCount: 0,
   exhaustCount: 0,
@@ -198,6 +201,8 @@ function statusLabel(status: "weak" | "vulnerable"): string {
 }
 
 export interface CombatStore {
+  capture(): CombatSave | null;
+  restore(ctx: GameContext, save: CombatSave): void;
   subscribe(listener: () => void): () => void;
   getSnapshot(): CombatSnapshot;
   start(ctx: GameContext, enemy: EnemyDef, options?: { freshDeck?: boolean }): void;
@@ -206,6 +211,19 @@ export interface CombatStore {
   endTurn(ctx: GameContext): void;
   addReward(ctx: GameContext, cardType: string): void;
   onEntityDied(ctx: GameContext, instanceId: string): void;
+}
+
+export interface CombatSave {
+  zones: Record<string, readonly string[]>;
+  turn: TurnLoopSnapshot;
+  phase: Phase;
+  enemyTurns: number;
+  seed: number;
+  rewardSerial: number;
+  enemyId: string;
+  hero: CombatantView;
+  enemy: CombatantView;
+  log: string[];
 }
 
 export function createCombatStore(): CombatStore {
@@ -262,8 +280,9 @@ export function createCombatStore(): CombatStore {
         weak: weakOf(ctx, ENEMY_ID),
         vulnerable: vulnerableOf(ctx, ENEMY_ID),
       },
-      intent: current.intent,
+      intent: current.intent?.kind === "attack" ? { ...current.intent, value: scaleDamage(current.intent.value, weakOf(ctx, ENEMY_ID), vulnerableOf(ctx, hero)) } : current.intent,
       hand: handIds.map((id) => ({ id, card: cardOf(id) })),
+      cards: Object.values(current.pile.state().zones).flat().map(cardOf),
       deckCount: current.pile.count("deck"),
       discardCount: current.pile.count("discard"),
       exhaustCount: current.pile.count("exhaust"),
@@ -343,6 +362,29 @@ export function createCombatStore(): CombatStore {
   }
 
   return {
+    capture() {
+      if (state === null) return null;
+      return { zones: state.pile.state().zones, turn: state.turn.capture(), phase: state.phase,
+        enemyTurns: state.enemyTurns, seed: state.seed, rewardSerial: state.rewardSerial,
+        enemyId: state.enemy.id, hero: snapshot.hero, enemy: snapshot.enemy, log: [...state.log] };
+    },
+    restore(ctx, save) {
+      const enemy = ENCOUNTERS.find((entry) => entry.id === save.enemyId)!;
+      const pile = newPile(save.seed);
+      pile.reset({ zones: save.zones });
+      const turn = createTurnLoop({ order: [TURN_HERO, TURN_ENEMY], pools: [{ id: ENERGY_POOL, max: MAX_ENERGY, start: MAX_ENERGY }] });
+      turn.restore(save.turn);
+      for (const [id, catalog, view] of [[heroId(ctx), HERO_CATALOG_ID, save.hero], [ENEMY_ID, ENEMY_CATALOG_ID, save.enemy]] as const) {
+        if (ctx.scene.entity.get(id) !== null) ctx.scene.entity.despawn(id);
+        ctx.scene.entity.spawn(catalog, { id, role: id === ENEMY_ID ? "npc" : "player", position: [0, 0, 0] });
+        ctx.scene.entity.stats.set(id, "health", { max: view.maxHp, current: view.hp });
+        for (const stat of ["block", "strength", "weak", "vulnerable"] as const) ctx.scene.entity.stats.set(id, stat, { current: view[stat] });
+      }
+      state = { pile, turn, phase: save.phase, enemyTurns: save.enemyTurns, seed: save.seed,
+        rewardSerial: save.rewardSerial, enemy, log: [...save.log],
+        intent: intentForEncounter(enemy, save.enemyTurns, save.enemy.strength) };
+      sync(ctx);
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -365,6 +407,7 @@ export function createCombatStore(): CombatStore {
         if (ctx.scene.entity.get(hero) !== null) ctx.scene.entity.despawn(hero);
         ctx.scene.entity.spawn(HERO_CATALOG_ID, { id: hero, role: "player", position: [-2, 0, 0] });
       } else {
+        ctx.scene.entity.stats.set(hero, "strength", { current: 0 });
         ctx.scene.entity.stats.set(hero, "block", { current: 0 });
         ctx.scene.entity.stats.set(hero, "weak", { current: 0 });
         ctx.scene.entity.stats.set(hero, "vulnerable", { current: 0 });
@@ -403,9 +446,9 @@ export function createCombatStore(): CombatStore {
       const current = state;
       const card = cardOf(cardId);
       current.turn.spend(TURN_HERO, ENERGY_POOL, card.cost);
-      applyCard(ctx, current, card);
       if (card.effects.exhaust) current.pile.exhaust([cardId], "exhaust");
       else current.pile.discard([cardId]);
+      applyCard(ctx, current, card);
       log(current, `You play ${card.name}.`);
       sync(ctx);
     },
@@ -414,11 +457,15 @@ export function createCombatStore(): CombatStore {
       const current = state;
       const hand = [...current.pile.state().zones.hand];
       if (hand.length > 0) current.pile.discard(hand);
-      decayStatus(ctx, heroId(ctx));
       current.phase = "enemy";
       current.turn.advanceTurn();
       ctx.scene.entity.stats.set(ENEMY_ID, "block", { current: 0 });
+      const heroStatuses = { weak: weakOf(ctx, heroId(ctx)), vulnerable: vulnerableOf(ctx, heroId(ctx)) };
       executeIntent(ctx, current);
+      // Existing statuses affect this action; newly inflicted stacks survive it.
+      for (const stat of ["weak", "vulnerable"] as const) {
+        if (heroStatuses[stat] > 0) ctx.scene.entity.stats.delta(heroId(ctx), stat, -1);
+      }
       decayStatus(ctx, ENEMY_ID);
       current.enemyTurns += 1;
       const heroAlive = (ctx.scene.entity.stats.get(heroId(ctx), "health")?.current ?? 0) > 0;

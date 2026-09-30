@@ -21,6 +21,7 @@ function boot(): { ctx: GameContext; combat: CombatStore; run: RunStore } {
   });
   onInit(ctx);
   onNewPlayer(ctx);
+  ctx.game.commands.run("startNewRun", {});
   return { ctx, combat: combatHandle.read(ctx), run: runHandle.read(ctx) };
 }
 
