@@ -17,6 +17,8 @@ const BUILDING_OBJECTS: readonly ObjectDef[] = BUILDING_SPECS.map((b) => ({
 }));
 
 export const OBJECTS: readonly ObjectDef[] = [
+  { id: "obj_dispatch", label: "Mainsail Dispatch", color: "#38b6ac", footprint: { w: 3, h: 3.5, d: 2.4 }, solid: true },
+  ...[1, 2, 3].map((i) => ({ id: `obj_delivery_${i}`, label: "Parcel drop", color: "#ffb020", footprint: { w: 1, h: 4, d: 1 }, solid: false })),
   { id: "obj_gunshop_sign", label: "Ammu-Isle", color: "#ffb020", footprint: { w: 2, h: 2, d: 1 }, solid: false },
   { id: "obj_safehouse_sign", label: "Palmview Bungalow", color: "#3fbf5a", footprint: { w: 2, h: 2, d: 1 }, solid: false },
   { id: "obj_hhpd_sign", label: "HHPD Station", color: "#4f7de8", footprint: { w: 2, h: 2, d: 1 }, solid: false },
