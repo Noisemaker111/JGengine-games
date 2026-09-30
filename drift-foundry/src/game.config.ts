@@ -18,6 +18,8 @@ export const game = defineGame({
   loop: { onInit, onNewPlayer, onTick },
   lifecycle,
   GameUI,
+  // This run uses its own held throttle/jump pad alongside the branded HUD.
+  touch: false,
   capture: {
     play: ["startRun"],
     views: {

@@ -9,4 +9,5 @@ export const keybinds: ActionCodesMap = {
   plowBrace: ["ShiftLeft", "ShiftRight"],
   restart: ["KeyR"],
   startRun: ["Enter"],
+  pauseRun: ["KeyP"],
 };

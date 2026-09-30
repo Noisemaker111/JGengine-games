@@ -7,10 +7,12 @@ export interface WorldRuntime {
   propRows: readonly PropRow[];
   cursor: { index: number };
   removedMarkers: Set<string>;
+  removedGates: Set<string>;
+  lastRunTime: number;
 }
 
 export function createWorldRuntime(propRows: readonly PropRow[]): WorldRuntime {
-  return { propRows, cursor: { index: 0 }, removedMarkers: new Set<string>() };
+  return { propRows, cursor: { index: 0 }, removedMarkers: new Set<string>(), removedGates: new Set<string>(), lastRunTime: 0 };
 }
 
 export const worldRuntimeStore = defineStore<WorldRuntime | undefined>("worldRuntime", undefined);

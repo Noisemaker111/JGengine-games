@@ -1,12 +1,14 @@
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
 import { assets } from "./assets";
+import { buggyModel, jumpBarrierModel, jumpCueModel, stationModels } from "./art/models";
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./entities/catalog";
 import {
   EXIT_GATE_ARCH,
   GATE_BARRICADE_JUMP,
   GATE_BARRICADE_PLOW,
   PICKUP_MARKER,
+  JUMP_CUE,
   PROP_APPLIANCE_STACK,
   PROP_CONTAINER_STACK,
   PROP_CRANE_LEG,
@@ -32,90 +34,6 @@ function modelWith(id: string, overrides: Partial<ModelConfig> = {}): ModelConfi
   if (base === null) throw new Error(`models: unresolved asset id "${id}"`);
   return { url: base.url, dims: base.dims, ...overrides };
 }
-
-function tailLight(x: number): { model: ModelConfig; position: [number, number, number]; rotation: [number, number, number]; scale: number } {
-  return {
-    model: modelWith("kaykit-dungeon/coin", {
-      material: { color: TAIL_RED, emissive: TAIL_RED, emissiveIntensity: 2.6, roughness: 0.3, metalness: 0.2 },
-    }),
-    position: [x, 0.66, -1.36],
-    rotation: [Math.PI / 2, 0, 0],
-    scale: 0.75,
-  };
-}
-
-/**
- * The whole car shares one KayKit atlas material, so a blanket `color` tints painted panel, glass,
- * chrome rim, and black tyre to the same value — which is what made the kart read as one brick.
- * The base keeps its own atlas; every bolted-on piece carries the scrap palette instead.
- */
-const KART_MODEL: ModelConfig = modelWith("kaykit-city-builder/car_hatchback", {
-  targetHeight: 1.18,
-  material: {
-    metalness: 0.3,
-    roughness: 0.62,
-    rim: { color: "#ffb066", strength: 0.5, power: 2.2 },
-  },
-  parts: [
-    {
-      model: modelWith("kaykit-dungeon/barrier", {
-        material: { color: OIL_BLACK, metalness: 0.6, roughness: 0.5 },
-      }),
-      position: [0, 0.3, 1.5],
-      rotation: [-0.3, 0, 0],
-      scale: 0.5,
-    },
-    {
-      model: modelWith("kaykit-dungeon/barrier", {
-        material: { color: OIL_BLACK, metalness: 0.4, roughness: 0.75 },
-      }),
-      position: [-0.72, 0.3, -0.1],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 0.34,
-    },
-    {
-      model: modelWith("kaykit-dungeon/barrier", {
-        material: { color: OIL_BLACK, metalness: 0.4, roughness: 0.75 },
-      }),
-      position: [0.72, 0.3, -0.1],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 0.34,
-    },
-    {
-      model: modelWith("kaykit-city-builder/box_B", {
-        material: { color: RUST, metalness: 0.4, roughness: 0.78 },
-      }),
-      position: [0.14, 1.14, -0.18],
-      rotation: [0.1, 0.42, 0.06],
-      scale: 3.4,
-    },
-    {
-      model: modelWith("kaykit-dungeon/barrel_small", {
-        material: { color: OIL_BLACK, metalness: 0.35, roughness: 0.88 },
-      }),
-      position: [-0.5, 0.34, -1.12],
-      rotation: [0, 0.4, 0],
-      scale: 0.52,
-    },
-    {
-      model: modelWith("kaykit-dungeon/column", {
-        material: { color: OIL_BLACK, metalness: 0.7, roughness: 0.5 },
-      }),
-      position: [0.46, 0.9, -0.95],
-      rotation: [0.18, 0, 0.1],
-      scale: 0.34,
-    },
-    {
-      model: modelWith("kaykit-dungeon/coin", {
-        material: { color: "#ff7a2b", emissive: "#ff7a2b", emissiveIntensity: 2.4, roughness: 0.4 },
-      }),
-      position: [0.5, 1.38, -0.87],
-      scale: 0.7,
-    },
-    tailLight(-0.44),
-    tailLight(0.44),
-  ],
-});
 
 const COMPACTOR_TILE_SCALE = 6;
 const COMPACTOR_TILE_COUNT = 9;
@@ -442,7 +360,7 @@ function pickupMarker(): ModelConfig {
 }
 
 export const entityModels: Record<string, ModelConfig> = {
-  [KART_PLAYER_ENTITY]: KART_MODEL,
+  [KART_PLAYER_ENTITY]: buggyModel,
   [COMPACTOR_ENTITY]: COMPACTOR_MODEL,
 };
 
@@ -458,7 +376,9 @@ export const objectModels: Record<string, ModelConfig> = {
   [PROP_YARD_LAMP]: yardLamp(),
   [PROP_YARD_TOWER]: yardTower(),
   [GATE_BARRICADE_PLOW]: gateBarricade("plow"),
-  [GATE_BARRICADE_JUMP]: gateBarricade("jump"),
+  [GATE_BARRICADE_JUMP]: jumpBarrierModel,
+  [JUMP_CUE]: jumpCueModel,
+  ...stationModels,
   [PICKUP_MARKER]: pickupMarker(),
   [EXIT_GATE_ARCH]: exitGateArch(),
 };

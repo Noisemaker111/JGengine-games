@@ -5,7 +5,7 @@ import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { createRunSession, runSessionStore, type RunSession } from "./game/run/session";
 import { createWorldRuntime, driveInputStore, worldRuntimeStore } from "./game/run/store";
 import { createDriveInput } from "./game/vehicle/input";
-import { placeExitGate, placeGateBarricades, placePickupMarkers, placeZoneDressing, syncCompactorRow, syncPickupMarkers } from "./game/world/setup";
+import { placeExitGate, placeGateBarricades, placePickupMarkers, placeZoneDressing, syncCompactorRow, syncPickupMarkers, syncClearedGates } from "./game/world/setup";
 
 export const lifecycle: LifecycleConfig<RunSession> = {
   store: runSessionStore,
@@ -19,15 +19,12 @@ export const lifecycle: LifecycleConfig<RunSession> = {
   },
   phaseOf(session) {
     const phase = session.snapshot().phase;
-    return phase === "running" ? "playing" : phase === "start" ? "menu" : "ended";
+    return phase === "running" ? session.snapshot().paused ? "paused" : "playing" : phase === "start" ? "menu" : "ended";
   },
   commands: { start: "startRun" },
 };
 
 export function onInit(ctx: GameContext): void {
-  const previousInput = driveInputStore.peek(ctx);
-  previousInput?.detach();
-
   const propRows = placeZoneDressing(ctx);
   placeGateBarricades(ctx);
   placePickupMarkers(ctx);
@@ -38,7 +35,6 @@ export function onInit(ctx: GameContext): void {
   runSessionStore.write(ctx, session);
 
   const input = createDriveInput();
-  input.attach();
   driveInputStore.write(ctx, input);
 }
 
@@ -55,12 +51,20 @@ export function onTick(ctx: GameContext, dt: number): void {
   const world = worldRuntimeStore.peek(ctx);
   if (session === undefined || input === undefined || world === undefined) return;
 
-  if (input.consumeRestart()) session.restart();
-  if (input.consumeStart()) session.start();
+  // Restore all consumed scenery when a new run resets the session.
+  if (session.snapshot().collectedIds.size < world.removedMarkers.size || session.snapshot().runTime < world.lastRunTime) {
+    const rows = placeZoneDressing(ctx);
+    placeGateBarricades(ctx);
+    placePickupMarkers(ctx);
+    worldRuntimeStore.write(ctx, createWorldRuntime(rows));
+    input.reset();
+  }
+  const currentWorld = worldRuntimeStore.peek(ctx)!;
 
-  const axis = input.sample(dt);
-  const jumpPressed = input.consumeJump();
-  const plowBracing = input.isPlowBracing();
+  const before = session.snapshot();
+  const axis = input.sample(dt, ctx.input, before.phase === "running" && !before.paused);
+  const jumpPressed = input.consumeJump() || ctx.input.justPressed("jumpHop");
+  const plowBracing = ctx.input.isDown("plowBrace") || input.isDown("plowBrace");
   session.tick(dt, axis, { jumpPressed, plowBracing });
 
   const snapshot = session.snapshot();
@@ -78,8 +82,10 @@ export function onTick(ctx: GameContext, dt: number): void {
     dt,
   );
 
-  syncPickupMarkers(ctx, snapshot.collectedIds, world.removedMarkers);
-  syncCompactorRow(ctx, snapshot.compactorZ, world.propRows, world.cursor);
+  syncPickupMarkers(ctx, snapshot.collectedIds, currentWorld.removedMarkers);
+  syncClearedGates(ctx, snapshot.clearedGateIds, currentWorld.removedGates);
+  syncCompactorRow(ctx, snapshot.compactorZ, currentWorld.propRows, currentWorld.cursor);
+  currentWorld.lastRunTime = snapshot.runTime;
 
   runSessionStore.write(ctx, session);
 }

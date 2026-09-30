@@ -12,6 +12,7 @@ import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
 import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SPAWN_Z } from "./constants";
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
+import { browserRecordStorage, readRecords, saveRecords, type RunRecords, type RecordStorage } from "./records";
 
 export type RunPhase = "start" | "running" | "won" | "crushed";
 
@@ -31,6 +32,10 @@ export interface RunOutcome {
 }
 
 export interface SessionSnapshot {
+  paused: boolean;
+  records: RunRecords;
+  recordsSaved: boolean;
+  clearedGateIds: ReadonlySet<string>;
   phase: RunPhase;
   runTime: number;
   pose: VehiclePose;
@@ -55,6 +60,9 @@ export interface RunSession {
   snapshot(): SessionSnapshot;
   start(): void;
   restart(): void;
+  returnToTitle(): void;
+  togglePause(): void;
+  suspend(value: boolean): void;
   tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean }): void;
 }
 
@@ -65,8 +73,12 @@ const SPAWN_HEADING = 0;
 const TICKER_LIMIT = 6;
 const TOAST_HOLD_SECONDS = 3.2;
 
-export function createRunSession(groundHeightAt: (x: number, z: number) => number = () => 0): RunSession {
+export function createRunSession(groundHeightAt: (x: number, z: number) => number = () => 0, storage: RecordStorage | undefined = browserRecordStorage()): RunSession {
   let phase: RunPhase = "start";
+  let paused = false;
+  let suspended = false;
+  let records = readRecords(storage);
+  let recordsSaved = true;
   let runTime = 0;
   let installed: readonly InstalledPart[] = [];
   let collected = new Set<string>();
@@ -128,7 +140,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     for (const gate of ROUTE_GATES) {
       if (gateAnnounced.has(gate.id)) continue;
       if (!inLane(pose.position[0], gate.laneX)) continue;
-      if (pose.position[2] < gate.atZ) continue;
+      if (pose.position[2] <= gate.atZ) continue;
       if (!gateSatisfied(gate, tuning)) continue;
       gateAnnounced.add(gate.id);
       pushRadio(gate.radioLine);
@@ -137,6 +149,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
 
   function reset(): void {
     phase = "start";
+    paused = false;
     runTime = 0;
     installed = [];
     collected = new Set<string>();
@@ -156,9 +169,22 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
 
   reset();
 
+  function recordOutcome(): void {
+    records = { ...records, attempts: records.attempts + 1, farthest: Math.max(records.farthest, Math.min(EXIT_Z, pose.position[2])) };
+    if (phase === "won") {
+      records.escapes += 1;
+      records.bestTime = records.bestTime === null ? runTime : Math.min(records.bestTime, runTime);
+    }
+    recordsSaved = saveRecords(records, storage);
+  }
+
   return {
     snapshot() {
       return {
+        paused: paused || suspended,
+        records,
+        recordsSaved,
+        clearedGateIds: gateAnnounced,
         phase,
         runTime,
         pose,
@@ -190,8 +216,13 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
       phase = "running";
       pushRadio("BOLT IT ON, GO GO");
     },
+    returnToTitle() { reset(); },
+    togglePause() { if (phase === "running") paused = !paused; },
+    suspend(value) { suspended = value; },
     tick(dt, axis, input) {
-      if (phase !== "running") return;
+      if (phase !== "running" || paused || suspended) return;
+      // A resumed/background tab cannot advance the crusher by a large wall-clock delta.
+      dt = Math.max(0, Math.min(dt, 0.05));
       runTime += dt;
 
       const tuning = tuningFrom(installed);
@@ -237,6 +268,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
           armorSaves: armorSavesUsed,
           zoneLabel: zoneAt(pose.position[2]).label,
         };
+        recordOutcome();
         return;
       }
 
@@ -251,6 +283,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
           armorSaves: armorSavesUsed,
           zoneLabel: zoneAt(pose.position[2]).label,
         };
+        recordOutcome();
       }
     },
   };
