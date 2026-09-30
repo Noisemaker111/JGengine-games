@@ -1,6 +1,6 @@
 # JGengine Games
 
-Playable probe games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the published `@jgengine/*` packages (`^0.18.0`).
+Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the published `@jgengine/*` packages.
 
 These games use familiar genres with their own titles, settings, characters, and authored content. They also probe engine capabilities. To build a new game, use `npx jgengine create`; assets and upstream source retain their individual licenses.
 
@@ -26,13 +26,25 @@ See [the genre roadmap](./CLASSICS.md) for planned mechanics and [content proven
 ## Develop
 
 ```sh
-bun install
-bun run dev:harbor-heat   # or any game id
-# or inside a game:
-cd harbor-heat && bun run dev
+bun install --frozen-lockfile
 ```
 
-Each game is a standalone Vite harness: `index.html` + `vite.config.ts` + `src/index.tsx`.
+For games with an asset catalog, provision its downloaded packs before launch.
+Catalogs such as Harbor Heat's `src/game/assets.ts` list their source identifiers.
+Run the published assets CLI from the repository root for each source, writing
+into that game's public directory:
+
+```sh
+bun node_modules/@jgengine/assets/dist/cli/pull.js pull <source> --dir <game-id>/public
+bun run dev:harbor-heat   # or another playable game id
+```
+
+Wayfarer Deck uses authored interface artwork and does not need downloaded 3D
+packs. Deepward is a design document and has no dev script.
+
+Each playable game is a standalone Vite harness: `index.html` loads
+`src/main.tsx`, and `vite.config.ts` resolves published packages. Run commands from
+the repository root, or run `bun run dev` inside the target game's directory.
 
 See [published-package verification](GAME-PR-VERIFICATION.md) for the Brightway Park,
 Field Station and Scrap Signal dependency pin, asset provisioning, checks and remaining
@@ -40,7 +52,10 @@ playtest limits.
 
 ## Engine version
 
-Games depend on published `@jgengine/*@0.18.0` from npm. Bump via:
+Games declare published `@jgengine/*` ranges starting at `^0.18.0`. The committed
+lockfile resolves core/react/shell/ws/assets to 0.18.1 and pins editor to 0.18.0;
+editor 0.18.1 requires the unpublished navbake package. Keep the lockfile and editor
+override together when changing dependencies. An intentional package update uses:
 
 ```sh
 bun update @jgengine/core @jgengine/react @jgengine/shell @jgengine/ws @jgengine/assets @jgengine/editor
