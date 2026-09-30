@@ -70,17 +70,25 @@ export function loadCurrentRoom(ctx: GameContext): void {
   const current = levelSeq(ctx).current();
   if (current === null) return;
   const room = current.config;
-  duetStore.update(ctx, (state) => ({ ...state, ...freshRoom(current.index), active: "lumen" }));
+  duetStore.update(ctx, (state) => ({ ...state, ...freshRoom(current.index), active: "lumen",
+    pressedPlates: [], poweredReceivers: [], openGates: [], activeSpikes: [], exits: [] }));
   clearToast(ctx);
   buildRoom(ctx, room);
-  applyRoomVisuals(ctx, room, currentRoomState(ctx, room));
+  const signals = currentRoomState(ctx, room);
+  applyRoomVisuals(ctx, room, signals);
+  duetStore.update(ctx, state => ({ ...state, pressedPlates: signals.pressedPlates,
+    poweredReceivers: signals.poweredReceivers, openGates: signals.openGates, activeSpikes: signals.activeSpikes }));
   for (const userId of [seats(ctx).lumen, seats(ctx).anchor]) {
     if (userId !== null) ctx.player.possession.possess(userId, seats(ctx).lumen === userId ? "lumen" : "anchor");
   }
 }
 
-export function startRun(ctx: GameContext): void {
-  levelSeq(ctx).start();
+export function startRun(ctx: GameContext, roomIndex = 0): void {
+  const seq = levelSeq(ctx);
+  seq.start();
+  // A validated browser checkpoint restores the unlocked frontier in the memory-only sequence.
+  const index = Number.isInteger(roomIndex) && ROOMS[roomIndex] !== undefined ? roomIndex : 0;
+  for (let i = 0; i < index; i++) { seq.clear(); seq.advance(); }
   loadCurrentRoom(ctx);
   setGamePhase(ctx, "playing");
 }
@@ -88,7 +96,7 @@ export function startRun(ctx: GameContext): void {
 export function advanceRoom(ctx: GameContext): void {
   const seq = levelSeq(ctx);
   seq.clear();
-  if (seq.advance()) {
+  if (seq.advance() && seq.status() !== "complete") {
     loadCurrentRoom(ctx);
   } else {
     duetStore.update(ctx, (state) => ({ ...state, status: "complete", solveTimer: 0 }));
@@ -98,4 +106,5 @@ export function advanceRoom(ctx: GameContext): void {
 
 export function resetRoom(ctx: GameContext): void {
   loadCurrentRoom(ctx);
+  setGamePhase(ctx, "playing");
 }

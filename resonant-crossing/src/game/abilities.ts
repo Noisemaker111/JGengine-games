@@ -1,9 +1,12 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { ROOMS } from "./rooms/catalog";
-import { advanceRoom, activeHero, levelSeq, loadCurrentRoom, resetRoom, swapHero } from "./runtime";
+import { advanceRoom, activeHero, resetRoom, startRun, swapHero } from "./runtime";
 import { duetStore, raiseToast, withAnchor, withPrism } from "./stores";
-import { type Dir, sameCell, type V2, yawToDir } from "./types";
+import { type Dir, DIR_VECTORS, DIR_ORDER, addCell, sameCell, type V2, yawToDir } from "./types";
+import { currentRoomState } from "./rooms/setup";
+import { isWalkable } from "./rooms/engine";
 
 function heroCell(ctx: GameContext, id: string): V2 | null {
   const entity = ctx.scene.entity.get(id);
@@ -18,6 +21,8 @@ function heroFacing(ctx: GameContext, id: string): Dir {
 
 /** The active hero uses its distinct ability, latching a device onto the room. */
 export function useAbility(ctx: GameContext, userId: string, dirOverride?: Dir): void {
+  if (duetStore.read(ctx).status !== "playing") return;
+  if (dirOverride !== undefined && !DIR_ORDER.includes(dirOverride)) return;
   const hero = activeHero(ctx, userId);
   const cell = heroCell(ctx, hero);
   if (cell === null) return;
@@ -36,8 +41,43 @@ export function useAbility(ctx: GameContext, userId: string, dirOverride?: Dir):
 }
 
 export function registerCommands(ctx: GameContext): void {
+  ctx.game.commands.define("duet.motion", {
+    apply(state, input) {
+      duetStore.update(state, s => ({ ...s, reducedMotion: (input as { reduced?: boolean }).reduced === true }));
+    },
+  });
+  ctx.game.commands.define("duet.start", {
+    apply(state, input) {
+      const index = (input as { roomIndex?: number }).roomIndex;
+      startRun(state, index);
+    },
+  });
+  ctx.game.commands.define("pause", {
+    apply(state) {
+      const status = duetStore.read(state).status;
+      if (status !== "playing" && status !== "paused") return;
+      duetStore.update(state, s => ({ ...s, status: status === "paused" ? "playing" : "paused" }));
+      setGamePhase(state, status === "paused" ? "playing" : "paused");
+    },
+  });
+  ctx.game.commands.define("duet.step", {
+    apply(state, input) {
+      if (duetStore.read(state).status !== "playing") return;
+      const dir = (input as { dir?: Dir }).dir;
+      if (dir === undefined || !DIR_ORDER.includes(dir)) return;
+      const hero = activeHero(state, commandUser(state, input));
+      const cell = heroCell(state, hero);
+      const room = ROOMS[duetStore.read(state).roomIndex];
+      if (cell === null || room === undefined) return;
+      const next = addCell(cell, DIR_VECTORS[dir]);
+      const target = isWalkable(room, currentRoomState(state, room), next) ? next : cell;
+      const vector = DIR_VECTORS[dir];
+      state.scene.entity.setPose(hero, { position: [target.x, 0, target.z], rotationY: Math.atan2(vector.x, vector.z), dt: 0 });
+    },
+  });
   ctx.game.commands.define("swap", {
     apply(state, input) {
+      if (duetStore.read(state).status !== "playing") return;
       const userId = commandUser(state, input);
       if (!swapHero(state, userId)) raiseToast(state, "You only control one hero here.");
     },
@@ -51,6 +91,7 @@ export function registerCommands(ctx: GameContext): void {
 
   ctx.game.commands.define("reset", {
     apply(state) {
+      if (!["playing", "paused"].includes(duetStore.read(state).status)) return;
       resetRoom(state);
       raiseToast(state, "Room reset.");
     },
@@ -58,8 +99,7 @@ export function registerCommands(ctx: GameContext): void {
 
   ctx.game.commands.define("duet.restart", {
     apply(state) {
-      levelSeq(state).select(ROOMS[0]!.id);
-      loadCurrentRoom(state);
+      startRun(state);
     },
   });
 
