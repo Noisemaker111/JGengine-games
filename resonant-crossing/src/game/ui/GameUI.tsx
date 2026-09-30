@@ -1,133 +1,127 @@
-import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/react";
+import { useEffect, useRef, useState } from "react";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-
-import { actionLabel } from "@jgengine/core/input/actionBindings";
-
 import { HEROES } from "../entities/players/catalog";
-import { keybinds } from "../keybinds";
-import { ROOM_COUNT, ROOMS } from "../rooms/catalog";
+import { ROOMS, ROOM_COUNT } from "../rooms/catalog";
 import { duetStore } from "../stores";
-import type { HeroId } from "../types";
+import { CHECKPOINT_KEY, PREFERENCES_KEY, readCheckpoint, readPreferences, writeLocal } from "../persistence";
 
-function key(action: string): string {
-  return actionLabel(keybinds, action) ?? action;
-}
-
-function RoomBanner() {
-  const roomIndex = useStore(duetStore, (s) => s.roomIndex);
-  const room = ROOMS[roomIndex];
-  if (room === undefined) return null;
-  return (
-    <div className="rounded-lg bg-slate-950/80 px-4 py-2 shadow-lg ring-1 ring-white/10">
-      <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-        Room {roomIndex + 1} / {ROOM_COUNT}
-      </div>
-      <div className="text-lg font-bold text-white">{room.name}</div>
-      <div className="mt-0.5 max-w-xs text-xs leading-snug text-slate-300">{room.objective}</div>
-    </div>
-  );
-}
-
-function HeroCard() {
-  const active = useStore(duetStore, (s) => s.active) as HeroId;
-  const hero = HEROES[active];
-  return (
-    <div
-      className="rounded-lg bg-slate-950/85 px-4 py-3 shadow-lg ring-1"
-      style={{ boxShadow: `0 0 24px ${hero.color}44`, borderColor: `${hero.color}55` }}
-    >
-      <div className="flex items-center gap-2">
-        <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: hero.color }} />
-        <span className="text-base font-bold" style={{ color: hero.color }}>
-          {hero.name}
-        </span>
-        <span className="text-xs text-slate-400">{hero.title}</span>
-      </div>
-      <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-200">
-        <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs font-bold">{key("ability")}</kbd>
-        <span className="font-semibold">{hero.ability}</span>
-      </div>
-      <div className="mt-1 max-w-xs text-xs leading-snug text-slate-400">{hero.abilityHint}</div>
-      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-slate-300">
-        <Legend k={key("swap")} label="Swap hero" />
-        <Legend k="WASD" label="Move" />
-        <Legend k={key("reset")} label="Reset" />
-      </div>
-    </div>
-  );
-}
-
-function Legend({ k, label }: { k: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5">
-      <kbd className="font-bold text-slate-200">{k}</kbd>
-      <span className="text-slate-400">{label}</span>
-    </span>
-  );
-}
-
-function Toast() {
-  const toast = useStore(duetStore, (s) => s.toast);
-  if (toast === null) return null;
-  return (
-    <div className="rounded-full bg-slate-950/90 px-4 py-1.5 text-sm font-medium text-cyan-100 shadow-lg ring-1 ring-cyan-400/30">
-      {toast}
-    </div>
-  );
-}
-
-function SolvedBadge() {
-  const status = useStore(duetStore, (s) => s.status);
-  if (status !== "solved") return null;
-  return (
-    <div className="rounded-xl bg-emerald-500/90 px-6 py-3 text-2xl font-black tracking-wide text-emerald-950 shadow-2xl">
-      ROOM CLEAR
-    </div>
-  );
-}
-
-function CompleteOverlay() {
-  const status = useStore(duetStore, (s) => s.status);
-  const { commands } = useGame();
-  if (status !== "complete") return null;
-  return (
-    <div className="pointer-events-auto flex flex-col items-center gap-4 rounded-2xl bg-slate-950/92 px-10 py-8 text-center shadow-2xl ring-1 ring-white/15">
-      <div className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Duet complete</div>
-      <div className="text-3xl font-black text-white">Two keys, one door.</div>
-      <div className="max-w-sm text-sm text-slate-300">
-        Lumen and Anchor cleared every room together. Neither could have made it alone.
-      </div>
-      <button
-        type="button"
-        onClick={() => commands.run("duet.restart", {})}
-        className="rounded-lg bg-cyan-400 px-6 py-2 font-bold text-slate-950 transition hover:bg-cyan-300"
-      >
-        Play again
-      </button>
-    </div>
-  );
-}
+const HINTS = [
+  "Swap to Anchor. Move onto the amber plate in the upper corridor and drop a weight. Leave it there; send each hero to the matching exit ring.",
+  "Lumen starts in line with the receiver. Face east, then plant the prism. It stays behind while both heroes cross the open gates.",
+  "Plant Lumen’s prism facing east in the upper lane. Anchor drops a weight on the lower lane’s plate. Each device opens the other hero’s gate.",
+  "Plant the prism facing east before crossing the red spikes. Then Anchor’s weight on the lower plate opens Lumen’s road. Keep both devices planted.",
+];
 
 export function GameUI() {
-  const layout = useHudLayout({ storageKey: "resonant-crossing" });
-  return (
-    <HudCanvas layout={layout} className="z-20 font-sans text-slate-100">
-      <HudPanel id="room" anchor="top-left" compact="keep" interactive={false}>
-        <RoomBanner />
-      </HudPanel>
-      <HudPanel id="hero" anchor="bottom-left" compact="keep" interactive={false}>
-        <HeroCard />
-      </HudPanel>
-      <HudPanel id="toast" anchor="top" compact="keep" interactive={false}>
-        <Toast />
-      </HudPanel>
-      <HudPanel id="solved" anchor="center" compact="keep" interactive={false}>
-        <SolvedBadge />
-      </HudPanel>
-      <HudPanel id="complete" anchor="center" compact="keep" interactive>
-        <CompleteOverlay />
-      </HudPanel>
-    </HudCanvas>
-  );
+  const state = useStore(duetStore, s => s);
+  const { commands } = useGame();
+  const [checkpoint, setCheckpoint] = useState(readCheckpoint);
+  const [preferences, setPreferences] = useState(readPreferences);
+  const [settings, setSettings] = useState(false);
+  const [hint, setHint] = useState(false);
+  const [saveAvailable, setSaveAvailable] = useState(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const room = ROOMS[state.roomIndex] ?? ROOMS[0]!;
+  const hero = HEROES[state.active];
+  const modal = state.status === "ready" || state.status === "paused" || state.status === "complete";
+  const run = (name: string, input: object = {}) => { commands.run(name, input); };
+
+  useEffect(() => { run("duet.motion", { reduced: preferences.reducedMotion }); }, [commands, preferences.reducedMotion]);
+  useEffect(() => {
+    setHint(false);
+    if (state.status !== "playing" && state.status !== "complete") return;
+    const next = { version: 1 as const, roomIndex: state.roomIndex, complete: state.status === "complete" };
+    setSaveAvailable(writeLocal(CHECKPOINT_KEY, next));
+    setCheckpoint(next);
+  }, [state.roomIndex, state.status]);
+  useEffect(() => {
+    if (!modal) { setSettings(false); return; }
+    modalRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [modal, state.status, settings]);
+  useEffect(() => {
+    const blur = () => { if (state.status === "playing") commands.run("pause", {}); };
+    const pauseKey = (event: KeyboardEvent) => {
+      if (event.repeat || (event.code !== "Escape" && event.code !== "KeyP")) return;
+      if (state.status !== "playing" && state.status !== "paused") return;
+      if ((event.target as HTMLElement)?.closest("input, textarea, select")) return;
+      event.preventDefault();
+      commands.run("pause", {});
+    };
+    window.addEventListener("blur", blur);
+    window.addEventListener("keydown", pauseKey);
+    return () => { window.removeEventListener("blur", blur); window.removeEventListener("keydown", pauseKey); };
+  }, [commands, state.status]);
+
+  const updatePreference = (name: keyof typeof preferences, value: boolean) => {
+    const next = { ...preferences, [name]: value };
+    setPreferences(next);
+    setSaveAvailable(writeLocal(PREFERENCES_KEY, next));
+  };
+  const begin = (roomIndex = 0) => { setHint(false); run("duet.start", { roomIndex }); };
+  return <div className="rc-ui" data-status={state.status} onKeyDown={event => {
+    // Preserve native button activation and Tab focus before the shell consumes gameplay keys.
+    if (event.key === "Tab" || ((event.key === " " || event.key === "Enter") && (event.target as HTMLElement).closest("button"))) event.stopPropagation();
+  }}>
+    <header className="rc-header rc-panel">
+      <div><span className="rc-eyebrow">Observatory of the Duet · {state.roomIndex + 1}/{ROOM_COUNT}</span>
+        <h1>{room.name}</h1><p>{room.objective}</p></div>
+      <button className="rc-quiet" disabled={state.status !== "playing"} onClick={() => run("pause")} aria-label="Pause and settings">Ⅱ <span>Pause</span></button>
+    </header>
+    <div className="rc-signals rc-panel" aria-label="Circuit status">
+      {room.plates.length > 0 && <span data-lit={state.pressedPlates.length === room.plates.length}>◆ Weight {state.pressedPlates.length}/{room.plates.length}</span>}
+      {room.receivers.length > 0 && <span data-lit={state.poweredReceivers.length === room.receivers.length}>✦ Light {state.poweredReceivers.length}/{room.receivers.length}</span>}
+      <span data-lit={state.openGates.length === room.gates.length}>▥ Gates {state.openGates.length}/{room.gates.length}</span>
+      <span data-lit={state.exits.length === 2}>◎ Exits {state.exits.length}/2</span>
+    </div>
+    {state.toast && <div className="rc-toast" role="status">{state.toast}</div>}
+    {state.status === "solved" && <div className="rc-clear" role="status"><span>Harmony restored</span><strong>Chamber complete</strong></div>}
+    {state.status === "playing" && <footer className="rc-footer">
+      <div className="rc-hero rc-panel" style={{ borderColor: hero.color }}>
+        <span className="rc-eyebrow">Controlling</span><strong style={{ color: hero.color }}>{hero.name}</strong>
+        <span className="rc-subtitle">{hero.title}</span>
+        <button className="rc-primary" onClick={() => run("ability")}>{hero.ability} <kbd>E</kbd></button>
+        {state.active === "lumen" && <button className="rc-quiet" onClick={() => run("ability", { dir: "east" })}>Aim prism east →</button>}
+        <div className="rc-actions"><button onClick={() => run("swap")}>Swap hero <kbd>Q</kbd></button>
+          <button onClick={() => run("reset")}>Reset <kbd>R</kbd></button></div>
+        {preferences.showHints && <button className="rc-hint-button" aria-expanded={hint} onClick={() => setHint(!hint)}> {hint ? "Hide clue" : "Need a clue?"}</button>}
+        {hint && <p className="rc-hint">{HINTS[state.roomIndex]}</p>}
+      </div>
+      <div className="rc-pad rc-panel" aria-label="Precision movement">
+        <span className="rc-eyebrow">Move · WASD / arrows</span>
+        <div><button className="rc-up" aria-label="Move north" onClick={() => run("duet.step", { dir: "north" })}>↑</button>
+          <button className="rc-left" aria-label="Move west" onClick={() => run("duet.step", { dir: "west" })}>←</button>
+          <button className="rc-down" aria-label="Move south" onClick={() => run("duet.step", { dir: "south" })}>↓</button>
+          <button className="rc-right" aria-label="Move east" onClick={() => run("duet.step", { dir: "east" })}>→</button></div>
+      </div>
+    </footer>}
+    {modal && <div className="rc-overlay"><div className="rc-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label={settings ? "Settings" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Paused" : "Duet complete"}
+      onKeyDown={e => {
+        if (e.key !== "Tab") return;
+        const focusable = [...e.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), input")];
+        const first = focusable[0], last = focusable.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }}>
+      <div className="rc-emblem" aria-hidden="true"><span>✦</span><span>◆</span></div>
+      <span className="rc-eyebrow">{state.status === "complete" ? "Four chambers · one harmony" : "A two-hero puzzle expedition"}</span>
+      <h2>{settings ? "Your observatory" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Take a breath." : "Two keys, one door."}</h2>
+      {settings ? <div className="rc-settings">
+        <label><input type="checkbox" checked={preferences.reducedMotion} onChange={e => updatePreference("reducedMotion", e.target.checked)} /> Reduce decorative motion</label>
+        <label><input type="checkbox" checked={preferences.showHints} onChange={e => updatePreference("showHints", e.target.checked)} /> Show optional puzzle clues</label>
+        <p>Settings and chamber checkpoints stay in this browser. Continuing restarts the saved chamber.</p>
+        <button className="rc-primary" onClick={() => setSettings(false)}>Back</button>
+      </div> : <>
+        <p>{state.status === "ready" ? "Light bends. Weight holds. Guide Lumen and Anchor through a clockwork observatory floating among the stars." : state.status === "paused" ? "Your circuit is held exactly where you left it." : "Lumen and Anchor restored the observatory together. Every crossing needed both."}</p>
+        {state.status === "ready" && <div className="rc-intro"><p><b className="rc-cyan">✦ Lumen</b> plants a prism in the direction of travel.</p><p><b className="rc-amber">◆ Anchor</b> leaves a weight to hold pressure plates.</p><p>Move with WASD, arrows or the direction buttons. Q swaps heroes, E uses a device. Reach both matching exit rings.</p></div>}
+        {state.status === "ready" && checkpoint && !checkpoint.complete && <button className="rc-primary" onClick={() => begin(checkpoint.roomIndex)}>Continue · {ROOMS[checkpoint.roomIndex]!.name}</button>}
+        <button className={state.status === "ready" && checkpoint && !checkpoint.complete ? "rc-quiet" : "rc-primary"}
+          onClick={() => state.status === "paused" ? run("pause") : begin()}>{state.status === "paused" ? "Resume expedition" : state.status === "complete" ? "Play again" : "Begin expedition"}</button>
+        {state.status === "paused" && <button className="rc-quiet" onClick={() => run("reset")}>Restart this chamber</button>}
+        <button className="rc-quiet" onClick={() => setSettings(true)}>Settings</button>
+      </>}
+      {!saveAvailable && <p role="status">Browser storage is unavailable. You can still play this session.</p>}
+      <small>Original observatory geometry and puzzle design. Asset catalog credit: KayKit, by Kay Lousberg (CC0), retained.</small>
+    </div></div>}
+  </div>;
 }

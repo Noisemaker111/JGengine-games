@@ -1,5 +1,5 @@
 import { createResourceNodeField, type ResourceNodeField } from "@jgengine/core/world/resourceNode";
-import { createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
+import { activeJobs, queuedJobs, createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
 import type { UnitReservation, UnitTrainingSpec } from "@jgengine/core/work/unitTraining";
 import type { SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
 
@@ -13,6 +13,7 @@ import type { ResearchSpec } from "./upgrades";
 /** A commanded intent for one unit. Serializable plain data — no closures, no entity refs. */
 export type UnitCommand =
   | { kind: "idle" }
+  | { kind: "hold" }
   | { kind: "move"; x: number; z: number }
   | { kind: "attackMove"; x: number; z: number }
   | { kind: "attack"; targetId: string }
@@ -49,6 +50,11 @@ export interface EnemyWaveState {
 }
 
 export interface SessionState {
+  started: boolean;
+  paused: boolean;
+  elapsed: number;
+  rallyArmed: boolean;
+  rallyPoint: { x: number; z: number } | null;
   units: Map<string, UnitRuntime>;
   /** World positions of the harvestable resource nodes, keyed by instance id. */
   nodes: Map<string, NodeInfo>;
@@ -77,6 +83,11 @@ export interface SessionState {
 
 function fresh(): SessionState {
   return {
+    started: true,
+    paused: false,
+    elapsed: 0,
+    rallyArmed: false,
+    rallyPoint: null,
     units: new Map(),
     nodes: new Map(),
     resourceField: null,
@@ -102,9 +113,20 @@ export function resetSession(): void {
   session = fresh();
 }
 
+export function matchRunning(): boolean {
+  return session.started && !session.paused && !session.over;
+}
+
+/** Supply is reserved when training is queued, not only when a recruit spawns. */
+export function reservedSupply(): number {
+  return [...activeJobs(session.production), ...queuedJobs(session.production)]
+    .reduce((sum, job) => sum + (combatantDef(job.spec.unitId)?.food ?? 0), 0);
+}
+
 /** Build the depletion field from the resource nodes discovered in the scene. */
-export function initResourceField(): void {
+export function initResourceField(rng?: () => number): void {
   session.resourceField = createResourceNodeField({
+    rng,
     nodes: Array.from(session.nodes.values()).map((n) => ({
       id: n.id,
       budget: n.resource === "gold" ? 600 : 500,
@@ -145,7 +167,7 @@ export function playerDepot(from: { x: number; z: number }): { id: string; x: nu
   let best: { id: string; x: number; z: number } | null = null;
   let bestDist = Infinity;
   for (const u of session.units.values()) {
-    if (u.faction !== "player" || u.kind !== "building") continue;
+    if (u.faction !== "player" || u.catalogId !== "keep_player") continue;
     const point = u.guardPoint;
     if (point === undefined) continue;
     const d = Math.hypot(point.x - from.x, point.z - from.z);

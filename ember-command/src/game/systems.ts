@@ -11,11 +11,11 @@ import { BUILD_CONFIG, type BuildSpec } from "./building";
 import { hudStore } from "./hudStore";
 import { TRAINING_CONFIG } from "./production";
 import { GOLD, INCOME_TRICKLE, LUMBER } from "./tuning";
-import { livingUnits, session, usedSupply, type UnitRuntime } from "./session";
+import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type UnitRuntime } from "./session";
 import { grantResearch, RESEARCH_CONFIG, upgradeHave, upgradeRank } from "./upgrades";
 
 function keepStat(ctx: GameContext, faction: "player" | "enemy"): { current: number; max: number } {
-  const keep = livingUnits(faction, "building")[0];
+  const keep = livingUnits(faction, "building").find((u) => u.catalogId === `keep_${faction}`);
   if (keep === undefined) return { current: 0, max: 1 };
   const stat = ctx.scene.entity.stats.get(keep.id, "health");
   return stat === null ? { current: 0, max: 1 } : { current: Math.max(0, Math.round(stat.current)), max: stat.max };
@@ -40,8 +40,8 @@ function spawnTrained(ctx: GameContext, unitId: string): void {
     catalogId: unitId,
     faction: "player",
     kind: "unit",
-    command: { kind: "move", x: ex, z: ez - 3 },
-    guardPoint: { x: ex, z: ez },
+    command: { kind: "move", x: session.rallyPoint?.x ?? ex, z: session.rallyPoint?.z ?? ez - 3 },
+    guardPoint: { x: session.rallyPoint?.x ?? ex, z: session.rallyPoint?.z ?? ez - 3 },
     leash: 14,
     attackCooldown: 0,
   };
@@ -53,7 +53,7 @@ const aiSystem: SystemDefinition = defineSystem({
   id: "ember-command.ai",
   tick: { type: "frame", stage: "ai" },
   update(ctx, dt) {
-    tickUnits(ctx, dt);
+    if (matchRunning()) { session.elapsed += dt; tickUnits(ctx, dt); }
   },
 });
 
@@ -62,7 +62,7 @@ const enemyAiSystem: SystemDefinition = defineSystem({
   id: "ember-command.enemyAi",
   tick: { type: "frame", stage: "ai" },
   update(ctx, dt) {
-    tickEnemyWaves(ctx, dt);
+    if (matchRunning()) tickEnemyWaves(ctx, dt);
   },
 });
 
@@ -71,7 +71,7 @@ const heroSystem: SystemDefinition = defineSystem({
   id: "ember-command.hero",
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
-    tickHero(ctx, dt);
+    if (matchRunning()) tickHero(ctx, dt);
   },
 });
 
@@ -80,7 +80,7 @@ const productionSystem: SystemDefinition = defineSystem({
   id: "ember-command.production",
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
-    if (session.over) return;
+    if (!matchRunning()) return;
     const result = tickQueue(session.production, TRAINING_CONFIG, dt);
     session.production = result.state;
     for (const event of result.events) {
@@ -115,7 +115,7 @@ const constructionSystem: SystemDefinition = defineSystem({
   id: "ember-command.construction",
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
-    if (session.over) return;
+    if (!matchRunning()) return;
     const result = tickQueue(session.buildQueue, BUILD_CONFIG, dt);
     session.buildQueue = result.state;
     for (const event of result.events) {
@@ -129,7 +129,7 @@ const researchSystem: SystemDefinition = defineSystem({
   id: "ember-command.research",
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
-    if (session.over) return;
+    if (!matchRunning()) return;
     const result = tickQueue(session.research.queue, RESEARCH_CONFIG, dt);
     session.research.queue = result.state;
     for (const event of result.events) {
@@ -143,7 +143,7 @@ const towerSystem: SystemDefinition = defineSystem({
   id: "ember-command.towers",
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
-    tickTowers(ctx, dt);
+    if (matchRunning()) tickTowers(ctx, dt);
   },
 });
 
@@ -152,7 +152,7 @@ const incomeSystem: SystemDefinition = defineSystem({
   id: "ember-command.income",
   tick: { type: "interval", every: 1 },
   update(ctx) {
-    if (session.over) return;
+    if (!matchRunning()) return;
     ctx.game.economy.grant(ctx.player.userId, GOLD, INCOME_TRICKLE);
   },
 });
@@ -179,6 +179,9 @@ const hudSystem: SystemDefinition = defineSystem({
     const playerKeep = keepStat(ctx, "player");
     const active = activeJobs(session.production);
     hudStore.set({
+      elapsed: Math.floor(session.elapsed),
+      foodReserved: reservedSupply(),
+      rallyArmed: session.rallyArmed,
       gold: Math.floor(ctx.game.economy.balance(ctx.player.userId, GOLD)),
       lumber: Math.floor(ctx.game.economy.balance(ctx.player.userId, LUMBER)),
       foodUsed: usedSupply(),

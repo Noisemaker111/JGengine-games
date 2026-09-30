@@ -10,6 +10,9 @@ import { registerCommands } from "../commands";
 import { hudStore } from "../hudStore";
 import { GOLD, LUMBER, STARTING_GOLD, STARTING_LUMBER } from "../tuning";
 import { initResourceField, resetSession, session, type UnitRuntime } from "../session";
+import { recordOutcome } from "../preferences";
+
+const wiredContexts = new WeakSet<GameContext>();
 
 const GUARD_LEASH = 16;
 
@@ -29,6 +32,7 @@ export function playerKeepPoint(): { x: number; z: number } {
 }
 
 function onDied(ctx: GameContext, event: EntityDiedEvent): void {
+  if (session.over) return;
   session.units.delete(event.instanceId);
   const def = combatantDef(event.catalogId);
   if (def === null) return;
@@ -36,6 +40,8 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.over = true;
     session.victory = true;
     hudStore.set({ phase: "won" });
+    recordOutcome(true, session.elapsed);
+    ctx.time.pause();
     setGamePhase(ctx, "ended");
     return;
   }
@@ -43,6 +49,8 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.over = true;
     session.victory = false;
     hudStore.set({ phase: "lost" });
+    recordOutcome(false, session.elapsed);
+    ctx.time.pause();
     setGamePhase(ctx, "ended");
     return;
   }
@@ -59,9 +67,17 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
 
 /** Spawn the authored roster + resource nodes, wire economy + win/lose, and register the RTS commands. */
 export function setupSkirmish(ctx: GameContext): void {
+  for (const entity of ctx.scene.entity.list()) ctx.scene.entity.despawn(entity.id);
+  for (const resource of [GOLD, LUMBER]) {
+    const amount = ctx.game.economy.balance(ctx.player.userId, resource);
+    if (amount > 0) ctx.game.economy.charge(ctx.player.userId, resource, amount);
+  }
   resetSession();
+  session.started = false;
   hudStore.reset();
-  setGamePhase(ctx, "playing");
+  hudStore.set({ phase: "ready", gold: STARTING_GOLD, lumber: STARTING_LUMBER });
+  setGamePhase(ctx, "menu");
+  ctx.time.pause();
   ctx.game.economy.grant(ctx.player.userId, GOLD, STARTING_GOLD);
   ctx.game.economy.grant(ctx.player.userId, LUMBER, STARTING_LUMBER);
 
@@ -113,7 +129,42 @@ export function setupSkirmish(ctx: GameContext): void {
     }
   }
 
-  initResourceField();
+  initResourceField(ctx.rng);
+  if (wiredContexts.has(ctx)) return;
+  wiredContexts.add(ctx);
   registerCommands(ctx);
+  ctx.game.commands.define("match.start", { apply: (state) => {
+    if (!session.started && !session.over) {
+      session.started = true;
+      hudStore.set({ phase: "playing" });
+      setGamePhase(state, "playing");
+      state.time.play();
+    }
+    return state;
+  } });
+  ctx.game.commands.define("match.pause", { apply: (state) => {
+    if (session.started && !session.over) {
+      session.paused = true;
+      hudStore.set({ phase: "paused" });
+      setGamePhase(state, "paused");
+      state.time.pause();
+    }
+    return state;
+  } });
+  ctx.game.commands.define("match.resume", { apply: (state) => {
+    if (session.started && !session.over) {
+      session.paused = false;
+      hudStore.set({ phase: "playing" });
+      setGamePhase(state, "playing");
+      state.time.play();
+    }
+    return state;
+  } });
+  ctx.game.commands.define("match.restart", { apply: (state) => {
+    setupSkirmish(state);
+    state.game.commands.run("match.start", {});
+    return state;
+  } });
+  ctx.game.commands.define("match.title", { apply: (state) => { setupSkirmish(state); return state; } });
   ctx.game.events.on("entity.died", (event) => onDied(ctx, event));
 }
