@@ -21,7 +21,7 @@ export interface View {
   trace: { from: Point; to: Point; remaining: number } | null;
 }
 export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null }));
-const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), pressed: new Set<string>(), navigation: createNavigator() }));
+const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator() }));
 const message = (e: unknown): string => e instanceof Error ? e.message : String(e);
 export function setAim(ctx: GameContext, direction: Point): void { runtime(ctx).aim = direction; }
 function playerAt(ctx: GameContext): Point | null { return ctx.scene.entity.get(ctx.player.userId)?.position ?? null; }
@@ -159,22 +159,31 @@ function fire(ctx: GameContext): void {
   syncPrint(ctx, next);
   syncPlayer(ctx, next);
 }
+function reload(ctx: GameContext): void {
+  const v = viewStore.read(ctx);
+  if (playable(ctx) && v.mode === "dive" && v.dive !== null) viewStore.write(ctx, { ...v, dive: reloadWeapon(v.dive) });
+}
+function toggleCache(ctx: GameContext): void {
+  const v = viewStore.read(ctx);
+  if (v.mode !== "dive" || v.paused) return;
+  const panel = v.panel === "cache" ? null : "cache";
+  // Packing costs real tank time: an open cache blocks locomotion but never pauses the dive.
+  viewStore.write(ctx, { ...v, panel, dive: v.dive === null ? null : { ...v.dive, channel: null } });
+  if (panel !== null) ungrab();
+}
 export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define("deepward.depart", { apply: begin });
+  // Published shell dispatches each press/repeat to the bound action's command name.
+  // UI commands share the apply functions. Only fire also consumes held input,
+  // through its existing cooldown; discrete actions stay on the shell's press path.
+  ctx.game.commands.define("deepwardInteract", { apply: interact });
+  ctx.game.commands.define("deepwardFire", { apply: fire });
+  ctx.game.commands.define("deepwardReload", { apply: reload });
+  ctx.game.commands.define("deepwardCache", { apply: toggleCache });
   ctx.game.commands.define("deepward.interact", { apply: interact });
   ctx.game.commands.define("deepward.fire", { apply: fire });
-  ctx.game.commands.define("deepward.reload", { apply(state) {
-    const v = viewStore.read(state);
-    if (playable(state) && v.mode === "dive" && v.dive !== null) viewStore.write(state, { ...v, dive: reloadWeapon(v.dive) });
-  } });
-  ctx.game.commands.define("deepward.cache", { apply(state) {
-    const v = viewStore.read(state);
-    if (v.mode !== "dive" || v.paused) return;
-    const panel = v.panel === "cache" ? null : "cache";
-    // Packing costs real tank time: an open cache blocks locomotion but never pauses the dive.
-    viewStore.write(state, { ...v, panel, dive: v.dive === null ? null : { ...v.dive, channel: null } });
-    if (panel !== null) ungrab();
-  } });
+  ctx.game.commands.define("deepward.reload", { apply: reload });
+  ctx.game.commands.define("deepward.cache", { apply: toggleCache });
   ctx.game.commands.define("deepward.close", { apply(state) {
     const v = viewStore.read(state);
     viewStore.write(state, { ...v, panel: null, paused: false });
@@ -240,17 +249,8 @@ export function storageChanged(ctx: GameContext): void {
   freeze(ctx);
 }
 export function tick(ctx: GameContext, dt: number): void {
-  let v = viewStore.read(ctx);
+  const v = viewStore.read(ctx);
   if (v.paused || v.mode === "saving" || v.mode === "blocked" || !(dt > 0)) return;
-  const pressed = runtime(ctx).pressed;
-  for (const [action, command] of [["deepwardInteract", "deepward.interact"], ["deepwardFire", "deepward.fire"], ["deepwardReload", "deepward.reload"], ["deepwardCache", "deepward.cache"]]) {
-    // Snapshot edges last a render frame, which may contain several simulation steps.
-    // Latch the actual held action until release so E and Tab cannot toggle twice.
-    if (ctx.input.isDown(action!)) {
-      if (!pressed.has(action!)) { pressed.add(action!); ctx.game.commands.run(command!, {}); }
-    } else pressed.delete(action!);
-  }
-  v = viewStore.read(ctx);
   const at = playerAt(ctx);
   if (v.mode !== "dive" || v.dive === null || at === null || v.paused) return;
   const steam = v.dive.elapsed % 8 < 3 && inside(at[0], at[2], STEAM);
@@ -303,4 +303,7 @@ export function tick(ctx: GameContext, dt: number): void {
   viewStore.write(ctx, { ...v, dive, hint, trace });
   syncPrint(ctx, dive); syncPlayer(ctx, dive);
   if (dive.health <= 0) finish(ctx, "lost", dive.oxygen === 0 ? "Tank exhausted. Bellwether kept the carried haul." : "The Life ended in Bellwether. The carried haul was lost.");
+  // Array bindings deliver brief presses but have no shell repeat policy. Age
+  // cooldown first, then share fire's gates for held input and the press command.
+  else if (ctx.input.isDown("deepwardFire")) fire(ctx);
 }
