@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { SettingsTrigger } from "@jgengine/react";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useSettings } from "@jgengine/react/settings";
@@ -7,13 +7,18 @@ import { sessionStore } from "../../session";
 import { courierStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 import { startedStore } from "../../commands";
 
+const ignoreSaveChanges = () => () => {};
+const SAVE_LABELS = { idle: "Ready", loading: "Loading…", saving: "Saving…", saved: "Saved", error: "Save failed", unavailable: "Unavailable" };
+
 export function SessionUI() {
   const { commands } = useGame();
   const settings = useSettings();
   const session = useStore(sessionStore, (value) => value);
   const started = useStore(startedStore, (value) => value === true);
   const courier = useStore(courierStore, (value) => value);
-  const save = useGameStore((ctx) => ctx.game.save?.status() ?? "idle");
+  const save = useGameStore((ctx) => ctx.game.save);
+  // Saves have their own signal; the paused world cannot drive this status label.
+  const saveStatus = useSyncExternalStore<keyof typeof SAVE_LABELS>(save?.subscribe ?? ignoreSaveChanges, () => save?.status() ?? "unavailable", () => "unavailable");
   useEffect(() => { commands.run("session.settings", { open: settings.isOpen }); }, [commands, settings.isOpen]);
   useEffect(() => {
     function key(event: KeyboardEvent) {
@@ -43,8 +48,8 @@ export function SessionUI() {
     <p>The city and delivery clock are paused. Your story stays right here.</p>
     <div className="hh-menu-actions"><button autoFocus className="hh-button hh-button-primary" onClick={() => commands.run("session.pause", { paused: false })}>Back to the coast ↗</button>
       <SettingsTrigger className="hh-button hh-button-secondary" label="Settings">Settings & controls</SettingsTrigger>
-      <button className="hh-button hh-button-secondary" onClick={() => commands.run("session.save", {})}>Save progress</button>
-    </div><small aria-live="polite">Save: {save}</small>
+      <button className="hh-button hh-button-secondary" disabled={!save || saveStatus === "saving"} onClick={() => commands.run("session.save", {})}>Save progress</button>
+    </div><small aria-live="polite">Save: {SAVE_LABELS[saveStatus]}</small>
   </section></div>;
   return <button className="hh-pause-trigger" type="button" onClick={() => commands.run("session.pause", { paused: true })}>Ⅱ <span>Pause · P</span></button>;
 }
