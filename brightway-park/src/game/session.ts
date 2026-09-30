@@ -13,8 +13,8 @@ import { DAY_LENGTH, STARTING_CASH } from "./catalog";
  * amount is `0` because the real per-day cost comes from live park metrics via a policy at
  * settlement time (see `settleDailyUpkeep`).
  */
-export function createParkLedger(): ResourceLedger {
-  return addScheduledRule(createResourceLedger({ accounts: { park: { cash: STARTING_CASH } } }), {
+export function createParkLedger(day = 1, cash = STARTING_CASH): ResourceLedger {
+  const ledger = addScheduledRule(createResourceLedger({ accounts: { park: { cash } } }), {
     id: "daily-upkeep",
     currency: "cash",
     amount: 0,
@@ -22,6 +22,12 @@ export function createParkLedger(): ResourceLedger {
     startSeconds: DAY_LENGTH,
     source: "park",
   });
+  // Each completed day settles exactly one cycle. Rebuild this canonical rule
+  // from the save's day rather than accepting arbitrary saved financial rules.
+  ledger.nowSeconds = (day - 1) * DAY_LENGTH;
+  ledger.cursors["daily-upkeep"]!.nextDueSeconds = day * DAY_LENGTH;
+  ledger.cursors["daily-upkeep"]!.fired = day - 1;
+  return ledger;
 }
 
 export interface PlacedObject {
@@ -87,6 +93,10 @@ export interface Session {
   bankruptDays: number;
   gameOver: boolean;
   started: boolean;
+  hasSave: boolean;
+  saveStatus: string;
+  won: boolean;
+  winDismissed: boolean;
 }
 
 function freshSession(): Session {
@@ -116,6 +126,10 @@ function freshSession(): Session {
     bankruptDays: 0,
     gameOver: false,
     started: false,
+    hasSave: false,
+    saveStatus: "Saved on builds, ticket changes, pause and day close",
+    won: false,
+    winDismissed: false,
   };
 }
 

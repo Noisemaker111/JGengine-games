@@ -9,34 +9,31 @@ import {
   type WorldFeature,
 } from "@jgengine/core/world/features";
 
-import { groundMaterial } from "./game/assets";
-
 export const world: WorldFeature = environment({
   terrain: terrain({
     bounds: { w: 220, d: 220 },
     height: 0,
     material: "grass",
-    colors: { low: "#5c9440", high: "#84bd54", waterline: "#4a7d8a" },
-    segments: 160,
+    colors: { low: "#79a383", high: "#a9c6a0", waterline: "#77b8c8" },
+    segments: 80,
     detail: {
       strength: 1,
       macroScale: 22,
       detailScale: 3,
-      material: { maps: groundMaterial.maps, repeat: 26, strength: 0.9 },
     },
   }),
   sky: sky({
     preset: "day",
     horizonColor: "#cfe8f2",
     zenithColor: "#4ea6dd",
-    sunIntensity: 1.15,
-    ambientIntensity: 0.85,
+    sunIntensity: 1.35,
+    ambientIntensity: 0.7,
   }),
   vegetation: grass({
     area: { w: 130, d: 130 },
-    density: 3.4,
-    bladeHeight: [0.25, 0.75],
-    colors: ["#4f8a35", "#7cb648", "#5f9d3c"],
+    density: 0.3,
+    bladeHeight: [0.08, 0.18],
+    colors: ["#79a383", "#a9c6a0", "#699471"],
     seed: "brightway-park",
   }),
   pads: [

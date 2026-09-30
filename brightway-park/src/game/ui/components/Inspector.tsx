@@ -42,6 +42,7 @@ export function Inspector() {
   return (
     <div className="pointer-events-auto w-56 rounded-xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl backdrop-blur">
       <div className="mb-2 flex items-center gap-2">
+        <button className="park-inspector-close" aria-label="Close inspector" onClick={()=>commands.run("build.clear", {})}>×</button>
         <span className="text-2xl">{def.icon}</span>
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-bold text-slate-100">{def.label}</span>

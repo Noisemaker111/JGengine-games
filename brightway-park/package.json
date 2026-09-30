@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "author-models": "node scripts/author-models.mjs",
     "dev": "vite",
     "check-types": "tsgo --noEmit -p tsconfig.json",
     "test": "bun test src"

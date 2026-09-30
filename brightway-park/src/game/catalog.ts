@@ -28,7 +28,7 @@ export const MILESTONES: readonly Milestone[] = [
   { rating: 60, unlock: "tier_flowers", label: "Flower beds & lamps" },
   { rating: 120, unlock: "tier_fountain", label: "Fountain & drink stall" },
   { rating: 220, unlock: "tier_ferris", label: "Ferris wheel & souvenirs" },
-  { rating: 360, unlock: "tier_janitor", label: "Janitor post" },
+  { rating: 360, unlock: "tier_janitor", label: "Midway merit badge" },
   { rating: 540, unlock: "tier_dropzone", label: "Drop tower" },
   { rating: 760, unlock: "tier_gardens", label: "Grand gardens" },
 ];
