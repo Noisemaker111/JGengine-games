@@ -180,6 +180,7 @@
 }
 
 .wayfarer-road .hero-ledger {
+  position: relative;
   border-left: 2px solid #dbc99780;
   background: linear-gradient(90deg,#132b31c9,transparent);
   padding: 18px;
@@ -265,8 +266,36 @@
 }
 
 .wayfarer-road .enemy-stage {
+  position: relative;
   text-align: center;
   width: 100%;
+}
+
+.wayfarer-road .impact-badge {
+  position: absolute;
+  top: 38%;
+  right: 12%;
+  z-index: 2;
+  border: 1px solid #edb68b;
+  border-radius: 20px;
+  padding: 5px 10px;
+  background: #352a28f2;
+  color: #ffe1b1;
+  box-shadow: 0 4px 16px #05151b80;
+  font: 700 18px Georgia, serif;
+  pointer-events: none;
+  animation: road-impact 1.4s ease-out forwards;
+}
+.wayfarer-road .hero-impact {
+  top: -12px;
+  right: 8px;
+  font-size: 15px;
+}
+@keyframes road-impact {
+  0% { opacity: 1; transform: translateY(8px) scale(.85); }
+  20% { transform: translateY(-4px) scale(1.08); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-22px); }
 }
 
 .wayfarer-road .enemy-intent {
@@ -358,11 +387,50 @@
 
 .wayfarer-road .road-hand {
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
   gap: 12px;
   overflow-x: auto;
   padding: 8px 8px 12px;
   min-height: 200px;
+}
+
+.wayfarer-road .hand-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  color: #cbd5bd;
+  font-size: 11px;
+}
+
+.wayfarer-road .hand-heading strong {
+  color: #f0d49d;
+  font-weight: 600;
+}
+
+.wayfarer-road .hand-navigation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wayfarer-road .hand-navigation button {
+  width: 40px;
+  min-height: 32px;
+  padding: 3px 8px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.wayfarer-road .road-hand {
+  scrollbar-color: #b4b690 #153039;
+  scrollbar-width: thin;
+}
+
+.wayfarer-road .restart-crossing {
+  border-color: #da9e8066;
+  color: #f2bd9e;
 }
 
 .wayfarer-road .road-card {
