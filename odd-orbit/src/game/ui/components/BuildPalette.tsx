@@ -42,6 +42,8 @@ export function BuildPalette(): ReactNode {
               type="button"
               onClick={() => commands.run("build.tool", { toolId: def.id })}
               title={def.blurb}
+              disabled={!canAfford}
+              aria-pressed={selected}
               className={`flex w-24 flex-col items-center gap-1 rounded-lg p-2 text-center transition ${
                 selected
                   ? "bg-emerald-400/20 ring-1 ring-emerald-300/60"
@@ -50,10 +52,9 @@ export function BuildPalette(): ReactNode {
                     : "bg-white/5 opacity-45"
               }`}
             >
-              <span
-                className="h-6 w-6 rounded-md ring-1 ring-white/20"
-                style={{ backgroundColor: def.color }}
-              />
+              <span className="text-2xl leading-none" style={{ color: def.color }} aria-hidden="true">
+                {def.role === "hunger" ? "◉" : def.role === "energy" ? "☾" : def.role === "social" ? "◎" : def.role === "work" ? "⌁" : def.id === "bloom_planter" ? "✿" : "◇"}
+              </span>
               <span className="text-[11px] font-semibold leading-tight text-slate-100">{def.name}</span>
               <span className="text-[9px] text-slate-400">{roleLabel(def.role)}</span>
               <span className={`text-[10px] font-bold ${canAfford ? "text-amber-200" : "text-rose-300"}`}>

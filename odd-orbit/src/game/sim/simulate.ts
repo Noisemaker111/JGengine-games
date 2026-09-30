@@ -1,6 +1,8 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
 
+import { stepChallenge } from "./challenge";
+
 import { DAY_LENGTH } from "../../world";
 import { FURNITURE_BY_ID, WORK_EARN_PER_SECOND, type FurnitureRole } from "../objects/catalog";
 import { clamp, decayNeeds, type NeedId } from "../needs/needs";
@@ -73,7 +75,8 @@ function moveMember(ctx: GameContext, id: string, target: [number, number, numbe
   const next = ctx.scene.entity.moveToward(id, target, { speed, dt, stopDistance: 0 });
   if (next !== null) {
     const rotationY = Math.atan2(dx, dz);
-    ctx.scene.entity.setPose(id, { position: next, rotationY, dt });
+    // Wander goals are XZ points; stay on the actual terrain instead of descending toward Y=0.
+    ctx.scene.entity.setPose(id, { position: [next[0], ctx.world.groundHeightAt(next[0], next[2]), next[2]], rotationY, dt });
   }
   return dist;
 }
@@ -92,7 +95,7 @@ function hashId(id: string): number {
 
 export function simulateHousehold(ctx: GameContext, dt: number): void {
   const state = householdStore.read(ctx);
-  if (state.order.length === 0) return;
+  if (state.order.length === 0 || dt <= 0 || ["welcome", "won", "recovery"].includes(state.orbit?.phase ?? "")) return;
   const now = ctx.time.now();
   const hour = ctx.time.calendar().dayFraction * 24;
   const isWorkHours = hour >= 8 && hour < 18;
@@ -112,6 +115,7 @@ export function simulateHousehold(ctx: GameContext, dt: number): void {
     stepMember(ctx, state, member, objects, availability, isWorkHours, lowCredits, now, dt);
   }
 
+  stepChallenge(ctx, state, dt);
   driftRelationships(state, dt);
   pruneEvents(state, now, EVENT_TTL);
   householdStore.write(ctx, { ...state, members: { ...state.members } });
@@ -150,7 +154,14 @@ function stepMember(
       return;
     }
     if (action.goal === "work") {
+      // A directed shift must yield to urgent needs too; otherwise it lasts forever.
+      if (member.needs.energy < 28 || member.needs.hunger < 28 || member.needs.fun < 20 || member.needs.social < 20) {
+        member.action = { kind: "idle" };
+        member.assignedByPlayer = false;
+        return;
+      }
       state.credits += WORK_EARN_PER_SECOND * dt;
+      if (state.orbit?.phase === "active") state.orbit.earned += WORK_EARN_PER_SECOND * dt;
       member.needs.energy = clamp(member.needs.energy - 2 * dt);
       if (!isWorkHours && !member.assignedByPlayer) member.action = { kind: "idle" };
       return;

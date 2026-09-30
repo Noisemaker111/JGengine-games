@@ -3,7 +3,7 @@ import { defineGame } from "@jgengine/shell/defineGame";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
-import { objectModels } from "./game/models";
+import { renderObject, HabitatDeck } from "./game/render/HabitatArt";
 import { renderEntity } from "./game/render/renderEntity";
 import { GameUI } from "./game/ui/GameUI";
 import { loop } from "./loop";
@@ -11,8 +11,7 @@ import { DAY_LENGTH, physics, world } from "./world";
 
 export const game = defineGame({
   name: "Odd Orbit",
-  // No menu/pause/end screens — the colony sim runs live from boot. Stated, not implied (#1337).
-  lifecycle: "always-live",
+  // GameUI publishes welcome/playing/paused/ended from the household and simulation clock.
   world,
   physics,
   input: keybinds,
@@ -23,7 +22,9 @@ export const game = defineGame({
   loop,
   GameUI,
   assets,
-  objectModels,
+  renderObject,
+  WorldOverlay: HabitatDeck,
+  capture: { play: ["orbit.begin"] },
   renderEntity,
   pointer: { moveCommand: "world.pointer" },
   touch: { buttons: [] },
@@ -38,11 +39,11 @@ export const game = defineGame({
     frustum: { far: 1200 },
     rts: {
       start: { x: 0, z: 0 },
-      height: 19,
+      height: 25,
       pitch: 1.0,
-      yaw: 0,
+      yaw: 0.25,
       panSpeed: 30,
-      edgeScroll: true,
+      edgeScroll: false,
       rotateSpeed: 1.1,
       bounds: { minX: -50, maxX: 50, minZ: -50, maxZ: 50 },
       zoom: { min: 0.55, max: 2.2, speed: 1 },

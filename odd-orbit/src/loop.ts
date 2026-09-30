@@ -1,5 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
+import { restoreHousehold } from "./game/session/persistence";
+
 import { registerCommands } from "./game/commands";
 import { registerLifeEvents } from "./game/sim/events";
 import { setupWorld } from "./game/sim/setup";
@@ -9,6 +11,8 @@ export function onInit(ctx: GameContext): void {
   registerCommands(ctx);
   setupWorld(ctx);
   registerLifeEvents(ctx);
+  restoreHousehold(ctx);
+  ctx.time.pause();
 }
 
 export function onNewPlayer(_ctx: GameContext): void {}

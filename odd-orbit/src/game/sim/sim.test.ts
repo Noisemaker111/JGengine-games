@@ -73,6 +73,7 @@ describe("simulation loop", () => {
       player: { userId: "director", isNew: true },
     });
     onInit(ctx);
+    ctx.game.commands.run("orbit.begin", {});
     return ctx;
   }
 
