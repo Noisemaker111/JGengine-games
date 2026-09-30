@@ -1,4 +1,6 @@
 :root { color-scheme: dark; }
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+#root { height: 100dvh; background: #102e3b; }
 button { touch-action: manipulation; }
 button:focus-visible { outline: 3px solid #fff3d8; outline-offset: 4px; }
 .hh-title { position: absolute; inset: 0; pointer-events: auto; display: flex; overflow: auto; background: #102e3b; color: #fff0d2; font-family: system-ui, sans-serif; }
