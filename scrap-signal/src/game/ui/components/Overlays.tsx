@@ -35,7 +35,7 @@ function useCloseOnOpen(open: boolean): void {
 function PanelFrame({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-[26rem] max-w-[92vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
+      <div className="signal-scroll w-[26rem] max-w-[92vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-lg font-black uppercase tracking-widest text-amber-300">{title}</span>
           <button

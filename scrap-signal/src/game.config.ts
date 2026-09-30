@@ -11,6 +11,7 @@ import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
 import { RARITY_COLORS } from "./game/palette";
 import { session } from "./game/session";
+import { RELAY } from "./game/relay";
 import { GameUI } from "./game/ui/GameUI";
 import { entityModels, objectModels } from "./game/world/models";
 import { FerralonWorldOverlay } from "./game/world/Viewmodel";
@@ -35,6 +36,8 @@ const rarityStyle: Record<string, RarityStyle> = {
 };
 
 const staticPrompts: readonly PositionedPrompt[] = [
+  { id: "relay:dead-air", position: { x: RELAY.x, z: RELAY.z }, priority: 2,
+    prompt: { radius: 3.8, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "relay.start", input: undefined } } },
   {
     id: "vendor:rigg",
     position: { x: RIGG_VENDOR_POS[0], z: RIGG_VENDOR_POS[2] },
