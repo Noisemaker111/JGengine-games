@@ -3,6 +3,7 @@ import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
 
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
+import { impactBursts } from "./game/impact";
 import { createRunSession, runSessionStore, type RunSession } from "./game/run/session";
 import { createWorldRuntime, driveInputStore, worldRuntimeStore } from "./game/run/store";
 import { createDriveInput } from "./game/vehicle/input";
@@ -69,6 +70,9 @@ export function onTick(ctx: GameContext, dt: number): void {
   session.tick(dt, axis, { jumpPressed, plowBracing });
 
   const snapshot = session.snapshot();
+  for (const burst of impactBursts(before, snapshot)) {
+    ctx.particles.burst(burst.config, burst.count, burst.blending);
+  }
 
   ctx.scene.entity.bind("racers").sync(
     [

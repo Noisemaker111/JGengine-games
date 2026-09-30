@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { PARTS, partById } from "../parts/catalog";
-import { nearestUncollected, PICKUP_RADIUS, PICKUPS } from "./pickups";
+import { grantPickup, nearestUncollected, PICKUP_RADIUS, PICKUPS, type PickupDef } from "./pickups";
 import { ROUTE_GATES } from "../route/gates";
 
 function zOf(partId: string): number {
@@ -18,6 +18,25 @@ function firstGateZ(requirement: "plow" | "jump"): number {
 }
 
 describe("drift-foundry debris pickups", () => {
+  test("accepted replacements and duplicate or unknown contacts preserve installed state until acceptance", () => {
+    const first = PICKUPS.find(pickup => pickup.partId === "salvage_v6")!;
+    const next = PICKUPS.find(pickup => pickup.partId === "truck_engine")!;
+    const collected = new Set<string>();
+    const grant = grantPickup(first, [], collected);
+    expect(grant.status).toBe("accepted");
+    if (grant.status !== "accepted") throw new Error("catalog pickup rejected");
+    expect(collected.size).toBe(0);
+    collected.add(first.id);
+    expect(grantPickup(first, grant.installed, collected)).toEqual({ status: "rejected" });
+    expect(grantPickup({ ...next, partId: "unknown" } as unknown as PickupDef, grant.installed, collected)).toEqual({ status: "rejected" });
+    const replacement = grantPickup(next, grant.installed, collected);
+    expect(replacement.status).toBe("accepted");
+    if (replacement.status !== "accepted") throw new Error("replacement rejected");
+    expect(replacement.ejected?.id).toBe("salvage_v6");
+    expect(replacement.installed).toHaveLength(1);
+    expect(replacement.installed[0]?.part.id).toBe("truck_engine");
+    expect(grant.installed[0]?.part.id).toBe("salvage_v6");
+  });
   test("places exactly one pickup per catalog part", () => {
     expect(PICKUPS).toHaveLength(PARTS.length);
     const partIds = new Set(PICKUPS.map((pickup) => pickup.partId));

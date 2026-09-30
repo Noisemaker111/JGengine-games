@@ -1,7 +1,12 @@
 import { SettingsTrigger } from "@jgengine/react";
+import { useGame } from "@jgengine/react/hooks";
+import { useStore } from "@jgengine/react/store";
+import { runSessionStore } from "../../run/session";
 import type { RunRecords } from "../../run/records";
 
 export function StartScreen({ onStart, onCredits, records }: { onStart: () => void; onCredits: () => void; records: RunRecords }) {
+  const parkedRun = useStore(runSessionStore, session => session?.snapshot().parkedRun ?? null);
+  const { commands } = useGame();
   return <div className="df-overlay df-title">
     <div className="df-title-art" aria-hidden="true">
       <svg viewBox="0 0 600 300"><path d="M0 243L600 182M0 275L600 214" stroke="#edc565" strokeWidth="3" opacity=".25"/>
@@ -25,7 +30,8 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
       <p>Drive through salvage stations to bolt on upgrades. Collect the plow and springs, then jump the striped stacks on the teal launch marks. Escape through the gate at 470m.</p>
       <div className="df-controls-legend"><span><kbd>W ↑</kbd> Throttle</span><span><kbd>A D</kbd> Steer</span><span><kbd>S ↓</kbd> Brake / reverse</span><span><kbd>Space</kbd> Jump</span><span><kbd>Shift</kbd> Brace plow</span><span><kbd>P</kbd> Pause</span></div>
       <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes · {records.attempts} finished runs</span></div>
-      <div className="df-actions"><button className="df-primary" onClick={onStart}>START ENGINE <kbd>Enter</kbd></button><SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><button onClick={onCredits}>CREDITS</button></div>
+      <p>{parkedRun ? `Parked checkpoint: ${Math.floor(parkedRun.position[2])}m · ${parkedRun.runTime.toFixed(1)}s · ${parkedRun.partIds.length} parts. Continue starts stopped with the compactor clock preserved.` : "To keep a run for later, stop on the ground and pause before returning to the pit."}</p>
+      <div className="df-actions"><button className="df-primary" onClick={onStart}>{parkedRun ? "CONTINUE PARKED RUN" : "START ENGINE"} <kbd>Enter</kbd></button>{parkedRun && <button onClick={() => commands.run("restart", {})}>NEW RUN</button>}<SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><button onClick={onCredits}>CREDITS</button></div>
     </section>
   </div>;
 }

@@ -5,14 +5,15 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 
 import { activeSurge, compactorGap, compactorZAt, type CompactorSurge } from "../compactor/schedule";
 import { resolveCrusherContact } from "../compactor/contact";
-import { partInSlotId, tuningFrom, swapPart, type KartTuning } from "../parts/build";
+import { partInSlotId, tuningFrom, type KartTuning } from "../parts/build";
 import { partById, PART_SLOTS, type PartSlotId, type DriftFoundryPartDef } from "../parts/catalog";
-import { nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
+import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
 import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
 import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SPAWN_Z } from "./constants";
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
-import { browserRecordStorage, readRecords, saveRecords, type RunRecords, type RecordStorage } from "./records";
+import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
+import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
 
 export type RunPhase = "start" | "running" | "won" | "crushed";
 
@@ -35,6 +36,8 @@ export interface SessionSnapshot {
   paused: boolean;
   records: RunRecords;
   recordsSaved: boolean;
+  personalBest: PersonalBest;
+  parkedRun: ParkedRun | null;
   clearedGateIds: ReadonlySet<string>;
   phase: RunPhase;
   runTime: number;
@@ -79,6 +82,8 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   let suspended = false;
   let records = readRecords(storage);
   let recordsSaved = true;
+  let personalBest: PersonalBest = "unchanged";
+  let parkedRun = readParkedRun(storage);
   let runTime = 0;
   let installed: readonly InstalledPart[] = [];
   let collected = new Set<string>();
@@ -124,11 +129,11 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   function applyPickup(): void {
     const found: PickupDef | null = nearestUncollected(pose.position, collected);
     if (found === null) return;
+    const grant = grantPickup(found, installed, collected);
+    if (grant.status !== "accepted") return;
+    const { part, ejected } = grant;
+    installed = grant.installed;
     collected.add(found.id);
-    const part = partById(found.partId);
-    if (part === null) return;
-    const { installed: nextInstalled, ejected } = swapPart(installed, part);
-    installed = nextInstalled;
     pushToast(part.radioLine);
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
@@ -163,19 +168,27 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     toastQueue.clear();
     radioFeed.hydrate({});
     outcome = null;
+    personalBest = "unchanged";
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
     pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, airborne: false, blockedByGate: false };
   }
 
   reset();
 
+  function parkRun(): void {
+    if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
+    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
+    if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; pushToast("PARKED RUN SAVED — CONTINUE FROM THE PIT"); }
+    else pushToast("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN");
+  }
+
   function recordOutcome(): void {
-    records = { ...records, attempts: records.attempts + 1, farthest: Math.max(records.farthest, Math.min(EXIT_Z, pose.position[2])) };
-    if (phase === "won") {
-      records.escapes += 1;
-      records.bestTime = records.bestTime === null ? runTime : Math.min(records.bestTime, runTime);
-    }
+    const completed = completeRun(records, { kind: phase === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
+    records = completed.records;
+    personalBest = completed.personalBest;
     recordsSaved = saveRecords(records, storage);
+    parkedRun = null;
+    saveParkedRun(null, storage);
   }
 
   return {
@@ -184,6 +197,8 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
         paused: paused || suspended,
         records,
         recordsSaved,
+        personalBest,
+        parkedRun,
         clearedGateIds: gateAnnounced,
         phase,
         runTime,
@@ -207,17 +222,35 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     },
     start() {
       if (phase === "start") {
+        if (parkedRun !== null) {
+          const checkpoint = parkedRun;
+          installed = checkpointParts(checkpoint);
+          collected = new Set(checkpoint.collectedIds);
+          gateAnnounced = new Set(checkpoint.gateIds);
+          runTime = checkpoint.runTime;
+          armorSaveArmed = checkpoint.armorSaveArmed;
+          armorSavesUsed = checkpoint.armorSavesUsed;
+          nearMissCount = checkpoint.nearMissCount;
+          closestGap = checkpoint.closestGap;
+          wasNear = checkpoint.wasNear;
+          announcedSurge = checkpoint.announcedSurge;
+          vehicle.resetTo(checkpoint.position, checkpoint.heading);
+          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, airborne: false, blockedByGate: false };
+          pushRadio("PARKED RUN RESTORED — YOUR BUILD IS STILL BOLTED ON");
+        }
         phase = "running";
-        pushRadio("BOLT IT ON, GO GO");
+        if (parkedRun === null) pushRadio("BOLT IT ON, GO GO");
       }
     },
     restart() {
+      parkedRun = null;
+      saveParkedRun(null, storage);
       reset();
       phase = "running";
       pushRadio("BOLT IT ON, GO GO");
     },
-    returnToTitle() { reset(); },
-    togglePause() { if (phase === "running") paused = !paused; },
+    returnToTitle() { parkRun(); reset(); },
+    togglePause() { if (phase === "running") { if (!paused) parkRun(); paused = !paused; } },
     suspend(value) { suspended = value; },
     tick(dt, axis, input) {
       if (phase !== "running" || paused || suspended) return;

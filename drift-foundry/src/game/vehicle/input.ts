@@ -45,8 +45,10 @@ export function createDriveInput(bindings: () => ActionCodesMap = () => applyBin
       const target = { throttle: value("throttle"), brake: value("brake"), steer: value("steerRight") - value("steerLeft") };
       const blend = 1 - Math.exp(-6 * Math.max(0, Math.min(dt, .05)));
       axis = {
-        throttle: axis.throttle + (target.throttle - axis.throttle) * blend,
-        brake: axis.brake + (target.brake - axis.brake) * blend,
+        // Released pedals must become genuinely neutral so the published vehicle can coast.
+        // Any positive analog or another held source still uses the existing easing.
+        throttle: target.throttle === 0 ? 0 : axis.throttle + (target.throttle - axis.throttle) * blend,
+        brake: target.brake === 0 ? 0 : axis.brake + (target.brake - axis.brake) * blend,
         steer: axis.steer + (target.steer - axis.steer) * blend,
       };
       keyboard.endFrame();
