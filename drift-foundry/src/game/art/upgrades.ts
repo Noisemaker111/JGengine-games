@@ -29,4 +29,3 @@ export function upgradeBodies(ownerId: string, snapshot: Pick<SessionSnapshot, "
     meta: { ownerId, slot, partId: part.id },
   }]);
 }
-
