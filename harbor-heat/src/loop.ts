@@ -1,6 +1,6 @@
 import { loadSavedProgress } from "./game/saveCompatibility";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase } from "@jgengine/core/game/gamePhase";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import {
   bestRaceStore,
@@ -37,6 +37,8 @@ import {
   HHPD_POS,
 } from "./game/world/districts";
 import { setupWorld } from "./game/world/setup";
+import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
+import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
 const AGGRO_RADIUS = 18;
 const GANGER_SHOT_RANGE = 14;
@@ -79,15 +81,10 @@ function patchMission(ctx: GameContext, patch: Partial<MissionState>): void {
 }
 
 /**
- * Publish the shell's run phase from the one gate the UI already reads (`startedStore`):
- * on the title screen the game is at `menu`, live it is `playing`. This is what hides the
- * shell's on-screen touch controls until play actually begins — without it the phase
- * defaults to `playing` and the mobile dock paints over the main menu. Idempotent: only
- * writes on an actual transition so it never thrashes the world signal (and autosave).
+ * Keep simulation and touch controls behind the title, pause, settings and result gates.
  */
 function syncPhase(ctx: GameContext): void {
-  const desired = startedStore.read(ctx) === true ? "playing" : "menu";
-  if (gamePhase(ctx) !== desired) setGamePhase(ctx, desired);
+  syncSession(ctx, startedStore.read(ctx) === true);
 }
 
 export function resetMissionState(ctx: GameContext): void {
@@ -325,6 +322,9 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   ctx.game.feed.push("harbor.log", { text: `Busted. HHPD released you for $${fine}.` });
+  finishCourier(ctx, false);
+  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
+  syncPhase(ctx);
 }
 
 /** Death restages the active boss fight so m8 restarts clean instead of resuming half-dead guards. */
@@ -340,7 +340,7 @@ function restageAfterWasted(ctx: GameContext): void {
 function tickWasted(ctx: GameContext): void {
   const health = ctx.scene.entity.stats.get(ctx.player.userId, "health");
   if (health === null || health.current > 0) return;
-  handrollOf(ctx).exitVehicle(ctx);
+  handrollOf(ctx).exitVehicle(ctx, true);
   ctx.scene.entity.stats.set(ctx.player.userId, "health", { current: health.max });
   ctx.scene.entity.stats.set(ctx.player.userId, "armor", { current: 0 });
   const home = safehouseStore.read(ctx) === true ? SAFEHOUSE_POS : PLAYER_SPAWN;
@@ -353,6 +353,9 @@ function tickWasted(ctx: GameContext): void {
   ctx.game.feed.push("harbor.log", {
     text: fee > 0 ? `Wasted. The clinic took $${fee}.` : "Wasted. The clinic took pity.",
   });
+  finishCourier(ctx, false);
+  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
+  syncPhase(ctx);
 }
 
 /**
@@ -365,13 +368,17 @@ function tickWasted(ctx: GameContext): void {
  * that way (a `shoot --mode play` boot dispatches `game.start` before this restore lands), keep it
  * live instead of bouncing back to the title — otherwise capture re-shows the menu it just dismissed.
  */
-export function normalizeAfterRestore(ctx: GameContext): void {
-  const alreadyLive = startedStore.read(ctx) === true;
-  if (!alreadyLive) startedStore.clear(ctx);
+export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedStore.read(ctx) === true): void {
+  if (alreadyLive) startedStore.write(ctx, true);
+  else startedStore.clear(ctx);
   shopStore.clear(ctx);
   garageStore.clear(ctx);
   raceStore.clear(ctx);
   drivingStore.clear(ctx);
+  sessionStore.clear(ctx);
+  const courier = courierStore.read(ctx);
+  if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
+  setupCourierLandmarks(ctx);
   handrollOf(ctx).clearWanted(ctx);
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player !== null) {
@@ -386,7 +393,7 @@ export function normalizeAfterRestore(ctx: GameContext): void {
 
 async function resumeFromSave(ctx: GameContext): Promise<void> {
   if (!(await loadSavedProgress(ctx))) return;
-  normalizeAfterRestore(ctx);
+  normalizeAfterRestore(ctx, startedThisBoot(ctx).value);
 }
 
 function onInit(ctx: GameContext): void {
@@ -427,6 +434,7 @@ function onInit(ctx: GameContext): void {
 
   registerCommands(ctx);
   setupWorld(ctx);
+  setupCourierLandmarks(ctx);
 }
 
 function onNewPlayer(ctx: GameContext): void {
@@ -448,6 +456,7 @@ function onNewPlayer(ctx: GameContext): void {
 }
 
 function onTick(ctx: GameContext, dt: number): void {
+  if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
   handrollOf(ctx).tick(ctx, dt);
   tickGangers(ctx, dt);
   tickMissions(ctx);
@@ -458,6 +467,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickBusted(ctx, dt);
   tickPedPanic(ctx, dt);
   tickWasted(ctx);
+  tickCourier(ctx, dt);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };

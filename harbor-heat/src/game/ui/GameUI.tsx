@@ -16,6 +16,7 @@ import { Speedo } from "./components/Speedo";
 import { StatusPanel } from "./components/StatusPanel";
 import { TitleScreen, useGameStarted } from "./components/TitleScreen";
 import { WantedStars } from "./components/WantedStars";
+import { CourierHud, SessionUI } from "./components/SessionUI";
 
 function PromptHint() {
   const prompts = useGameStore((ctx) => buildPrompts(ctx));
@@ -33,7 +34,7 @@ function PromptHint() {
             ? "Buy Palmview Bungalow ($5,000)"
             : active.id === "safehouse:rest"
               ? "Rest at the bungalow"
-              : "Talk";
+              : active.id === "courier:accept" ? "Take a courier parcel" : active.id === "courier:deliver" ? "Deliver parcel · slow to stop" : "Talk";
   return (
     <div className="-skew-x-6 border-2 border-black bg-[#ffb020] px-3 py-1 text-sm font-black uppercase text-black shadow-[3px_3px_0_#000]">
       [E] {label}
@@ -48,11 +49,12 @@ export function GameUI() {
     return (
       <div className="pointer-events-none absolute inset-0 z-20 font-sans">
         <TitleScreen />
+        <SessionUI />
       </div>
     );
   }
   return (
-    <HudCanvas layout={layout} className="z-20 font-sans">
+    <><SessionUI /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
       <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}>
         <div className="flex flex-col items-center gap-2">
           <WantedStars />
@@ -70,6 +72,9 @@ export function GameUI() {
       </HudPanel>
       <HudPanel id="mission" anchor="right" compact="hide" interactive={false}>
         <MissionTracker />
+      </HudPanel>
+      <HudPanel id="courier" anchor="top" order={1} compact="keep">
+        <CourierHud />
       </HudPanel>
       <HudPanel id="hotbar" anchor="bottom" compact="keep" interactive={false}>
         <div className="flex flex-col items-center gap-2">
@@ -107,6 +112,6 @@ export function GameUI() {
           }}
         />
       </HudPanel>
-    </HudCanvas>
+    </HudCanvas></>
   );
 }

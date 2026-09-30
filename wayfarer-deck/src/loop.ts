@@ -8,6 +8,12 @@ export function onInit(ctx: GameContext): void {
   combatHandle.write(ctx, combat);
   runHandle.write(ctx, createRunStore(combat));
 
+  for (const [command, method] of [["pauseRun", "pause"], ["resumeRun", "resume"], ["recoverRoad", "recover"]] as const) {
+    ctx.game.commands.define<Record<string, never>>(command, {
+      apply: (state) => { runHandle.read(state)[method](state); return state; },
+    });
+  }
+
   ctx.game.commands.define<{ cardId: string }>("playCard", {
     validate: (state, input) => {
       const reason = runHandle.read(state).canPlay(input.cardId);
@@ -54,7 +60,7 @@ export function onInit(ctx: GameContext): void {
 }
 
 export function onNewPlayer(ctx: GameContext): void {
-  runHandle.read(ctx).start(ctx);
+  runHandle.read(ctx).prepare(ctx);
 }
 
 export function onTick(_ctx: GameContext, _dt: number): void {}

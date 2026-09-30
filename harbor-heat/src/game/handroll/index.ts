@@ -30,7 +30,7 @@ export function createHandroll(): Handroll {
 
   return {
     enterVehicle: (ctx, vehicleId) => driving.enterVehicle(ctx, vehicleId),
-    exitVehicle: (ctx) => driving.exitVehicle(ctx),
+    exitVehicle: (ctx, force) => driving.exitVehicle(ctx, force),
     drivingVehicleId: () => driving.drivingVehicleId(),
     carSpeedKmh: () => driving.carSpeedKmh(),
     telemetry: () => driving.telemetry(),

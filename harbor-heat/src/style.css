@@ -1,0 +1,42 @@
+:root { color-scheme: dark; }
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+#root { height: 100dvh; background: #102e3b; }
+button { touch-action: manipulation; }
+button:focus-visible { outline: 3px solid #fff3d8; outline-offset: 4px; }
+.hh-title { position: absolute; inset: 0; pointer-events: auto; display: flex; overflow: auto; background: #102e3b; color: #fff0d2; font-family: system-ui, sans-serif; }
+.hh-poster { position: absolute; inset: 0 0 0 35%; background-position: center; background-size: cover; }
+.hh-title::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg,#102e3b 0%,#102e3bf5 30%,#102e3b20 70%,transparent); }
+.hh-title-content { position: relative; z-index: 1; margin: auto 0; padding: clamp(22px,5vw,72px); width: min(620px,65%); }
+.hh-eyebrow { color: #76d4c3; font-size: 10px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+.hh-title h1 { font-size: clamp(54px,8vw,116px); line-height: .85; margin: 28px 0; letter-spacing: -.065em; font-weight: 950; text-transform: uppercase; }
+.hh-title h1 span { color: #f88b6b; } .hh-title h1 i { color: #ffc879; font-style: normal; margin-left: .12em; }
+.hh-title-intro { font-size: clamp(17px,2.1vw,26px); line-height: 1.25; font-weight: 700; }
+.hh-title-description { color: #b9cbd0; font-size: 14px; line-height: 1.6; max-width: 340px; margin: 18px 0 25px; }
+.hh-title-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hh-button { min-height: 46px; padding: 12px 20px; border: 1px solid #76d4c355; border-radius: 5px; font: 750 14px system-ui; cursor: pointer; transition: filter .15s, transform .15s; }
+.hh-button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.hh-button-primary { background: #ffc879; color: #102e3b; border-color: #ffc879; box-shadow: 0 4px 0 #ad7140; } .hh-button-primary span { margin-left: 22px; }
+.hh-button-secondary { background: #194451; color: #fff0d2; }
+.hh-controls { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; color: #b9cbd0; max-width: 375px; }
+.hh-controls b { color: #fff0d2; margin-right: 5px; }
+.hh-title-note { max-width: 370px; color: #76d4c3; font-size: 11px; line-height: 1.55; margin-top: 20px; border-left: 2px solid #76d4c3; padding-left: 12px; }
+.hh-title footer { margin-top: 25px; font-size: 9px; color: #91a5ae; }
+.hh-poster-stamp { z-index: 1; position: absolute; right: 6%; top: 8%; border: 2px solid #fff0d299; padding: 14px 24px; font-size: 23px; line-height: 1; text-transform: uppercase; transform: rotate(5deg); text-align: center; }
+.hh-poster-stamp small { display: block; font-size: 8px; letter-spacing: .2em; margin-top: 10px; }
+.hh-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; background: #08232dc9; backdrop-filter: blur(6px); z-index: 50; pointer-events: auto; font-family: system-ui; overflow: auto; }
+.hh-modal { width: min(460px,100%); padding: clamp(22px,5vw,40px); border: 1px solid #76d4c377; border-top: 5px solid #f88b6b; border-radius: 8px; background: #102e3b; color: #fff0d2; box-shadow: 0 20px 80px #0008; }
+.hh-modal h2 { font-weight: 900; font-size: clamp(25px,4vw,39px); line-height: 1.05; letter-spacing: -.04em; margin: 18px 0; }
+.hh-modal p { color: #b9cbd0; line-height: 1.65; font-size: 14px; margin-bottom: 25px; }
+.hh-menu-actions { display: grid; gap: 12px; margin-bottom: 20px; } .hh-modal small { font-size: 11px; color: #76d4c3; }
+.hh-payout { font-size: 42px; font-weight: 900; color: #ffc879; margin: 22px 0; } .hh-payout small { display: block; font-weight: 500; }
+.hh-pause-trigger { pointer-events: auto; position: absolute; right: 68px; top: 16px; z-index: 24; color: #fff0d2; background: #102e3be8; border: 1px solid #76d4c355; border-radius: 4px; padding: 9px 12px; cursor: pointer; font: 700 12px system-ui; }
+.hh-courier { width: clamp(210px,24vw,290px); padding: 12px 15px; background: #102e3be8; border: 1px solid #76d4c355; border-left: 4px solid #76d4c3; border-radius: 4px; color: #fff0d2; box-shadow: 0 3px 15px #0003; }
+.hh-courier-label { font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; color: #76d4c3; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.hh-courier-label span { color: #ffc879; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.hh-courier strong { font-size: 14px; } .hh-courier p { margin: 3px 0; font-size: 11px; color: #d6e3df; } .hh-courier small { font-size: 10px; line-height: 1.5; display: block; color: #a5c0c7; margin-top: 5px; }
+.hh-courier progress { width: 100%; height: 5px; accent-color: #76d4c3; margin-top: 5px; } .hh-urgent { border-left-color: #f88b6b; } .hh-urgent .hh-courier-label span { color: #ff9d86; }
+.hh-inline-action { margin-top: 9px; color: #102e3b; background: #76d4c3; border: 0; border-radius: 3px; padding: 8px 10px; width: 100%; cursor: pointer; font-size: 11px; font-weight: 800; }
+@media (max-width: 700px) { .hh-title-content { width: 80%; padding: 24px; } .hh-poster { left: 10%; opacity: .55; } .hh-poster-stamp { display: none; } .hh-title::after { background: linear-gradient(90deg,#102e3bf5,#102e3bb0,transparent); } .hh-title h1 { margin: 20px 0; } .hh-title-description { max-width: 280px; } .hh-courier { width: 210px; padding: 9px; } .hh-courier small { display: none; } .hh-pause-trigger span { display: none; } }
+@media (max-height: 530px) { .hh-title-content { padding: 20px 32px; width: 72%; } .hh-title h1 { font-size: 55px; margin: 15px 0; } .hh-title-description,.hh-title footer { display: none; } .hh-title-intro { font-size: 17px; margin-bottom: 14px; } .hh-controls { margin-top: 20px; } .hh-title-note { margin-top: 12px; } .hh-poster-stamp { display: none; } }
+@media (max-height: 530px) { .hh-overlay { padding: 14px; } .hh-modal { padding: 18px 24px; } .hh-modal h2 { font-size: 28px; margin: 12px 0; } .hh-modal p { font-size: 13px; line-height: 1.4; margin-bottom: 14px; } .hh-menu-actions { gap: 8px; margin-bottom: 14px; } .hh-menu-actions .hh-button { min-height: 40px; padding: 10px 14px; font-size: 13px; } .hh-courier small { display: none; } }
+.hh-button:disabled { cursor: default; opacity: .55; transform: none; }

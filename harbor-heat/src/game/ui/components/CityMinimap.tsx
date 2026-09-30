@@ -23,6 +23,7 @@ import { safehouseStore } from "../../commands";
 import { bountyStore } from "../../jobs/bounties";
 import { stashStore } from "../../jobs/stashes";
 import { raceStore, wantedStore } from "../../handroll";
+import { courierStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 
 const SIZE = 176;
 const RADIUS = 130;
@@ -69,6 +70,7 @@ interface MapSnapshot {
   bountySpotId: string | null;
   safehouseOwned: boolean;
   stashesCollected: readonly string[];
+  courierTarget: readonly [number, number];
 }
 
 function readMap(ctx: GameContext): MapSnapshot | null {
@@ -83,6 +85,7 @@ function readMap(ctx: GameContext): MapSnapshot | null {
   const wanted = wantedStore.read(ctx);
   const race = raceStore.read(ctx);
   const bounty = bountyStore.read(ctx);
+  const courier = courierStore.read(ctx);
   return {
     player: player.position,
     heading: player.rotationY,
@@ -94,6 +97,7 @@ function readMap(ctx: GameContext): MapSnapshot | null {
     bountySpotId: bounty?.targetId !== null && bounty?.targetId !== undefined ? (bounty.spotId ?? null) : null,
     safehouseOwned: safehouseStore.read(ctx) === true,
     stashesCollected: stashStore.read(ctx) ?? [],
+    courierTarget: courier.phase === "running" ? DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!.position : DISPATCH,
   };
 }
 
@@ -133,6 +137,7 @@ export function CityMinimap() {
     strokeColor: "#000",
     strokeWidth: 1,
   }));
+  markers.push({ id: "courier", position: snapshot.courierTarget, color: "#38d6c4", radius: 6, strokeColor: "#113b47", strokeWidth: 2 });
   if (target !== undefined) {
     markers.push({ id: "target", position: target, color: "#ffb020", radius: 5.5, strokeColor: "#000", strokeWidth: 1.5 });
   }

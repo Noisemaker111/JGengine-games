@@ -6,7 +6,7 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import type { HeroId, V2 } from "./types";
 import type { Latch } from "./rooms/engine";
 
-export type RunStatus = "playing" | "solved" | "complete";
+export type RunStatus = "ready" | "paused" | "playing" | "solved" | "complete";
 
 export interface DuetState {
   roomIndex: number;
@@ -20,6 +20,8 @@ export interface DuetState {
   poweredReceivers: readonly string[];
   openGates: readonly string[];
   activeSpikes: readonly string[];
+  exits: readonly HeroId[];
+  reducedMotion: boolean;
   /** Toast text pushed by abilities/hazards, mirrored from `toastQueue`'s single live slot. */
   toast: string | null;
 }
@@ -36,7 +38,7 @@ export function freshRoom(index: number): Pick<DuetState, "latch" | "solveTimer"
 
 export const duetStore = defineStore<DuetState>("resonant-crossing", () => ({
   roomIndex: 0,
-  status: "playing",
+  status: "ready",
   active: "lumen",
   latch: { anchorCell: null, prism: null },
   solveTimer: 0,
@@ -44,6 +46,8 @@ export const duetStore = defineStore<DuetState>("resonant-crossing", () => ({
   poweredReceivers: [],
   openGates: [],
   activeSpikes: [],
+  exits: [],
+  reducedMotion: false,
   toast: null,
 }));
 

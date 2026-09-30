@@ -1,7 +1,875 @@
-html,
-body,
-#root {
+.wayfarer-road {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  color: #f2e8cf;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px 12px;
+  isolation: isolate;
+  contain: layout paint;
+  background: #193039;
+}
+
+.wayfarer-road * {
+  box-sizing: border-box;
+}
+
+.wayfarer-road .road-landscape, .wayfarer-road .road-shade {
+  position: fixed;
+  inset: 0;
+  width: 100%;
   height: 100%;
+  pointer-events: none;
+  z-index: -2;
+}
+
+.wayfarer-road .road-shade {
+  z-index: -1;
+  background: linear-gradient(#0c1e26a8, transparent 35%, #08191cca 85%);
+}
+
+.wayfarer-road button {
+  color: inherit;
+  font: inherit;
+  border: 1px solid #b7b79355;
+  background: #193039ef;
+  border-radius: 7px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+
+.wayfarer-road button:hover:enabled {
+  background: #36514c;
+}
+
+.wayfarer-road button:focus-visible, .wayfarer-road summary:focus-visible, .wayfarer-road input:focus-visible {
+  outline: 3px solid #ffe19a;
+  outline-offset: 3px;
+}
+
+.wayfarer-road button:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.wayfarer-road .primary {
+  background: #e8bf75;
+  border-color: #f7d69c;
+  color: #172b2f;
+  font-weight: 700;
+}
+
+.wayfarer-road .primary:hover:enabled {
+  background: #f4d79d;
+}
+
+.wayfarer-road kbd {
+  font: 11px 'Segoe UI', sans-serif;
+  background: #09212735;
+  border: 1px solid #b8ba9550;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.wayfarer-road .eyebrow {
+  color: #d8c596;
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin: 0 0 5px;
+}
+
+.wayfarer-road .road-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.wayfarer-road .road-header h1 {
+  font-family: Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
   margin: 0;
-  background: #0a0a0a;
+}
+
+.wayfarer-road .road-header nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wayfarer-road .save-state {
+  font-size: 11px;
+  color: #c4cdbb;
+  margin-right: 10px;
+}
+
+.wayfarer-road .road-route {
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  margin: 16px auto 0;
+  width: min(100%, 820px);
+  list-style: none;
+}
+
+.wayfarer-road .road-route li {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  color: #d4dfcb80;
+  font-size: 10px;
+}
+
+.wayfarer-road .road-route li::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  height: 1px;
+  background: #d4dfcb40;
+  width: 100%;
+  left: -50%;
+  z-index: -1;
+}
+
+.wayfarer-road .road-route li:first-child::before {
+  display: none;
+}
+
+.wayfarer-road .road-route span {
+  display: block;
+  border-radius: 50%;
+  border: 1px solid #c7d5ba70;
+  background: #203739;
+  width: 28px;
+  height: 28px;
+  line-height: 26px;
+  margin: 0 auto 6px;
+}
+
+.wayfarer-road .road-route strong {
+  font-weight: 500;
+}
+
+.wayfarer-road .road-route .current {
+  color: #ffe0a0;
+}
+
+.wayfarer-road .road-route .current span {
+  border-color: #f3ce8c;
+  box-shadow: 0 0 15px #e5ae5330;
+}
+
+.wayfarer-road .road-route .cleared {
+  color: #a7cfb4;
+}
+
+.wayfarer-road .encounter-stage {
+  display: grid;
+  grid-template-columns: 280px 360px;
+  justify-content: center;
+  gap: clamp(30px, 8vw, 180px);
+  align-items: center;
+  flex: 1;
+  min-height: 285px;
+  padding: 10px 0;
+}
+
+.wayfarer-road .hero-ledger {
+  border-left: 2px solid #dbc99780;
+  background: linear-gradient(90deg,#132b31c9,transparent);
+  padding: 18px;
+}
+
+.wayfarer-road .vitality-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.wayfarer-road .vitality-label strong {
+  font: 19px Georgia, serif;
+}
+
+.wayfarer-road .vitality-label span {
+  font-size: 12px;
+  color: #d3d9bd;
+  white-space: nowrap;
+}
+
+.wayfarer-road .health-track {
+  height: 8px;
+  background: #0b2028;
+  border: 1px solid #adc4a65e;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.wayfarer-road .health-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg,#719c78,#bbd4a3);
+  transition: width .25s;
+}
+
+.wayfarer-road .statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 22px;
+  margin-top: 7px;
+}
+
+.wayfarer-road .statuses span {
+  border: 1px solid #b8ac7050;
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #f1d398;
+  background: #203238db;
+  font-size: 11px;
+}
+
+.wayfarer-road .statuses .block {
+  color: #b7e1e6;
+  border-color: #99c6cf80;
+}
+
+.wayfarer-road .road-advice {
+  font-size: 12px;
+  color: #c0cbb8;
+  line-height: 1.7;
+}
+
+.wayfarer-road .combat-journal {
+  font-size: 11px;
+  color: #bdc5b7;
+}
+
+.wayfarer-road .combat-journal summary {
+  cursor: pointer;
+  color: #e1d3ac;
+  padding: 5px 0;
+}
+
+.wayfarer-road .combat-journal ol {
+  padding: 0 0 0 16px;
+  max-height: 90px;
+  overflow: auto;
+  line-height: 1.6;
+}
+
+.wayfarer-road .enemy-stage {
+  text-align: center;
+  width: 100%;
+}
+
+.wayfarer-road .enemy-intent {
+  display: inline-block;
+  border: 1px solid #e0cf9770;
+  border-radius: 20px;
+  background: #153039ed;
+  font-size: 12px;
+  padding: 7px 16px;
+}
+
+.wayfarer-road .enemy-intent.attack {
+  color: #ffd1ac;
+  border-color: #db9b7370;
+}
+
+.wayfarer-road .enemy-art {
+  width: 260px;
+  height: 244px;
+  display: block;
+  margin: -4px auto -15px;
+  filter: drop-shadow(0 12px 9px #0b202a66);
+  animation: road-breathe 5s ease-in-out infinite;
+}
+
+.wayfarer-road .enemy-tier {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: #e6c79b;
+  margin-bottom: 8px;
+}
+
+.wayfarer-road .enemy-stage .vitality {
+  max-width: 270px;
+  margin: auto;
+}
+
+.wayfarer-road .hand-dock {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.wayfarer-road .turn-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #d2cca43a;
+}
+
+.wayfarer-road .energy-counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f6d092;
+}
+
+.wayfarer-road .energy-counter b {
+  font: 35px Georgia, serif;
+}
+
+.wayfarer-road .energy-counter span {
+  font-size: 13px;
+}
+
+.wayfarer-road .energy-counter small {
+  display: block;
+  font-size: 8px;
+  letter-spacing: .14em;
+}
+
+.wayfarer-road .pile-button {
+  font-size: 11px;
+  padding: 7px 10px;
+}
+
+.wayfarer-road .turn-help {
+  font-size: 12px;
+  color: #cad1bf;
+  flex: 1;
+}
+
+.wayfarer-road .end-turn {
+  min-width: 130px;
+}
+
+.wayfarer-road .road-hand {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 8px 12px;
+  min-height: 200px;
+}
+
+.wayfarer-road .road-card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 155px;
+  width: 155px;
+  padding: 9px;
+  min-height: 188px;
+  border: 1px solid #b7a077;
+  border-bottom-width: 3px;
+  background: linear-gradient(145deg,#ece1bf,#c7c4a1);
+  color: #243638;
+  box-shadow: 0 7px 14px #03131970;
+  text-align: left;
+  position: relative;
+  border-radius: 9px;
+}
+
+.wayfarer-road .road-card:hover:enabled {
+  transform: translateY(-5px);
+  background: linear-gradient(145deg,#fff0ce,#d6d0aa);
+}
+
+.wayfarer-road .road-card:disabled {
+  opacity: .65;
+  filter: saturate(.55);
+}
+
+.wayfarer-road .card-heading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 25px;
+}
+
+.wayfarer-road .card-heading strong {
+  font: 700 12px Georgia, serif;
+  flex: 1;
+}
+
+.wayfarer-road .card-cost {
+  border-radius: 50%;
+  background: #9d573f;
+  color: #fff0cd;
+  width: 23px;
+  height: 23px;
+  line-height: 23px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.wayfarer-road .skill .card-cost {
+  background: #396c76;
+}
+
+.wayfarer-road .power .card-cost {
+  background: #69607f;
+}
+
+.wayfarer-road .card-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 78px;
+  margin: 8px 0;
+  background: repeating-linear-gradient(140deg,transparent 0 9px,#fff7d116 9px 10px),radial-gradient(ellipse,#ad6249,#554f43);
+  border: 1px solid #68593d70;
+  border-radius: 4px;
+  overflow: hidden;
+  color: #f5deb3;
+}
+
+.wayfarer-road .skill .card-art {
+  background: radial-gradient(ellipse,#699598,#35515e);
+}
+
+.wayfarer-road .power .card-art {
+  background: radial-gradient(ellipse,#a78a9d,#4d455d);
+}
+
+.wayfarer-road .card-art svg {
+  width: 45px;
+  height: 45px;
+  z-index: 1;
+  filter: drop-shadow(0 3px 3px #0007);
+}
+
+.wayfarer-road .card-orbit {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 1px solid #f2d5a280;
+  border-radius: 50%;
+}
+
+.wayfarer-road .card-orbit::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 1px dashed #f2d5a24a;
+  transform: rotate(45deg);
+}
+
+.wayfarer-road .card-kind {
+  position: absolute;
+  bottom: 2px;
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+}
+
+.wayfarer-road .card-description {
+  font-size: 12px;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.wayfarer-road .road-card small {
+  margin-top: 4px;
+  font-size: 9px;
+  color: #734532;
+}
+
+.wayfarer-road.large-road .card-description {
+  font-size: 14px;
+}
+
+.wayfarer-road .empty-hand {
+  font-size: 14px;
+  align-self: center;
+  color: #cbc9b4;
+}
+
+.wayfarer-road .road-announcement {
+  text-align: center;
+  min-height: 16px;
+  margin: 3px 0 0;
+  color: #dfd6b5;
+  font-size: 11px;
+}
+
+.wayfarer-road .road-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #091e28b8;
+  backdrop-filter: blur(7px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+  pointer-events: auto;
+}
+
+.wayfarer-road .road-dialog {
+  max-width: 630px;
+  width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  border: 1px solid #c6b98677;
+  background: linear-gradient(135deg,#28443fec,#152e39fa);
+  box-shadow: 0 24px 100px #061921b3;
+  border-radius: 15px;
+  padding: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.wayfarer-road .road-dialog h1 {
+  font: 36px Georgia, serif;
+  margin: 0 0 4px;
+  color: #f9dfab;
+}
+
+.wayfarer-road .road-dialog p {
+  font-size: 14px;
+  color: #d9decc;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.wayfarer-road .road-dialog small {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #b7c7b5;
+}
+
+.wayfarer-road .road-dialog .eyebrow {
+  font-size: 10px;
+  color: #dbc592;
+}
+
+.wayfarer-road .rules-grid {
+  display: flex;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.wayfarer-road .rules-grid span {
+  flex: 1;
+  font-size: 11px;
+  color: #c3d0ba;
+  padding: 12px 4px;
+  border-top: 1px solid #b6c09a50;
+}
+
+.wayfarer-road .rules-grid b {
+  display: block;
+  font: 15px Georgia, serif;
+  color: #f0d49d;
+  margin-bottom: 5px;
+}
+
+.wayfarer-road .reward-hand {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 8px 2px;
+}
+
+.wayfarer-road .preference {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #b7bf9750;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.wayfarer-road .preference input {
+  width: 18px;
+  height: 18px;
+  accent-color: #e8bf75;
+}
+
+.wayfarer-road.still-road *, .wayfarer-road.still-road *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes road-breathe {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wayfarer-road *, .wayfarer-road *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (min-width: 1500px) and (min-height: 900px) {
+  .wayfarer-road .enemy-art {
+    width: 350px;
+    height: 328px;
+  }
+  .wayfarer-road .road-hand {
+    min-height: 240px;
+  }
+  .wayfarer-road .road-card {
+    flex-basis: 180px;
+    width: 180px;
+    min-height: 225px;
+  }
+  .wayfarer-road .card-art {
+    height: 100px;
+  }
+}
+
+@media (max-width: 850px) {
+  .wayfarer-road {
+    padding: 14px 16px 10px;
+  }
+  .wayfarer-road .save-state {
+    display: none;
+  }
+  .wayfarer-road .encounter-stage {
+    grid-template-columns: 240px 280px;
+    gap: 20px;
+  }
+  .wayfarer-road .turn-help {
+    display: none;
+  }
+  .wayfarer-road .turn-toolbar .end-turn {
+    margin-left: auto;
+  }
+  .wayfarer-road .road-hand {
+    justify-content: flex-start;
+  }
+  .wayfarer-road .road-route strong {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 580px) {
+  .wayfarer-road {
+    padding: 12px 10px 8px;
+  }
+  .wayfarer-road .road-header h1 {
+    font-size: 21px;
+  }
+  .wayfarer-road .road-header .eyebrow {
+    font-size: 8px;
+  }
+  .wayfarer-road .road-header nav {
+    gap: 5px;
+  }
+  .wayfarer-road .road-header button {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .wayfarer-road .road-header kbd {
+    display: none;
+  }
+  .wayfarer-road .road-route {
+    margin-top: 12px;
+  }
+  .wayfarer-road .road-route strong {
+    display: none;
+  }
+  .wayfarer-road .road-route span {
+    width: 24px;
+    height: 24px;
+    line-height: 22px;
+  }
+  .wayfarer-road .road-route li::before {
+    top: 12px;
+  }
+  .wayfarer-road .encounter-stage {
+    grid-template-columns: minmax(120px,1fr) minmax(170px,1.3fr);
+    gap: 4px;
+    min-height: 250px;
+  }
+  .wayfarer-road .hero-ledger {
+    padding: 10px 7px;
+  }
+  .wayfarer-road .vitality-label {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .wayfarer-road .vitality-label strong {
+    font-size: 16px;
+  }
+  .wayfarer-road .vitality-label span {
+    font-size: 11px;
+  }
+  .wayfarer-road .road-advice {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .wayfarer-road .enemy-art {
+    width: 180px;
+    height: 169px;
+    margin: 0 auto -8px;
+  }
+  .wayfarer-road .enemy-intent {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+  .wayfarer-road .enemy-tier {
+    font-size: 7px;
+  }
+  .wayfarer-road .enemy-stage .vitality {
+    max-width: 180px;
+  }
+  .wayfarer-road .enemy-stage .vitality-label {
+    align-items: center;
+  }
+  .wayfarer-road .turn-toolbar {
+    gap: 8px;
+  }
+  .wayfarer-road .energy-counter b {
+    font-size: 28px;
+  }
+  .wayfarer-road .pile-button {
+    max-width: 130px;
+    font-size: 10px;
+  }
+  .wayfarer-road .end-turn {
+    min-width: 105px;
+    font-size: 12px !important;
+  }
+  .wayfarer-road .road-card {
+    flex-basis: 135px;
+    width: 135px;
+    min-height: 185px;
+  }
+  .wayfarer-road .road-hand {
+    gap: 9px;
+  }
+  .wayfarer-road .road-dialog {
+    padding: 22px 14px;
+  }
+  .wayfarer-road .road-dialog h1 {
+    font-size: 29px;
+  }
+  .wayfarer-road .road-dialog p {
+    font-size: 12px;
+  }
+  .wayfarer-road .reward-hand {
+    gap: 7px;
+  }
+  .wayfarer-road .reward-hand .road-card {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    padding: 6px;
+  }
+  .wayfarer-road .reward-hand .card-heading strong {
+    font-size: 10px;
+  }
+  .wayfarer-road .reward-hand .card-cost {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+  .wayfarer-road .reward-hand .card-description {
+    font-size: 11px;
+  }
+  .wayfarer-road .rules-grid {
+    gap: 6px;
+  }
+}
+
+@media (max-height: 650px) and (min-width: 581px) {
+  .wayfarer-road {
+    padding-top: 10px;
+  }
+  .wayfarer-road .road-route {
+    margin-top: 8px;
+  }
+  .wayfarer-road .encounter-stage {
+    min-height: 215px;
+  }
+  .wayfarer-road .enemy-art {
+    width: 190px;
+    height: 178px;
+  }
+  .wayfarer-road .hero-ledger {
+    padding: 8px 16px;
+  }
+  .wayfarer-road .road-advice {
+    margin: 6px 0;
+  }
+  .wayfarer-road .turn-toolbar {
+    margin-bottom: 4px;
+    padding: 5px 0;
+  }
+  .wayfarer-road .road-hand {
+    min-height: 173px;
+  }
+  .wayfarer-road .road-card {
+    min-height: 160px;
+  }
+  .wayfarer-road .card-art {
+    height: 54px;
+  }
+  .wayfarer-road .road-announcement {
+    margin: 0;
+  }
+}
+
+.wayfarer-road .road-board {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.wayfarer-road .road-overlay:has(~ .road-overlay) {
+  visibility: hidden;
+}
+
+.wayfarer-road .pack-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.wayfarer-road .pack-list li {
+  border: 1px solid #b7bf9750;
+  border-radius: 6px;
+  padding: 10px;
+}
+.wayfarer-road .pack-list b {
+  display: block;
+  font: 14px Georgia, serif;
+  color: #f0d49d;
+}
+.wayfarer-road .pack-list span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 5px;
+  color: #c3d0ba;
 }

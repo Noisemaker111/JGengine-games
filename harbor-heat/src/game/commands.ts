@@ -1,10 +1,11 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { handrollOf } from "./handroll";
 import { vehicleById } from "./entities/vehicles/catalog";
 import { CRED_GATES, credLevel } from "./progression/cred";
 import { GARAGE_POS } from "./world/districts";
+import { sessionStore, startedThisBoot, syncSession } from "./session";
+import { registerCourier } from "./jobs/courier";
 
 export const shopStore = defineStore<string | undefined>("harbor.shop", undefined);
 export const garageStore = defineStore<boolean | undefined>("harbor.garage", undefined);
@@ -49,6 +50,20 @@ function selectedHotbarItem(ctx: GameContext): string | null {
 }
 
 export function registerCommands(ctx: GameContext): void {
+  registerCourier(ctx);
+  ctx.game.commands.define("session.pause", { apply(state, input) {
+    sessionStore.write(state, { ...sessionStore.read(state), paused: (input as { paused: boolean }).paused });
+    syncSession(state, startedStore.read(state) === true);
+  } });
+  ctx.game.commands.define("session.settings", { apply(state, input) {
+    sessionStore.write(state, { ...sessionStore.read(state), settings: (input as { open: boolean }).open });
+    syncSession(state, startedStore.read(state) === true);
+  } });
+  ctx.game.commands.define("session.dismiss", { apply(state) {
+    sessionStore.write(state, { ...sessionStore.read(state), notice: "" });
+    syncSession(state, startedStore.read(state) === true);
+  } });
+  ctx.game.commands.define("session.save", { apply(state) { void state.game.save?.checkpoint(); } });
   ctx.game.commands.define("fire", {
     apply(state, input) {
       const itemId = selectedHotbarItem(state);
@@ -75,8 +90,9 @@ export function registerCommands(ctx: GameContext): void {
     apply(state) {
       if (startedStore.read(state) === true) return;
       startedStore.write(state, true);
+      startedThisBoot(state).value = true;
       // Live now: the shell reveals the on-screen touch controls only in the `playing` phase.
-      setGamePhase(state, "playing");
+      syncSession(state, true);
       // Continuing a save drops straight back into play; the flyover is a first-run intro.
       if (continueStore.read(state) === true) return;
       // Capture/drive tools (`?spawn=`, `?cam=`, jg-capture) need an instant chase cam — the old

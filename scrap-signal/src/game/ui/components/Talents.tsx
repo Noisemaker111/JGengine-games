@@ -10,22 +10,21 @@ import {
 } from "../../characters";
 import { FERRALON } from "../../palette";
 import { characterIdStore, skillsOpenStore, talentRanksStore } from "../../stores";
+import { ReclaimerPortrait } from "./Portrait";
 
 function CharacterCard({ character, onPick }: { character: CharacterDef; onPick: () => void }) {
   return (
     <button
       type="button"
       onClick={onPick}
-      className="scrap-plate group flex w-64 flex-col border-2 border-stone-700 bg-stone-950/90 p-4 text-left transition hover:border-amber-400"
+      className="scrap-plate signal-character group flex flex-col border-2 border-stone-700 bg-stone-950/90 p-4 text-left transition hover:border-amber-400 focus-visible:border-cyan-300"
       style={{ boxShadow: `inset 0 -4px 0 ${character.color}` }}
     >
       <div
         className="mb-3 flex h-28 items-center justify-center border border-stone-800"
         style={{ background: `linear-gradient(160deg, ${character.color}33, #14110d 70%)` }}
       >
-        <span className="text-6xl font-black" style={{ color: character.color }}>
-          {character.name[0]}
-        </span>
+        <ReclaimerPortrait id={character.id} color={character.color} />
       </div>
       <span className="text-xl font-black uppercase tracking-widest text-stone-50">{character.name}</span>
       <span className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: character.color }}>
@@ -53,15 +52,16 @@ export function CharacterSelect() {
   const picked = useStore(characterIdStore);
   if (picked !== null) return null;
   return (
-    <div className="pointer-events-auto absolute inset-0 z-[60] flex flex-col items-center justify-center gap-6 bg-[#0c0a08]/95">
+    <div className="signal-start pointer-events-auto absolute inset-0 z-[60] flex flex-col items-center gap-6 bg-[#0c0a08]/95">
       <div className="text-center">
         <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-stone-500">Reactivate. Reclaim. Rise.</div>
-        <div className="text-5xl font-black uppercase tracking-[0.12em] text-amber-400 drop-shadow-[0_4px_0_#3a2c10]">
+        <div className="signal-title font-black uppercase tracking-[0.12em] text-amber-400 drop-shadow-[0_4px_0_#3a2c10]">
           Scrap Signal
         </div>
         <div className="mt-1 text-xs font-bold uppercase tracking-[0.35em] text-stone-400">Choose your Reclaimer</div>
       </div>
-      <div className="flex flex-wrap items-stretch justify-center gap-4">
+      <p className="signal-brief">A broken carrier. A desert of stolen machines. Reclaim the copper-ring relay north of the crash site, then follow B0-LT’s campaign across Ferralon.</p>
+      <div className="signal-roster">
         {CHARACTERS.map((character) => (
           <CharacterCard
             key={character.id}
@@ -119,7 +119,7 @@ export function TalentsPanel() {
   const nodes = characterNodes(character);
   return (
     <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div className="w-[46rem] max-w-[95vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
+      <div className="signal-scroll w-[46rem] max-w-[95vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <span className="text-lg font-black uppercase tracking-widest text-amber-300">

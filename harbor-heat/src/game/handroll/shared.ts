@@ -41,7 +41,7 @@ export const raceStore = defineStore<RaceSnapshot | undefined>("harbor.race", un
 
 export interface Handroll {
   enterVehicle(ctx: GameContext, vehicleId: string): void;
-  exitVehicle(ctx: GameContext): void;
+  exitVehicle(ctx: GameContext, force?: boolean): void;
   drivingVehicleId(): string | null;
   carSpeedKmh(): number;
   telemetry(): VehicleTelemetry;
