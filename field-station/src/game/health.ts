@@ -29,11 +29,11 @@ function resetDamageFeedback(): void {
 }
 
 /** Drain or regenerate the local player's health each tick; respawn at zero. Call from onTick. */
-export function tickHealth(ctx: GameContext, dt: number): void {
+export function tickHealth(ctx: GameContext, dt: number): boolean {
   const id = ctx.player.userId;
   const entity = ctx.scene.entity.get(id);
   const health = ctx.scene.entity.stats.get(id, "health");
-  if (entity === null || health === null) return;
+  if (entity === null || health === null) return false;
 
   let hazard = currentHazard();
   if (hazard !== null) {
@@ -41,6 +41,7 @@ export function tickHealth(ctx: GameContext, dt: number): void {
     const [x, y, z] = entity.position;
     if (volume === undefined || !pointInVolume(volume, { x, y, z })) {
       clearHazard();
+      resetDamageFeedback();
       hazard = null;
       announce("Clear of the hazard — health regenerating", "good");
     }
@@ -52,9 +53,10 @@ export function tickHealth(ctx: GameContext, dt: number): void {
     regenPerSecond: player.regenPerSecond,
     dt,
   });
-  if (delta === 0 || (delta > 0 && health.current >= health.max)) return;
+  if (hazard === null) resetDamageFeedback();
+  if (delta === 0 || (delta > 0 && health.current >= health.max)) return false;
   ctx.scene.entity.stats.delta(id, "health", delta);
-  if (delta > 0) return;
+  if (delta > 0) return false;
 
   pendingDamage -= delta;
   sinceFloatText += dt;
@@ -64,10 +66,11 @@ export function tickHealth(ctx: GameContext, dt: number): void {
   }
 
   const after = ctx.scene.entity.stats.get(id, "health");
-  if (after === null || after.current > after.min) return;
+  if (after === null || after.current > after.min) return false;
   ctx.scene.entity.resetToSpawn(id);
   ctx.scene.entity.stats.set(id, "health", { current: after.max });
   clearHazard();
   resetDamageFeedback();
   announce("Downed — back at spawn with full health", "warn");
+  return true;
 }
