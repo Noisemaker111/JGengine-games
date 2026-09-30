@@ -6,10 +6,14 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import { CARD_CATALOG, type CardData } from "./cards";
 import { createCombatStore, type CombatSnapshot, type CombatStore } from "./combat";
 import { ENCOUNTERS, type EnemyDef } from "./enemy";
+import { readRoadSave, writeRoadSave } from "./save";
 
 export type RunPhase = "combat" | "reward" | "victory" | "defeat";
 
 export interface RunSnapshot {
+  screen: "menu" | "paused" | null;
+  canContinue: boolean;
+  saveStatus: "ready" | "saved" | "unavailable" | "damaged";
   phase: RunPhase;
   encounterIndex: number;
   encounterCount: number;
@@ -21,6 +25,10 @@ const STARTER_TYPES = new Set(["trail_cut", "pack_guard"]);
 const REWARD_POOL = Object.keys(CARD_CATALOG).filter((type) => !STARTER_TYPES.has(type));
 
 export interface RunStore {
+  prepare(ctx: GameContext): void;
+  pause(ctx: GameContext): void;
+  resume(ctx: GameContext): void;
+  recover(ctx: GameContext): void;
   subscribe(listener: () => void): () => void;
   getSnapshot(): RunSnapshot;
   start(ctx: GameContext): void;
@@ -32,7 +40,7 @@ export interface RunStore {
   skipReward(ctx: GameContext): void;
 }
 
-/** The run boots straight into combat (no menu); victory/defeat are the terminal screens. */
+/** Menus and pause gate play separately; victory/defeat are terminal run phases. */
 function enginePhaseFor(runPhase: RunPhase): GamePhase {
   return runPhase === "victory" || runPhase === "defeat" ? "ended" : "playing";
 }
@@ -40,6 +48,10 @@ function enginePhaseFor(runPhase: RunPhase): GamePhase {
 export function createRunStore(combat: CombatStore): RunStore {
   const listeners = new Set<() => void>();
   let phase: RunPhase = "combat";
+  let screen: RunSnapshot["screen"] = null;
+  let canContinue = false;
+  let saveStatus: RunSnapshot["saveStatus"] = "ready";
+  let preparing = false;
   let encounterIndex = 0;
   // The last ctx to drive a run mutation; combat's async win/lose settle fires inside
   // `combat.subscribe` without a ctx of its own, so we publish the engine phase from here.
@@ -48,6 +60,7 @@ export function createRunStore(combat: CombatStore): RunStore {
   let rewardSeed = 0;
   let rewardOptions: CardData[] = [];
   let snapshot: RunSnapshot = {
+    screen, canContinue, saveStatus,
     phase,
     encounterIndex,
     encounterCount: ENCOUNTERS.length,
@@ -71,14 +84,22 @@ export function createRunStore(combat: CombatStore): RunStore {
 
   function syncEnginePhase(): void {
     if (ctxRef === null) return;
-    const desired = enginePhaseFor(phase);
+    const desired = screen ?? enginePhaseFor(phase);
     if (desired === lastEnginePhase) return;
     lastEnginePhase = desired;
     setGamePhase(ctxRef, desired);
   }
 
   function sync(): void {
+    const captured = combat.capture();
+    if (!preparing && screen !== "menu" && captured !== null) {
+      if (ctxRef?.player.userId !== "ui-preview") {
+        saveStatus = writeRoadSave({ version: 1, phase, encounterIndex, rewardSeed, rewards: rewardOptions.map((card) => card.type), combat: captured }) ? "saved" : "unavailable";
+      }
+      canContinue = true;
+    }
     snapshot = {
+      screen, canContinue, saveStatus,
       phase,
       encounterIndex,
       encounterCount: ENCOUNTERS.length,
@@ -112,6 +133,41 @@ export function createRunStore(combat: CombatStore): RunStore {
   });
 
   return {
+    prepare(ctx) {
+      ctxRef = ctx;
+      preparing = true;
+      // The published shell uses this reserved player for gallery/UI previews.
+      // Preview scenarios must never read or replace a real player's crossing.
+      const loaded = ctx.player.userId === "ui-preview" ? { save: null, damaged: false } : readRoadSave();
+      screen = "menu";
+      if (loaded.save) {
+        const saved = loaded.save;
+        phase = saved.phase;
+        encounterIndex = saved.encounterIndex;
+        rewardSeed = saved.rewardSeed;
+        rewardOptions = saved.rewards.map((type) => CARD_CATALOG[type]!);
+        combat.restore(ctx, saved.combat);
+        canContinue = true;
+        saveStatus = "saved";
+      } else {
+        phase = "combat";
+        encounterIndex = 0;
+        rewardSeed = 0;
+        rewardOptions = [];
+        canContinue = false;
+        combat.start(ctx, currentEnemy(), { freshDeck: true });
+        saveStatus = loaded.damaged ? "damaged" : "ready";
+      }
+      preparing = false;
+      sync();
+    },
+    pause(ctx) { if (screen !== null || phase === "victory" || phase === "defeat") return; ctxRef = ctx; screen = "paused"; sync(); },
+    resume(ctx) { if (!canContinue) return; ctxRef = ctx; screen = null; sync(); },
+    recover(ctx) {
+      if (screen !== null || phase !== "reward") return;
+      ctx.scene.entity.stats.delta(ctx.player.userId, "health", 12);
+      advance(ctx);
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => {
@@ -122,6 +178,7 @@ export function createRunStore(combat: CombatStore): RunStore {
       return snapshot;
     },
     start(ctx) {
+      screen = null;
       ctxRef = ctx;
       encounterIndex = 0;
       phase = "combat";
@@ -130,18 +187,21 @@ export function createRunStore(combat: CombatStore): RunStore {
       sync();
     },
     canPlay(cardId) {
+      if (screen !== null || phase !== "combat") return "run is not active";
       return combat.canPlay(cardId);
     },
     playCard(ctx, cardId) {
+      if (this.canPlay(cardId) !== null) return;
       ctxRef = ctx;
       combat.playCard(ctx, cardId);
     },
     endTurn(ctx) {
+      if (screen !== null || phase !== "combat") return;
       ctxRef = ctx;
       combat.endTurn(ctx);
     },
     canChooseReward(cardType) {
-      return phase === "reward" && rewardOptions.some((card) => card.type === cardType);
+      return screen === null && phase === "reward" && rewardOptions.some((card) => card.type === cardType);
     },
     chooseReward(ctx, cardType) {
       if (!this.canChooseReward(cardType)) return;
@@ -149,7 +209,7 @@ export function createRunStore(combat: CombatStore): RunStore {
       advance(ctx);
     },
     skipReward(ctx) {
-      if (phase !== "reward") return;
+      if (screen !== null || phase !== "reward") return;
       advance(ctx);
     },
   };

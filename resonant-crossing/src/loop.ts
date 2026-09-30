@@ -1,13 +1,15 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { registerCommands } from "./game/abilities";
 import { ROOMS } from "./game/rooms/catalog";
 import { activeSpikeCells, type Latch, type RoomState } from "./game/rooms/engine";
 import { applyRoomVisuals, currentRoomState } from "./game/rooms/setup";
-import { advanceRoom, loadCurrentRoom, seatPlayer, startRun } from "./game/runtime";
+import { advanceRoom, seatPlayer, startRun } from "./game/runtime";
 import { duetStore, pruneToast, raiseToast } from "./game/stores";
-import { cellKey, HERO_IDS } from "./game/types";
+import { cellKey, HERO_IDS, sameCell } from "./game/types";
+import { heroCells } from "./game/rooms/setup";
 
 const SOLVE_HOLD_SECONDS = 1.4;
 
@@ -59,15 +61,18 @@ function updateBeamVfx(ctx: GameContext, latch: Latch, state: RoomState): void {
 function onInit(ctx: GameContext): void {
   registerCommands(ctx);
   startRun(ctx);
+  duetStore.update(ctx, s => ({ ...s, status: "ready" }));
+  setGamePhase(ctx, "menu");
 }
 
 function onNewPlayer(ctx: GameContext): void {
   seatPlayer(ctx, ctx.player.userId);
-  loadCurrentRoom(ctx);
+  // Joining/reconnecting changes possession, never the puzzle already in progress.
 }
 
 function onTick(ctx: GameContext, dt: number): void {
   const store = duetStore.read(ctx);
+  if (store.status === "ready" || store.status === "paused") return;
   if (store.status === "complete") {
     pruneToast(ctx);
     return;
@@ -96,7 +101,9 @@ function onTick(ctx: GameContext, dt: number): void {
     }
   }
 
-  const signature = [state.openGates, state.pressedPlates, state.poweredReceivers, state.activeSpikes]
+  const heroes = heroCells(ctx);
+  const exits = HERO_IDS.filter(id => sameCell(heroes[id], room.exit[id]));
+  const signature = room.id + [state.openGates, state.pressedPlates, state.poweredReceivers, state.activeSpikes, exits]
     .map((list) => [...list].sort().join(","))
     .join("|");
   if (signature !== lastSignature(ctx).value) {
@@ -107,6 +114,7 @@ function onTick(ctx: GameContext, dt: number): void {
       poweredReceivers: state.poweredReceivers,
       openGates: state.openGates,
       activeSpikes: state.activeSpikes,
+      exits,
     }));
     lastSignature(ctx).value = signature;
   }

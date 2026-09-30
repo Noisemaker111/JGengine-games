@@ -21,7 +21,7 @@ function reachAt(x: number, tuning: ReturnType<typeof tuningFrom>): number {
   let z = 0;
   // Advance in small steps up to the exit; blockedZ pins z at the first unsatisfied barricade.
   for (let step = 0; step < 2000; step += 1) {
-    const next = blockedZ(x, z, z + 1, tuning);
+    const next = blockedZ(x, z, z + 1, tuning, 1);
     if (next <= z) break;
     z = next;
     if (z >= EXIT_Z) break;
@@ -30,6 +30,11 @@ function reachAt(x: number, tuning: ReturnType<typeof tuningFrom>): number {
 }
 
 describe("drift-foundry route gates", () => {
+  test("springs require actual height at a jump stack, and a bare hop cannot replace springs", () => {
+    expect(blockedZ(0, 149, 151, PLOW_AND_JUMP, 0)).toBe(150);
+    expect(blockedZ(0, 149, 151, PLOW_AND_JUMP, .7)).toBe(151);
+    expect(blockedZ(0, 149, 151, PLOW_ONLY, 2)).toBe(150);
+  });
   test("ships 8+ gates split across plow and jump requirements", () => {
     expect(ROUTE_GATES.length).toBeGreaterThanOrEqual(8);
     const plowGates = ROUTE_GATES.filter((gate) => gate.requirement === "plow");

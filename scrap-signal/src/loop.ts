@@ -2,7 +2,8 @@ import { loadSavedProgress } from "./game/saveCompatibility";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
+import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
@@ -33,6 +34,7 @@ import {
   echoStore,
   ruskDownStore,
   reactorOpenStore,
+  selectedSlotStore,
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
@@ -83,6 +85,7 @@ function grantCores(ctx: GameContext, event: EntityDiedEvent): void {
 }
 
 function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
+  relayEnemyDied(ctx, event);
   const userId = ctx.player.userId;
   if (event.instanceId === userId) return;
   const enemy = enemyById(event.catalogId);
@@ -210,6 +213,7 @@ function onInit(ctx: GameContext): void {
   ctx.game.quest!.register(quests);
   ctx.game.quest!.bind("entity.died");
   registerCommands(ctx);
+  registerRelay(ctx, respawnAtNewU);
 
   ctx.game.feed.bind("entity.died");
   ctx.game.feed.bind("loot.granted");
@@ -235,6 +239,8 @@ function onInit(ctx: GameContext): void {
 }
 
 function onNewPlayer(ctx: GameContext): void {
+  setGamePhase(ctx, "menu");
+  ctx.time.pause();
   const y = ctx.world.groundHeightAt(PLAYER_SPAWN[0], PLAYER_SPAWN[2]);
   ctx.scene.entity.spawn(player.id, {
     id: ctx.player.userId,
@@ -260,7 +266,13 @@ function onNewPlayer(ctx: GameContext): void {
  */
 async function resumeOrStart(ctx: GameContext): Promise<void> {
   if ((await loadSavedProgress(ctx)) && resumeBuild(ctx)) {
-    setGamePhase(ctx, "playing");
+    session.selectSlot(ctx, selectedSlotStore.read(ctx));
+    noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
+    const relay = relayStore.read(ctx);
+    const ended = relay.phase === "won" || relay.phase === "lost";
+    setGamePhase(ctx, ended ? "ended" : "playing");
+    if (ended) ctx.time.pause();
+    else ctx.time.play();
     return;
   }
   if (activeCharacter() === null) setGamePhase(ctx, "menu");
@@ -269,13 +281,14 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
 function onTick(ctx: GameContext, dt: number): void {
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
-  if (activeCharacter() === null) return;
+  if (activeCharacter() === null || gamePhase(ctx) !== "playing" || dt <= 0) return;
   tickAudio(ctx, nowMs);
   tickEnemies(ctx, dt);
   tickShields(ctx, nowMs, dt);
   tickDots(ctx, nowMs);
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
+  tickRelay(ctx, dt);
   tickZoneAndStations(ctx, nowMs);
   notePlayerHealth(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? null);
 }

@@ -1,6 +1,6 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
-import { enqueue } from "@jgengine/core/gameplay";
+import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
 import {
   assignFormationSlots,
   boxFormation,
@@ -13,9 +13,10 @@ import { BARRACKS_UNITS, BUILDINGS, combatantDef, COMBATANTS, TRAINABLE } from "
 import { BUILD_CONFIG } from "./building";
 import { TRAINING_CONFIG } from "./production";
 import { FORMATION_SPACING, NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
-import { livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
+import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
 import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
 import { castThunderClap } from "./hero";
+import { hudStore } from "./hudStore";
 
 export interface OrderInput {
   selection: readonly string[];
@@ -78,13 +79,14 @@ function assignMoveFormation(ctx: GameContext, units: UnitRuntime[], x: number, 
   const assignment = assignFormationSlots(members, slots);
   units.forEach((u, i) => {
     const slot = slots[assignment[i] ?? i] ?? ([x, z] as Vec2);
+    u.guardPoint = { x: slot[0], z: slot[1] };
     u.command = attackMove ? { kind: "attackMove", x: slot[0], z: slot[1] } : { kind: "move", x: slot[0], z: slot[1] };
   });
 }
 
 export function canAffordBuilding(ctx: GameContext, type: string): boolean {
   const def = BUILDINGS[type];
-  if (def === undefined || session.over) return false;
+  if (def === undefined || !matchRunning()) return false;
   for (const [currency, amount] of Object.entries(def.cost)) {
     if (ctx.game.economy.balance(ctx.player.userId, currency) < amount) return false;
   }
@@ -98,6 +100,9 @@ function canPlaceAt(ctx: GameContext, x: number, z: number): boolean {
   for (const node of session.nodes.values()) {
     if (Math.hypot(node.x - x, node.z - z) < 5) return false;
   }
+  for (const job of [...activeJobs(session.buildQueue), ...queuedJobs(session.buildQueue)]) {
+    if (Math.hypot(job.spec.x - x, job.spec.z - z) < 7) return false;
+  }
   for (const u of session.units.values()) {
     if (u.kind !== "building") continue;
     const ent = ctx.scene.entity.get(u.id);
@@ -106,38 +111,52 @@ function canPlaceAt(ctx: GameContext, x: number, z: number): boolean {
   return true;
 }
 
-function placeBuilding(ctx: GameContext, type: string, x: number, z: number): void {
-  if (!canAffordBuilding(ctx, type) || !canPlaceAt(ctx, x, z)) return;
+function placeBuilding(ctx: GameContext, type: string, x: number, z: number): boolean {
+  if (!canAffordBuilding(ctx, type) || !canPlaceAt(ctx, x, z)) {
+    hudStore.set({ notice: "Choose clear ground on your half of the vale, away from buildings and resource nodes." });
+    return false;
+  }
   const result = enqueue(session.buildQueue, BUILD_CONFIG, { type, x, z });
-  if (!result.ok) return;
+  if (!result.ok) return false;
   session.buildQueue = result.state;
   for (const [currency, amount] of Object.entries(BUILDINGS[type]!.cost)) {
     ctx.game.economy.charge(ctx.player.userId, currency, amount);
   }
+  hudStore.set({ notice: `Raising ${type.replaceAll("_", " ")} — construction is underway.` });
+  return true;
 }
 
 /** Right-click order: drop an armed building, else attack a hostile / send peasants to a node / move
  * the group into a box formation. */
 export function orderSelection(ctx: GameContext, input: OrderInput): GameContext {
-  if (session.over) return ctx;
+  if (!matchRunning()) return ctx;
 
   const x = input.point[0];
   const z = input.point[2];
 
   if (session.buildArmed !== null) {
-    placeBuilding(ctx, session.buildArmed, x, z);
-    session.buildArmed = null;
+    if (placeBuilding(ctx, session.buildArmed, x, z)) session.buildArmed = null;
     return ctx;
   }
 
+  if (session.rallyArmed) {
+    session.rallyPoint = { x, z };
+    session.rallyArmed = false;
+    hudStore.set({ notice: "Rally set. New recruits will march to this point." });
+    return ctx;
+  }
   const units = selectedPlayerUnits(input.selection);
-  if (units.length === 0) return ctx;
+  if (units.length === 0) { hudStore.set({ notice: "Select your troops first: click a unit or drag a box around the formation." }); return ctx; }
   const armed = session.attackMoveArmed;
   session.attackMoveArmed = false;
 
   const targetId = enemyNear(ctx, x, z);
   if (targetId !== null) {
-    for (const u of units) u.command = { kind: "attack", targetId };
+    hudStore.set({ notice: `Attack ordered: ${units.length} troops.` });
+    for (const u of units) {
+      u.guardPoint = { x, z };
+      u.command = { kind: "attack", targetId };
+    }
     return ctx;
   }
 
@@ -145,23 +164,25 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
   if (node !== null) {
     const workers = units.filter((u) => combatantDef(u.catalogId)?.worker === true);
     const rest = units.filter((u) => combatantDef(u.catalogId)?.worker !== true);
+    hudStore.set({ notice: `Gathering ${node.resource}: ${workers.length} workers assigned.` });
     for (const u of workers) u.command = { kind: "gather", nodeId: node.id, resource: node.resource, phase: "toNode", carried: 0, timer: 0 };
     if (rest.length > 0) assignMoveFormation(ctx, rest, x, z, armed);
     return ctx;
   }
 
+  hudStore.set({ notice: `${armed ? "Advance and engage" : "Move ordered"}: ${units.length} troops.` });
   assignMoveFormation(ctx, units, x, z, armed);
   return ctx;
 }
 
 function armAttackMove(ctx: GameContext): GameContext {
-  if (!session.over) session.attackMoveArmed = true;
+  if (matchRunning()) { session.attackMoveArmed = true; session.buildArmed = null; session.rallyArmed = false; }
   return ctx;
 }
 
 /** Can the player afford `unitId` and does supply allow it? Shared by the command and the HUD gate. */
 export function canTrain(ctx: GameContext, unitId: string): boolean {
-  if (session.over) return false;
+  if (!matchRunning()) return false;
   if (livingUnits("player", "building").length === 0) return false;
   const def = TRAINABLE[unitId];
   if (def === undefined) return false;
@@ -170,7 +191,7 @@ export function canTrain(ctx: GameContext, unitId: string): boolean {
     if (ctx.game.economy.balance(ctx.player.userId, currency) < amount) return false;
   }
   const food = COMBATANTS[unitId]?.food ?? 0;
-  return usedSupply() + food <= session.supplyCap;
+  return usedSupply() + reservedSupply() + food <= session.supplyCap;
 }
 
 function trainUnit(ctx: GameContext, unitId: string): GameContext {
@@ -185,7 +206,7 @@ function trainUnit(ctx: GameContext, unitId: string): GameContext {
 }
 
 function armBuild(ctx: GameContext, type: string): GameContext {
-  if (!session.over && canAffordBuilding(ctx, type)) session.buildArmed = type;
+  if (matchRunning() && canAffordBuilding(ctx, type))  { session.buildArmed = type; session.rallyArmed = false; session.attackMoveArmed = false; }
   return ctx;
 }
 
@@ -193,7 +214,7 @@ function armBuild(ctx: GameContext, type: string): GameContext {
  * it needs the building, an unmet rank cap, and the gold/lumber for the next rank. Shared by the
  * command and the HUD gate. */
 export function canResearch(ctx: GameContext, upgradeId: string): boolean {
-  if (session.over) return false;
+  if (!matchRunning()) return false;
   const up = UPGRADES[upgradeId];
   if (up === undefined) return false;
   if (pendingRanks(upgradeId) > 0) return false; // already researching this upgrade
@@ -220,6 +241,25 @@ function research(ctx: GameContext, upgradeId: string): GameContext {
 }
 
 export function registerCommands(ctx: GameContext): void {
+  ctx.game.commands.define("unit.rally", { apply: (state) => {
+    if (matchRunning()) { session.rallyArmed = true; session.buildArmed = null; session.attackMoveArmed = false; }
+    return state;
+  } });
+  ctx.game.commands.define("unit.hold", { apply: (state) => {
+    if (matchRunning()) {
+      for (const u of livingUnits("player", "unit")) {
+        if (combatantDef(u.catalogId)?.worker || u.command.kind === "gather") continue;
+        u.command = { kind: "hold" };
+      }
+      hudStore.set({ notice: "Army holding position. Troops attack only enemies within weapon reach." });
+    }
+    return state;
+  } });
+  ctx.game.commands.define("unit.cancel", { apply: (state) => {
+    session.buildArmed = null; session.attackMoveArmed = false; session.rallyArmed = false;
+    hudStore.set({ notice: "Order canceled." });
+    return state;
+  } });
   ctx.game.commands.define<OrderInput>("unit.order", { apply: orderSelection });
   ctx.game.commands.define("unit.attackMove", { apply: armAttackMove });
   ctx.game.commands.define("train.peasant", { apply: (state) => trainUnit(state, "peasant") });
@@ -230,7 +270,7 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define("research.armor", { apply: (state) => research(state, "armor") });
   ctx.game.commands.define("hero.ability", {
     apply: (state) => {
-      castThunderClap(state);
+      if (matchRunning()) castThunderClap(state);
       return state;
     },
   });

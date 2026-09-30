@@ -8,6 +8,10 @@ const AUTHORED = {
   title: "DRIFT FOUNDRY",
   sections: [
     {
+      heading: "Original Drift Foundry art",
+      entries: [{ label: "Row Six buggy & salvage stations", detail: "Original procedural geometry by JGengine Games contributors; source in drift-foundry/scripts/author-models.mjs." }],
+    },
+    {
       heading: "Built with",
       entries: [{ label: "JGengine", detail: "game SDK", href: "https://github.com/Noisemaker111/jgengine" }],
     },

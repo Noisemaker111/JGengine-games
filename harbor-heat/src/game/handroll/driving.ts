@@ -68,7 +68,7 @@ const DRIVE_AXIS_BINDINGS: AxisBindingMap = {
  */
 export interface Driving {
   enterVehicle(ctx: GameContext, vehicleId: string): void;
-  exitVehicle(ctx: GameContext): void;
+  exitVehicle(ctx: GameContext, force?: boolean): void;
   drivingVehicleId(): string | null;
   carSpeedKmh(): number;
   telemetry(): VehicleTelemetry;
@@ -394,13 +394,11 @@ export function createDriving(): Driving {
       drivingStore.write(ctx, vehicleId);
       setTouchControlsMode(ctx, definition.dynamics.type === "aircraft" ? "aircraft" : "car");
     },
-    exitVehicle(ctx) {
+    exitVehicle(ctx, force = false) {
       if (driving === null) return;
-      // Hand the car back to its route follower (if it had one) where it left off.
-      behaviorControl(ctx).resume(driving);
       const vehicle = ctx.scene.entity.get(driving);
       const definition = vehicleById(vehicle?.name ?? "");
-      if (definition?.dynamics.type === "aircraft" && vehicle !== null) {
+      if (!force && definition?.dynamics.type === "aircraft" && vehicle !== null) {
         const altitude = vehicle.position[1] - ctx.world.groundHeightAt(vehicle.position[0], vehicle.position[2]);
         if (altitude > 3) {
           ctx.scene.entity.floatText({ instanceId: driving, text: "LAND BEFORE EXITING", kind: "warn" });
@@ -411,6 +409,7 @@ export function createDriving(): Driving {
         position: vehicle?.position ?? [0, 0, 0],
         rotationY: vehicle?.rotationY ?? 0,
       });
+      behaviorControl(ctx).resume(driving);
       driving = null;
       drivingAudio.stop(ctx);
       lastTelemetry = { mode: "ground", speedMs: 0, altitude: 0, verticalSpeed: 0, gear: 1, rpm: 0, stalled: false, vtol: false };

@@ -19,9 +19,7 @@ function useHud(): HudSnapshot {
 
 /** Sleek dark-glass panel with a cool steel edge and inset bevel — the shared chrome of the console.
  * Positioning is applied by each caller so the constant never clobbers layout. */
-const FRAME =
-  "rounded-xl border border-slate-500/30 bg-gradient-to-b from-[#1e232c]/95 via-[#12151b]/96 to-[#080a0e]/97 " +
-  "shadow-[0_12px_36px_rgba(0,0,0,.72),inset_0_1px_0_rgba(150,185,225,.22),inset_0_0_0_1px_rgba(0,0,0,.55),inset_0_-14px_28px_rgba(0,0,0,.35)] backdrop-blur";
+const FRAME = "ec-frame";
 
 /** Thin steel corner brackets — the cool-metal accent that reads as forged, not construction paper. */
 function Corners() {
@@ -48,13 +46,13 @@ function ResourceChip({ icon, value, tone }: { icon: string; value: string; tone
 /** Top-centre stockpile + both keeps' vitals + the reinforcement clock, in one forged strip. */
 function TopBar() {
   const hud = useHud();
-  const foodTone = hud.foodUsed >= hud.foodCap ? "text-rose-400" : "text-emerald-300";
+  const foodTone = hud.foodUsed + hud.foodReserved >= hud.foodCap ? "text-rose-400" : "text-emerald-300";
   return (
-    <div className={"pointer-events-none absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 px-4 py-2 font-serif text-slate-100 " + FRAME}>
+    <div className={"ec-stock pointer-events-none absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 px-4 py-2 font-serif text-slate-100 " + FRAME}>
       <Corners />
       <ResourceChip icon="gold" value={String(hud.gold)} tone="text-amber-300" />
       <ResourceChip icon="lumber" value={String(hud.lumber)} tone="text-orange-300" />
-      <ResourceChip icon="food" value={`${hud.foodUsed}/${hud.foodCap}`} tone={foodTone} />
+      <ResourceChip icon="food" value={`${hud.foodUsed}${hud.foodReserved ? `+${hud.foodReserved}` : ""}/${hud.foodCap}`} tone={foodTone} />
       <div className="mx-1 h-8 w-px bg-slate-500/25" />
       <div className="flex w-32 flex-col gap-0.5" style={barTokens({ height: "10px", health: "#ff7a5c" })}>
         <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-rose-300"><span>Warcamp</span><span className="tabular-nums">{hud.enemyKeepHp}</span></div>
@@ -82,7 +80,7 @@ function ObjectivesPanel() {
   const [open, setOpen] = useState(true);
   const done = hud.enemyKeepHp <= 0;
   return (
-    <div className={"pointer-events-auto absolute left-3 top-3 z-20 w-64 px-3 py-2 font-serif text-slate-100 " + FRAME}>
+    <div className={"ec-objectives pointer-events-auto absolute left-3 top-3 z-20 w-64 px-3 py-2 font-serif text-slate-100 " + FRAME}>
       <Corners />
       <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between text-left">
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Objectives</span>
@@ -100,7 +98,7 @@ function ObjectivesPanel() {
           <div className="mt-2 border-t border-slate-500/20 pt-1.5 text-[10px] leading-relaxed text-slate-400">
             <div>Drag to box-select · left-click a unit</div>
             <div>Right-click to move · on an enemy to attack</div>
-            <div className="mt-1 text-slate-500">Highland command skirmish · art: KayKit &amp; Quaternius · icons: game-icons.net (CC0/CC-BY)</div>
+            <div className="mt-1 text-slate-500">Original Highland miniatures · icons: game-icons.net · full attribution in Credits</div>
           </div>
         </>
       ) : null}
@@ -148,7 +146,9 @@ function Slot({
       onClick={onClick}
       onMouseEnter={() => setTip(tip)}
       onMouseLeave={() => setTip(null)}
-      className={"relative flex h-[54px] w-[54px] items-center justify-center rounded-md border-2 transition " + shell}
+      aria-label={tip.title} title={tip.title + " — " + tip.desc}
+      onFocus={() => setTip(tip)} onBlur={() => setTip(null)}
+      className={"ec-slot relative flex h-[54px] w-[54px] items-center justify-center rounded-md border-2 transition " + shell}
     >
       <Icon name={icon} className={"h-8 w-8 drop-shadow-[0_1px_1px_rgba(0,0,0,.85)] " + iconTone} />
       <span className="absolute left-1 top-0.5 text-[10px] font-black text-slate-200/80 [text-shadow:0_1px_2px_rgba(0,0,0,.95)]">{hotkey}</span>
@@ -188,7 +188,7 @@ function trainTone(hud: HudSnapshot, id: string): "ready" | "locked" {
   if (t === undefined || hud.phase !== "playing") return "locked";
   if (BARRACKS_UNITS.has(id) && !hud.hasBarracks) return "locked";
   if ((t.cost.gold ?? 0) > hud.gold || (t.cost.lumber ?? 0) > hud.lumber) return "locked";
-  return hud.foodUsed + (COMBATANTS[id]?.food ?? 0) <= hud.foodCap ? "ready" : "locked";
+  return hud.foodUsed + hud.foodReserved + (COMBATANTS[id]?.food ?? 0) <= hud.foodCap ? "ready" : "locked";
 }
 
 function buildTone(hud: HudSnapshot, type: string): "ready" | "active" | "locked" {
@@ -237,22 +237,22 @@ function CommandGrid() {
         </div>
       ) : null}
       <div className="grid grid-cols-4 grid-rows-3 gap-1.5">
-        <Slot icon="peasant" hotkey="Q" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
+        <Slot icon="peasant" hotkey="1" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
           tip={{ title: "Train Peasant", desc: "Worker — mines gold, cuts lumber, and raises buildings.", chips: costChips(TRAINABLE.peasant!.cost.gold, TRAINABLE.peasant!.cost.lumber) }} />
-        <Slot icon="footman" hotkey="W" foot={barracksFoot("footman")} tone={trainTone(hud, "footman")} setTip={setTip} onClick={() => commands.run("train.footman", {})}
+        <Slot icon="footman" hotkey="2" foot={barracksFoot("footman")} tone={trainTone(hud, "footman")} setTip={setTip} onClick={() => commands.run("train.footman", {})}
           tip={{ title: "Train Footman", desc: "Sturdy frontline melee. Requires a Barracks.", chips: costChips(TRAINABLE.footman!.cost.gold, TRAINABLE.footman!.cost.lumber) }} />
-        <Slot icon="rifleman" hotkey="E" foot={barracksFoot("rifleman")} tone={trainTone(hud, "rifleman")} setTip={setTip} onClick={() => commands.run("train.rifleman", {})}
+        <Slot icon="rifleman" hotkey="3" foot={barracksFoot("rifleman")} tone={trainTone(hud, "rifleman")} setTip={setTip} onClick={() => commands.run("train.rifleman", {})}
           tip={{ title: "Train Rifleman", desc: "Ranged marksman — soft, but strikes from afar. Requires a Barracks.", chips: costChips(TRAINABLE.rifleman!.cost.gold, TRAINABLE.rifleman!.cost.lumber) }} />
         <Slot icon="attackMove" hotkey="R" tone={hud.phase === "playing" ? (hud.attackMoveArmed ? "active" : "ready") : "locked"} setTip={setTip} onClick={() => commands.run("unit.attackMove", {})}
           tip={{ title: "Attack-Move", desc: "Arm, then right-click a destination — the group fights anything it meets on the way.", chips: [] }} />
 
-        <Slot icon="barracks" hotkey="A" foot={costFoot(BUILDINGS.barracks!.cost.gold, BUILDINGS.barracks!.cost.lumber)} tone={buildTone(hud, "barracks")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "barracks" })}
+        <Slot icon="barracks" hotkey="B" foot={costFoot(BUILDINGS.barracks!.cost.gold, BUILDINGS.barracks!.cost.lumber)} tone={buildTone(hud, "barracks")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "barracks" })}
           tip={{ title: "Build Barracks", desc: "Unlocks Footman & Rifleman and enables research.", chips: costChips(BUILDINGS.barracks!.cost.gold, BUILDINGS.barracks!.cost.lumber) }} />
-        <Slot icon="farm" hotkey="S" foot={costFoot(BUILDINGS.farm!.cost.gold, BUILDINGS.farm!.cost.lumber)} tone={buildTone(hud, "farm")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "farm" })}
+        <Slot icon="farm" hotkey="G" foot={costFoot(BUILDINGS.farm!.cost.gold, BUILDINGS.farm!.cost.lumber)} tone={buildTone(hud, "farm")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "farm" })}
           tip={{ title: "Build Farm", desc: `Raises your food (supply) cap by ${BUILDINGS.farm!.supply}.`, chips: [...costChips(BUILDINGS.farm!.cost.gold, BUILDINGS.farm!.cost.lumber), { icon: "food", text: `+${BUILDINGS.farm!.supply}` }] }} />
-        <Slot icon="tower" hotkey="D" foot={costFoot(BUILDINGS.guard_tower!.cost.gold, BUILDINGS.guard_tower!.cost.lumber)} tone={buildTone(hud, "guard_tower")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "guard_tower" })}
+        <Slot icon="tower" hotkey="T" foot={costFoot(BUILDINGS.guard_tower!.cost.gold, BUILDINGS.guard_tower!.cost.lumber)} tone={buildTone(hud, "guard_tower")} setTip={setTip} onClick={() => commands.run("build.arm", { type: "guard_tower" })}
           tip={{ title: "Build Guard Tower", desc: "Auto-fires on Marauders that stray into range.", chips: costChips(BUILDINGS.guard_tower!.cost.gold, BUILDINGS.guard_tower!.cost.lumber) }} />
-        <Slot icon="rally" hotkey="F" tone="locked" setTip={setTip} tip={{ title: "Rally Point", desc: "Set where new recruits gather. Coming soon.", chips: [] }} />
+        <Slot icon="rally" hotkey="F" tone={hud.phase === "playing" ? (hud.rallyArmed ? "active" : "ready") : "locked"} setTip={setTip} onClick={() => commands.run("unit.rally", {})} tip={{ title: "Rally Point", desc: "Arm, then right-click where new recruits should gather.", chips: [] }} />
 
         <Slot icon="weapons" hotkey="Z" badge={hud.weaponsRank > 0 ? String(hud.weaponsRank) : undefined} foot={researchFoot(hud, "weapons")} tone={researchTone(hud, "weapons")} setTip={setTip} onClick={() => commands.run("research.weapons", {})}
           tip={{ title: `${UPGRADES.weapons!.label} — L${hud.weaponsRank}/${UPGRADES.weapons!.maxRank}`, desc: `+${WEAPON_DMG_PER_RANK} damage to your whole army per rank.`, chips: costChips(UPGRADES.weapons!.cost(hud.weaponsRank).gold, UPGRADES.weapons!.cost(hud.weaponsRank).lumber) }} />
@@ -260,7 +260,7 @@ function CommandGrid() {
           tip={{ title: `${UPGRADES.armor!.label} — L${hud.armorRank}/${UPGRADES.armor!.maxRank}`, desc: `−${ARMOR_REDUCE_PER_RANK} damage taken by your whole army per rank.`, chips: costChips(UPGRADES.armor!.cost(hud.armorRank).gold, UPGRADES.armor!.cost(hud.armorRank).lumber) }} />
         <Slot icon="thunder" hotkey="C" foot={hud.abilityReady ? "READY" : hud.abilityCd > 0 ? `${hud.abilityCd}s` : "—"} tone={hud.abilityReady ? "active" : "locked"} setTip={setTip} onClick={() => commands.run("hero.ability", {})}
           tip={{ title: "Thunder Clap", desc: "Bram slams the ground, bursting every Marauder around him.", chips: [{ icon: "mana", text: String(THUNDERCLAP_COST) }, { icon: "stopwatch", text: `${THUNDERCLAP_COOLDOWN}s` }] }} />
-        <Slot icon="hold" hotkey="V" tone="locked" setTip={setTip} tip={{ title: "Hold Position", desc: "Coming soon.", chips: [] }} />
+        <Slot icon="hold" hotkey="V" tone={hud.phase === "playing" ? "ready" : "locked"} setTip={setTip} onClick={() => commands.run("unit.hold", {})} tip={{ title: "Hold Army", desc: "All combat troops stop and attack only enemies within weapon reach. Workers keep harvesting.", chips: [] }} />
       </div>
     </div>
   );
@@ -308,7 +308,7 @@ function ArmyRow() {
   const shown = hud.army.slice(0, 10);
   const overflow = hud.army.length - shown.length;
   if (hud.army.length === 0) {
-    return <div className="flex h-full items-center px-2 text-[11px] italic text-slate-500">No troops afield — train Footmen (W)</div>;
+    return <div className="flex h-full items-center px-2 text-[11px] italic text-slate-500">No troops afield — train Footmen (2)</div>;
   }
   return (
     <div className="flex flex-wrap content-center gap-1">
@@ -358,13 +358,13 @@ function ProductionLine() {
   );
 }
 
-/** The full bottom console: minimap · hero + army · command grid · relic satchel. */
+/** The bottom console: minimap, hero, fielded army and command grid. */
 function Console() {
   const hud = useHud();
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-center gap-2 px-2 pb-1 font-serif">
+    <div className="ec-console pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-center gap-2 px-2 pb-1 font-serif">
       {/* Minimap cluster */}
-      <div className={"pointer-events-auto relative flex items-stretch gap-2 p-2 " + FRAME}>
+      <div className={"ec-map-panel pointer-events-auto relative flex items-stretch gap-2 p-2 " + FRAME}>
         <Corners />
         <MapControls />
         <div className="relative rounded border border-slate-600/50 bg-black/50 p-1">
@@ -374,11 +374,11 @@ function Console() {
       </div>
 
       {/* Hero + army */}
-      <div className={"pointer-events-auto relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
+      <div className={"ec-hero-panel pointer-events-auto relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
         <Corners />
         <HeroPanel />
         <div className="h-px w-full bg-slate-500/20" />
-        <div className="h-[46px] w-[19rem]"><ArmyRow /></div>
+        <div className="ec-army h-[46px] w-[19rem]"><ArmyRow /></div>
         <ProductionLine />
       </div>
 
@@ -388,19 +388,8 @@ function Console() {
         <CommandGrid />
       </div>
 
-      {/* Relic satchel (hero has no items yet — the frame is the promise) */}
-      <div className={"pointer-events-auto relative flex flex-col justify-center gap-1 p-2 " + FRAME}>
-        <Corners />
-        <div className="mb-0.5 text-center text-[9px] font-bold uppercase tracking-widest text-sky-300/60">Relics</div>
-        <div className="grid grid-cols-2 grid-rows-3 gap-1">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-8 w-8 rounded border border-slate-700/60 bg-black/40 shadow-inner" />
-          ))}
-        </div>
-      </div>
-
       {hud.buildArmed !== null ? (
-        <div className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border-2 border-sky-300/70 bg-sky-500/90 px-3 py-1 text-xs font-bold text-slate-950 shadow-lg">
+        <div className="ec-build-mode pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 rounded-md border-2 border-sky-300/70 bg-sky-500/90 px-3 py-1 text-xs font-bold text-slate-950 shadow-lg">
           Right-click your side of the field to place the {BUILD_LABELS[hud.buildArmed] ?? "building"}
         </div>
       ) : null}
@@ -408,27 +397,15 @@ function Console() {
   );
 }
 
-function EndOverlay() {
-  const hud = useHud();
-  if (hud.phase === "playing") return null;
-  const won = hud.phase === "won";
-  return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
-      <div className={"rounded-2xl border-2 px-12 py-8 text-center font-serif shadow-2xl backdrop-blur-sm " + (won ? "border-emerald-400/60 bg-emerald-800/85 text-white" : "border-rose-400/60 bg-rose-900/85 text-white")}>
-        <div className="text-5xl font-black tracking-tight">{won ? "Victory" : "Defeat"}</div>
-        <div className="mt-2 text-sm opacity-90">{won ? "The Marauder Warcamp lies in ruins." : "Ember Command Keep has fallen."}</div>
-      </div>
-    </div>
-  );
-}
-
 export function RtsHud(): ReactNode {
+  const hud = useHud();
   return (
     <>
       <TopBar />
       <ObjectivesPanel />
       <Console />
-      <EndOverlay />
+      <div className="ec-field-report" role="status" aria-live="polite">{hud.notice}</div>
+      {(hud.rallyArmed || hud.attackMoveArmed) && <div className="ec-order-mode">{hud.rallyArmed ? "Rally point" : "Attack-move"} · Right-click a destination · Esc to cancel</div>}
     </>
   );
 }

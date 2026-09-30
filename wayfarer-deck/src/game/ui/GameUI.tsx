@@ -1,425 +1,116 @@
-import { actionLabel } from "@jgengine/core/input/actionBindings";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import "../../style.css";
 import { useGame } from "@jgengine/react/hooks";
-import { HudCanvas, HudPanel, KeyHint, SettingsTrigger, useHudLayout } from "@jgengine/react";
-
-import type { CardData, CardKind } from "../cards";
-import type { CombatSnapshot, HandCard, Phase } from "../combat";
-import type { EnemyTier, Intent } from "../enemy";
-import { keybinds } from "../keybinds";
-import type { RunPhase } from "../run";
-import { CardArtIcon, IntentIcon, StatusIcon } from "./icons";
+import type { CardData } from "../cards";
+import type { CombatantView, HandCard } from "../combat";
+import { ENCOUNTERS, type Intent } from "../enemy";
+import { CardArtIcon } from "./icons";
+import { RoadLandscape, EnemyArt } from "./RoadArt";
 import { useRun } from "./useRun";
 
-const KIND_ACCENT: Record<CardKind, { ring: string; gem: string; art: string; glow: string }> = {
-  attack: { ring: "ring-rose-400/70", gem: "bg-rose-500", art: "text-rose-200", glow: "shadow-rose-900/60" },
-  skill: { ring: "ring-sky-400/70", gem: "bg-sky-500", art: "text-sky-200", glow: "shadow-sky-900/60" },
-  power: { ring: "ring-violet-400/70", gem: "bg-violet-500", art: "text-violet-200", glow: "shadow-violet-900/60" },
-};
-
-const TIER_STYLE: Record<EnemyTier, { label: string; accent: string }> = {
-  normal: { label: "Foe", accent: "border-stone-500/50 bg-stone-800/70 text-stone-300" },
-  elite: { label: "Elite", accent: "border-violet-400/60 bg-violet-900/70 text-violet-200" },
-  boss: { label: "Boss", accent: "border-rose-400/60 bg-rose-900/70 text-rose-200" },
-};
-
-function HealthBar({ hp, maxHp, block }: { hp: number; maxHp: number; block: number }) {
-  const pct = maxHp <= 0 ? 0 : Math.max(0, Math.min(100, (hp / maxHp) * 100));
-  return (
-    <div className="flex items-center gap-2">
-      <div className="relative h-5 w-52 overflow-hidden rounded-full border border-stone-950/60 bg-stone-950/70 shadow-inner">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-[width] duration-300"
-          style={{ width: `${pct}%` }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold tracking-wide text-stone-50 drop-shadow">
-          {hp} / {maxHp}
-        </div>
-      </div>
-      {block > 0 && (
-        <div className="flex items-center gap-1 rounded-full border border-sky-300/40 bg-sky-900/60 px-2 py-0.5 text-sky-100">
-          <CardArtIcon art="shield" className="h-3.5 w-3.5" />
-          <span className="text-xs font-bold">{block}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StrengthPip({ strength }: { strength: number }) {
-  if (strength <= 0) return null;
-  return (
-    <div className="flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-900/50 px-2 py-0.5 text-amber-100">
-      <CardArtIcon art="flame" className="h-3.5 w-3.5" />
-      <span className="text-xs font-bold">Str {strength}</span>
-    </div>
-  );
-}
-
-function StatusPip({ kind, value }: { kind: "weak" | "vulnerable"; value: number }) {
-  if (value <= 0) return null;
-  const tone =
-    kind === "weak"
-      ? "border-stone-400/40 bg-stone-800/60 text-stone-200"
-      : "border-fuchsia-300/40 bg-fuchsia-900/50 text-fuchsia-100";
-  return (
-    <div className={["flex items-center gap-1 rounded-full border px-2 py-0.5", tone].join(" ")}>
-      <StatusIcon kind={kind} className="h-3.5 w-3.5" />
-      <span className="text-xs font-bold">
-        {kind === "weak" ? "Weak" : "Vulnerable"} {value}
-      </span>
-    </div>
-  );
-}
-
-function intentLabel(intent: Intent): string {
-  if (intent.kind === "attack") {
-    const hits = intent.hits ?? 1;
-    return hits > 1 ? `Attacks ${hits}x for ${intent.value}` : `Attacks for ${intent.value}`;
+const PREF_KEY = "wayfarer-deck.road-preferences.v1";
+function initialPrefs() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PREF_KEY) ?? "{}");
+    return { reducedMotion: value?.reducedMotion === true, largeText: value?.largeText === true };
   }
-  if (intent.kind === "defend") return `Guards ${intent.value} Block`;
-  if (intent.kind === "buff") return `Buffs +${intent.value} Str`;
-  return `Inflicts ${intent.value} ${intent.status === "weak" ? "Weak" : "Vulnerable"}`;
+  catch { return {}; }
 }
-
-function intentColor(kind: Intent["kind"]): string {
-  if (kind === "attack") return "h-5 w-5 text-rose-300";
-  if (kind === "defend") return "h-5 w-5 text-sky-300";
-  if (kind === "buff") return "h-5 w-5 text-amber-300";
-  return "h-5 w-5 text-fuchsia-300";
+function Vitality({ view, name }: { view: CombatantView; name: string }) {
+  return <div className="vitality"><div className="vitality-label"><strong>{name}</strong><span>{view.hp} / {view.maxHp} HP</span></div>
+    <div className="health-track" role="meter" aria-label={`${name} health`} aria-valuenow={view.hp} aria-valuemin={0} aria-valuemax={view.maxHp}><i style={{width: `${view.hp / view.maxHp * 100}%`}}/></div>
+    <div className="statuses">{view.block > 0 && <span className="block">{view.block} Block</span>}{view.strength > 0 && <span>{view.strength} Strength</span>}{view.weak > 0 && <span title="Deals 25% less attack damage">Weak {view.weak}</span>}{view.vulnerable > 0 && <span title="Takes 50% more attack damage">Vulnerable {view.vulnerable}</span>}</div>
+  </div>;
 }
-
-function EnemyPanel({ enemy, intent }: { enemy: CombatSnapshot["enemy"]; intent: Intent | null }) {
-  const tierStyle = TIER_STYLE[enemy.tier];
-  return (
-    <div className="flex flex-col items-center gap-3">
-      {intent && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-400/50 bg-stone-950/80 px-3 py-1.5 shadow-lg shadow-black/40">
-          <IntentIcon kind={intent.kind} className={intentColor(intent.kind)} />
-          <span className="text-sm font-semibold text-amber-100">{intentLabel(intent)}</span>
-        </div>
-      )}
-      <div className="flex h-32 w-32 items-center justify-center rounded-2xl border-2 border-lime-500/40 bg-gradient-to-b from-lime-800/70 to-lime-950/80 shadow-xl shadow-lime-950/50">
-        <div className="h-20 w-24 rounded-[45%] bg-gradient-to-b from-lime-400/80 to-lime-600/70 blur-[1px]" />
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <div className={["rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", tierStyle.accent].join(" ")}>
-          {tierStyle.label}
-        </div>
-        <span className="text-lg font-bold tracking-wide text-stone-100">{enemy.name}</span>
-        <HealthBar hp={enemy.hp} maxHp={enemy.maxHp} block={enemy.block} />
-        <div className="flex flex-wrap items-center justify-center gap-1">
-          <StrengthPip strength={enemy.strength} />
-          <StatusPip kind="weak" value={enemy.weak} />
-          <StatusPip kind="vulnerable" value={enemy.vulnerable} />
-        </div>
-      </div>
-    </div>
-  );
+function intentText(intent: Intent | null) {
+  if (!intent) return "The road is quiet";
+  if (intent.kind === "attack") return `${intent.value}${(intent.hits ?? 1) > 1 ? ` × ${intent.hits}` : ""} incoming damage`;
+  if (intent.kind === "defend") return `Preparing ${intent.value} Block`;
+  if (intent.kind === "buff") return `Gathering ${intent.value} Strength`;
+  return `Applying ${intent.value} ${intent.status === "weak" ? "Weak" : "Vulnerable"}`;
 }
-
-function PlayerPanel({ hero }: { hero: CombatSnapshot["hero"] }) {
-  return (
-    <div className="flex flex-col gap-2 rounded-xl border border-stone-700/60 bg-stone-950/55 px-4 py-3 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/50 bg-amber-800/60">
-          <CardArtIcon art="sword" className="h-5 w-5 text-amber-200" />
-        </div>
-        <span className="text-base font-bold text-stone-100">Wayfarer</span>
-      </div>
-      <HealthBar hp={hero.hp} maxHp={hero.maxHp} block={hero.block} />
-      <div className="flex flex-wrap items-center gap-1">
-        <StrengthPip strength={hero.strength} />
-        <StatusPip kind="weak" value={hero.weak} />
-        <StatusPip kind="vulnerable" value={hero.vulnerable} />
-      </div>
-    </div>
-  );
+function Card({ card, disabled, onClick, hint, ordinal }: { card: CardData; disabled?: boolean; onClick: () => void; hint?: string; ordinal?: number }) {
+  return <button className={`road-card ${card.kind}`} disabled={disabled} onClick={onClick} aria-label={`${card.name}, ${card.cost} energy. ${card.text}${hint ? ` ${hint}` : ""}`}>
+    <span className="card-heading"><b className="card-cost" title="Energy cost">{card.cost}</b><strong>{card.name}</strong>{ordinal && <kbd>{ordinal}</kbd>}</span>
+    <span className="card-art"><span className="card-orbit"/><CardArtIcon art={card.art}/><span className="card-kind">{card.kind}</span></span>
+    <span className="card-description">{card.text}</span>{hint && <small>{hint}</small>}
+  </button>;
 }
-
-function EnergyOrb({ energy }: { energy: CombatSnapshot["energy"] }) {
-  return (
-    <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-300/70 bg-gradient-to-b from-amber-400 to-orange-600 shadow-lg shadow-orange-950/60">
-      <span className="text-xl font-black text-stone-950 drop-shadow">
-        {energy.current}
-        <span className="text-sm font-bold text-stone-900/70">/{energy.max}</span>
-      </span>
-    </div>
-  );
+function Dialog({ title, eyebrow, children }: { title: string; eyebrow: string; children: ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    ref.current?.querySelector<HTMLElement>("button:not(:disabled), input")?.focus();
+    return () => previous?.focus();
+  }, []);
+  return <div className="road-overlay"><section ref={ref} className="road-dialog" role="dialog" aria-modal="true" aria-label={title} onKeyDown={event => {
+    if (event.key !== "Tab") return;
+    const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input") ?? []);
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }}><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{children}</section></div>;
 }
-
-function PileCount({ label, count }: { label: string; count: number }) {
-  return (
-    <div className="flex w-14 flex-col items-center rounded-lg border border-stone-700/60 bg-stone-950/60 py-1">
-      <span className="text-base font-bold text-stone-100">{count}</span>
-      <span className="text-[10px] uppercase tracking-wider text-stone-400">{label}</span>
-    </div>
-  );
-}
-
-function CardFace({
-  entry,
-  playable,
-  onPlay,
-}: {
-  entry: HandCard;
-  playable: boolean;
-  onPlay: (cardId: string) => void;
-}) {
-  const card: CardData = entry.card;
-  const accent = KIND_ACCENT[card.kind];
-  return (
-    <button
-      type="button"
-      disabled={!playable}
-      onClick={() => onPlay(entry.id)}
-      className={[
-        "group relative flex h-44 w-32 flex-col items-center rounded-xl border border-stone-950/70 bg-gradient-to-b from-stone-800 to-stone-900 p-2 text-left ring-2 shadow-lg transition-all",
-        accent.ring,
-        accent.glow,
-        playable
-          ? "cursor-pointer hover:-translate-y-4 hover:shadow-xl"
-          : "cursor-not-allowed opacity-45 grayscale",
-      ].join(" ")}
-    >
-      <div className={["absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full text-sm font-black text-stone-950 shadow", accent.gem].join(" ")}>
-        {card.cost}
-      </div>
-      <span className="mt-1 w-full truncate text-center text-[13px] font-bold text-stone-100">{card.name}</span>
-      <div className="my-2 flex h-16 w-full items-center justify-center rounded-lg border border-stone-950/50 bg-stone-950/50">
-        <CardArtIcon art={card.art} className={["h-10 w-10", accent.art].join(" ")} />
-      </div>
-      <span className="flex-1 text-center text-[11px] leading-tight text-stone-300">{card.text}</span>
-    </button>
-  );
-}
-
-function Hand({
-  hand,
-  energy,
-  phase,
-  onPlay,
-}: {
-  hand: readonly HandCard[];
-  energy: number;
-  phase: Phase;
-  onPlay: (cardId: string) => void;
-}) {
-  return (
-    <div className="pointer-events-auto absolute bottom-4 left-1/2 flex -translate-x-1/2 items-end gap-3">
-      {hand.length === 0 && <span className="pb-6 text-sm text-stone-500">Hand empty</span>}
-      {hand.map((entry) => (
-        <CardFace
-          key={entry.id}
-          entry={entry}
-          playable={phase === "player" && energy >= entry.card.cost}
-          onPlay={onPlay}
-        />
-      ))}
-    </div>
-  );
-}
-
-function CombatLog({ log }: { log: readonly string[] }) {
-  return (
-    <div className="flex w-60 flex-col rounded-xl border border-stone-700/70 bg-stone-950/75 shadow-xl backdrop-blur-sm">
-      <div className="border-b border-stone-700/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-stone-400">
-        Combat Log
-      </div>
-      <div className="flex max-h-52 flex-col gap-1 overflow-hidden px-3 py-2">
-        {log.slice(0, 10).map((line, index) => (
-          <span
-            key={`${index}-${line}`}
-            className={index === 0 ? "text-[12px] text-stone-100" : "text-[12px] text-stone-400"}
-          >
-            {line}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EncounterBadge({ index, count }: { index: number; count: number }) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-950/60 px-3 py-1.5">
-      <span className="text-xs uppercase tracking-widest text-stone-400">Encounter</span>
-      <span className="text-lg font-black text-amber-300">{index + 1}</span>
-      <span className="text-xs text-stone-500">/ {count}</span>
-    </div>
-  );
-}
-
-function RewardCard({ card, onChoose }: { card: CardData; onChoose: (type: string) => void }) {
-  const accent = KIND_ACCENT[card.kind];
-  return (
-    <button
-      type="button"
-      onClick={() => onChoose(card.type)}
-      className={[
-        "group relative flex h-52 w-36 flex-col items-center rounded-xl border border-stone-950/70 bg-gradient-to-b from-stone-800 to-stone-900 p-3 text-left ring-2 shadow-xl transition-transform hover:-translate-y-2",
-        accent.ring,
-        accent.glow,
-      ].join(" ")}
-    >
-      <div className={["absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full text-sm font-black text-stone-950 shadow", accent.gem].join(" ")}>
-        {card.cost}
-      </div>
-      <span className="mt-1 w-full truncate text-center text-sm font-bold text-stone-100">{card.name}</span>
-      <div className="my-2 flex h-20 w-full items-center justify-center rounded-lg border border-stone-950/50 bg-stone-950/50">
-        <CardArtIcon art={card.art} className={["h-12 w-12", accent.art].join(" ")} />
-      </div>
-      <span className="flex-1 text-center text-xs leading-tight text-stone-300">{card.text}</span>
-    </button>
-  );
-}
-
-function RewardOverlay({
-  phase,
-  options,
-  onChoose,
-  onSkip,
-}: {
-  phase: RunPhase;
-  options: readonly CardData[];
-  onChoose: (type: string) => void;
-  onSkip: () => void;
-}) {
-  if (phase !== "reward") return null;
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-20 flex flex-col items-center justify-center gap-6 bg-black/75 backdrop-blur-sm">
-      <h2 className="text-3xl font-black tracking-tight text-amber-300">Choose a Card</h2>
-      <div className="flex gap-5">
-        {options.map((card) => (
-          <RewardCard key={card.type} card={card} onChoose={onChoose} />
-        ))}
-      </div>
-      <button
-        type="button"
-        onClick={onSkip}
-        className="rounded-lg border border-stone-600/60 bg-stone-800/80 px-5 py-2 text-sm font-semibold text-stone-300 transition-colors hover:bg-stone-700/80"
-      >
-        Skip Reward
-      </button>
-    </div>
-  );
-}
-
-function ResultOverlay({
-  phase,
-  encounterIndex,
-  encounterCount,
-  onRestart,
-}: {
-  phase: RunPhase;
-  encounterIndex: number;
-  encounterCount: number;
-  onRestart: () => void;
-}) {
-  if (phase !== "victory" && phase !== "defeat") return null;
-  const won = phase === "victory";
-  const restartKey = actionLabel(keybinds, "startNewRun");
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-      <h1 className={["text-6xl font-black tracking-tight", won ? "text-amber-300" : "text-rose-400"].join(" ")}>
-        {won ? "Run Complete" : "Run Failed"}
-      </h1>
-      <p className="text-sm text-stone-300">
-        {won ? `You cleared all ${encounterCount} encounters.` : `You fell at encounter ${encounterIndex + 1} of ${encounterCount}.`}
-      </p>
-      <button
-        type="button"
-        onClick={onRestart}
-        className="flex items-center gap-2 rounded-lg border border-amber-300/60 bg-amber-600/90 px-6 py-2 text-lg font-bold text-stone-950 transition-colors hover:bg-amber-500"
-      >
-        New Run
-        <KeyHint className="rounded bg-stone-950/40 px-1.5 text-sm font-mono">{restartKey}</KeyHint>
-      </button>
-    </div>
-  );
-}
-
 export function GameUI() {
-  const runSnapshot = useRun();
+  const run = useRun();
   const { commands } = useGame();
-  const endTurnKey = actionLabel(keybinds, "endTurn");
-  const snapshot = runSnapshot.combat;
-
-  const play = (cardId: string) => commands.run("playCard", { cardId });
-  const endTurn = () => commands.run("endTurn", {});
-  const restart = () => commands.run("startNewRun", {});
-  const chooseReward = (cardType: string) => commands.run("chooseReward", { cardType });
-  const skipReward = () => commands.run("skipReward", {});
-  const inCombat = runSnapshot.phase === "combat";
-  const playerTurn = inCombat && snapshot.phase === "player";
-  const layout = useHudLayout({ storageKey: "wayfarer-deck" });
-
-  return (
-    <HudCanvas layout={layout} className="select-none overflow-hidden text-stone-100">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,#3b3457_0%,#231f36_45%,#12101c_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 to-transparent" />
-
-      <HudPanel id="turn-indicator" anchor="top-left" inset={{ x: 24, y: 20 }}>
-        <div className="flex items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-950/60 px-3 py-1.5">
-          <span className="text-xs uppercase tracking-widest text-stone-400">Turn</span>
-          <span className="text-lg font-black text-amber-300">{snapshot.round}</span>
-        </div>
-      </HudPanel>
-      <HudPanel id="encounter-badge" anchor="top-left" inset={{ x: 24, y: 64 }}>
-        <EncounterBadge index={runSnapshot.encounterIndex} count={runSnapshot.encounterCount} />
-      </HudPanel>
-      <HudPanel id="settings" anchor="top-right" inset={{ x: 24, y: 20 }}>
-        <SettingsTrigger className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border border-stone-700/60 bg-stone-950/60 text-amber-300 transition-colors hover:bg-stone-800/80" />
-      </HudPanel>
-
-      <HudPanel id="enemy-panel" anchor="top" inset={{ x: 0, y: 40 }}>
-        <EnemyPanel enemy={snapshot.enemy} intent={snapshot.intent} />
-      </HudPanel>
-      <HudPanel id="combat-log" anchor="right" inset={{ x: 24, y: 0 }}>
-        <CombatLog log={snapshot.log} />
-      </HudPanel>
-      <HudPanel id="player-panel" anchor="bottom-left" inset={{ x: 24, y: 24 }}>
-        <PlayerPanel hero={snapshot.hero} />
-      </HudPanel>
-
-      {inCombat && (
-        <>
-          <Hand hand={snapshot.hand} energy={snapshot.energy.current} phase={snapshot.phase} onPlay={play} />
-          <HudPanel id="resource-bar" anchor="bottom-right" inset={{ x: 24, y: 24 }} style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex gap-2">
-                <PileCount label="Draw" count={snapshot.deckCount} />
-                <PileCount label="Discard" count={snapshot.discardCount} />
-                <PileCount label="Exhaust" count={snapshot.exhaustCount} />
-              </div>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <EnergyOrb energy={snapshot.energy} />
-              <button
-                type="button"
-                disabled={!playerTurn}
-                onClick={endTurn}
-                className={[
-                  "flex items-center gap-2 rounded-lg border px-5 py-2 text-base font-bold transition-colors",
-                  playerTurn
-                    ? "cursor-pointer border-amber-300/60 bg-amber-600/90 text-stone-950 hover:bg-amber-500"
-                    : "cursor-not-allowed border-stone-700/60 bg-stone-800/70 text-stone-500",
-                ].join(" ")}
-              >
-                End Turn
-                <KeyHint className="rounded bg-stone-950/40 px-1.5 text-sm font-mono">{endTurnKey}</KeyHint>
-              </button>
-            </div>
-          </HudPanel>
-        </>
-      )}
-
-      <RewardOverlay phase={runSnapshot.phase} options={runSnapshot.rewardOptions} onChoose={chooseReward} onSkip={skipReward} />
-      <ResultOverlay
-        phase={runSnapshot.phase}
-        encounterIndex={runSnapshot.encounterIndex}
-        encounterCount={runSnapshot.encounterCount}
-        onRestart={restart}
-      />
-    </HudCanvas>
-  );
+  const [settings, setSettings] = useState(false);
+  const [deck, setDeck] = useState(false);
+  const [confirmNew, setConfirmNew] = useState(false);
+  const [prefs, setPrefs] = useState(initialPrefs);
+  const s = run.combat;
+  const packCards = [...new Map(s.cards.map(card => [card.type, card])).values()].sort((a, b) => a.name.localeCompare(b.name));
+  const active = run.screen === null && run.phase === "combat" && !settings && !deck;
+  const command = (name: string, data = {}) => commands.run(name, data);
+  const play = (entry: HandCard) => command("playCard", {cardId: entry.id});
+  const pause = () => command("pauseRun");
+  const resume = () => { setSettings(false); setDeck(false); setConfirmNew(false); command("resumeRun"); };
+  const newRun = () => { setConfirmNew(false); setSettings(false); setDeck(false); command("startNewRun"); };
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+      if (event.key !== "Escape" && /INPUT|TEXTAREA|SELECT/.test((event.target as HTMLElement).tagName)) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (confirmNew) { setConfirmNew(false); return; }
+        if (settings) { setSettings(false); return; }
+        if (deck) { setDeck(false); return; }
+        if (run.screen === "paused") resume(); else if (run.screen === null) pause();
+      } else if (active && (event.code === "KeyF" || event.key.toLowerCase() === "f")) {
+        event.preventDefault();
+        command("endTurn");
+      } else if (active && /^[1-9]$/.test(event.key)) {
+        const entry = s.hand[Number(event.key)-1];
+        if (entry && entry.card.cost <= s.energy.current) { event.preventDefault(); play(entry); }
+      }
+    };
+    const onHide = () => { if (document.hidden && run.screen === null) pause(); };
+    window.addEventListener("keydown", onKey); document.addEventListener("visibilitychange", onHide);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onHide); };
+  }, [run.screen, active, s.hand, s.energy.current, settings, deck, confirmNew, commands]);
+  const setPreference = (key: "largeText" | "reducedMotion", value: boolean) => {
+    const next = {...prefs, [key]: value}; setPrefs(next);
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(next)); } catch { /* Run status communicates unavailable browser storage. */ }
+  };
+  const openSettings = () => { pause(); setSettings(true); };
+  return <main className={`wayfarer-road ${prefs.reducedMotion ? "still-road" : ""} ${prefs.largeText ? "large-road" : ""}`}>
+    <RoadLandscape stage={run.encounterIndex}/><div className="road-shade"/>
+    <div className="road-board" inert={run.screen !== null || run.phase !== "combat" || settings || deck || confirmNew}>
+    <header className="road-header"><div><span className="eyebrow">The old road</span><h1>Wayfarer Deck</h1></div><nav aria-label="Run controls"><span className="save-state">{run.saveStatus === "saved" ? "Run saved on this device" : run.saveStatus === "unavailable" ? "Saving unavailable" : run.saveStatus === "damaged" ? "Saved run unreadable" : "A new crossing awaits"}</span><button onClick={openSettings}>Settings</button>{run.screen === null && (run.phase === "combat" || run.phase === "reward") && <button onClick={pause}>Pause <kbd>Esc</kbd></button>}</nav></header>
+    <ol className="road-route" aria-label="Crossing route">{ENCOUNTERS.map((enemy, i) => <li key={enemy.id} className={i < run.encounterIndex || run.phase === "victory" ? "cleared" : i === run.encounterIndex ? "current" : ""}><span>{i < run.encounterIndex || run.phase === "victory" ? "✓" : i+1}</span><strong>{enemy.name}</strong></li>)}</ol>
+    <section className="encounter-stage" aria-label="Battlefield">
+      <div className="hero-ledger"><p className="eyebrow">Your journey · Turn {s.round}</p><Vitality name="Wayfarer" view={s.hero}/><p className="road-advice">Read the enemy intent. Block lasts until your next turn. Strength lasts for this battle.</p><details className="combat-journal"><summary>Road journal</summary><ol>{s.log.slice(0, 8).map((line, i) => <li key={`${i}-${line}`}>{line}</li>)}</ol></details></div>
+      <div className="enemy-stage"><div className={`enemy-intent ${s.intent?.kind ?? "quiet"}`} aria-live="polite">{intentText(s.intent)}</div><EnemyArt index={run.encounterIndex}/><span className="enemy-tier">{s.enemy.tier === "normal" ? "Road encounter" : s.enemy.tier === "elite" ? "Elite encounter" : "Keeper of the crossing"}</span><Vitality name={s.enemy.name} view={s.enemy}/></div>
+    </section>
+    <section className="hand-dock" aria-label="Your hand"><div className="turn-toolbar"><div className="energy-counter"><b>{s.energy.current}</b><span> / {s.energy.max}<small>ENERGY</small></span></div><button className="pile-button" onClick={() => { pause(); setDeck(true); }}>{s.deckCount} draw · {s.discardCount} discard · {s.exhaustCount} exhaust</button><span className="turn-help">{s.energy.current === 0 ? "Energy spent. End your turn." : "Choose a card · keys 1–9"}</span><button className="primary end-turn" disabled={!active} onClick={() => command("endTurn")}>End turn <kbd>F</kbd></button></div><div className="road-hand">{s.hand.map((entry, i) => <Card key={entry.id} card={entry.card} ordinal={i+1} disabled={!active || entry.card.cost > s.energy.current} onClick={() => play(entry)} hint={entry.card.cost > s.energy.current ? "Not enough energy" : undefined}/>)}{s.hand.length === 0 && <p className="empty-hand">Your hand is empty. End your turn to draw again.</p>}</div></section>
+    <p className="road-announcement" role="status" aria-live="polite">{s.log[0]}</p>
+    </div>
+    {run.screen === "menu" && <Dialog eyebrow="A tactical crossing in five encounters" title="Take the old road"><p>Build your deck, read your foes, and reach the gate beyond the ridge. Every card is a choice; every wound travels with you.</p><div className="rules-grid"><span><b>3 energy</b> each turn</span><span><b>5 cards</b> in each new hand</span><span><b>Rewards or rest</b> between battles</span></div>{run.canContinue && <button className="primary" onClick={resume}>Continue crossing · {run.encounterIndex+1} / {run.encounterCount}</button>}<button className={run.canContinue ? "secondary" : "primary"} onClick={() => run.canContinue ? setConfirmNew(true) : newRun()}>Begin a new crossing</button><small>{run.saveStatus === "damaged" ? "The previous save could not be read. It remains untouched until you begin a new crossing." : "Your run is saved automatically in this browser."}</small></Dialog>}
+    {run.screen === "paused" && !settings && !deck && <Dialog eyebrow={`Encounter ${run.encounterIndex+1} · Turn ${s.round}`} title="Rest your hand"><p>The crossing is paused. Your cards and energy will be here when you return.</p><button className="primary" onClick={resume}>Resume crossing</button><button onClick={() => setSettings(true)}>Settings & controls</button><button onClick={() => setConfirmNew(true)}>Begin a new crossing</button></Dialog>}
+    {run.phase === "reward" && run.screen === null && <Dialog eyebrow={`Encounter ${run.encounterIndex+1} cleared`} title="At the roadside fire"><p>Take one card for your deck, or rest to recover up to 12 HP. Your next foe is {ENCOUNTERS[run.encounterIndex+1]?.name}.</p><div className="reward-hand">{run.rewardOptions.map(card => <Card key={card.type} card={card} onClick={() => command("chooseReward", {cardType: card.type})}/>)}</div><button className="primary" disabled={s.hero.hp === s.hero.maxHp} onClick={() => command("recoverRoad")}>Rest · recover {Math.min(12, s.hero.maxHp-s.hero.hp)} HP</button><button onClick={() => command("skipReward")}>Travel on without a reward</button></Dialog>}
+    {(run.phase === "victory" || run.phase === "defeat") && run.screen === null && <Dialog eyebrow="The old road remembers" title={run.phase === "victory" ? "Beyond the gate" : "The road takes its toll"}><p>{run.phase === "victory" ? `You crossed all five encounters with ${s.hero.hp} HP remaining. The gate opens to a new dawn.` : `Your crossing ended at ${s.enemy.name}, encounter ${run.encounterIndex+1} of five. Try guarding incoming attacks and resting by the fire.`}</p><button className="primary" onClick={newRun}>Begin another crossing</button></Dialog>}
+    {deck && <Dialog eyebrow="Cards travel with you" title="Your pack"><p>{s.deckCount} cards in the draw pile, {s.discardCount} discarded, {s.exhaustCount} exhausted and {s.hand.length} in hand. Discards reshuffle when the draw pile is empty. Exhausted cards return next battle.</p><ul className="pack-list">{packCards.map(card => <li key={card.type}><b>{s.cards.filter(entry => entry.type === card.type).length} × {card.name}</b><span>{card.cost} energy · {card.text}</span></li>)}</ul><button className="primary" onClick={() => setDeck(false)}>Back</button></Dialog>}
+    {settings && <Dialog eyebrow="Make the road yours" title="Settings & controls"><label className="preference"><input type="checkbox" checked={!!prefs.reducedMotion} onChange={e => setPreference("reducedMotion", e.target.checked)}/> Reduce motion</label><label className="preference"><input type="checkbox" checked={!!prefs.largeText} onChange={e => setPreference("largeText", e.target.checked)}/> Larger card text</label><p>Click or tap a card to play. Keys <kbd>1–9</kbd> play cards in hand order. <kbd>F</kbd> ends the turn. <kbd>Esc</kbd> pauses or resumes. The road pauses when you leave this tab.</p><button className="primary" onClick={() => setSettings(false)}>Back</button><small>Original road and creature artwork authored for Wayfarer Deck. Powered by JG Engine.</small></Dialog>}
+    {confirmNew && <Dialog eyebrow="Leave this crossing" title="Start again?"><p>This replaces your saved crossing with a fresh deck and full health.</p><button className="primary" onClick={newRun}>Start a new crossing</button><button onClick={() => setConfirmNew(false)}>Keep this crossing</button></Dialog>}
+  </main>;
 }

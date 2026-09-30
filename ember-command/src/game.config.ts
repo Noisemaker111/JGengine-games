@@ -62,12 +62,12 @@ export const game = defineGame({
   // the look affordable. Real-GPU play is nowhere near this budget.
   shadows: true,
   lighting: {
-    ambient: { color: "#9fb4cc", intensity: 0.5 },
-    hemisphere: { skyColor: "#cfe0f2", groundColor: "#4a5a2e", intensity: 0.55 },
+    ambient: { color: "#b3c0bc", intensity: 0.6 },
+    hemisphere: { skyColor: "#bfd9d5", groundColor: "#686747", intensity: 0.65 },
     directional: [
       {
-        color: "#ffeccb",
-        intensity: 1.3,
+        color: "#ffe1ad",
+        intensity: 1.65,
         position: [-36, 48, 26],
         castShadow: true,
         shadowMapSize: 1024,

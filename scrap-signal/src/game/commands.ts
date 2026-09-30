@@ -378,6 +378,7 @@ export function registerCommands(ctx: GameContext): void {
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
       setGamePhase(state, "playing");
+      state.time.play();
       state.scene.entity.floatText({
         instanceId: state.player.userId,
         text: `${def.name.toUpperCase()} — ${def.className.toUpperCase()}`,

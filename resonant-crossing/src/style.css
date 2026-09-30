@@ -1,7 +1,54 @@
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  background: #0c0e12;
+html, body, #root { height: 100%; margin: 0; background: #080e19; }
+.rc-ui { position: absolute; inset: 0; pointer-events: none; z-index: 30; color: #e8ebdf; font: 14px/1.5 "Segoe UI", sans-serif; }
+.rc-ui * { box-sizing: border-box; }
+.rc-ui button, .rc-ui input { pointer-events: auto; }
+.rc-ui button { border: 1px solid #536374; background: #1e303e; color: #f2f3e9; border-radius: 7px; padding: 10px 14px; font: inherit; font-weight: 600; cursor: pointer; touch-action: manipulation; min-height: 44px; }
+.rc-ui button:hover { background: #334b5a; border-color: #bfa875; }
+.rc-ui button:focus-visible, .rc-ui input:focus-visible { outline: 3px solid #8bfcff; outline-offset: 3px; }
+.rc-ui button:disabled { opacity: .45; cursor: default; }
+.rc-ui button.rc-primary { background: #d8bb7c; color: #162536; border-color: #ffe7ad; }
+.rc-ui button.rc-primary:hover { background: #f3d699; }
+.rc-ui button.rc-quiet { background: #132431; }
+.rc-panel { background: #10212eed; border: 1px solid #61717c66; box-shadow: 0 8px 30px #0003; border-radius: 10px; }
+.rc-header { position: absolute; top: 18px; left: 20px; right: 20px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+.rc-eyebrow { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .18em; color: #bda979; font-weight: 700; }
+.rc-header h1 { font-family: Georgia, serif; font-size: 25px; line-height: 1.2; margin: 3px 0 4px; font-weight: normal; }
+.rc-header p { margin: 0; color: #aabcbd; font-size: 12px; }
+.rc-signals { position: absolute; top: 132px; left: 50%; transform: translateX(-50%); display: flex; gap: 18px; padding: 8px 16px; white-space: nowrap; font-size: 12px; color: #9caeb9; }
+.rc-signals [data-lit="true"] { color: #b5f5d4; }
+.rc-toast { position: absolute; top: 182px; left: 50%; transform: translateX(-50%); padding: 9px 16px; border: 1px solid #658e99; background: #142a3a; border-radius: 24px; max-width: 90%; text-align: center; }
+.rc-footer { position: absolute; bottom: 18px; left: 20px; right: 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.rc-hero { width: 275px; padding: 13px; display: grid; gap: 7px; }
+.rc-hero > strong { font: 25px Georgia, serif; line-height: 1.1; }
+.rc-subtitle { font-size: 11px; color: #aabcbd; }
+.rc-actions { display: flex; gap: 7px; }
+.rc-actions button { flex: 1; font-size: 12px; padding: 7px; }
+.rc-ui kbd { font: 10px/1 monospace; background: #0002; border: 1px solid #74808e66; border-radius: 3px; padding: 3px; margin-left: 6px; }
+.rc-pad { padding: 10px; text-align: center; }
+.rc-pad > div { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 45px); grid-template-rows: repeat(2, 44px); gap: 4px; }
+.rc-pad button { padding: 4px; font-size: 21px; }
+.rc-up { grid-column: 2; }.rc-left { grid-row: 2; grid-column: 1; }.rc-down { grid-row: 2; grid-column: 2; }.rc-right { grid-row: 2; grid-column: 3; }
+.rc-ui .rc-hint-button { border: 0; background: transparent; padding: 2px; font-size: 11px; color: #d8bb7c; }
+.rc-hint { font-size: 12px; margin: 0; color: #c2d2d5; }
+.rc-clear { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); background: #153e38ee; border: 1px solid #a1eac8; padding: 22px 35px; border-radius: 12px; text-align: center; }
+.rc-clear span { display: block; text-transform: uppercase; letter-spacing: .18em; font-size: 10px; color: #a1eac8; }.rc-clear strong { font: 28px Georgia, serif; }
+.rc-overlay { position: absolute; inset: 0; pointer-events: auto; background: #07101cd9; backdrop-filter: blur(5px); display: grid; place-items: center; padding: 20px; overflow-y: auto; }
+.rc-modal { width: min(510px, 100%); border: 1px solid #bda97966; border-radius: 17px; background: linear-gradient(145deg, #263b4c, #101f2c); padding: 28px 36px; box-shadow: 0 25px 100px #0008; display: grid; gap: 12px; text-align: center; }
+.rc-modal h2 { font: normal 37px/1.1 Georgia, serif; margin: 0; color: #f4e7c7; }
+.rc-modal p { color: #b8cacc; margin: 0; font-size: 13px; }
+.rc-emblem { display: flex; justify-content: center; gap: 22px; font-size: 36px; }.rc-emblem span:first-child, .rc-cyan { color: #38f0ff; }.rc-emblem span:last-child, .rc-amber { color: #ffb23e; }
+.rc-intro { border-block: 1px solid #ac997633; padding: 12px 0; display: grid; gap: 7px; text-align: left; }
+.rc-modal small { color: #80949f; font-size: 10px; line-height: 1.5; }
+.rc-settings { display: grid; gap: 20px; text-align: left; }.rc-settings label { display: flex; align-items: center; gap: 10px; min-height: 44px; pointer-events: auto; cursor: pointer; }.rc-settings input { width: 20px; height: 20px; accent-color: #d8bb7c; }
+@media (max-width: 600px) {
+  .rc-header { top: 8px; left: 8px; right: 8px; padding: 10px; gap: 8px; }.rc-header h1 { font-size: 20px; }.rc-header p { font-size: 11px; }.rc-header button span { display: none; }
+  .rc-signals { top: 132px; gap: 10px; font-size: 10px; padding: 7px 10px; }.rc-toast { top: 177px; font-size: 12px; width: max-content; }
+  .rc-footer { bottom: 10px; left: 8px; right: 8px; gap: 8px; }.rc-hero { width: 210px; min-width: 0; padding: 10px; gap: 5px; }.rc-hero > strong { font-size: 21px; }.rc-subtitle { display: none; }.rc-pad { padding: 7px; flex-shrink: 0; }.rc-pad .rc-eyebrow { font-size: 8px; letter-spacing: .08em; }.rc-pad > div { grid-template-columns: repeat(3, 44px); }
+  .rc-modal { padding: 20px; gap: 10px; }.rc-modal h2 { font-size: 30px; }.rc-overlay { padding: 12px; }
+}
+@media (max-width: 420px) {
+  .rc-hero { padding: 7px; }.rc-hero button { padding: 7px 4px; font-size: 11px; }.rc-hero kbd { display: none; }.rc-actions { flex-direction: column; gap: 4px; }.rc-pad { padding: 5px; }.rc-pad > div { gap: 2px; }
+}
+@media (max-height: 580px) and (min-width: 601px) {
+  .rc-header { top: 8px; padding: 8px 14px; }.rc-header h1 { font-size: 20px; }.rc-signals { top: 100px; }.rc-toast { top: 142px; }.rc-footer { bottom: 8px; }.rc-hero { width: 245px; padding: 8px; gap: 4px; }.rc-subtitle { display: none; }.rc-hero > strong { font-size: 20px; }.rc-modal { padding: 18px 30px; gap: 8px; }.rc-emblem { font-size: 24px; }
 }

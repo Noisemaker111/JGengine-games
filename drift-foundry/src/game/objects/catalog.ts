@@ -15,6 +15,8 @@ export const GATE_BARRICADE_PLOW = "gate_barricade_plow";
 export const GATE_BARRICADE_JUMP = "gate_barricade_jump";
 
 export const PICKUP_MARKER = "pickup_marker";
+export const PICKUP_STATIONS = { engine: "pickup_engine", front: "pickup_front", wheels: "pickup_wheels", frame: "pickup_frame" } as const;
+export const JUMP_CUE = "jump_cue";
 export const EXIT_GATE_ARCH = "exit_gate_arch";
 
 export const ZONE_PROP_IDS = [
@@ -42,5 +44,7 @@ export const OBJECT_CATALOG: Record<string, GameContextObjectEntry> = {
   [GATE_BARRICADE_PLOW]: {},
   [GATE_BARRICADE_JUMP]: {},
   [PICKUP_MARKER]: {},
+  [JUMP_CUE]: {},
+  ...Object.fromEntries(Object.values(PICKUP_STATIONS).map((id) => [id, {}])),
   [EXIT_GATE_ARCH]: {},
 };
