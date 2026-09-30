@@ -140,14 +140,9 @@ export const entityModels: Record<string, ModelConfig> = resolveModelPlan(assets
 });
 
 /**
- * Street-tree casting. The CC0 packs ship no palm, so the boulevard is planted with the tallest
- * green-leaved trunks available, at three heights so a boardwalk is never one repeated shape down
- * its whole run. `TwistedTree` was tried for its leaning-palm silhouette and rejected: its crown
- * texture is deep autumn red (`Leaves_TwistedTree_C`), which no multiply can turn tropical — it
- * survives only as the occasional flame tree, which is a real coastal street tree.
- *
- * No colour override on any of them: the pack's bark and frond maps ship with the repository and
- * resolve, and the flat green tint that used to stand in for them was multiplying that away.
+ * Licensed tree fallbacks remain available; the three palm casts below are overridden by our
+ * original folded-frond GLB. Quaternius's red-crowned tree keeps its original material as the
+ * occasional flame-tree accent.
  */
 const PALMS: readonly { id: string; model: string; fallbackModel: string; targetHeight: number }[] = [
   { id: "obj_palm", model: `${NATURE}/CommonTree_2`, fallbackModel: `${NATURE}/CommonTree_1`, targetHeight: 7.6 },
@@ -273,4 +268,13 @@ for (const b of BUILDING_SPECS) {
   };
 }
 
-export const objectModels: Record<string, ModelConfig> = resolveModelPlan(assets, objectPlan);
+export const objectModels: Record<string, ModelConfig> = {
+  ...resolveModelPlan(assets, objectPlan),
+  obj_palm: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 7.6, anchor: "origin" },
+  obj_palm_tall: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 9, anchor: "origin" },
+  obj_palm_low: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 6.2, anchor: "origin" },
+  obj_dispatch: { url: new URL("../../art/dispatch-booth.glb", import.meta.url).href, anchor: "origin" },
+  obj_delivery_1: { url: new URL("../../art/parcel-tower-1.glb", import.meta.url).href, anchor: "origin" },
+  obj_delivery_2: { url: new URL("../../art/parcel-tower-2.glb", import.meta.url).href, anchor: "origin" },
+  obj_delivery_3: { url: new URL("../../art/parcel-tower-3.glb", import.meta.url).href, anchor: "origin" },
+};

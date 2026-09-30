@@ -4,7 +4,7 @@ import { createGameContext, type GameContext } from "@jgengine/core/runtime/game
 import { game } from "../game.config";
 import { loop } from "../loop";
 import { content } from "./content";
-import { createHandroll } from "./handroll";
+import { createHandroll, handrollOf } from "./handroll";
 import { advanceBehaviors } from "@jgengine/core/scene/behaviorRuntime";
 
 const HERO = "hero-test";
@@ -83,6 +83,23 @@ describe("handroll drivable-vehicle adoption", () => {
     expect(Math.abs(helicopter.position[2])).toBeGreaterThan(1);
     expect(handroll.telemetry().mode).toBe("aircraft");
     expect(handroll.telemetry().altitude).toBeGreaterThan(2);
+  });
+
+  test("clinic recovery releases an airborne rider even when voluntary exit requires landing", () => {
+    const ctx = boot();
+    const handroll = handrollOf(ctx);
+    ctx.game.commands.run("game.start", {});
+    ctx.scene.entity.spawn("air_helicopter", { id: "clinic_heli", position: [-193, 30, 44], role: "prop" });
+    handroll.enterVehicle(ctx, "clinic_heli");
+    handroll.exitVehicle(ctx);
+    expect(handroll.drivingVehicleId()).toBe("clinic_heli");
+    ctx.scene.entity.stats.set(HERO, "health", { current: 0 });
+    loop.onTick(ctx, STEP);
+    expect(handroll.drivingVehicleId()).toBeNull();
+    expect(ctx.scene.entity.get(HERO)?.hidden).toBe(false);
+    expect(ctx.scene.entity.get(HERO)?.movement.frozen).toBe(false);
+    expect(ctx.camera.followedEntityId()).toBe(HERO);
+    expect(ctx.scene.entity.stats.get(HERO, "health")?.current).toBeGreaterThan(0);
   });
 
   test("witnessed heat gains escalate stars, unwitnessed gains do not", () => {

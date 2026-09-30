@@ -1,6 +1,8 @@
+import { SettingsTrigger } from "@jgengine/react";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { continueStore, startedStore } from "../../commands";
+import poster from "../../../art/mainsail-poster.svg";
 
 export function useGameStarted(): boolean {
   return useStore(startedStore, (v) => v ?? false);
@@ -10,41 +12,25 @@ export function TitleScreen() {
   const { commands } = useGame();
   const hasSave = useStore(continueStore, (v) => v ?? false);
   return (
-    <div data-jg-menu className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#2b1a3f] via-[#c94f7c] to-[#ffb020]">
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{ backgroundImage: "radial-gradient(#000 1.2px, transparent 1.2px)", backgroundSize: "14px 14px" }}
-      />
-      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center gap-2 opacity-70">
-        {[34, 58, 42, 72, 50, 88, 60, 44, 66, 38].map((h, i) => (
-          <div key={i} className="border-2 border-black bg-[#1b1230]" style={{ width: 46, height: h * 2 }} />
-        ))}
-      </div>
-      <div className="relative flex flex-col items-center">
-        <div className="-skew-x-6 rotate-[-2deg] border-4 border-black bg-[#f2599b] px-10 py-3 shadow-[10px_10px_0_#000]">
-          <span className="text-6xl font-black uppercase tracking-tighter text-white drop-shadow-[3px_3px_0_#000]">Harbor Heat</span>
+    <main data-jg-menu className="hh-title">
+      <div className="hh-poster" style={{ backgroundImage: `url(${poster})` }} aria-hidden="true" />
+      <div className="hh-title-content">
+        <div className="hh-eyebrow">Mainsail dispatch / coastal courier adventure</div>
+        <h1>Harbor<br /><span>Heat</span><i aria-hidden="true">↗</i></h1>
+        <p className="hh-title-intro">Golden coast. Hot cargo.<br />One more run before sundown.</p>
+        <p className="hh-title-description">Carry parcels down the palm-lined coast, earn your wheels, and take on the crews who own the harbor.</p>
+        <div className="hh-title-actions">
+          <button type="button" className="hh-button hh-button-primary" onClick={() => commands.run("game.start", {})}>{hasSave ? "Continue your story" : "Hit the street"} <span>↗</span></button>
+          <SettingsTrigger className="hh-button hh-button-secondary" label="Settings">Settings</SettingsTrigger>
         </div>
-        <div className="mt-3 -skew-x-6 rotate-[1deg] border-2 border-black bg-[#ffb020] px-4 py-1 shadow-[5px_5px_0_#000]">
-          <span className="text-sm font-black uppercase tracking-widest text-black">Steal it · Drive it · Shake the heat</span>
+        <div className="hh-controls">
+          <span><b>W A S D</b> Move / drive</span><span><b>E / F</b> Use / exit</span>
+          <span><b>Shift</b> Sprint <b>P</b> Pause</span><span><b>Mouse</b> Look / fire</span>
         </div>
-        <button
-          type="button"
-          onClick={() => commands.run("game.start", {})}
-          className="mt-10 -skew-x-6 border-4 border-black bg-[#3fbf5a] px-12 py-3 text-2xl font-black uppercase tracking-wider text-black shadow-[8px_8px_0_#000] transition-transform hover:scale-105 hover:bg-[#5fdf7a]"
-        >
-          {hasSave ? "▶ Continue" : "▶ Hit the Street"}
-        </button>
-        <div className="mt-6 flex gap-2">
-          {["WASD move", "E enter · F exit", "Mouse fire", "1-4 weapons"].map((hint) => (
-            <span key={hint} className="border-2 border-black bg-[#12141a]/80 px-2 py-0.5 text-[10px] font-black uppercase text-[#f4e8c8]">
-              {hint}
-            </span>
-          ))}
-        </div>
+        <div className="hh-title-note">Your first stop: the teal dispatch booth beside you. Press E to take a parcel. Touch controls appear when you start.</div>
+        <footer>Original Mainsail art · assets by KayKit / Quaternius / ambientCG</footer>
       </div>
-      <div className="absolute bottom-3 text-[10px] font-bold uppercase tracking-widest text-black/60">
-        A coastal city adventure of courier jobs, rival crews, and high-speed escapes
-      </div>
-    </div>
+      <div className="hh-poster-stamp" aria-hidden="true">Mainsail<br /><strong>Express</strong><small>COAST • CITY • CREW</small></div>
+    </main>
   );
 }
