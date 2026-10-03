@@ -5,14 +5,13 @@ import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { objectModels } from "./game/models";
 import { renderEntity } from "./game/render/renderEntity";
+import { CaptureReadiness } from "./game/render/CaptureReadiness";
 import { GameUI } from "./game/ui/GameUI";
 import { loop } from "./loop";
-import { DAY_LENGTH, physics, world } from "./world";
+import { DAY_LENGTH, physics, terrainField, world } from "./world";
 
 export const game = defineGame({
   name: "Odd Orbit",
-  // No menu/pause/end screens — the colony sim runs live from boot. Stated, not implied (#1337).
-  lifecycle: "always-live",
   world,
   physics,
   input: keybinds,
@@ -25,8 +24,10 @@ export const game = defineGame({
   assets,
   objectModels,
   renderEntity,
+  WorldOverlay: CaptureReadiness,
   pointer: { moveCommand: "world.pointer" },
   touch: { buttons: [] },
+  hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
   lighting: {
     ambient: { color: "#c3b0e0", intensity: 0.75 },
     hemisphere: { skyColor: "#c9a6e0", groundColor: "#4a3f66", intensity: 0.7 },
@@ -41,6 +42,7 @@ export const game = defineGame({
       height: 19,
       pitch: 1.0,
       yaw: 0,
+      targetOffset: { y: terrainField.sampleHeight(0, 0) },
       panSpeed: 30,
       edgeScroll: true,
       rotateSpeed: 1.1,

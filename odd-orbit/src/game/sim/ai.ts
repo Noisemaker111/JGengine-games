@@ -30,6 +30,7 @@ export function chooseDesire(
   lowCredits: boolean,
 ): Desire {
   const { need, value } = lowestNeed(member.needs);
+  if (need === "social" && value < SOCIAL_WANT && hasIdleCompanion) return { kind: "socialize" };
   if (value < SEEK_THRESHOLD && available[need]) return { kind: "need", goal: need };
 
   const needsIncome = lowCredits || isWorkHours;

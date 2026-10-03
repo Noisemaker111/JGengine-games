@@ -4,7 +4,7 @@ import { resolveModelPlan, type ModelPick } from "@jgengine/shell/render/resolve
 import { assets } from "./assets";
 import { DECOR, FURNITURE, STRUCTURE, type DecorDef, type FurnitureDef, type StructureDef } from "./objects/catalog";
 
-export const HAB_WALL_SCALE = 3;
+export const HAB_WALL_HEIGHT = 2.25;
 
 const SCIFI = "quaternius-modular-scifi";
 const NATURE = "quaternius-stylized-nature";
@@ -67,7 +67,7 @@ function structurePick(def: StructureDef): ModelPick | null {
   return {
     ...base,
     style: {
-      scale: HAB_WALL_SCALE,
+      targetHeight: def.kind === "gate" ? 3 : HAB_WALL_HEIGHT,
       material: { color: "#9d93bd", metalness: 0.35, roughness: 0.45 },
     },
   };

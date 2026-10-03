@@ -1,65 +1,22 @@
-import type { ReactNode } from "react";
-
-import { useGame, useGameClock } from "@jgengine/react/hooks";
+import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-
 import { householdStore } from "../../session/store";
+import { nextBill } from "../../sim/economy";
+import { creditsText } from "./bits";
+import { householdPhase } from "../../sim/schedule";
 
-export function TopBar(): ReactNode {
+export function TopBar() {
   const clock = useGameClock();
   const { commands } = useGame();
   const household = useStore(householdStore);
+  const objects = useSceneObjects();
   const cal = clock.calendar;
   const hour = Math.floor(cal.hour);
-  const minute = Math.floor((cal.hour - hour) * 60);
-  const isDay = cal.hour >= 7 && cal.hour < 19;
-  const speeds: readonly number[] = clock.speeds.length > 0 ? clock.speeds : [1, 2, 4];
-
-  return (
-    <div className="pointer-events-auto flex items-center gap-3 rounded-xl bg-slate-950/78 px-4 py-2 shadow-lg ring-1 ring-white/10 backdrop-blur">
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{isDay ? "☀️" : "🌙"}</span>
-        <div className="leading-tight">
-          <div className="text-sm font-bold text-slate-100">Day {cal.day + 1}</div>
-          <div className="text-[11px] tabular-nums text-slate-400">
-            {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
-          </div>
-        </div>
-      </div>
-
-      <div className="h-8 w-px bg-white/10" />
-
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => commands.run("pauseToggle", {})}
-          className="rounded-md bg-white/10 px-2 py-1 text-xs font-bold text-slate-100 hover:bg-white/20"
-          title="Pause / resume (Space)"
-        >
-          {clock.paused ? "▶" : "❚❚"}
-        </button>
-        {speeds.map((mult) => (
-          <button
-            key={mult}
-            type="button"
-            onClick={() => commands.run("time.speed", { mult })}
-            className={`rounded-md px-2 py-1 text-xs font-bold ${
-              !clock.paused && clock.speed === mult
-                ? "bg-emerald-400/90 text-slate-900"
-                : "bg-white/10 text-slate-200 hover:bg-white/20"
-            }`}
-          >
-            {mult}×
-          </button>
-        ))}
-      </div>
-
-      <div className="h-8 w-px bg-white/10" />
-
-      <div className="flex items-center gap-1.5">
-        <span className="text-base">🪙</span>
-        <span className="text-sm font-bold tabular-nums text-amber-200">{Math.floor(household.credits)}</span>
-      </div>
-    </div>
-  );
+  const minute = cal.minute;
+  const bill = nextBill(household, objects);
+  return <section className="orbit-topbar" aria-label="Household time and resources">
+    <div className="orbit-clock"><strong>Day {cal.day + 1}</strong><span>{String(hour).padStart(2,"0")}:{String(minute).padStart(2,"0")} · {householdPhase(clock.now)}</span></div>
+    <div className="orbit-speed" role="group" aria-label="Simulation speed"><button aria-label={clock.paused ? "Resume time" : "Pause time"} aria-pressed={clock.paused} onClick={() => commands.run("pauseToggle", {})}>{clock.paused ? "Play" : "Pause"}</button>{clock.speeds.map(mult => <button aria-pressed={!clock.paused && clock.speed === mult} key={mult} onClick={() => commands.run("time.speed",{ mult })}>{mult}×</button>)}</div>
+    <div className="orbit-resources"><span><b>{creditsText(household.credits)}</b> credits</span><span className={household.pantry < 4 ? "warning" : ""}><b>{household.pantry}</b> rations</span><span className={household.credits < bill ? "warning" : ""}><b>{bill}</b> midnight bill</span>{household.debt > 0 && <span className="warning"><b>{creditsText(household.debt)}</b> debt</span>}</div>
+  </section>;
 }
