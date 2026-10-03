@@ -1,0 +1,170 @@
+{
+  "provenance": "Deterministic Bun fixture; published 0.18.1 game source/content and real authored world/race/pursuit/behaviors. Candidate constructors imported explicitly from dedicated SDK worktree. No game dependency aliases, browser execution, or unpublished package adoption.",
+  "candidateCommit": "3b640815f47f5dc25cfed3790c4e7e0026a2c36e",
+  "candidateBase": "6d71cd76929f3581953059dba447888a6cfa0346",
+  "gamesCommit": "3ac287cce280ec53c48c93e9ff577c06f129322e",
+  "adapterValidation": {
+    "maxPositionDelta": 0,
+    "maxVelocityDelta": 0
+  },
+  "limitations": [
+    "Candidate evidence is offline deterministic, not a native browser adoption of unreleased SDK.",
+    "Adapter excludes driving reaction/audio presentation; its published run was validated with exact position and velocity equality to actual Harbor driving over 30 simulated seconds.",
+    "Entity velocity derived from pose displacement includes legitimate traffic separation; internal motor velocity excludes recovery. Traffic remains authored path following and can physically push a car.",
+    "Additional overlap recovery is bounded to two passes; inconsistent overlapping solids can still require positional correction on later ticks."
+  ],
+  "minimal": {
+    "published": [
+      {
+        "t": 0.016666666666666666,
+        "position": [
+          1.3421628228042558e-19,
+          1.28,
+          -2.4999040408844913
+        ],
+        "velocity": [
+          8.052976936825534e-18,
+          -149.9942424530695
+        ],
+        "forwardSpeed": 149.9942424530695,
+        "gear": 1,
+        "impact": {
+          "closingSpeed": 150.06,
+          "normal": [
+            0,
+            -1
+          ],
+          "obstacleIndex": 0
+        }
+      },
+      {
+        "t": 0.03333333333333333,
+        "position": [
+          -4.9683067756487434e-17,
+          1.28,
+          -4.997224434781618
+        ],
+        "velocity": [
+          -2.9890370423260714e-15,
+          -149.8392236338276
+        ],
+        "forwardSpeed": 149.8392236338276,
+        "gear": 2,
+        "impact": {
+          "closingSpeed": 0.06575754693051827,
+          "normal": [
+            0,
+            -1
+          ],
+          "obstacleIndex": 0
+        }
+      },
+      {
+        "t": 1,
+        "position": [
+          -1.5794142207567373e-14,
+          1.28,
+          -144.17340835392378
+        ],
+        "velocity": [
+          -1.6997147573149408e-14,
+          -138.79595368951584
+        ],
+        "forwardSpeed": 138.79595368951584,
+        "gear": 6,
+        "impact": null
+      }
+    ],
+    "candidate": [
+      {
+        "t": 0.016666666666666666,
+        "position": [
+          1.3421628228042558e-19,
+          1.28,
+          -2.5
+        ],
+        "velocity": [
+          8.052976936825534e-18,
+          0.05999999999999339
+        ],
+        "forwardSpeed": -0.05999999999999339,
+        "gear": 1,
+        "impact": {
+          "closingSpeed": 0.005757546930536539,
+          "normal": [
+            0,
+            -1
+          ],
+          "obstacleIndex": 0
+        }
+      },
+      {
+        "t": 0.03333333333333333,
+        "position": [
+          3.9117083728866125e-19,
+          1.28,
+          -2.5
+        ],
+        "velocity": [
+          1.541727330049414e-17,
+          0
+        ],
+        "forwardSpeed": -1.8880714399030096e-33,
+        "gear": 1,
+        "impact": {
+          "closingSpeed": 0.12085247838869329,
+          "normal": [
+            0,
+            -1
+          ],
+          "obstacleIndex": 0
+        }
+      },
+      {
+        "t": 1,
+        "position": [
+          5.705732164112707e-17,
+          1.28,
+          -2.5
+        ],
+        "velocity": [
+          6.454205975062961e-17,
+          0
+        ],
+        "forwardSpeed": -7.904122688398577e-33,
+        "gear": 1,
+        "impact": {
+          "closingSpeed": 0.06575754693051827,
+          "normal": [
+            0,
+            -1
+          ],
+          "obstacleIndex": 0
+        }
+      }
+    ]
+  },
+  "harbor": {
+    "actual-published": {
+      "oppositeVelocityFrames": 268,
+      "oppositeMotorFrames": 268,
+      "negativePositionFrames": 268,
+      "maxSpeed": 22.553265842896977,
+      "maxMotorSpeed": 22.553265842896977
+    },
+    "adapter-published": {
+      "oppositeVelocityFrames": 268,
+      "oppositeMotorFrames": 268,
+      "negativePositionFrames": 268,
+      "maxSpeed": 22.553265842896977,
+      "maxMotorSpeed": 22.553265842896977
+    },
+    "adapter-candidate": {
+      "oppositeVelocityFrames": 239,
+      "oppositeMotorFrames": 0,
+      "negativePositionFrames": 239,
+      "maxSpeed": 8.000000000000078,
+      "maxMotorSpeed": 6.760431589057561
+    }
+  }
+}
