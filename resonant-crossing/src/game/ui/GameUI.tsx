@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useGame } from "@jgengine/react/hooks";
+import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HEROES } from "../entities/players/catalog";
 import { ROOMS, ROOM_COUNT } from "../rooms/catalog";
-import { duetStore } from "../stores";
-import { CHECKPOINT_KEY, PREFERENCES_KEY, readCheckpoint, readPreferences, writeLocal } from "../persistence";
+import { CALLOUTS, type CalloutId, duetStore } from "../stores";
+import { controlledHero } from "../runtime";
+import { DIR_ORDER } from "../types";
+import { PREFERENCES_KEY, readCheckpoint, readPreferences, writeCheckpoint, writeLocal } from "../persistence";
 
 const HINTS = [
   "Swap to Anchor. Move onto the amber plate in the upper corridor and drop a weight. Leave it there; send each hero to the matching exit ring.",
@@ -16,6 +18,8 @@ const HINTS = [
 export function GameUI() {
   const state = useStore(duetStore, s => s);
   const { commands } = useGame();
+  const active = useGameStore(ctx => controlledHero(ctx, ctx.player.userId));
+  const canSwap = useGameStore(ctx => ctx.player.possession.listOwned(ctx.player.userId).length > 1);
   const [checkpoint, setCheckpoint] = useState(readCheckpoint);
   const [preferences, setPreferences] = useState(readPreferences);
   const [settings, setSettings] = useState(false);
@@ -23,7 +27,11 @@ export function GameUI() {
   const [saveAvailable, setSaveAvailable] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
   const room = ROOMS[state.roomIndex] ?? ROOMS[0]!;
-  const hero = HEROES[state.active];
+  const hero = HEROES[active ?? state.active];
+  const completedRelays = state.latch.completedRelays ?? [];
+  const nextRelay = room.relays?.find(relay => !completedRelays.includes(relay.id));
+  const pendingSignals = nextRelay ? [...nextRelay.plates.filter(id => !state.pressedPlates.includes(id)).map(id => `weight ${id}`),
+    ...nextRelay.receivers.filter(id => !state.poweredReceivers.includes(id)).map(id => `light ${id}`)] : [];
   const modal = state.status === "ready" || state.status === "paused" || state.status === "complete";
   const run = (name: string, input: object = {}) => { commands.run(name, input); };
 
@@ -32,8 +40,8 @@ export function GameUI() {
     setHint(false);
     if (state.status !== "playing" && state.status !== "complete") return;
     const next = { version: 1 as const, roomIndex: state.roomIndex, complete: state.status === "complete" };
-    setSaveAvailable(writeLocal(CHECKPOINT_KEY, next));
-    setCheckpoint(next);
+    setSaveAvailable(writeCheckpoint(next));
+    setCheckpoint(readCheckpoint() ?? next);
   }, [state.roomIndex, state.status]);
   useEffect(() => {
     if (!modal) { setSettings(false); return; }
@@ -73,19 +81,27 @@ export function GameUI() {
       {room.receivers.length > 0 && <span data-lit={state.poweredReceivers.length === room.receivers.length}>✦ Light {state.poweredReceivers.length}/{room.receivers.length}</span>}
       <span data-lit={state.openGates.length === room.gates.length}>▥ Gates {state.openGates.length}/{room.gates.length}</span>
       <span data-lit={state.exits.length === 2}>◎ Exits {state.exits.length}/2</span>
+      {(room.relays?.length ?? 0) > 0 && <span data-lit={completedRelays.length === room.relays!.length}>↔ Relays {completedRelays.length}/{room.relays!.length}</span>}
+      {state.recoveries > 0 && <span>↺ Recoveries {state.recoveries}</span>}
     </div>
+    {state.status === "playing" && nextRelay && <div className="rc-panel rc-circuit" role="status">
+      <strong>{nextRelay.label}</strong><span>{pendingSignals.length ? `Waiting for ${pendingSignals.join(" + ")}` : "Circuit ready — hold both signals."}</span>
+    </div>}
     {state.toast && <div className="rc-toast" role="status">{state.toast}</div>}
     {state.status === "solved" && <div className="rc-clear" role="status"><span>Harmony restored</span><strong>Chamber complete</strong></div>}
     {state.status === "playing" && <footer className="rc-footer">
       <div className="rc-hero rc-panel" style={{ borderColor: hero.color }}>
         <span className="rc-eyebrow">Controlling</span><strong style={{ color: hero.color }}>{hero.name}</strong>
         <span className="rc-subtitle">{hero.title}</span>
-        <button className="rc-primary" onClick={() => run("ability")}>{hero.ability} <kbd>E</kbd></button>
-        {state.active === "lumen" && <button className="rc-quiet" onClick={() => run("ability", { dir: "east" })}>Aim prism east →</button>}
-        <div className="rc-actions"><button onClick={() => run("swap")}>Swap hero <kbd>Q</kbd></button>
+        {room.roleHints?.[active ?? state.active] && <p className="rc-hint">{room.roleHints[active ?? state.active]}</p>}
+        <button className="rc-primary" disabled={active === null} onClick={() => run("ability")}>{hero.ability} <kbd>E</kbd></button>
+        {active === "lumen" && <div className="rc-actions" aria-label="Aim prism">{DIR_ORDER.map(dir => <button key={dir} aria-label={`Aim prism ${dir}`} onClick={() => run("ability", { dir })}>{({north:"↑",east:"→",south:"↓",west:"←"})[dir]}</button>)}</div>}
+        <div className="rc-actions"><button disabled={!canSwap} onClick={() => run("swap")}>{canSwap ? "Swap hero" : "Your hero seat"} <kbd>Q</kbd></button>
           <button onClick={() => run("reset")}>Reset <kbd>R</kbd></button></div>
         {preferences.showHints && <button className="rc-hint-button" aria-expanded={hint} onClick={() => setHint(!hint)}> {hint ? "Hide clue" : "Need a clue?"}</button>}
-        {hint && <p className="rc-hint">{HINTS[state.roomIndex]}</p>}
+        {hint && <p className="rc-hint">{room.hint ?? HINTS[state.roomIndex]}</p>}
+        <div className="rc-actions" aria-label="Team callouts">{(Object.keys(CALLOUTS) as CalloutId[]).map(id => <button key={id} disabled={active === null} aria-label={CALLOUTS[id]} onClick={() => run("duet.callout", { id })}>{id === "go" ? "Go!" : id[0]!.toUpperCase() + id.slice(1)}</button>)}</div>
+        {state.callout && <p className="rc-hint" role="status">{HEROES[state.callout.hero].name}: {CALLOUTS[state.callout.id]}</p>}
       </div>
       <div className="rc-pad rc-panel" aria-label="Precision movement">
         <span className="rc-eyebrow">Move · WASD / arrows</span>
@@ -104,7 +120,7 @@ export function GameUI() {
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }}>
       <div className="rc-emblem" aria-hidden="true"><span>✦</span><span>◆</span></div>
-      <span className="rc-eyebrow">{state.status === "complete" ? "Four chambers · one harmony" : "A two-hero puzzle expedition"}</span>
+      <span className="rc-eyebrow">{state.status === "complete" ? `${ROOM_COUNT} chambers · one harmony` : "A two-hero puzzle expedition"}</span>
       <h2>{settings ? "Your observatory" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Take a breath." : "Two keys, one door."}</h2>
       {settings ? <div className="rc-settings">
         <label><input type="checkbox" checked={preferences.reducedMotion} onChange={e => updatePreference("reducedMotion", e.target.checked)} /> Reduce decorative motion</label>
@@ -113,7 +129,7 @@ export function GameUI() {
         <button className="rc-primary" onClick={() => setSettings(false)}>Back</button>
       </div> : <>
         <p>{state.status === "ready" ? "Light bends. Weight holds. Guide Lumen and Anchor through a clockwork observatory floating among the stars." : state.status === "paused" ? "Your circuit is held exactly where you left it." : "Lumen and Anchor restored the observatory together. Every crossing needed both."}</p>
-        {state.status === "ready" && <div className="rc-intro"><p><b className="rc-cyan">✦ Lumen</b> plants a prism in the direction of travel.</p><p><b className="rc-amber">◆ Anchor</b> leaves a weight to hold pressure plates.</p><p>Move with WASD, arrows or the direction buttons. Q swaps heroes, E uses a device. Reach both matching exit rings.</p></div>}
+        {state.status === "ready" && <div className="rc-intro"><p><b className="rc-cyan">✦ Lumen</b> plants one prism; aiming again relocates it.</p><p><b className="rc-amber">◆ Anchor</b> leaves one weight; dropping again moves it.</p><p>Later circuits need light and weight together. Secure each relay before moving devices. Use Ready, Hold and Go to coordinate; live spikes return you to safe ground.</p><p>Move with WASD, arrows or the direction buttons. Q swaps heroes in solo play, E uses a device. Reach both matching exit rings.</p></div>}
         {state.status === "ready" && checkpoint && !checkpoint.complete && <button className="rc-primary" onClick={() => begin(checkpoint.roomIndex)}>Continue · {ROOMS[checkpoint.roomIndex]!.name}</button>}
         <button className={state.status === "ready" && checkpoint && !checkpoint.complete ? "rc-quiet" : "rc-primary"}
           onClick={() => state.status === "paused" ? run("pause") : begin()}>{state.status === "paused" ? "Resume expedition" : state.status === "complete" ? "Play again" : "Begin expedition"}</button>
