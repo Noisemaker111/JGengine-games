@@ -9,6 +9,8 @@ import {
   noteHit,
   noteHurt,
   notePlayerHealth,
+  notePlayerShield,
+  playerShieldSignal,
   noteShot,
   recoilAt,
   resetFeel,
@@ -65,4 +67,26 @@ describe("feel signals", () => {
     notePlayerHealth(2000, 40);
     expect(lastHurtAtMs()).toBe(NEVER_MS);
   });
+});
+
+test("pellet batches retain confirmed kills and shield breaks", () => {
+  resetFeel();
+  noteHit(200, false, true, true, true);
+  noteHit(200, true, false, false, false);
+  expect(lastHit()).toMatchObject({ kill: true, crit: true, shieldBreak: true });
+  noteHit(201, false, false);
+  expect(lastHit().kill).toBe(false);
+});
+
+test("shield feedback observes damage and break independently from health", () => {
+  resetFeel();
+  notePlayerShield(10, 60);
+  expect(playerShieldSignal().atMs).toBe(NEVER_MS);
+  notePlayerShield(20, 25);
+  expect(playerShieldSignal()).toEqual({ atMs: 20, breakAtMs: NEVER_MS });
+  notePlayerShield(30, 0);
+  expect(playerShieldSignal()).toEqual({ atMs: 30, breakAtMs: 30 });
+  notePlayerShield(40, 10);
+  expect(playerShieldSignal().atMs).toBe(30);
+  resetFeel();
 });

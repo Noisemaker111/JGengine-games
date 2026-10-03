@@ -57,6 +57,25 @@ const DT = 1 / 60;
 const STEP_MS = DT * 1000;
 
 describe("tickShields", () => {
+  test("quickcycle gives up burst capacity but recovers before a siege capacitor", () => {
+    const quick = makeCtx({ p1: { shield: 42, shieldMax: 42 } });
+    const siege = makeCtx({ p1: { shield: 84, shieldMax: 84 } });
+    tickShields(quick.ctx, 0, DT, 1, "skirmish");
+    tickShields(siege.ctx, 0, DT, 1, "bulwark");
+    quick.damage("p1", "shield", 30);
+    siege.damage("p1", "shield", 30);
+    for (let i = 1; i <= 180; i += 1) {
+      tickShields(quick.ctx, i * STEP_MS, DT, 1, "skirmish");
+      tickShields(siege.ctx, i * STEP_MS, DT, 1, "bulwark");
+    }
+    expect(quick.shieldOf("p1")).toBeGreaterThan(12);
+    expect(siege.shieldOf("p1")).toBe(54);
+    quick.damage("p1", "health", 10);
+    const held = quick.shieldOf("p1");
+    for (let i = 181; i <= 240; i += 1) tickShields(quick.ctx, i * STEP_MS, DT, 1, "skirmish");
+    expect(quick.shieldOf("p1")).toBe(held);
+  });
+
   test("holds regen for the delay after a hit, then refills", () => {
     const { ctx, shieldOf, damage } = makeCtx({ p1: { shield: 100, shieldMax: 100 } });
     let now = 0;

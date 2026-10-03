@@ -28,6 +28,8 @@ export const worldObjects: readonly WorldObjectDef[] = [
   { id: "bone_arch", name: "Scrap Bone Arch", color: "#e0d6c2", height: 2.6 },
   { id: "reactor_gate", name: "Reactor Gate", color: "#3a2c4a", height: 8 },
   { id: "cover_crate", name: "Cover Crate", color: "#6b5a44", height: 1.1 },
+  { id: "reload_baffle", name: "Copper Reload Baffle", color: "#be8459", height: 2.6 },
+  { id: "low_cover", name: "Low Salvage Cover", color: "#b9c6ca", height: 1.1 },
   { id: "banner_pole", name: "Scrapjack Banner", color: "#7a2c1e", height: 3.2 },
   { id: "wind_turbine", name: "Harvest Turbine", color: "#b3bec9", height: 7 },
 ];

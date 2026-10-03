@@ -4,6 +4,7 @@ import {
   ELEMENT_PREFIX,
   FAMILY_BASES,
   LEGENDARY_NAMES,
+  LEGENDARY_TUNING,
   LEVEL_DAMAGE_GROWTH,
   MANUFACTURERS,
   RARITY_TIERS,
@@ -38,6 +39,8 @@ export function gunProvenance(id: string): GenProvenance | undefined {
 
 export function registerGun(def: GunDef): GunDef {
   gunRegistry.set(def.id, def);
+  const serial = /^gun_(\d+)_/.exec(def.id)?.[1];
+  if (serial !== undefined) gunSerial = Math.max(gunSerial, Number(serial));
   return def;
 }
 
@@ -128,6 +131,7 @@ export function rollGun(rng: () => number, level: number, options: RollGunOption
   const maker = rolled.result.values.maker as { manufacturer: Manufacturer; legendaryName: string | null };
   const manufacturer = maker.manufacturer;
   const legendaryName = maker.legendaryName;
+  const tuning = legendaryName === null ? undefined : LEGENDARY_TUNING[legendaryName];
 
   let element: GunElement = "none";
   if (manufacturer.neverElemental !== true) {
@@ -138,8 +142,8 @@ export function rollGun(rng: () => number, level: number, options: RollGunOption
   const gunLevel = options.level ?? level;
   const levelMult = LEVEL_DAMAGE_GROWTH ** (gunLevel - 1);
   const jitter = 0.92 + rng() * 0.16;
-  const damage = Math.max(1, Math.round(base.stats.damage * tier.mult * manufacturer.damage * levelMult * jitter));
-  const magSize = Math.max(2, Math.round(base.magSize * manufacturer.mag));
+  const damage = Math.max(1, Math.round(base.stats.damage * tier.mult * manufacturer.damage * levelMult * jitter * (tuning?.damage ?? 1)));
+  const magSize = Math.max(2, Math.round(base.magSize * manufacturer.mag * (tuning?.mag ?? 1)));
   const elementPrefix = element === "none" ? "" : `${ELEMENT_PREFIX[element]} `;
   const name = legendaryName !== null
     ? `${elementPrefix}${legendaryName}`
@@ -157,20 +161,20 @@ export function rollGun(rng: () => number, level: number, options: RollGunOption
     level: gunLevel,
     ammo: base.ammo,
     auto: base.auto,
-    ammoPerShot: base.ammoPerShot,
+    ammoPerShot: tuning?.ammoPerShot ?? base.ammoPerShot,
     magSize,
-    reloadMs: Math.round(base.reloadMs * manufacturer.reload),
+    reloadMs: Math.round(base.reloadMs * manufacturer.reload * (tuning?.reload ?? 1)),
     elementChance: procChanceFor(element, tier),
     elementDps: Math.max(1, Math.round(damage * 0.35)),
     use: "fireGun",
     weapon: {
       damage,
-      range: base.stats.range,
+      range: base.stats.range * (tuning?.range ?? 1),
       spread: Math.round(base.stats.spread * manufacturer.spread * (rarity === "legendary" ? 0.7 : 1) * 100) / 100,
-      fireIntervalMs: Math.max(60, Math.round(base.stats.fireIntervalMs * manufacturer.interval * (2 - tier.mult))),
+      fireIntervalMs: Math.max(60, Math.round(base.stats.fireIntervalMs * manufacturer.interval / Math.sqrt(tier.mult) * (tuning?.interval ?? 1))),
       critChance: Math.min(0.5, base.stats.critChance + (tier.mult - 1) * 0.08),
       critMult: base.stats.critMult,
-      ...(base.stats.pellets !== undefined ? { pellets: base.stats.pellets } : {}),
+      ...(base.stats.pellets !== undefined ? { pellets: tuning?.pellets ?? base.stats.pellets } : {}),
       ...(base.stats.projectile !== undefined ? { projectile: base.stats.projectile } : {}),
       ...(element === "explosive" && base.family !== "launcher" ? { explosion: { radius: 2.2 } } : {}),
       ...(base.stats.explosion !== undefined ? { explosion: base.stats.explosion } : {}),

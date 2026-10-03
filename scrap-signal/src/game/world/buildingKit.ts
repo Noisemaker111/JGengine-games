@@ -63,8 +63,19 @@ export const RUIN_SETTLEMENT_KIT: BuildingKit = defineBuildingKit({
   omit: ["clothesline", "awning"],
 });
 
-/** Settlement art per zone style; `ZoneDef.settlement.style` indexes it. */
-export const SETTLEMENT_KITS: Record<"desert" | "ruin", BuildingKit> = {
+export const REACTOR_SETTLEMENT_KIT: BuildingKit = defineBuildingKit({
+  ...RUIN_SETTLEMENT_KIT,
+  id: "ferralon-settlement-reactor",
+  parts: {
+    ...RUIN_SETTLEMENT_KIT.parts,
+    wall: stretched(["WallBand_Straight_Broken", "WallAstra_Straight_Flat", "WallAstra_Straight"]),
+    window: stretched(["WallWindow_Straight", "WallAstra_Straight_Flat_Window"]),
+  },
+});
+
+/** Settlement art selected by the authored zone override or its default style. */
+export const SETTLEMENT_KITS: Record<string, BuildingKit> = {
   desert: DESERT_SETTLEMENT_KIT,
   ruin: RUIN_SETTLEMENT_KIT,
+  reactor: REACTOR_SETTLEMENT_KIT,
 };

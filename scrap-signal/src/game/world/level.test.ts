@@ -1,8 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { worldObjectById } from "../objects/catalog";
+import { enemyById } from "../entities/enemies/catalog";
+import { fittedObjectColliders } from "@jgengine/core/scene/colliders";
+import { createSceneRaycast } from "@jgengine/core/scene/sceneRaycast";
+import { objectModels } from "./models";
 import { terrainField } from "../../world";
 import {
   AUTHORED_PIECES,
+  DEAD_AIR_SITE,
+  DEAD_AIR_SPAWNS,
   NPC_PLACEMENTS,
   ROUTES,
   SIDE_POIS,
@@ -16,7 +22,7 @@ const pieceById = new Map(AUTHORED_PIECES.map((piece) => [piece.instanceId, piec
 
 describe("authored document", () => {
   test("every placed prop is a document marker with a resolvable catalog id", () => {
-    expect(AUTHORED_PIECES.length).toBe(403);
+    expect(AUTHORED_PIECES.length).toBe(408);
     for (const piece of AUTHORED_PIECES) expect(worldObjectById(piece.catalogId)).toBeDefined();
   });
 
@@ -146,6 +152,61 @@ describe("set pieces", () => {
     const hub = ZONES.find((zone) => zone.id === "arid_badlands")!;
     for (const npc of NPC_PLACEMENTS) {
       expect(Math.hypot(npc.x - hub.center.x, npc.z - hub.center.z)).toBeLessThan(hub.flattenRadius);
+    }
+  });
+});
+
+describe("Dead Air tactical arena", () => {
+  test("wave entries are authored outside the console and stay out of the static prop plan", () => {
+    expect(DEAD_AIR_SPAWNS.length).toBe(7);
+    for (const spawn of DEAD_AIR_SPAWNS) {
+      expect(enemyById(spawn.catalogId)).toBeDefined();
+      expect(Math.hypot(spawn.x - DEAD_AIR_SITE.x, spawn.z - DEAD_AIR_SITE.z)).toBeGreaterThan(14);
+      expect(Math.hypot(spawn.x - DEAD_AIR_SITE.x, spawn.z - DEAD_AIR_SITE.z)).toBeLessThan(32);
+      expect(pieceById.has(spawn.id)).toBe(false);
+      for (const cover of AUTHORED_PIECES.filter((piece) => piece.instanceId.startsWith("dead_air_cover_"))) {
+        expect(Math.hypot(spawn.x - cover.x, spawn.z - cover.z)).toBeGreaterThan(3);
+      }
+    }
+    expect(DEAD_AIR_SPAWNS.filter((spawn) => spawn.wave === 3).map((spawn) => spawn.catalogId)).toEqual(["husk", "marauder", "loader"]);
+  });
+
+  test("reload shelter and crouch cover have matching physical model bodies", () => {
+    const tall = fittedObjectColliders(objectModels.reload_baffle!);
+    const low = fittedObjectColliders(objectModels.low_cover!);
+    expect(tall?.body?.shape.kind).toBe("aabb");
+    expect(low?.body?.shape.kind).toBe("aabb");
+    if (tall?.body?.shape.kind !== "aabb" || low?.body?.shape.kind !== "aabb") throw new Error("Missing cover bodies");
+    expect(tall.body.shape.halfExtents[1] * 2).toBeCloseTo(2.6);
+    expect(low.body.shape.halfExtents[1] * 2).toBeCloseTo(1.1);
+    expect(tall.body.blocks).not.toBe(false);
+  });
+
+  test("the resupply and reload loops offer different sides of the objective", () => {
+    const reload = authoredScene.paths.find((path) => path.id === "dead_air_west_route")!;
+    const resupply = authoredScene.paths.find((path) => path.id === "dead_air_east_route")!;
+    expect(reload.meta?.role).toBe("reload");
+    expect(resupply.meta?.role).toBe("resupply");
+    expect(Math.min(...reload.points.map((point) => point.x))).toBeLessThan(DEAD_AIR_SITE.x - 10);
+    expect(Math.max(...resupply.points.map((point) => point.x))).toBeGreaterThan(DEAD_AIR_SITE.x + 15);
+    const ammo = authoredScene.markers.find((marker) => marker.id === "chest_rustflat_waste_ammo_1")!;
+    expect(Math.min(...resupply.points.map((point) => Math.hypot(point.x - ammo.position.x, point.z - ammo.position.z)))).toBeLessThan(3);
+  });
+
+  test("native shot queries stop at tall shelter while standing fire clears low cover", () => {
+    for (const id of ["dead_air_cover_west_a", "dead_air_cover_east"]) {
+      const piece = pieceById.get(id)!;
+      const marker = authoredScene.markers.find((entry) => entry.id === id)!;
+      expect(marker.meta?.verticalOffset).toBe(-0.5);
+      const query = createSceneRaycast({ objects: {
+        list: () => [{ instanceId: id, catalogId: piece.catalogId, position: [piece.x, 0, piece.z], rotationY: piece.rotation ?? 0 }],
+        collidersOf: () => fittedObjectColliders(objectModels[piece.catalogId]!),
+      } });
+      const standing = query.raycast({ origin: [piece.x - 5, 1.7, piece.z], direction: [1, 0, 0], maxDistance: 10 });
+      const crouched = query.raycast({ origin: [piece.x - 5, 0.85, piece.z], direction: [1, 0, 0], maxDistance: 10 });
+      expect(crouched?.instanceId).toBe(id);
+      if (piece.catalogId === "reload_baffle") expect(standing?.instanceId).toBe(id);
+      else expect(standing).toBeNull();
     }
   });
 });

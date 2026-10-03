@@ -2,6 +2,7 @@ import { createRegenShield, type RegenShield } from "@jgengine/core/combat/regen
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { bonus } from "../characters";
+import { shieldProfileById, type ShieldProfileId } from "../progression";
 
 /**
  * Per-session shield regen, one pool-backed `RegenShield` per entity — reclaimed with the context
@@ -45,12 +46,13 @@ function shieldFor(ctx: GameContext, entityId: string): RegenShield {
   return created;
 }
 
-export function tickShields(ctx: GameContext, nowMs: number, dt: number, regenBonus = 1): void {
+export function tickShields(ctx: GameContext, nowMs: number, dt: number, regenBonus = 1, profileId: ShieldProfileId = "balanced"): void {
   const healthWatch = healthWatchOf(ctx);
   for (const entity of ctx.scene.entity.list()) {
     const shield = ctx.scene.entity.stats.get(entity.id, "shield");
     if (shield === null || shield.max <= 0) continue;
     const isLocalPlayer = entity.id === ctx.player.userId;
+    const profile = shieldProfileById(isLocalPlayer ? profileId : "balanced")!;
     const pool = shieldFor(ctx, entity.id);
 
     // A hit that lands on health (shield already down) must stall regen too — the shield cannot
@@ -63,9 +65,9 @@ export function tickShields(ctx: GameContext, nowMs: number, dt: number, regenBo
     const wasSuppressed = pool.suppressed();
     // Rate and delay are re-read every tick: both are talent-derived and change mid-run.
     pool.tick(dt, {
-      regenPerSecond: Math.max(6, shield.max * 0.12) * regenBonus * (isLocalPlayer ? 1 + bonus("shieldRegen") : 1),
+      regenPerSecond: Math.max(6, shield.max * profile.regenFraction) * regenBonus * (isLocalPlayer ? 1 + bonus("shieldRegen") : 1),
       regenDelayMs: isLocalPlayer
-        ? SHIELD_REGEN_DELAY_MS * (1 - Math.min(0.6, bonus("shieldDelay")))
+        ? profile.delayMs * (1 - Math.min(0.6, bonus("shieldDelay")))
         : SHIELD_REGEN_DELAY_MS,
     });
     // Shield damage is detected by the pool itself; surface the player's hits for the damage vignette.

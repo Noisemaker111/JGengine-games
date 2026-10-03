@@ -9,8 +9,10 @@ export const keybinds: ActionCodesMap = {
   sprint: ["ShiftLeft"],
   crouch: { hold: ["KeyC"] },
   interact: ["KeyE"],
-  fire: { hold: ["mouse0"], repeatMs: 30 },
-  aim: { hold: ["mouse2"] },
+  // Keyboard alternatives remain usable on published shell 0.18.1, whose
+  // primary-click fallback fires but does not feed held mouse action edges.
+  fire: { hold: ["mouse0", "KeyF"], repeatMs: 30 },
+  aim: { hold: ["mouse2", "KeyV"] },
   reload: ["KeyR"],
   throwGrenade: ["KeyG"],
   useHealthVial: ["KeyQ"],

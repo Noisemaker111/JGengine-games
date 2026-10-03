@@ -1,10 +1,12 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "bun:test";
-import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
+import { resolveStructureBuildings, summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
+import { resolveBuildingKitPart, type BuildingKit } from "@jgengine/core/world/buildingKit";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { terrainField, world } from "../../world";
 import { MAIN_QUEST_IDS, quests } from "../quests/catalog";
-import { SETTLEMENT_KITS } from "./buildingKit";
+import { RUIN_SETTLEMENT_KIT, SETTLEMENT_KITS } from "./buildingKit";
 import { AUTHORED_PIECES, ROUTES, SPUR_ROUTES, authoredScene } from "./level";
 import { entityModels, objectModels } from "./models";
 import { BOLT_POS, BOLT_YAW, PLAYER_SPAWN, PLAYER_SPAWN_YAW } from "./sites";
@@ -120,12 +122,13 @@ describe("scrap-signal world", () => {
     expect(summary.counts.buildings).toBe(settled.reduce((sum, zone) => sum + zone.settlement!.count, 0));
   });
 
-  test("every settlement carries the kit its zone style names", () => {
+  test("every settlement carries its authored kit override or the zone style default", () => {
     const settled = ZONES.filter((zone) => zone.settlement !== undefined);
     const groups = world.structures ?? [];
     expect(groups.length).toBe(settled.length);
     for (const [index, zone] of settled.entries()) {
-      expect(groups[index]!.kit?.id).toBe(SETTLEMENT_KITS[zone.settlement!.style].id);
+      const kitId = authoredScene.volumes.find((volume) => volume.id === `zone_${zone.id}`)?.meta?.settlementKit ?? zone.settlement!.style;
+      expect(groups[index]!.kit?.id).toBe(SETTLEMENT_KITS[String(kitId)]!.id);
     }
   });
 
@@ -214,6 +217,35 @@ describe("settlement building kits", () => {
     for (const kit of Object.values(SETTLEMENT_KITS)) expect(kit.omit).toContain("clothesline");
   });
 
+  test("reactor panels cut rendered triangles without changing building placements or the starting ruins", () => {
+    const groups = world.structures ?? [];
+    const reactor = groups.find((group) => group.kit?.id === "ferralon-settlement-reactor")!;
+    const before = resolveStructureBuildings({ ...reactor, kit: RUIN_SETTLEMENT_KIT });
+    const after = resolveStructureBuildings(reactor);
+    expect(after).toEqual(before);
+    expect(groups[0]!.kit).toBe(RUIN_SETTLEMENT_KIT);
+    const triangleCache = new Map<string, number>();
+    const triangles = (url: string) => {
+      const cached = triangleCache.get(url);
+      if (cached !== undefined) return cached;
+      const bytes = readFileSync(join(publicRoot, url));
+      const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString()) as {
+        accessors: { count: number }[];
+        meshes: { primitives: { indices?: number; attributes: { POSITION: number } }[] }[];
+      };
+      const count = gltf.meshes.reduce((sum, mesh) => sum + mesh.primitives.reduce((subtotal, primitive) =>
+        subtotal + gltf.accessors[primitive.indices ?? primitive.attributes.POSITION]!.count / 3, 0), 0);
+      triangleCache.set(url, count);
+      return count;
+    };
+    const renderedTriangles = (kit: BuildingKit) => after.reduce((sum, building) => sum + building.parts.reduce((subtotal, part) => {
+      const binding = resolveBuildingKitPart(kit, part.kind, part.kit);
+      return subtotal + (binding.type === "model" ? triangles(binding.part.model) : binding.type === "box" ? 12 : 0);
+    }, 0), 0);
+    expect(renderedTriangles(reactor.kit!)).toBeLessThan(renderedTriangles(RUIN_SETTLEMENT_KIT) / 4);
+    expect(renderedTriangles(reactor.kit!)).toBeLessThan(350_000);
+  });
+
   // The kit's models were checked here from the start; the object catalog's were not, and that is
   // where a broken reference would show up as a magenta placeholder in the starting settlement.
   test("every object and entity model the game mounts is a file it actually serves", () => {
@@ -223,5 +255,22 @@ describe("settlement building kits", () => {
       expect(config.url.startsWith("/models/")).toBe(true);
       expect(existsSync(join(publicRoot, config.url))).toBe(true);
     }
+  });
+
+  test("every weapon attachment resolves a node on its loaded rig", async () => {
+    const loader = new GLTFLoader();
+    loader.register(() => ({ name: "test-no-textures", loadTexture: () => Promise.resolve(null) }));
+    let checked = 0;
+    for (const model of Object.values(entityModels)) {
+      if (model.attachments === undefined || model.attachments.length === 0) continue;
+      const bytes = readFileSync(join(publicRoot, model.url));
+      const binary = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+      const gltf = await loader.parseAsync(binary, "");
+      for (const attachment of model.attachments) {
+        expect(gltf.scene.getObjectByName(attachment.slot)).toBeDefined();
+        checked += 1;
+      }
+    }
+    expect(checked).toBeGreaterThan(3);
   });
 });

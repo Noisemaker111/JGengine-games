@@ -1,5 +1,6 @@
-import { createMagazine, type Magazine, type MagazineReserve } from "@jgengine/core/combat";
+import { createMagazine, type Magazine, type MagazineReserve, type MagazineSnapshot } from "@jgengine/core/combat";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { defineStore } from "@jgengine/core/store/defineStore";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { AMMO_STAT_IDS } from "../ammo";
 import { bonus } from "../characters";
@@ -44,9 +45,12 @@ interface MagEntry {
   mag: Magazine;
   capacity: number;
   reloadMs: number;
+  gun: GunDef;
 }
 
 /** Per-session live magazine state, keyed by gun id — reclaimed with the context (#632). */
+export const magazineStateStore = defineStore<Record<string, MagazineSnapshot>>("magazines", () => ({}));
+
 const magazinesOf = perContext(() => new Map<string, MagEntry>());
 
 function buildEntry(ctx: GameContext, gun: GunDef, capacity: number, reloadMs: number, loaded: number): MagEntry {
@@ -54,6 +58,7 @@ function buildEntry(ctx: GameContext, gun: GunDef, capacity: number, reloadMs: n
     mag: createMagazine({ capacity, reloadMs, loaded, reserve: ammoReserve(ctx, gun) }),
     capacity,
     reloadMs,
+    gun,
   };
 }
 
@@ -73,6 +78,8 @@ function magFor(ctx: GameContext, gun: GunDef): Magazine {
   let entry = magazines.get(gun.id);
   if (entry === undefined) {
     entry = buildEntry(ctx, gun, capacity, reloadMs, capacity);
+    const saved = magazineStateStore.read(ctx)[gun.id];
+    if (saved) entry.mag.restore({ ...saved, reserve: entry.mag.reserve() });
     magazines.set(gun.id, entry);
     return entry.mag;
   }
@@ -95,15 +102,52 @@ export function isReloading(ctx: GameContext, gun: GunDef): boolean {
 
 /** Begin reloading a gun; returns false when already full, out of reserve, or already reloading. */
 export function startReload(ctx: GameContext, gun: GunDef): boolean {
-  return magFor(ctx, gun).startReload();
+  const started = magFor(ctx, gun).startReload();
+  if (started) syncMagazine(ctx, gun);
+  return started;
 }
 
 /** Advance every live magazine's reload timer by `dtSeconds`, completing refills from the ammo reserve. */
 export function tickReloads(ctx: GameContext, dtSeconds: number): void {
-  for (const entry of magazinesOf(ctx).values()) entry.mag.tick(dtSeconds);
+  for (const entry of magazinesOf(ctx).values()) {
+    if (!entry.mag.isReloading()) continue;
+    entry.mag.tick(dtSeconds);
+    syncMagazine(ctx, entry.gun);
+  }
 }
 
 /** Spend a gun's per-shot ammo from the magazine; returns false without effect when insufficient. */
 export function consumeRound(ctx: GameContext, gun: GunDef): boolean {
-  return magFor(ctx, gun).fire(gun.ammoPerShot);
+  const fired = magFor(ctx, gun).fire(gun.ammoPerShot);
+  if (fired) syncMagazine(ctx, gun);
+  return fired;
+}
+
+/** Store plain magazine state alongside the world's authoritative shared ammo pool. */
+function syncMagazine(ctx: GameContext, gun: GunDef): void {
+  const snapshot = magFor(ctx, gun).snapshot();
+  magazineStateStore.update(ctx, (state) => ({ ...state, [gun.id]: snapshot }));
+}
+
+export function reloadFraction(ctx: GameContext, gun: GunDef): number {
+  return magFor(ctx, gun).reloadFraction();
+}
+
+/** Cancel retains every loaded round and spends no reserve; switching cannot reload a stowed gun. */
+export function cancelReload(ctx: GameContext, gun: GunDef): boolean {
+  const mag = magFor(ctx, gun);
+  if (!mag.isReloading()) return false;
+  mag.cancelReload();
+  syncMagazine(ctx, gun);
+  return true;
+}
+
+/** A second deliberate reload press aborts the timer. */
+export function toggleReload(ctx: GameContext, gun: GunDef): boolean {
+  return isReloading(ctx, gun) ? cancelReload(ctx, gun) : startReload(ctx, gun);
+}
+
+/** Clear only closure state before loading the world; decoded store state hydrates lazily. */
+export function resetMagazines(ctx: GameContext): void {
+  magazinesOf(ctx).clear();
 }

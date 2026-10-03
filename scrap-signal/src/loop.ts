@@ -2,12 +2,17 @@ import { loadSavedProgress } from "./game/saveCompatibility";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase } from "@jgengine/core/game/gamePhase";
+import { setGamePhase } from "./game/phase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
-import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
+import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth, notePlayerShield } from "./game/feel";
+import { tickWeaponHandling, resetWeaponHandling } from "./game/combatFeel";
+import { rememberGun, restoreGuns } from "./game/lootPersistence";
+import { advanceGunDrought } from "./game/progression";
+import { installCombatProbe } from "./game/combatProbe";
 import { tickEnemies } from "./game/entities/enemies/ai";
 import { enemyById, levelXpFor } from "./game/entities/enemies/catalog";
 import { lootTables } from "./game/entities/enemies/loot-tables";
@@ -22,6 +27,7 @@ import {
   tickDots,
   tickReloads,
   tickShields,
+  resetMagazines,
 } from "./game/handroll";
 import { itemUseHandlers } from "./game/items/use-handlers";
 import { loadouts } from "./game/loadouts";
@@ -35,6 +41,7 @@ import {
   ruskDownStore,
   reactorOpenStore,
   selectedSlotStore,
+  progressionStore,
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
@@ -54,20 +61,31 @@ function deathAnchor(ctx: GameContext, event: EntityDiedEvent): readonly [number
 function dropGunAt(ctx: GameContext, event: EntityDiedEvent, anchor: readonly [number, number, number], guaranteed = 0): void {
   const def = enemyById(event.catalogId);
   if (def === undefined) return;
-  const rolls = guaranteed + (dropRng() < def.gunDropChance ? 1 : 0);
+  const rolled = dropRng() < def.gunDropChance;
+  const progress = progressionStore.read(ctx);
+  const drought = advanceGunDrought(progress.gunDrought, rolled || guaranteed > 0);
+  progressionStore.write(ctx, { ...progress, gunDrought: drought.gunDrought });
+  const rolls = guaranteed + (rolled || drought.guaranteed ? 1 : 0);
   if (rolls === 0) return;
-  const level = Math.max(1, zoneLevelAt(anchor[0], anchor[2]) + Math.floor(dropRng() * 3) - 1);
+  const sourceLevel = event.instanceId.startsWith("dead_air_") ? 1 : zoneLevelAt(anchor[0], anchor[2]);
+  const level = Math.max(1, sourceLevel + Math.floor(dropRng() * 3) - 1);
   for (let index = 0; index < rolls; index += 1) {
     const gun = rollGun(dropRng, level, {
       luck: def.gunLuck,
       ...(guaranteed > 0 && index < guaranteed ? { rarity: "legendary" as const } : {}),
     });
+    rememberGun(ctx, gun.id);
     ctx.scene.worldItem.spawn({
       itemId: gun.id,
       position: [anchor[0] + (dropRng() - 0.5) * 3, anchor[1], anchor[2] + (dropRng() - 0.5) * 3],
       rarity: gun.rarity,
       baseType: gun.family,
       source: "kill",
+    });
+    if (drought.guaranteed) ctx.scene.worldItem.spawn({
+      itemId: `ammo_${gun.ammo}_pack`,
+      position: [anchor[0] + 0.6, anchor[1], anchor[2] + 0.6],
+      source: "salvage",
     });
   }
 }
@@ -94,7 +112,8 @@ function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   ctx.game.audio.play("enemy_die", deathAt);
   if (event.reason.kind === "player_kill" && event.reason.killerUserId === userId) {
     const anchor = deathAt;
-    grantXp(ctx, userId, levelXpFor(enemy.xp, zoneLevelAt(anchor[0], anchor[2])));
+    const sourceLevel = event.instanceId.startsWith("dead_air_") ? 1 : zoneLevelAt(anchor[0], anchor[2]);
+    grantXp(ctx, userId, levelXpFor(enemy.xp, sourceLevel));
     grantCores(ctx, event);
     if (enemy.id === "foundry_heart") {
       reactorOpenStore.write(ctx, { atMs: ctx.time.now() * 1000 });
@@ -235,6 +254,7 @@ function onInit(ctx: GameContext): void {
 
   startAmbience(ctx);
   setupWorld(ctx);
+  installCombatProbe(ctx);
   ctx.time.every(RESPAWN_SWEEP_SECONDS, () => respawnClusters(ctx));
 }
 
@@ -265,7 +285,10 @@ function onNewPlayer(ctx: GameContext): void {
  * select — but never override a phase the capture harness's `character.pick` may have set concurrently.
  */
 async function resumeOrStart(ctx: GameContext): Promise<void> {
+  resetMagazines(ctx);
+  resetWeaponHandling(ctx);
   if ((await loadSavedProgress(ctx)) && resumeBuild(ctx)) {
+    restoreGuns(ctx);
     session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     const relay = relayStore.read(ctx);
@@ -282,15 +305,17 @@ function onTick(ctx: GameContext, dt: number): void {
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
   if (activeCharacter() === null || gamePhase(ctx) !== "playing" || dt <= 0) return;
+  tickWeaponHandling(ctx, dt);
   tickAudio(ctx, nowMs);
   tickEnemies(ctx, dt);
-  tickShields(ctx, nowMs, dt);
+  tickShields(ctx, nowMs, dt, 1, progressionStore.read(ctx).shieldProfile);
   tickDots(ctx, nowMs);
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
   tickRelay(ctx, dt);
   tickZoneAndStations(ctx, nowMs);
   notePlayerHealth(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? null);
+  notePlayerShield(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "shield")?.current ?? null);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };

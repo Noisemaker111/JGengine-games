@@ -22,11 +22,10 @@ const SPACE = "kaykit-space-base";
  * `1H_Melee_Attack_Chop` — so every humanoid stood in the world looping a sword swing and never
  * played a death or a hit.
  *
- * And weapon attachments use `handslot.r`, the bone the rigs actually have. The previous `arm-right`
- * matched nothing, so the game logged one warning per enemy per frame and drew no weapons at all.
+ * GLTFLoader strips punctuation from node names, so attachment slots use the loaded `handslotr`.
  */
 const HUMANOID_HEIGHT = 1.8;
-const WEAPON_BONE = "handslot.r";
+const WEAPON_BONE = "handslotr";
 
 type RigKind = "humanoid" | "beast" | "machine";
 
@@ -64,11 +63,11 @@ const RIG_BY_ID: Record<string, { kind: RigKind; model: string; fallbackModel?: 
   foundry_heart: { kind: "machine", model: `${SPACE}/lander_A`, fallbackModel: `${SPACE}/structure_tall` },
 };
 
-/** Drones carry a scavenged blade; the beasts and hardware carry nothing. */
+/** Crossbows stand in for salvaged bolt guns; melee drones carry scavenged blades. */
 const WEAPON_PLAN: Record<string, ModelPick> = {
-  marauder: { model: `${CHAR}/axe_1handed`, fallbackModel: `${CHAR}/sword_1handed` },
+  marauder: { model: `${CHAR}/crossbow_1handed`, fallbackModel: `${CHAR}/crossbow_2handed` },
   elite_husk: { model: `${CHAR}/axe_2handed`, fallbackModel: `${CHAR}/sword_2handed` },
-  captain_rusk: { model: `${CHAR}/sword_2handed`, fallbackModel: `${CHAR}/axe_2handed` },
+  captain_rusk: { model: `${CHAR}/crossbow_2handed`, fallbackModel: `${CHAR}/crossbow_1handed` },
 };
 
 /**
@@ -377,6 +376,16 @@ export const objectModels: Record<string, ModelConfig> = resolveModelPlan(assets
     model: `${SCIFI}/Prop_Crate4`,
     fallbackModel: `${SCIFI}/Prop_Crate3`,
     style: { scale: 3.2, material: { color: "#cdd6de", ...SCRAP } },
+  },
+  reload_baffle: {
+    model: `${SCIFI}/Prop_Crate4`,
+    fallbackModel: `${SCIFI}/Prop_Crate3`,
+    style: { targetHeight: 2.6, material: { color: "#e4b381", ...SCRAP, rim: { color: "#ffc16e", strength: 0.25, power: 3 } } },
+  },
+  low_cover: {
+    model: `${SCIFI}/Prop_Crate3`,
+    fallbackModel: `${SCIFI}/Prop_Crate4`,
+    style: { targetHeight: 1.1, material: { color: "#d3d8d5", ...SCRAP } },
   },
   // Brighter rust + a warm rim: the old #7a2c1e column went full black when backlit — these were
   // the featureless "monoliths" standing around the rustflat.

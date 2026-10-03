@@ -5,7 +5,7 @@ import { defineGame } from "@jgengine/shell/defineGame";
 
 import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
-import { audioProbe } from "./game/audio/drive";
+import { combatProbe } from "./game/combatProbe";
 import { content } from "./game/content";
 import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
@@ -140,7 +140,7 @@ function prompts(ctx: GameContext): readonly PositionedPrompt[] {
 export const game = defineGame({
   capture: {
     play: [{ name: "character.pick", input: { characterId: "gunk" } }],
-    probe: audioProbe,
+    probe: combatProbe,
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
     // of streamed GLB materials, and every one of those programs compiles on the first drawn frame.
     // On a software renderer that is seconds of work after readiness reports done, and the default
@@ -258,7 +258,7 @@ export const game = defineGame({
   },
   camera: {
     perspective: "first",
-    firstPerson: { eyeHeight: 1.62, sensitivity: 0.0023, reticle: true, viewmodel: false },
+    firstPerson: { eyeHeight: 1.62, sensitivity: 0.0023, reticle: false, viewmodel: false },
     frustum: { far: 4200 },
   },
   orientation: "landscape",

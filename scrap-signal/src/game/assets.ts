@@ -58,7 +58,7 @@ function modelMaps(sourceId: string, roles: readonly ("color" | "normal" | "roug
 export const GROUND_MAPS = maps(MATERIAL_SOURCES.ground);
 export const CLIFF_MAPS = modelMaps(MATERIAL_SOURCES.cliff, ["color", "normal", "roughness", "ao"]);
 export const SCRAP_METAL_MAPS = modelMaps(MATERIAL_SOURCES.scrapMetal, ["color", "normal", "roughness"]);
-export const PANEL_MAPS = modelMaps(MATERIAL_SOURCES.panel, ["color", "normal", "roughness", "ao"]);
+export const PANEL_MAPS = modelMaps(MATERIAL_SOURCES.panel, ["color", "normal", "roughness"]);
 
 /**
  * Chassis finish per enemy family. Every entry is a machine hue (see {@link MACHINE}) —

@@ -2,6 +2,8 @@ export interface HitSignal {
   atMs: number;
   crit: boolean;
   kill: boolean;
+  shield?: boolean;
+  shieldBreak?: boolean;
 }
 
 /**
@@ -48,8 +50,11 @@ export function recoilAt(nowMs: number): number {
   return Math.sin((since / RECOIL_MS) * Math.PI);
 }
 
-export function noteHit(atMs: number, crit: boolean, kill: boolean): void {
-  signals.lastHit = { atMs, crit, kill };
+export function noteHit(atMs: number, crit: boolean, kill: boolean, shield = false, shieldBreak = false): void {
+  const previous = signals.lastHit;
+  // Pellet batches share a time: the strongest confirmed result must survive later nonlethal hits.
+  const sameShot = previous.atMs === atMs;
+  signals.lastHit = { atMs, crit: crit || (sameShot && previous.crit), kill: kill || (sameShot && previous.kill), shield, shieldBreak: shieldBreak || (sameShot && previous.shieldBreak === true) };
 }
 
 export function lastHit(): HitSignal {
@@ -65,6 +70,19 @@ export function lastHurtAtMs(): number {
 }
 
 let lastHealth: number | null = null;
+let lastShield: number | null = null;
+let shieldHurtAt = NEVER_MS;
+let shieldBreakAt = NEVER_MS;
+export function notePlayerShield(nowMs: number, shield: number | null): void {
+  if (lastShield !== null && shield !== null && shield < lastShield) {
+    shieldHurtAt = nowMs;
+    if (lastShield > 0 && shield <= 0) shieldBreakAt = nowMs;
+  }
+  lastShield = shield;
+}
+export function playerShieldSignal(): { atMs: number; breakAtMs: number } {
+  return { atMs: shieldHurtAt, breakAtMs: shieldBreakAt };
+}
 
 /**
  * Feed the player's current health once per tick; a drop from the previous reading counts as a hurt.
@@ -107,6 +125,10 @@ export function equippedGun(): string | null {
 export function resetFeel(): void {
   equippedGunId = null;
   lastHealth = null;
+  lastShield = null;
+  shieldHurtAt = NEVER_MS;
+  shieldBreakAt = NEVER_MS;
+  gameNowMs = 0;
   signals.lastShotAtMs = NEVER_MS;
   signals.lastHit = { atMs: NEVER_MS, crit: false, kill: false };
   signals.lastHurtAtMs = NEVER_MS;
