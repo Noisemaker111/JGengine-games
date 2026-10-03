@@ -38,9 +38,11 @@ export function GameUI() {
   const [credits, setCredits] = useState(false);
   useEffect(() => {
     const sample = createSessionPad();
+    const codes = applyBindingOverrides(keybinds, loadBindingOverrides("Drift Foundry"));
+    sample(navigator.getGamepads?.() ?? [], codes);
     let frame = 0;
     const poll = () => {
-      const pressed = sample(navigator.getGamepads?.() ?? [], applyBindingOverrides(keybinds, loadBindingOverrides("Drift Foundry")));
+      const pressed = sample(navigator.getGamepads?.() ?? [], codes);
       if (session && !settings.isOpen && !document.hidden) {
         for (const action of pressed) {
           const phase = session.snapshot().phase;
@@ -81,7 +83,7 @@ export function GameUI() {
       if (event.code === "Enter" && phase === "start" && !credits && !(event.target instanceof Element && event.target.closest("button"))) commands.run("startRun", {});
       if (event.code === "KeyR" && (phase === "won" || phase === "crushed")) commands.run("restart", {});
       if (action === "pauseRun" && phase === "running") { session?.togglePause(); drive?.reset(); if (session) publishSession(ctx, session); }
-      if (action === "keepEngine" && phase === "running") { session?.toggleKeepEngine(); if (session) publishSession(ctx, session); }
+      if (action === "keepEngine" && phase === "running" && !session?.snapshot().paused) { session?.toggleKeepEngine(); if (session) publishSession(ctx, session); }
       if (event.code === "Escape" && credits) setCredits(false);
     };
     window.addEventListener("keydown", key);
