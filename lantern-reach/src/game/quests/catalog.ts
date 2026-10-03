@@ -1,6 +1,8 @@
 import type { QuestDef } from "@jgengine/core/game/quest";
+import { LANTERN_QUESTS, ROAD_CLEAR } from "./lanternCatalog";
 
 export const QUESTS: readonly QuestDef[] = [
+  ...LANTERN_QUESTS,
   {
     id: "q_wolves",
     title: "Wolves at the Door",
@@ -8,7 +10,7 @@ export const QUESTS: readonly QuestDef[] = [
     giver: "marshal_redbrook",
     turnIn: "marshal_redbrook",
     objectives: [{ id: "kill_wolves", kind: "kill", target: "forest_wolf", count: 8 }],
-    rewards: { xp: { amount: 250 }, economy: { copper: 75 } },
+    rewards: { xp: { amount: 250 }, economy: { copper: 75 }, unlocks: [ROAD_CLEAR] },
   },
   {
     id: "q_greyjaw",
@@ -16,7 +18,7 @@ export const QUESTS: readonly QuestDef[] = [
     description: "Old Greyjaw is a wolf no trap has held, prowling the deep woods north of the wolf runs.\nBring back his fang.",
     giver: "marshal_redbrook",
     turnIn: "marshal_redbrook",
-    requires: ["q_wolves"],
+    requires: [ROAD_CLEAR],
     objectives: [{ id: "collect_fang", kind: "collect", item: "greyjaw_fang", count: 1 }],
     rewards: { xp: { amount: 450 }, economy: { copper: 150 } },
   },
@@ -26,7 +28,7 @@ export const QUESTS: readonly QuestDef[] = [
     description: "A pack of cutthroats has camped in the southwest hills, robbing wagons.\nDrive them out: slay 10 Vale Bandits.",
     giver: "marshal_redbrook",
     turnIn: "marshal_redbrook",
-    requires: ["q_wolves"],
+    requires: [ROAD_CLEAR],
     objectives: [{ id: "kill_bandits", kind: "kill", target: "vale_bandit", count: 10 }],
     rewards: { xp: { amount: 550 }, economy: { copper: 200 } },
   },

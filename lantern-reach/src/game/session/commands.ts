@@ -10,6 +10,7 @@ import {
   searchAuction,
 } from "../auction/systems";
 import { castSlot } from "../combat/engine";
+import { isLanternQuest, prepareLanternDialogue, registerLanternCommands } from "../quests/lanternStory";
 import { NPCS } from "../entities/npcs/catalog";
 import { CLASS_ENTITY_ID, type EquipSlot } from "../model";
 import {
@@ -71,6 +72,7 @@ function togglePanel(ctx: GameContext, panel: Panel): void {
 
 export function registerCommands(ctx: GameContext): void {
   const { commands } = ctx.game;
+  registerLanternCommands(ctx);
   commands.define<{ classId: string; name?: string }>("class.select", {
     validate: (state, input) =>
       classStore.peek(state, state.player.userId) === undefined && input?.classId !== undefined
@@ -121,6 +123,7 @@ export function registerCommands(ctx: GameContext): void {
   commands.define<{ npcId: string }>("dialogue.open", {
     apply(state, input) {
       if (NPCS.some((npc) => npc.id === input.npcId)) {
+        prepareLanternDialogue(state);
         dialogueStore.write(state, state.player.userId, input.npcId);
       }
     },
@@ -131,6 +134,7 @@ export function registerCommands(ctx: GameContext): void {
     },
   });
   commands.define<{ questId: string }>("quest.accept", {
+    validate: (_state, input) => isLanternQuest(input?.questId) ? { reason: "Follow the lantern conversation to make this promise." } : null,
     apply(state, input) {
       const rejection = state.game.quest!.accept(state.player.userId, input.questId);
       if (rejection !== null) {
@@ -139,6 +143,7 @@ export function registerCommands(ctx: GameContext): void {
     },
   });
   commands.define<{ questId: string }>("quest.turnIn", {
+    validate: (_state, input) => isLanternQuest(input?.questId) ? { reason: "Report this promise to its resident." } : null,
     apply(state, input) {
       const rejection = state.game.quest!.turnIn(state.player.userId, input.questId);
       if (rejection !== null) {

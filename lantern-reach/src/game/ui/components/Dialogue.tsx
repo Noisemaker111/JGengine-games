@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { DialogueBox, type DialogueChoice, type DialogueDef } from "@jgengine/react/components";
 import { useGame, useGameStore, usePlayer } from "@jgengine/react/hooks";
 import { useKeyedStore } from "@jgengine/react/store";
 
+import { lanternDialogue } from "../../quests/lanternStory";
 import { NPCS } from "../../entities/npcs/catalog";
 import { DIALOGUES } from "../../entities/npcs/dialogues";
 import { dialogueStore } from "../../session/stores";
@@ -16,6 +18,7 @@ function questArgs(choice: DialogueChoice): { command: string; questId: string }
 
 export function DialoguePanel() {
   const { commands } = useGame();
+  const [notice, setNotice] = useState<string | null>(null);
   const { userId } = usePlayer();
   const npcId = useKeyedStore(dialogueStore, userId);
   const filtered = useGameStore((ctx): DialogueDef | null => {
@@ -25,7 +28,7 @@ export function DialoguePanel() {
     if (npc === undefined || dialogue === undefined) return null;
     return {
       id: dialogue.id,
-      lines: dialogue.lines
+      lines: lanternDialogue(ctx, userId, npcId, dialogue).lines
         .map((line) => {
           if (!("choices" in line)) return line;
           const choices = line.choices.filter((choice) => {
@@ -61,9 +64,11 @@ export function DialoguePanel() {
             commands.run("dialogue.close", {});
             return;
           }
-          commands.run(choice.invoke.command, choice.invoke.args ?? {});
+          const result = commands.run(choice.invoke.command, choice.invoke.args ?? {});
+          setNotice(result.status === "rejected" ? result.reason : null);
         }}
       />
+      {notice !== null && <p role="status" className="px-4 pb-3 text-sm text-amber-200">{notice}</p>}
     </div>
   );
 }

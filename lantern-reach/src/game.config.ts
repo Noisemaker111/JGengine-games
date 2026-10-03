@@ -3,6 +3,8 @@ import type { PositionedPrompt } from "@jgengine/core/interaction/proximityPromp
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineGame } from "@jgengine/shell/defineGame";
 
+import { editorLayers } from "./editorLayers";
+
 import { assets, entitySprites } from "./game/assets";
 import { audio } from "./game/audio/catalog";
 import { entityModels } from "./game/models";
@@ -66,9 +68,11 @@ const objectStyles = {
 export const game = defineGame({
   capture: { play: [{ name: "class.select", input: { classId: "warrior" } }] },
   name: "Lantern Reach",
-  features: { quest: true, trade: true, chat: true },
+  features: { quest: true, trade: true, chat: true, unlocks: true },
   multiplayer: ws({ authority: "server" }),
   assets,
+  editorLayers,
+  scenePlacement: false,
   world,
   physics,
   inventories,

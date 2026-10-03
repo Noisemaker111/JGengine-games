@@ -21,6 +21,7 @@ import { PROFESSIONS } from "../../professions/catalog";
 import { professionsOf } from "../../professions/gathering";
 import type { EquipSlot } from "../../model";
 import { classStore, equipStore, shopStore } from "../../session/stores";
+import { LANTERN_OBJECTIVE_LABELS } from "../../quests/lanternCatalog";
 import { QUESTS } from "../../quests/catalog";
 import { enchantsOf, heroSheet } from "../../session/hero";
 import { CLOSE_BUTTON, PANEL, PANEL_TITLE, QUALITY_COLORS, copperLabel } from "../theme";
@@ -343,6 +344,8 @@ export function QuestLogPanel() {
 }
 
 function objectiveLabel(questId: string, objectiveId: string): string {
+  const authored = LANTERN_OBJECTIVE_LABELS[`${questId}:${objectiveId}`];
+  if (authored !== undefined) return authored;
   const def = QUESTS.find((entry) => entry.id === questId);
   const objective = def?.objectives.find((entry) => entry.id === objectiveId);
   if (objective === undefined) return objectiveId;

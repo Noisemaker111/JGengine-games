@@ -6,6 +6,7 @@ import { useKeyedStore } from "@jgengine/react/store";
 import { DUNGEONS } from "../../dungeons/catalog";
 import { mobById } from "../../entities/enemies/catalog";
 import { itemDefById } from "../../items/catalog";
+import { LANTERN_OBJECTIVE_LABELS } from "../../quests/lanternCatalog";
 import { QUESTS } from "../../quests/catalog";
 import { deadStore } from "../../session/stores";
 import { inCrypt, zoneAt } from "../../world/zones";
@@ -43,7 +44,7 @@ export function DeathOverlay() {
 
 export function QuestTracker() {
   const journal = useQuestJournal();
-  const active = journal.slice(0, 5);
+  const active = journal.filter((quest) => quest.status === "active").slice(0, 5);
   if (active.length === 0) return null;
   return (
     <div className="w-60 text-right">
@@ -69,7 +70,7 @@ export function QuestTracker() {
                   className={`text-xs [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] ${objective.complete ? "text-emerald-400" : "text-stone-300"}`}
                 >
                   {objective.progress}/{objective.count}{" "}
-                  {objective.kind === "kill" ? "slain" : "collected"}
+                  {LANTERN_OBJECTIVE_LABELS[`${quest.questId}:${objective.id}`] ?? (objective.kind === "kill" ? "slain" : "collected")}
                 </p>
               ))}
           </div>
