@@ -1,0 +1,201 @@
+{
+  "status": "complete_with_explicit_unverified_limits",
+  "gameDependencies": "published @jgengine packages only; isolated verified external native tooling1919f13ccc2",
+  "injectedRuntimeScenarios": [],
+  "wayfarer": {
+    "baseline": [
+      "wayfarer-baseline-menu.png",
+      "wayfarer-baseline-combat.png",
+      "wayfarer-baseline-card-play.png",
+      "wayfarer-baseline-turn.png"
+    ],
+    "normalCompleteBuilds": [
+      {
+        "build": "guard/heal",
+        "wins": 4,
+        "hp": 29,
+        "coins": 6,
+        "artifact": "wayfarer-after-guard-16-victory.png"
+      },
+      {
+        "build": "strength/heal",
+        "wins": 4,
+        "hp": 23,
+        "coins": 0,
+        "artifact": "wayfarer-after-strength-16-victory.png"
+      },
+      {
+        "build": "guard/earned PackGuard+ upgrade",
+        "wins": 4,
+        "hp": 26,
+        "coins": 6,
+        "cards": 17,
+        "artifact": "wayfarer-final-guard-upgraded-16-victory.png",
+        "freshCorrectedTrader": "wayfarer-final-guard-upgraded-13-shop.png",
+        "record": "/workspace/jgengine/.claude/worktrees/systemic-native-capture/shots/url-wayfarer-guard-upgrade-crossing.mp4",
+        "recordInspectedFrames": [
+          "wayfarer-upgrade-clip-01.png",
+          "wayfarer-upgrade-clip-02.png",
+          "wayfarer-upgrade-clip-03.png"
+        ]
+      }
+    ],
+    "normalFailureRecovery": {
+      "artifact": [
+        "wayfarer-failure.png",
+        "wayfarer-recovery.png"
+      ],
+      "facts": "No cards played, native F ends turns until0HP; Begin another crossing returns72HP starter",
+      "record": "/workspace/jgengine/.claude/worktrees/systemic-native-capture/shots/url-wayfarer-failure-recovery.mp4",
+      "recordInspectedFrames": [
+        "wayfarer-failure-clip-01.png",
+        "wayfarer-failure-clip-02.png",
+        "wayfarer-failure-clip-03.png"
+      ]
+    },
+    "normalReload": {
+      "artifact": [
+        "wayfarer-reload-before.png",
+        "wayfarer-reload-menu.png",
+        "wayfarer-reload-after.png"
+      ],
+      "facts": "Actual reload gates Continue, restores72HP/enemy42HP/energy2/coins18/ordered4cardhand; later savedrest67HP28coins2wins restored",
+      "limits": [
+        "Digit1 does not map numeric input in native tool; use1",
+        "Native focus helper prevents Tab/Space UI focus verification",
+        "Rest upgrade list scrolling not expressible by native input driver"
+      ]
+    },
+    "mobile": {
+      "viewportCss": "390x844",
+      "artifact": [
+        "wayfarer-final-mobile-combat.png",
+        "wayfarer-final-mobile-play.png",
+        "wayfarer-final-mobile-pause.png"
+      ],
+      "facts": "Inspected current narrowkeyboardhide, intentional handhorizontalbrowserarrows, readableenemyintent; pointerTrailCut42HP2energy thenEscape pause"
+    },
+    "normalPorterEvent": {
+      "result": "PASS native exit0; screenshots inspected",
+      "injectedSetup": false,
+      "path": "Fresh starter -> defeat Pitch Ooze using existing earned policy -> draft Switchback Reversal -> stranded porter -> actual reload/Continue -> Share your supplies -> Broken ridge",
+      "beforeAndRestored": {
+        "hp": 68,
+        "coins": 30,
+        "battlesWon": 1
+      },
+      "afterShare": {
+        "hp": 72,
+        "coins": 18,
+        "battlesWon": 1
+      },
+      "nextBattle": {
+        "enemy": "Ridge Borer",
+        "enemyHp": 58,
+        "incomingDamage": 13,
+        "openingBlock": 6,
+        "hpAtRisk": 7
+      },
+      "artifacts": [
+        "wayfarer-event-native.txt",
+        "native/wayfarer-event-steps.json",
+        "wayfarer-event-earned-reward.png",
+        "wayfarer-event-before.png",
+        "wayfarer-event-reload-menu.png",
+        "wayfarer-event-reloaded.png",
+        "wayfarer-event-consequence.png",
+        "wayfarer-event-borer-opening.png"
+      ],
+      "limits": "Runtime journal text unverified: native targeting excludes summary elements; native keyboard navigation did not open the disclosure. No gameplay decision was inaccessible."
+    }
+  },
+  "odd": {
+    "baseline": "odd-baseline-sim.png",
+    "baselineFindings": "Realworldcamera occluded byoversizedwalls; no savemethod existed",
+    "currentNative": [
+      "odd-final-native.txt",
+      "odd-final-rations.png",
+      "odd-verified-native.txt",
+      "odd-verified-world.png",
+      "odd-verified-bloom.png",
+      "odd-verified-ledger.png",
+      "odd-verified-build.png"
+    ],
+    "proven": "NormalPause, memberDruophYield->Bloom, credits640->604/pantry12->18 atcost36, bill97; actualloadedworldwallrowsaligned, terrain visible, publishedmodels nofallback/textureErrors; loaded furniture/member models after actual reload, selected Bloom rhythm retained",
+    "render": {
+      "drawCalls": 684,
+      "triangles": 238225,
+      "avgFrameMs": 2518.6,
+      "avgSimMs": 5.1,
+      "avgOutsideMs": 2513.5,
+      "context": "LinuxSwiftShader slowcapture box; rawfps notplayerhardwareclaim; exceeds600cinematiccallbudget"
+    },
+    "pending": [],
+    "unverified": [
+      "Complete runtime day/night: published FrameDriver0.05sec cap at0.4-0.5fps; deterministic comprehensive day tests are separate proof",
+      "Mobile visuals and pointer flow: prior native DPR2 WebGL capture hung; read-only390x844DOM fits only; HQ30 owner device/DPR requested",
+      "World pointer placement and sale: native driver has no coordinate click/scroll seam",
+      "Burnout, starvation, emergency relief, and full shift/day recovery in real runtime; headless tests separate"
+    ],
+    "mobileLowerRung": "odd-mobile-capture-diagnostic.json",
+    "normalClockObservation": {
+      "before": "Day1 09:27,604 credits",
+      "after": "Day1 09:47,613.69 credits, Yield1/20sec stress2",
+      "orderedNativeInput": "4\u00d7,wait6000,before shot,wait20000,after shot",
+      "meaning": "20 calendar minutes is about2.9 simsec using210secondday; screenshot and command overhead adds time. Actual Yield work began and earned partial wages. Full day is not proven.",
+      "artifacts": [
+        "odd-clock-before.png",
+        "odd-clock-after.png"
+      ]
+    },
+    "normalFailureRecovery": {
+      "scenario": "Appliance contention",
+      "before": "Quox has No free work station while Druoph uses Yield console",
+      "playerChoice": "Select Druoph and choose Bloom keeper",
+      "after": "Quox reaches console and begins Yield shift1/20s, household earns partial wages",
+      "artifacts": [
+        "odd-final-member.png",
+        "odd-final-rations.png",
+        "odd-clock-after.png"
+      ],
+      "limits": "Burnout, starvation, debt relief, and complete paid shifts/day were not reached in rendered normal play."
+    },
+    "longRecordingAttempt": {
+      "artifact": "odd-verified-native.txt",
+      "result": "FAIL exit124 native240s browser deadline before final restore and encoding; no assembled MP4",
+      "usableInspectedStills": [
+        "odd-verified-world.png",
+        "odd-verified-bloom.png",
+        "odd-verified-ledger.png",
+        "odd-verified-build.png",
+        "odd-clock-before.png",
+        "odd-clock-after.png",
+        "odd-verified-reload-menu.png"
+      ]
+    },
+    "reload": {
+      "result": "PASS normal play state and furniture restore observed",
+      "facts": "Continue gate after actual reload; loaded furniture/wall/member models, Druoph Bloom selection,604credits18rations97bill retained. Later paused and reloaded after earning613.69; Continue gate captured, final resumed scene unavailable due deadline.",
+      "artifacts": [
+        "odd-verified-world.png",
+        "odd-verified-reload-menu.png"
+      ]
+    },
+    "shortNormalRecord": {
+      "result": "PASS native exit0, inspected frames",
+      "record": "/workspace/jgengine/.claude/worktrees/systemic-native-capture/shots/url-odd-pantry-consequence.mp4",
+      "durationSeconds": 37.12,
+      "bytes": 111557,
+      "artifacts": [
+        "odd-record-pantry-native.txt",
+        "odd-record-pantry-before.png",
+        "odd-record-pantry-after.png",
+        "odd-pantry-clip-01.png",
+        "odd-pantry-clip-03.png",
+        "odd-pantry-clip-05.png"
+      ],
+      "facts": "Actual Continue restores house and selected Bloom lifestyle. Open pantry then Buy6:18->24rations, journal reports36creditpurchase. Before663.20credits/59.20earned; after639.81credits/71.81earned; difference accounts for36spent +12.61 normal wages earned while clock runs. Quox progresses Yield11->14/20sec; no injected setup."
+    }
+  },
+  "captureLimits": "Screenshots inspected semantically; odd-final-world/member/bloom/ledger/build filenames lag states due0.4fps and500mswait. White odd-final-reload-menu capture isFAIL; neveruseaspass."
+}
