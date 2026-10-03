@@ -7,6 +7,8 @@ import { startAuctionSweep } from "./game/auction/systems";
 import { setupAudioCues } from "./game/audio/setup";
 import { onFiestaEntityDied } from "./game/arena/fiesta";
 import { buildLootTables } from "./game/content";
+import { setupHunterArrows } from "./game/combat/engine";
+import { setupEnvironment } from "./game/environment";
 import { useHandlers } from "./game/items/use-handlers";
 import { loadouts } from "./game/loadouts";
 import { CLASS_ENTITY_ID } from "./game/model";
@@ -67,8 +69,13 @@ function onKill(ctx: GameContext, killerUserId: string, victimInstanceId: string
 }
 
 /** Boot + join only — per-frame work lives in `game/systems.ts` via `defineGame({ systems })`. */
-export const loop: GameLoop<GameContext> = {
+function createLoop(): GameLoop<GameContext> {
+  const environmentDisposers = new WeakMap<GameContext, () => void>();
+  return {
   onInit(ctx) {
+    const stopEnvironment = setupEnvironment(ctx);
+    const stopArrows = setupHunterArrows(ctx);
+    environmentDisposers.set(ctx, () => { stopArrows(); stopEnvironment(); });
     ctx.item.use.register(useHandlers);
     ctx.player.loadout.register(loadouts);
     for (const table of buildLootTables()) ctx.game.loot.register(table);
@@ -107,4 +114,11 @@ export const loop: GameLoop<GameContext> = {
       position: [x, ctx.world.groundHeightAt(x, z), z],
     });
   },
-};
+  onDispose(ctx) {
+    environmentDisposers.get(ctx)?.();
+    environmentDisposers.delete(ctx);
+  },
+  };
+}
+
+export const loop = createLoop();

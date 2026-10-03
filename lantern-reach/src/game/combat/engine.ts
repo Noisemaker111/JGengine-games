@@ -45,6 +45,7 @@ import {
   fireWeaponCritProcs,
 } from "./setProcs";
 import { playMeleeVfx, playSpellVfx } from "./vfx";
+import { HUNTER_ARROWS, installArrowSettlement, launchHunterArrow } from "./arrows";
 import { ZONES } from "../world/zones";
 
 const rng = seededRng("lantern-reach-combat");
@@ -153,6 +154,16 @@ function dealDamage(
   return amount;
 }
 
+/** Zero-damage engine contact selects the actual struck actor; this game's armor and rewards settle here. */
+export function setupHunterArrows(ctx: GameContext): () => void {
+  return installArrowSettlement(ctx, (arrow, targetId) => {
+    if (deadStore.read(ctx, arrow.userId) || !isMobInstance(ctx, targetId) || ctx.scene.entity.get(targetId) === null) return;
+    dealDamage(ctx, arrow.userId, targetId, arrow.rawAmount, arrow.crit, true, "physical");
+    const sheet = heroSheet(ctx, arrow.userId);
+    if (arrow.crit && sheet !== null) fireWeaponCritProcs(ctx, arrow.userId, sheet, targetId);
+  });
+}
+
 function abilityAmount(ctx: GameContext, userId: string, ability: AbilityDef, sheet: HeroSheet): number {
   const level = ctx.scene.entity.stats.get(userId, "level")?.current ?? 1;
   const mods = abilityModsOf(ctx, userId);
@@ -224,6 +235,12 @@ function executeAbility(ctx: GameContext, userId: string, ability: AbilityDef): 
     case "damage": {
       const targetId = hostileTarget(ctx, userId);
       if (targetId === null) return;
+      if (HUNTER_ARROWS.has(ability.id)) {
+        if (!launchHunterArrow(ctx, userId, targetId, abilityAmount(ctx, userId, ability, sheet), crit)) say(ctx, userId, "Too many arrows in flight");
+        hero.autoAttack = true;
+        autoAttackStore.write(ctx, userId, true);
+        break;
+      }
       playSpellVfx(ctx, ability, { casterId: userId, targetId });
       dealDamage(
         ctx,

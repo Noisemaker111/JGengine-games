@@ -1,12 +1,12 @@
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
 import { environmentContentFromDocument } from "@jgengine/core/editor/index";
-import { building, environment, grass, rain, sky, snow, terrain, type EnvironmentWorldFeature } from "@jgengine/core/world/features";
+import { building, environment, grass, sky, terrain, type EnvironmentWorldFeature } from "@jgengine/core/world/features";
 
 import { editorLayers } from "./editorLayers";
 import { DUNGEONS } from "./game/dungeons/catalog";
 import { CRYPT, WORLD_DEPTH, WORLD_WIDTH, ZONES } from "./game/world/zones";
 
-const [vale, marsh, peaks] = ZONES;
+const [vale] = ZONES;
 const compounds = DUNGEONS.filter((dungeon) => dungeon.id !== "hollow_crypt");
 
 const content = environmentContentFromDocument(editorLayers, {
@@ -46,11 +46,7 @@ export const world: EnvironmentWorldFeature = environment({
   clearings: content.clearings,
   sculpt: content.sculpt,
   sky: sky(content.sky),
-  // Retain legacy biome effects until scene documents support weather/vegetation bands.
-  weather: [
-    rain({ area: { w: WORLD_WIDTH, d: marsh.zMax - marsh.zMin, h: 60, position: [0, (marsh.zMin + marsh.zMax) / 2] }, density: 0.5 }),
-    snow({ area: { w: WORLD_WIDTH, d: peaks.zMax - (peaks.zMin + 60), h: 70, position: [0, (peaks.zMin + 60 + peaks.zMax) / 2] }, density: 0.6 }),
-  ],
+  // Weather is authored in editor.scene.json and rendered from ctx.environment's clock.
   vegetation: [
     grass({ area: { w: WORLD_WIDTH, d: vale.zMax - vale.zMin, position: [0, (vale.zMin + vale.zMax) / 2] }, density: 0.3, colors: ["#9bb48d", "#a7b886", "#768c44"], seed: "vale-grass" }),
   ],
@@ -59,4 +55,4 @@ export const world: EnvironmentWorldFeature = environment({
   ),
 });
 
-export const physics: PhysicsConfig = { gravity: -16, jumpVelocity: 6 };
+export const physics: PhysicsConfig = { gravity: -16, jumpVelocity: 6, projectileObstacles: true };

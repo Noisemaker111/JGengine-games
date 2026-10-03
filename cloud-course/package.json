@@ -1,0 +1,41 @@
+{
+  "name": "@games/cloud-course",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "shoot": "node scripts/shoot.mjs",
+    "drive": "node scripts/drive.mjs",
+    "check-types": "tsgo --noEmit -p tsconfig.json",
+    "test": "bun test src",
+    "author-models": "python scripts/author-models.py"
+  },
+  "dependencies": {
+    "@jgengine/core": "catalog:",
+    "@jgengine/editor": "catalog:",
+    "@jgengine/react": "catalog:",
+    "@jgengine/shell": "catalog:",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.15",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.182.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.15",
+    "typescript": "^5",
+    "vite": "^6.2.2"
+  },
+  "exports": {
+    ".": "./src/index.tsx",
+    "./*": "./src/*"
+  }
+}

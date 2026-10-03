@@ -1,0 +1,97 @@
+{
+  "course_pad": {
+    "url": "/models/imported/course_pad.glb",
+    "dims": {
+      "footprint": {
+        "w": 6.0,
+        "d": 6.0
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.0
+      },
+      "minY": 0.0,
+      "maxY": 0.8
+    }
+  },
+  "course_step": {
+    "url": "/models/imported/course_step.glb",
+    "dims": {
+      "footprint": {
+        "w": 3.0,
+        "d": 3.0
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.0
+      },
+      "minY": 0.0,
+      "maxY": 0.8
+    }
+  },
+  "course_checkpoint": {
+    "url": "/models/imported/course_checkpoint.glb",
+    "dims": {
+      "footprint": {
+        "w": 6.0,
+        "d": 6.0
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.0
+      },
+      "minY": 0.0,
+      "maxY": 0.8
+    }
+  },
+  "course_finish": {
+    "url": "/models/imported/course_finish.glb",
+    "dims": {
+      "footprint": {
+        "w": 6.0,
+        "d": 6.0
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.0
+      },
+      "minY": 0.0,
+      "maxY": 0.8
+    }
+  },
+  "course_bumper": {
+    "url": "/models/imported/course_bumper.glb",
+    "dims": {
+      "footprint": {
+        "w": 1.2,
+        "d": 1.2
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.0
+      },
+      "minY": 0.0,
+      "maxY": 1.8
+    }
+  },
+  "course_runner": {
+    "url": "/models/imported/course_runner.glb",
+    "dims": {
+      "footprint": {
+        "w": 1.1,
+        "d": 0.81
+      },
+      "center": {
+        "x": 0.0,
+        "z": 0.024999999999999994
+      },
+      "minY": 0.0,
+      "maxY": 1.76
+    },
+    "clips": [
+      "Idle",
+      "Walk",
+      "Run"
+    ]
+  }
+}

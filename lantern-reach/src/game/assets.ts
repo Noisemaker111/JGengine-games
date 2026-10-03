@@ -10,8 +10,11 @@ import { MOBS } from "./entities/enemies/catalog";
 import { NPCS } from "./entities/npcs/catalog";
 import { YUMI_CATALOG } from "./minigames/yumi";
 import { PETS } from "./pets/catalog";
+import { arrowModel, swallowModel } from "./environmentModels";
 
 export const assets = createAssetCatalog();
+assets.register("reach_swallow", { url: swallowModel.url!, dims: swallowModel.dims!, clips: ["Idle", "Flight"] });
+assets.register("reach_arrow", { url: arrowModel.url!, dims: arrowModel.dims! });
 
 for (const model of provenance.models) {
   if (!("dims" in model)) continue;
