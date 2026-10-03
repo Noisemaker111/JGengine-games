@@ -1,0 +1,2791 @@
+{
+  "version": 1,
+  "markers": [
+    {
+      "id": "observatory_star_0",
+      "kind": "observatory-star",
+      "position": {
+        "x": 13,
+        "y": -2.5,
+        "z": 0
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_1",
+      "kind": "observatory-star",
+      "position": {
+        "x": -10.175660410652798,
+        "y": -3.5,
+        "z": 9.321798925479639
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_2",
+      "kind": "observatory-star",
+      "position": {
+        "x": 1.276321633866091,
+        "y": -4.5,
+        "z": -14.544105441275011
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_3",
+      "kind": "observatory-star",
+      "position": {
+        "x": 9.370076874551598,
+        "y": -5.5,
+        "z": 12.22136078204851
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_4",
+      "kind": "observatory-star",
+      "position": {
+        "x": -15.952394914694983,
+        "y": -6.5,
+        "z": -2.8215415087525515
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_5",
+      "kind": "observatory-star",
+      "position": {
+        "x": 14.343692663632986,
+        "y": -2.5,
+        "z": -9.124608527013159
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_6",
+      "kind": "observatory-star",
+      "position": {
+        "x": -4.620623517430273,
+        "y": -3.5,
+        "z": 17.189817867277426
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_7",
+      "kind": "observatory-star",
+      "position": {
+        "x": -8.573243839011868,
+        "y": -4.5,
+        "z": -16.506346963421226
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_8",
+      "kind": "observatory-star",
+      "position": {
+        "x": 18.223005092052244,
+        "y": -5.5,
+        "z": 6.654478598285363
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_9",
+      "kind": "observatory-star",
+      "position": {
+        "x": -18.671556189653263,
+        "y": -6.5,
+        "z": 7.707982190990127
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_10",
+      "kind": "observatory-star",
+      "position": {
+        "x": 8.900151583418225,
+        "y": -2.5,
+        "z": -19.02070718433408
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_11",
+      "kind": "observatory-star",
+      "position": {
+        "x": 6.525127230330144,
+        "y": -3.5,
+        "z": 20.800546017544928
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_12",
+      "kind": "observatory-star",
+      "position": {
+        "x": -19.554212509846288,
+        "y": -4.5,
+        "z": -11.331053486758016
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_13",
+      "kind": "observatory-star",
+      "position": {
+        "x": 22.85400212446818,
+        "y": -5.5,
+        "z": -5.025394202926156
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_14",
+      "kind": "observatory-star",
+      "position": {
+        "x": -13.917237020809635,
+        "y": -6.5,
+        "z": 19.797740116149768
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_15",
+      "kind": "observatory-star",
+      "position": {
+        "x": -3.2139683467575417,
+        "y": -2.5,
+        "z": -24.792547417843945
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_16",
+      "kind": "observatory-star",
+      "position": {
+        "x": 19.728803253757157,
+        "y": -3.5,
+        "z": 16.625712681703035
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_17",
+      "kind": "observatory-star",
+      "position": {
+        "x": -12.98886919109037,
+        "y": -4.5,
+        "z": 0.5378449002671772
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_18",
+      "kind": "observatory-star",
+      "position": {
+        "x": 9.781279999503141,
+        "y": -5.5,
+        "z": -9.734811840570924
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_19",
+      "kind": "observatory-star",
+      "position": {
+        "x": -0.6735001390390402,
+        "y": -6.5,
+        "z": 14.584457396924796
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_20",
+      "kind": "observatory-star",
+      "position": {
+        "x": -9.867684569612434,
+        "y": -2.5,
+        "z": -11.823231421004694
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_21",
+      "kind": "observatory-star",
+      "position": {
+        "x": 16.055470964843312,
+        "y": -3.5,
+        "z": 2.1591322555770702
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_22",
+      "kind": "observatory-star",
+      "position": {
+        "x": -13.953901812457154,
+        "y": -4.5,
+        "z": 9.710232963647417
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_23",
+      "kind": "observatory-star",
+      "position": {
+        "x": 3.9054783517493017,
+        "y": -5.5,
+        "z": -17.366267268587617
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_24",
+      "kind": "observatory-star",
+      "position": {
+        "x": 9.248815177274098,
+        "y": -6.5,
+        "z": 16.13751585023619
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_25",
+      "kind": "observatory-star",
+      "position": {
+        "x": -18.482715906712706,
+        "y": -2.5,
+        "z": -5.894846283979683
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_26",
+      "kind": "observatory-star",
+      "position": {
+        "x": 18.33666938682505,
+        "y": -3.5,
+        "z": -8.473874898667843
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_27",
+      "kind": "observatory-star",
+      "position": {
+        "x": -8.105593410717509,
+        "y": -4.5,
+        "z": 19.372644513853366
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_28",
+      "kind": "observatory-star",
+      "position": {
+        "x": -7.380114742176101,
+        "y": -5.5,
+        "z": -20.51277422467071
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_29",
+      "kind": "observatory-star",
+      "position": {
+        "x": 20.006265981360364,
+        "y": -6.5,
+        "z": 10.512341389198847
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_30",
+      "kind": "observatory-star",
+      "position": {
+        "x": -22.62652011105712,
+        "y": -2.5,
+        "z": 5.966622802216318
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_31",
+      "kind": "observatory-star",
+      "position": {
+        "x": 13.086235200493263,
+        "y": -3.5,
+        "z": -20.356582431178648
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_32",
+      "kind": "observatory-star",
+      "position": {
+        "x": 4.2369507410506335,
+        "y": -4.5,
+        "z": 24.638349141488973
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_33",
+      "kind": "observatory-star",
+      "position": {
+        "x": -20.399761502997887,
+        "y": -5.5,
+        "z": -15.795243924067949
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_34",
+      "kind": "observatory-star",
+      "position": {
+        "x": 12.9554958251164,
+        "y": -6.5,
+        "z": -1.0747687776408323
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_35",
+      "kind": "observatory-star",
+      "position": {
+        "x": -9.370149810112624,
+        "y": -2.5,
+        "z": 10.131154550990049
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_36",
+      "kind": "observatory-star",
+      "position": {
+        "x": 0.06952532092764295,
+        "y": -3.5,
+        "z": -14.599834458984454
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_37",
+      "kind": "observatory-star",
+      "position": {
+        "x": 10.348394524469528,
+        "y": -4.5,
+        "z": 11.404855578477488
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_38",
+      "kind": "observatory-star",
+      "position": {
+        "x": -16.13105311048952,
+        "y": -5.5,
+        "z": -1.4930256349327502
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_39",
+      "kind": "observatory-star",
+      "position": {
+        "x": 13.540215851340134,
+        "y": -6.5,
+        "z": -10.279229285268295
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_40",
+      "kind": "observatory-star",
+      "position": {
+        "x": -3.1836453194169425,
+        "y": -2.5,
+        "z": 17.51297811567623
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_41",
+      "kind": "observatory-star",
+      "position": {
+        "x": -9.908548547170485,
+        "y": -3.5,
+        "z": -15.741050336250304
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_42",
+      "kind": "observatory-star",
+      "position": {
+        "x": 18.710776324621072,
+        "y": -4.5,
+        "z": 5.125119445437291
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_43",
+      "kind": "observatory-star",
+      "position": {
+        "x": -17.970382281999395,
+        "y": -5.5,
+        "z": 9.225256670619096
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_44",
+      "kind": "observatory-star",
+      "position": {
+        "x": 7.297154959346692,
+        "y": -6.5,
+        "z": -19.691407504271552
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_45",
+      "kind": "observatory-star",
+      "position": {
+        "x": 8.222464308341232,
+        "y": -2.5,
+        "z": 20.18987569793471
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_46",
+      "kind": "observatory-star",
+      "position": {
+        "x": -20.424060080007557,
+        "y": -3.5,
+        "z": -9.675627620379041
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_47",
+      "kind": "observatory-star",
+      "position": {
+        "x": 22.36029171739286,
+        "y": -4.5,
+        "z": -6.897633964852889
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_48",
+      "kind": "observatory-star",
+      "position": {
+        "x": -12.232824090428421,
+        "y": -5.5,
+        "z": 20.880565480193162
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_49",
+      "kind": "observatory-star",
+      "position": {
+        "x": -5.252677644719567,
+        "y": -6.5,
+        "z": -24.441959364188936
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_50",
+      "kind": "observatory-star",
+      "position": {
+        "x": 21.035786544993485,
+        "y": -2.5,
+        "z": 14.937726883079337
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_51",
+      "kind": "observatory-star",
+      "position": {
+        "x": -12.89993705170261,
+        "y": -3.5,
+        "z": 1.6098521864165565
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_52",
+      "kind": "observatory-star",
+      "position": {
+        "x": 8.942973875031042,
+        "y": -4.5,
+        "z": -10.510148346741461
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_53",
+      "kind": "observatory-star",
+      "position": {
+        "x": 0.5345685545779544,
+        "y": -5.5,
+        "z": 14.590210295278697
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_54",
+      "kind": "observatory-star",
+      "position": {
+        "x": -10.811383555945792,
+        "y": -6.5,
+        "z": -10.966949694706589
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_55",
+      "kind": "observatory-star",
+      "position": {
+        "x": 16.17901192233819,
+        "y": -2.5,
+        "z": 0.8243623092055273
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_56",
+      "kind": "observatory-star",
+      "position": {
+        "x": -13.103343189417368,
+        "y": -3.5,
+        "z": 10.830623124287424
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_57",
+      "kind": "observatory-star",
+      "position": {
+        "x": 2.4563605105173085,
+        "y": -4.5,
+        "z": -17.62969917617346
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_58",
+      "kind": "observatory-star",
+      "position": {
+        "x": 10.5513142000745,
+        "y": -5.5,
+        "z": 15.317629341752145
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_59",
+      "kind": "observatory-star",
+      "position": {
+        "x": -18.906795807787844,
+        "y": -6.5,
+        "z": -4.34661618763562
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_60",
+      "kind": "observatory-star",
+      "position": {
+        "x": 17.57332211698685,
+        "y": -2.5,
+        "z": -9.96084081654861
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_61",
+      "kind": "observatory-star",
+      "position": {
+        "x": -6.476220625293339,
+        "y": -3.5,
+        "z": 19.976450295598696
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_62",
+      "kind": "observatory-star",
+      "position": {
+        "x": -9.050733462354655,
+        "y": -4.5,
+        "z": -19.832403379152357
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_63",
+      "kind": "observatory-star",
+      "position": {
+        "x": 20.806879361745626,
+        "y": -5.5,
+        "z": 8.822344995847983
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_64",
+      "kind": "observatory-star",
+      "position": {
+        "x": -22.055772841533134,
+        "y": -6.5,
+        "z": 7.816833397398799
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_65",
+      "kind": "observatory-star",
+      "position": {
+        "x": 11.35846509922885,
+        "y": -2.5,
+        "z": -21.36879197777919
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_66",
+      "kind": "observatory-star",
+      "position": {
+        "x": 6.259409694368919,
+        "y": -3.5,
+        "z": 24.203714390110463
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_star_67",
+      "kind": "observatory-star",
+      "position": {
+        "x": -21.635789230020464,
+        "y": -4.5,
+        "z": -14.054629998478456
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.035
+      }
+    },
+    {
+      "id": "observatory_star_68",
+      "kind": "observatory-star",
+      "position": {
+        "x": 12.82228801147822,
+        "y": -5.5,
+        "z": -2.142178832567886
+      },
+      "color": "#7299b0",
+      "meta": {
+        "radius": 0.045
+      }
+    },
+    {
+      "id": "observatory_star_69",
+      "kind": "observatory-star",
+      "position": {
+        "x": -8.500483704059182,
+        "y": -6.5,
+        "z": 10.871144226668337
+      },
+      "color": "#d3b986",
+      "meta": {
+        "radius": 0.025
+      }
+    },
+    {
+      "id": "observatory_armillary_0",
+      "kind": "observatory-ring",
+      "position": {
+        "x": 0,
+        "y": -1.4,
+        "z": 0
+      },
+      "color": "#48515e",
+      "meta": {
+        "radius": 11.5,
+        "thickness": 0.04,
+        "tilt": 0
+      }
+    },
+    {
+      "id": "observatory_armillary_1",
+      "kind": "observatory-ring",
+      "position": {
+        "x": 0,
+        "y": -1.4,
+        "z": 0
+      },
+      "color": "#74624c",
+      "meta": {
+        "radius": 12.2,
+        "thickness": 0.045,
+        "tilt": 0.24
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "id": "interlock_relay_bay_1",
+      "kind": "zone",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 0,
+        "z": 0
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 0.1,
+        "z": 2.5
+      },
+      "color": "#bda36e",
+      "label": "Relay 1",
+      "meta": {
+        "relay": "relay1",
+        "roomId": "interlock"
+      }
+    },
+    {
+      "id": "interlock_relay_bay_2",
+      "kind": "zone",
+      "shape": "box",
+      "center": {
+        "x": 1,
+        "y": 0,
+        "z": 0
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 0.1,
+        "z": 2.5
+      },
+      "color": "#bda36e",
+      "label": "Relay 2",
+      "meta": {
+        "relay": "relay2",
+        "roomId": "interlock"
+      }
+    },
+    {
+      "id": "crosswire_relay_bay_1",
+      "kind": "zone",
+      "shape": "box",
+      "center": {
+        "x": -7,
+        "y": 0,
+        "z": 0
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 0.1,
+        "z": 4.5
+      },
+      "color": "#bda36e",
+      "label": "Relay 1",
+      "meta": {
+        "relay": "relay1",
+        "roomId": "crosswire"
+      }
+    },
+    {
+      "id": "crosswire_relay_bay_2",
+      "kind": "zone",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 0,
+        "z": 0
+      },
+      "halfExtents": {
+        "x": 3,
+        "y": 0.1,
+        "z": 4.5
+      },
+      "color": "#bda36e",
+      "label": "Relay 2",
+      "meta": {
+        "relay": "relay2",
+        "roomId": "crosswire"
+      }
+    },
+    {
+      "id": "crosswire_relay_bay_3",
+      "kind": "zone",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 0,
+        "z": 0
+      },
+      "halfExtents": {
+        "x": 2,
+        "y": 0.1,
+        "z": 4.5
+      },
+      "color": "#bda36e",
+      "label": "Relay 3",
+      "meta": {
+        "relay": "relay3",
+        "roomId": "crosswire"
+      }
+    }
+  ],
+  "paths": [
+    {
+      "id": "interlock_lumen_lane",
+      "kind": "route",
+      "points": [
+        {
+          "x": -7,
+          "y": 0.025,
+          "z": -2
+        },
+        {
+          "x": -5,
+          "y": 0.025,
+          "z": -2
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": -2
+        },
+        {
+          "x": 7,
+          "y": 0.025,
+          "z": -2
+        }
+      ],
+      "width": 0.035,
+      "color": "#38bdf8",
+      "label": "Lumen relay route",
+      "meta": {
+        "role": "lumen",
+        "roomId": "interlock"
+      }
+    },
+    {
+      "id": "interlock_anchor_lane",
+      "kind": "route",
+      "points": [
+        {
+          "x": -7,
+          "y": 0.025,
+          "z": 2
+        },
+        {
+          "x": -5,
+          "y": 0.025,
+          "z": 2
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": 2
+        },
+        {
+          "x": 7,
+          "y": 0.025,
+          "z": 2
+        }
+      ],
+      "width": 0.035,
+      "color": "#f59e0b",
+      "label": "Anchor relay route",
+      "meta": {
+        "role": "anchor",
+        "roomId": "interlock"
+      }
+    },
+    {
+      "id": "crosswire_lumen_lane",
+      "kind": "route",
+      "points": [
+        {
+          "x": -9,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": -6,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": 6,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": 9,
+          "y": 0.025,
+          "z": -3
+        }
+      ],
+      "width": 0.035,
+      "color": "#38bdf8",
+      "label": "Lumen relay route",
+      "meta": {
+        "role": "lumen",
+        "roomId": "crosswire"
+      }
+    },
+    {
+      "id": "crosswire_anchor_lane",
+      "kind": "route",
+      "points": [
+        {
+          "x": -9,
+          "y": 0.025,
+          "z": 3
+        },
+        {
+          "x": -6,
+          "y": 0.025,
+          "z": 3
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": 3
+        },
+        {
+          "x": 6,
+          "y": 0.025,
+          "z": 3
+        },
+        {
+          "x": 9,
+          "y": 0.025,
+          "z": 3
+        }
+      ],
+      "width": 0.035,
+      "color": "#f59e0b",
+      "label": "Anchor relay route",
+      "meta": {
+        "role": "anchor",
+        "roomId": "crosswire"
+      }
+    },
+    {
+      "id": "crosswire_safe_return",
+      "kind": "route",
+      "points": [
+        {
+          "x": -3,
+          "y": 0.025,
+          "z": 3
+        },
+        {
+          "x": -3,
+          "y": 0.025,
+          "z": -4
+        },
+        {
+          "x": 2,
+          "y": 0.025,
+          "z": -4
+        },
+        {
+          "x": 2,
+          "y": 0.025,
+          "z": 3
+        }
+      ],
+      "width": 0.05,
+      "color": "#bda36e",
+      "label": "Safe perimeter return",
+      "meta": {
+        "purpose": "safe-return",
+        "roomId": "crosswire"
+      }
+    }
+  ],
+  "annotations": [],
+  "prefabs": [],
+  "collections": [],
+  "catalogs": [],
+  "grids": [
+    {
+      "id": "room_hold-the-line",
+      "kind": "room",
+      "label": "Hold the Line",
+      "origin": {
+        "x": -4,
+        "y": 0,
+        "z": -2
+      },
+      "cellSize": 1,
+      "cols": 9,
+      "rows": 5,
+      "cells": {
+        "0,0": "#",
+        "1,0": "#",
+        "2,0": "#",
+        "3,0": "#",
+        "4,0": "#",
+        "5,0": "#",
+        "6,0": "#",
+        "7,0": "#",
+        "8,0": "#",
+        "0,1": "#",
+        "1,1": "L",
+        "2,1": ".",
+        "3,1": "1",
+        "4,1": ".",
+        "5,1": "G",
+        "6,1": ".",
+        "7,1": "o",
+        "8,1": "#",
+        "0,2": "#",
+        "1,2": ".",
+        "2,2": ".",
+        "3,2": ".",
+        "4,2": ".",
+        "5,2": "#",
+        "6,2": ".",
+        "7,2": ".",
+        "8,2": "#",
+        "0,3": "#",
+        "1,3": "A",
+        "2,3": ".",
+        "3,3": ".",
+        "4,3": ".",
+        "5,3": "G",
+        "6,3": ".",
+        "7,3": "0",
+        "8,3": "#",
+        "0,4": "#",
+        "1,4": "#",
+        "2,4": "#",
+        "3,4": "#",
+        "4,4": "#",
+        "5,4": "#",
+        "6,4": "#",
+        "7,4": "#",
+        "8,4": "#"
+      },
+      "palette": [
+        {
+          "id": "#",
+          "label": "Wall",
+          "glyph": "#",
+          "color": "#0f172a"
+        },
+        {
+          "id": ".",
+          "label": "Floor",
+          "glyph": ".",
+          "color": "#334155"
+        },
+        {
+          "id": "L",
+          "label": "Lumen spawn",
+          "glyph": "L",
+          "color": "#38bdf8"
+        },
+        {
+          "id": "A",
+          "label": "Anchor spawn",
+          "glyph": "A",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "o",
+          "label": "Lumen exit",
+          "glyph": "o",
+          "color": "#22d3ee"
+        },
+        {
+          "id": "0",
+          "label": "Anchor exit",
+          "glyph": "0",
+          "color": "#fbbf24"
+        },
+        {
+          "id": "E",
+          "label": "Prism emitter",
+          "glyph": "E",
+          "color": "#a78bfa"
+        },
+        {
+          "id": "1",
+          "label": "Plate 1",
+          "glyph": "1",
+          "color": "#fb923c"
+        },
+        {
+          "id": "2",
+          "label": "Plate 2",
+          "glyph": "2",
+          "color": "#fb923c"
+        },
+        {
+          "id": "3",
+          "label": "Plate 3",
+          "glyph": "3",
+          "color": "#fb923c"
+        },
+        {
+          "id": "4",
+          "label": "Plate 4",
+          "glyph": "4",
+          "color": "#fb923c"
+        },
+        {
+          "id": "5",
+          "label": "Plate 5",
+          "glyph": "5",
+          "color": "#fb923c"
+        },
+        {
+          "id": "6",
+          "label": "Plate 6",
+          "glyph": "6",
+          "color": "#fb923c"
+        },
+        {
+          "id": "7",
+          "label": "Plate 7",
+          "glyph": "7",
+          "color": "#fb923c"
+        },
+        {
+          "id": "8",
+          "label": "Plate 8",
+          "glyph": "8",
+          "color": "#fb923c"
+        },
+        {
+          "id": "9",
+          "label": "Plate 9",
+          "glyph": "9",
+          "color": "#fb923c"
+        },
+        {
+          "id": "r",
+          "label": "Receiver r",
+          "glyph": "r",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "s",
+          "label": "Receiver s",
+          "glyph": "s",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "t",
+          "label": "Receiver t",
+          "glyph": "t",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "u",
+          "label": "Receiver u",
+          "glyph": "u",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "v",
+          "label": "Receiver v",
+          "glyph": "v",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "w",
+          "label": "Receiver w",
+          "glyph": "w",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "G",
+          "label": "Gate G",
+          "glyph": "G",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "H",
+          "label": "Gate H",
+          "glyph": "H",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "I",
+          "label": "Gate I",
+          "glyph": "I",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "J",
+          "label": "Gate J",
+          "glyph": "J",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "K",
+          "label": "Gate K",
+          "glyph": "K",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "X",
+          "label": "Spikes X",
+          "glyph": "X",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Y",
+          "label": "Spikes Y",
+          "glyph": "Y",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Z",
+          "label": "Spikes Z",
+          "glyph": "Z",
+          "color": "#ef4444"
+        }
+      ],
+      "meta": {
+        "objective": "Anchor's weight holds the door — drop it on the plate, then both cross east.",
+        "style": "teaching-corridor",
+        "links": {
+          "gates": {
+            "G": {
+              "plates": [
+                "p1"
+              ]
+            }
+          }
+        },
+        "solution": [
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p1"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "exit:lumen"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "exit:anchor"
+          }
+        ]
+      },
+      "schemaVersion": 1
+    },
+    {
+      "id": "room_first-light",
+      "kind": "room",
+      "label": "First Light",
+      "origin": {
+        "x": -4,
+        "y": 0,
+        "z": -2
+      },
+      "cellSize": 1,
+      "cols": 9,
+      "rows": 5,
+      "cells": {
+        "0,0": "#",
+        "1,0": "#",
+        "2,0": "#",
+        "3,0": "#",
+        "4,0": "#",
+        "5,0": "#",
+        "6,0": "#",
+        "7,0": "#",
+        "8,0": "#",
+        "0,1": "#",
+        "1,1": "L",
+        "2,1": ".",
+        "3,1": "r",
+        "4,1": ".",
+        "5,1": "H",
+        "6,1": ".",
+        "7,1": "o",
+        "8,1": "#",
+        "0,2": "#",
+        "1,2": ".",
+        "2,2": ".",
+        "3,2": ".",
+        "4,2": ".",
+        "5,2": "#",
+        "6,2": ".",
+        "7,2": ".",
+        "8,2": "#",
+        "0,3": "#",
+        "1,3": "A",
+        "2,3": ".",
+        "3,3": ".",
+        "4,3": ".",
+        "5,3": "H",
+        "6,3": ".",
+        "7,3": "0",
+        "8,3": "#",
+        "0,4": "#",
+        "1,4": "#",
+        "2,4": "#",
+        "3,4": "#",
+        "4,4": "#",
+        "5,4": "#",
+        "6,4": "#",
+        "7,4": "#",
+        "8,4": "#"
+      },
+      "palette": [
+        {
+          "id": "#",
+          "label": "Wall",
+          "glyph": "#",
+          "color": "#0f172a"
+        },
+        {
+          "id": ".",
+          "label": "Floor",
+          "glyph": ".",
+          "color": "#334155"
+        },
+        {
+          "id": "L",
+          "label": "Lumen spawn",
+          "glyph": "L",
+          "color": "#38bdf8"
+        },
+        {
+          "id": "A",
+          "label": "Anchor spawn",
+          "glyph": "A",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "o",
+          "label": "Lumen exit",
+          "glyph": "o",
+          "color": "#22d3ee"
+        },
+        {
+          "id": "0",
+          "label": "Anchor exit",
+          "glyph": "0",
+          "color": "#fbbf24"
+        },
+        {
+          "id": "E",
+          "label": "Prism emitter",
+          "glyph": "E",
+          "color": "#a78bfa"
+        },
+        {
+          "id": "1",
+          "label": "Plate 1",
+          "glyph": "1",
+          "color": "#fb923c"
+        },
+        {
+          "id": "2",
+          "label": "Plate 2",
+          "glyph": "2",
+          "color": "#fb923c"
+        },
+        {
+          "id": "3",
+          "label": "Plate 3",
+          "glyph": "3",
+          "color": "#fb923c"
+        },
+        {
+          "id": "4",
+          "label": "Plate 4",
+          "glyph": "4",
+          "color": "#fb923c"
+        },
+        {
+          "id": "5",
+          "label": "Plate 5",
+          "glyph": "5",
+          "color": "#fb923c"
+        },
+        {
+          "id": "6",
+          "label": "Plate 6",
+          "glyph": "6",
+          "color": "#fb923c"
+        },
+        {
+          "id": "7",
+          "label": "Plate 7",
+          "glyph": "7",
+          "color": "#fb923c"
+        },
+        {
+          "id": "8",
+          "label": "Plate 8",
+          "glyph": "8",
+          "color": "#fb923c"
+        },
+        {
+          "id": "9",
+          "label": "Plate 9",
+          "glyph": "9",
+          "color": "#fb923c"
+        },
+        {
+          "id": "r",
+          "label": "Receiver r",
+          "glyph": "r",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "s",
+          "label": "Receiver s",
+          "glyph": "s",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "t",
+          "label": "Receiver t",
+          "glyph": "t",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "u",
+          "label": "Receiver u",
+          "glyph": "u",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "v",
+          "label": "Receiver v",
+          "glyph": "v",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "w",
+          "label": "Receiver w",
+          "glyph": "w",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "G",
+          "label": "Gate G",
+          "glyph": "G",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "H",
+          "label": "Gate H",
+          "glyph": "H",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "I",
+          "label": "Gate I",
+          "glyph": "I",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "J",
+          "label": "Gate J",
+          "glyph": "J",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "K",
+          "label": "Gate K",
+          "glyph": "K",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "X",
+          "label": "Spikes X",
+          "glyph": "X",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Y",
+          "label": "Spikes Y",
+          "glyph": "Y",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Z",
+          "label": "Spikes Z",
+          "glyph": "Z",
+          "color": "#ef4444"
+        }
+      ],
+      "meta": {
+        "objective": "Lumen's prism lights the door — aim it east into the receiver, then both cross.",
+        "style": "teaching-corridor",
+        "links": {
+          "gates": {
+            "H": {
+              "receivers": [
+                "r_r"
+              ]
+            }
+          }
+        },
+        "solution": [
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "exit:lumen"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "exit:anchor"
+          }
+        ]
+      },
+      "schemaVersion": 1
+    },
+    {
+      "id": "room_interlock",
+      "kind": "room",
+      "label": "Relay Circuit",
+      "origin": {
+        "x": -8,
+        "y": 0,
+        "z": -3
+      },
+      "cellSize": 1,
+      "cols": 17,
+      "rows": 7,
+      "cells": {
+        "0,0": "#",
+        "1,0": "#",
+        "2,0": "#",
+        "3,0": "#",
+        "4,0": "#",
+        "5,0": "#",
+        "6,0": "#",
+        "7,0": "#",
+        "8,0": "#",
+        "9,0": "#",
+        "10,0": "#",
+        "11,0": "#",
+        "12,0": "#",
+        "13,0": "#",
+        "14,0": "#",
+        "15,0": "#",
+        "16,0": "#",
+        "0,1": "#",
+        "1,1": "L",
+        "2,1": ".",
+        "3,1": "r",
+        "4,1": ".",
+        "5,1": ".",
+        "6,1": "G",
+        "7,1": ".",
+        "8,1": ".",
+        "9,1": "s",
+        "10,1": ".",
+        "11,1": ".",
+        "12,1": "H",
+        "13,1": ".",
+        "14,1": ".",
+        "15,1": "o",
+        "16,1": "#",
+        "0,2": "#",
+        "1,2": ".",
+        "2,2": ".",
+        "3,2": ".",
+        "4,2": ".",
+        "5,2": ".",
+        "6,2": "#",
+        "7,2": ".",
+        "8,2": ".",
+        "9,2": ".",
+        "10,2": ".",
+        "11,2": ".",
+        "12,2": "#",
+        "13,2": ".",
+        "14,2": ".",
+        "15,2": ".",
+        "16,2": "#",
+        "0,3": "#",
+        "1,3": ".",
+        "2,3": ".",
+        "3,3": ".",
+        "4,3": "#",
+        "5,3": ".",
+        "6,3": "#",
+        "7,3": ".",
+        "8,3": ".",
+        "9,3": ".",
+        "10,3": ".",
+        "11,3": ".",
+        "12,3": "#",
+        "13,3": ".",
+        "14,3": ".",
+        "15,3": ".",
+        "16,3": "#",
+        "0,4": "#",
+        "1,4": ".",
+        "2,4": ".",
+        "3,4": ".",
+        "4,4": ".",
+        "5,4": ".",
+        "6,4": "#",
+        "7,4": ".",
+        "8,4": ".",
+        "9,4": ".",
+        "10,4": ".",
+        "11,4": ".",
+        "12,4": "#",
+        "13,4": ".",
+        "14,4": ".",
+        "15,4": ".",
+        "16,4": "#",
+        "0,5": "#",
+        "1,5": "A",
+        "2,5": ".",
+        "3,5": "1",
+        "4,5": ".",
+        "5,5": ".",
+        "6,5": "G",
+        "7,5": ".",
+        "8,5": ".",
+        "9,5": "2",
+        "10,5": ".",
+        "11,5": ".",
+        "12,5": "H",
+        "13,5": ".",
+        "14,5": ".",
+        "15,5": "0",
+        "16,5": "#",
+        "0,6": "#",
+        "1,6": "#",
+        "2,6": "#",
+        "3,6": "#",
+        "4,6": "#",
+        "5,6": "#",
+        "6,6": "#",
+        "7,6": "#",
+        "8,6": "#",
+        "9,6": "#",
+        "10,6": "#",
+        "11,6": "#",
+        "12,6": "#",
+        "13,6": "#",
+        "14,6": "#",
+        "15,6": "#",
+        "16,6": "#"
+      },
+      "palette": [
+        {
+          "id": "#",
+          "label": "Wall",
+          "glyph": "#",
+          "color": "#0f172a"
+        },
+        {
+          "id": ".",
+          "label": "Floor",
+          "glyph": ".",
+          "color": "#334155"
+        },
+        {
+          "id": "L",
+          "label": "Lumen spawn",
+          "glyph": "L",
+          "color": "#38bdf8"
+        },
+        {
+          "id": "A",
+          "label": "Anchor spawn",
+          "glyph": "A",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "o",
+          "label": "Lumen exit",
+          "glyph": "o",
+          "color": "#22d3ee"
+        },
+        {
+          "id": "0",
+          "label": "Anchor exit",
+          "glyph": "0",
+          "color": "#fbbf24"
+        },
+        {
+          "id": "E",
+          "label": "Prism emitter",
+          "glyph": "E",
+          "color": "#a78bfa"
+        },
+        {
+          "id": "1",
+          "label": "Plate 1",
+          "glyph": "1",
+          "color": "#fb923c"
+        },
+        {
+          "id": "2",
+          "label": "Plate 2",
+          "glyph": "2",
+          "color": "#fb923c"
+        },
+        {
+          "id": "3",
+          "label": "Plate 3",
+          "glyph": "3",
+          "color": "#fb923c"
+        },
+        {
+          "id": "4",
+          "label": "Plate 4",
+          "glyph": "4",
+          "color": "#fb923c"
+        },
+        {
+          "id": "5",
+          "label": "Plate 5",
+          "glyph": "5",
+          "color": "#fb923c"
+        },
+        {
+          "id": "6",
+          "label": "Plate 6",
+          "glyph": "6",
+          "color": "#fb923c"
+        },
+        {
+          "id": "7",
+          "label": "Plate 7",
+          "glyph": "7",
+          "color": "#fb923c"
+        },
+        {
+          "id": "8",
+          "label": "Plate 8",
+          "glyph": "8",
+          "color": "#fb923c"
+        },
+        {
+          "id": "9",
+          "label": "Plate 9",
+          "glyph": "9",
+          "color": "#fb923c"
+        },
+        {
+          "id": "r",
+          "label": "Receiver r",
+          "glyph": "r",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "s",
+          "label": "Receiver s",
+          "glyph": "s",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "t",
+          "label": "Receiver t",
+          "glyph": "t",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "u",
+          "label": "Receiver u",
+          "glyph": "u",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "v",
+          "label": "Receiver v",
+          "glyph": "v",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "w",
+          "label": "Receiver w",
+          "glyph": "w",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "G",
+          "label": "Gate G",
+          "glyph": "G",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "H",
+          "label": "Gate H",
+          "glyph": "H",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "I",
+          "label": "Gate I",
+          "glyph": "I",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "J",
+          "label": "Gate J",
+          "glyph": "J",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "K",
+          "label": "Gate K",
+          "glyph": "K",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "X",
+          "label": "Spikes X",
+          "glyph": "X",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Y",
+          "label": "Spikes Y",
+          "glyph": "Y",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Z",
+          "label": "Spikes Z",
+          "glyph": "Z",
+          "color": "#ef4444"
+        }
+      ],
+      "meta": {
+        "objective": "Complete each relay together. Carry both devices to the next bay, then keep the final circuit live while both heroes cross.",
+        "style": "corridor-circuit",
+        "links": {
+          "gates": {
+            "G": {
+              "relays": [
+                "relay1"
+              ]
+            },
+            "H": {
+              "relays": [
+                "relay2"
+              ],
+              "plates": [
+                "p2"
+              ],
+              "receivers": [
+                "r_s"
+              ]
+            }
+          }
+        },
+        "relays": [
+          {
+            "id": "relay1",
+            "label": "Align the entry circuit",
+            "plates": [
+              "p1"
+            ],
+            "receivers": [
+              "r_r"
+            ],
+            "requires": []
+          },
+          {
+            "id": "relay2",
+            "label": "Carry the signal onward",
+            "plates": [
+              "p2"
+            ],
+            "receivers": [
+              "r_s"
+            ],
+            "requires": [
+              "relay1"
+            ]
+          }
+        ],
+        "roleHints": {
+          "lumen": "Call the receiver and aim the prism along the cyan lane. Move it only after the relay seals.",
+          "anchor": "Hold the matching amber plate. Carry the weight forward after the relay seals."
+        },
+        "hint": "The last gate needs the current plate AND receiver. Earlier relays remain sealed. The courtyard perimeter avoids the spikes.",
+        "solution": [
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "receiver:r_r",
+            "offset": {
+              "x": -2,
+              "z": 0
+            }
+          },
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p1"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "receiver:r_s",
+            "offset": {
+              "x": -2,
+              "z": 0
+            }
+          },
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p2"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "exit:lumen"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "exit:anchor"
+          }
+        ]
+      },
+      "schemaVersion": 1
+    },
+    {
+      "id": "room_crosswire",
+      "kind": "room",
+      "label": "Relay Courtyard",
+      "origin": {
+        "x": -10,
+        "y": 0,
+        "z": -5
+      },
+      "cellSize": 1,
+      "cols": 21,
+      "rows": 11,
+      "cells": {
+        "0,0": "#",
+        "1,0": "#",
+        "2,0": "#",
+        "3,0": "#",
+        "4,0": "#",
+        "5,0": "#",
+        "6,0": "#",
+        "7,0": "#",
+        "8,0": "#",
+        "9,0": "#",
+        "10,0": "#",
+        "11,0": "#",
+        "12,0": "#",
+        "13,0": "#",
+        "14,0": "#",
+        "15,0": "#",
+        "16,0": "#",
+        "17,0": "#",
+        "18,0": "#",
+        "19,0": "#",
+        "20,0": "#",
+        "0,1": "#",
+        "1,1": ".",
+        "2,1": ".",
+        "3,1": ".",
+        "4,1": ".",
+        "5,1": ".",
+        "6,1": "#",
+        "7,1": ".",
+        "8,1": ".",
+        "9,1": ".",
+        "10,1": ".",
+        "11,1": ".",
+        "12,1": ".",
+        "13,1": "#",
+        "14,1": ".",
+        "15,1": ".",
+        "16,1": ".",
+        "17,1": ".",
+        "18,1": "#",
+        "19,1": ".",
+        "20,1": "#",
+        "0,2": "#",
+        "1,2": "L",
+        "2,2": ".",
+        "3,2": ".",
+        "4,2": "r",
+        "5,2": ".",
+        "6,2": "G",
+        "7,2": ".",
+        "8,2": ".",
+        "9,2": ".",
+        "10,2": ".",
+        "11,2": "s",
+        "12,2": ".",
+        "13,2": "I",
+        "14,2": ".",
+        "15,2": ".",
+        "16,2": "t",
+        "17,2": ".",
+        "18,2": "H",
+        "19,2": "o",
+        "20,2": "#",
+        "0,3": "#",
+        "1,3": ".",
+        "2,3": ".",
+        "3,3": ".",
+        "4,3": ".",
+        "5,3": ".",
+        "6,3": "#",
+        "7,3": ".",
+        "8,3": ".",
+        "9,3": ".",
+        "10,3": ".",
+        "11,3": ".",
+        "12,3": ".",
+        "13,3": "#",
+        "14,3": ".",
+        "15,3": ".",
+        "16,3": ".",
+        "17,3": ".",
+        "18,3": "#",
+        "19,3": ".",
+        "20,3": "#",
+        "0,4": "#",
+        "1,4": ".",
+        "2,4": ".",
+        "3,4": ".",
+        "4,4": ".",
+        "5,4": ".",
+        "6,4": "#",
+        "7,4": ".",
+        "8,4": ".",
+        "9,4": "#",
+        "10,4": "#",
+        "11,4": ".",
+        "12,4": ".",
+        "13,4": "#",
+        "14,4": ".",
+        "15,4": ".",
+        "16,4": ".",
+        "17,4": ".",
+        "18,4": "#",
+        "19,4": ".",
+        "20,4": "#",
+        "0,5": "#",
+        "1,5": ".",
+        "2,5": ".",
+        "3,5": ".",
+        "4,5": ".",
+        "5,5": ".",
+        "6,5": "#",
+        "7,5": ".",
+        "8,5": "X",
+        "9,5": "#",
+        "10,5": "#",
+        "11,5": ".",
+        "12,5": "X",
+        "13,5": "#",
+        "14,5": ".",
+        "15,5": ".",
+        "16,5": ".",
+        "17,5": ".",
+        "18,5": "#",
+        "19,5": ".",
+        "20,5": "#",
+        "0,6": "#",
+        "1,6": ".",
+        "2,6": ".",
+        "3,6": ".",
+        "4,6": ".",
+        "5,6": ".",
+        "6,6": "#",
+        "7,6": ".",
+        "8,6": ".",
+        "9,6": "#",
+        "10,6": "#",
+        "11,6": ".",
+        "12,6": "#",
+        "13,6": "#",
+        "14,6": ".",
+        "15,6": ".",
+        "16,6": ".",
+        "17,6": ".",
+        "18,6": "#",
+        "19,6": ".",
+        "20,6": "#",
+        "0,7": "#",
+        "1,7": ".",
+        "2,7": ".",
+        "3,7": ".",
+        "4,7": ".",
+        "5,7": ".",
+        "6,7": "#",
+        "7,7": ".",
+        "8,7": ".",
+        "9,7": ".",
+        "10,7": ".",
+        "11,7": ".",
+        "12,7": ".",
+        "13,7": "#",
+        "14,7": ".",
+        "15,7": ".",
+        "16,7": ".",
+        "17,7": ".",
+        "18,7": "#",
+        "19,7": ".",
+        "20,7": "#",
+        "0,8": "#",
+        "1,8": "A",
+        "2,8": ".",
+        "3,8": ".",
+        "4,8": "1",
+        "5,8": ".",
+        "6,8": "G",
+        "7,8": ".",
+        "8,8": ".",
+        "9,8": ".",
+        "10,8": ".",
+        "11,8": "2",
+        "12,8": ".",
+        "13,8": "I",
+        "14,8": ".",
+        "15,8": ".",
+        "16,8": "3",
+        "17,8": ".",
+        "18,8": "H",
+        "19,8": "0",
+        "20,8": "#",
+        "0,9": "#",
+        "1,9": ".",
+        "2,9": ".",
+        "3,9": ".",
+        "4,9": ".",
+        "5,9": ".",
+        "6,9": "#",
+        "7,9": ".",
+        "8,9": ".",
+        "9,9": ".",
+        "10,9": ".",
+        "11,9": ".",
+        "12,9": ".",
+        "13,9": "#",
+        "14,9": ".",
+        "15,9": ".",
+        "16,9": ".",
+        "17,9": ".",
+        "18,9": "#",
+        "19,9": ".",
+        "20,9": "#",
+        "0,10": "#",
+        "1,10": "#",
+        "2,10": "#",
+        "3,10": "#",
+        "4,10": "#",
+        "5,10": "#",
+        "6,10": "#",
+        "7,10": "#",
+        "8,10": "#",
+        "9,10": "#",
+        "10,10": "#",
+        "11,10": "#",
+        "12,10": "#",
+        "13,10": "#",
+        "14,10": "#",
+        "15,10": "#",
+        "16,10": "#",
+        "17,10": "#",
+        "18,10": "#",
+        "19,10": "#",
+        "20,10": "#"
+      },
+      "palette": [
+        {
+          "id": "#",
+          "label": "Wall",
+          "glyph": "#",
+          "color": "#0f172a"
+        },
+        {
+          "id": ".",
+          "label": "Floor",
+          "glyph": ".",
+          "color": "#334155"
+        },
+        {
+          "id": "L",
+          "label": "Lumen spawn",
+          "glyph": "L",
+          "color": "#38bdf8"
+        },
+        {
+          "id": "A",
+          "label": "Anchor spawn",
+          "glyph": "A",
+          "color": "#f59e0b"
+        },
+        {
+          "id": "o",
+          "label": "Lumen exit",
+          "glyph": "o",
+          "color": "#22d3ee"
+        },
+        {
+          "id": "0",
+          "label": "Anchor exit",
+          "glyph": "0",
+          "color": "#fbbf24"
+        },
+        {
+          "id": "E",
+          "label": "Prism emitter",
+          "glyph": "E",
+          "color": "#a78bfa"
+        },
+        {
+          "id": "1",
+          "label": "Plate 1",
+          "glyph": "1",
+          "color": "#fb923c"
+        },
+        {
+          "id": "2",
+          "label": "Plate 2",
+          "glyph": "2",
+          "color": "#fb923c"
+        },
+        {
+          "id": "3",
+          "label": "Plate 3",
+          "glyph": "3",
+          "color": "#fb923c"
+        },
+        {
+          "id": "4",
+          "label": "Plate 4",
+          "glyph": "4",
+          "color": "#fb923c"
+        },
+        {
+          "id": "5",
+          "label": "Plate 5",
+          "glyph": "5",
+          "color": "#fb923c"
+        },
+        {
+          "id": "6",
+          "label": "Plate 6",
+          "glyph": "6",
+          "color": "#fb923c"
+        },
+        {
+          "id": "7",
+          "label": "Plate 7",
+          "glyph": "7",
+          "color": "#fb923c"
+        },
+        {
+          "id": "8",
+          "label": "Plate 8",
+          "glyph": "8",
+          "color": "#fb923c"
+        },
+        {
+          "id": "9",
+          "label": "Plate 9",
+          "glyph": "9",
+          "color": "#fb923c"
+        },
+        {
+          "id": "r",
+          "label": "Receiver r",
+          "glyph": "r",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "s",
+          "label": "Receiver s",
+          "glyph": "s",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "t",
+          "label": "Receiver t",
+          "glyph": "t",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "u",
+          "label": "Receiver u",
+          "glyph": "u",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "v",
+          "label": "Receiver v",
+          "glyph": "v",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "w",
+          "label": "Receiver w",
+          "glyph": "w",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "G",
+          "label": "Gate G",
+          "glyph": "G",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "H",
+          "label": "Gate H",
+          "glyph": "H",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "I",
+          "label": "Gate I",
+          "glyph": "I",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "J",
+          "label": "Gate J",
+          "glyph": "J",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "K",
+          "label": "Gate K",
+          "glyph": "K",
+          "color": "#94a3b8"
+        },
+        {
+          "id": "X",
+          "label": "Spikes X",
+          "glyph": "X",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Y",
+          "label": "Spikes Y",
+          "glyph": "Y",
+          "color": "#ef4444"
+        },
+        {
+          "id": "Z",
+          "label": "Spikes Z",
+          "glyph": "Z",
+          "color": "#ef4444"
+        }
+      ],
+      "meta": {
+        "objective": "Complete each relay together. Carry both devices to the next bay, then keep the final circuit live while both heroes cross.",
+        "style": "branching-courtyard",
+        "links": {
+          "gates": {
+            "G": {
+              "relays": [
+                "relay1"
+              ]
+            },
+            "H": {
+              "relays": [
+                "relay3"
+              ],
+              "plates": [
+                "p3"
+              ],
+              "receivers": [
+                "r_t"
+              ]
+            },
+            "I": {
+              "relays": [
+                "relay2"
+              ]
+            }
+          },
+          "spikes": {
+            "X": {
+              "retractedBy": "r_s"
+            }
+          }
+        },
+        "relays": [
+          {
+            "id": "relay1",
+            "label": "Align the entry circuit",
+            "plates": [
+              "p1"
+            ],
+            "receivers": [
+              "r_r"
+            ],
+            "requires": []
+          },
+          {
+            "id": "relay2",
+            "label": "Carry the signal onward",
+            "plates": [
+              "p2"
+            ],
+            "receivers": [
+              "r_s"
+            ],
+            "requires": [
+              "relay1"
+            ]
+          },
+          {
+            "id": "relay3",
+            "label": "Seal the final constellation",
+            "plates": [
+              "p3"
+            ],
+            "receivers": [
+              "r_t"
+            ],
+            "requires": [
+              "relay2"
+            ]
+          }
+        ],
+        "roleHints": {
+          "lumen": "Call the receiver and aim the prism along the cyan lane. Move it only after the relay seals.",
+          "anchor": "Hold the matching amber plate. Carry the weight forward after the relay seals."
+        },
+        "hint": "The last gate needs the current plate AND receiver. Earlier relays remain sealed. The courtyard perimeter avoids the spikes.",
+        "solution": [
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "receiver:r_r",
+            "offset": {
+              "x": -2,
+              "z": 0
+            }
+          },
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p1"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "receiver:r_s",
+            "offset": {
+              "x": -2,
+              "z": 0
+            }
+          },
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p2"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "receiver:r_t",
+            "offset": {
+              "x": -2,
+              "z": 0
+            }
+          },
+          {
+            "kind": "prism",
+            "dir": "east"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "plate:p3"
+          },
+          {
+            "kind": "anchor"
+          },
+          {
+            "kind": "move",
+            "hero": "lumen",
+            "target": "exit:lumen"
+          },
+          {
+            "kind": "move",
+            "hero": "anchor",
+            "target": "exit:anchor"
+          }
+        ]
+      },
+      "schemaVersion": 1
+    }
+  ]
+}

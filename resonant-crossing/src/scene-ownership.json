@@ -3,8 +3,12 @@
   "provider": "resonant-crossing",
   "declarations": [
     {
-      "provenance": { "kind": "runtime", "providerId": "resonant-crossing", "instanceId": "note-field" },
-      "reason": "Rhythm game whose note field is generated from the code-owned chart at runtime. There is no authored 3D world, terrain, or placement to express in the editor."
+      "provenance": {
+        "kind": "runtime",
+        "providerId": "resonant-crossing",
+        "instanceId": "heroes-and-devices"
+      },
+      "reason": "Hero automata, carried weight, planted prism, active beams, and circuit status are runtime state. Placement, chamber grids, routes, zones, stars and armillary positions are owned by editor.scene.json."
     }
   ]
 }
