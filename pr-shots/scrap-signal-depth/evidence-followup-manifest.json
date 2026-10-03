@@ -1,0 +1,99 @@
+{
+  "gameRemote": "d7edc977025659aa26dc79a501cd69270b403a47",
+  "gameTree": "4d00fdbff94486db2c03121e2b204d88aa6f6c0b",
+  "clawCaptureSource": "b608ec2",
+  "tests": "144 pass, 10260 assertions; types/build pass",
+  "native": "Real keyboard/mouse inputs through canonical runner scratch adapter; read-only probes; software GL; 400x225 stills/400x224 clips; no hardware FPS claim. Windup/recovery body poses inspected; near-foot marker occluded. Exact probe attack phase proves counter window. No injected gameplay writes.",
+  "files": [
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.png",
+      "archive": "scrap-signal-claw-windup-actual-half.png",
+      "sha256": "8de3ba2879e0007febb77ed9becd852ae3e32619d7ae8daf2e97cae27ea75315",
+      "bytes": 176000
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.png",
+      "archive": "scrap-signal-claw-recovery-actual-half.png",
+      "sha256": "ccd66147b282f2f30d090ab6a79e45d0103ce1c4e8d9a7efa89bcd725678147c",
+      "bytes": 170403
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.shot.json",
+      "archive": "scrap-signal-claw-windup-actual-half.shot.json",
+      "sha256": "e4fc618c31618973c671a618ab990d75687d21bdfdc18a8747475b9fe76cc685",
+      "bytes": 5343
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.shot.json",
+      "archive": "scrap-signal-claw-recovery-actual-half.shot.json",
+      "sha256": "036bd2c2f440b68b0a6b988938f7558db5d57afd86385e651663810c27cc7ef1",
+      "bytes": 5377
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-corrected-claw-counter-half.mp4",
+      "archive": "scrap-signal-corrected-claw-counter-half.mp4",
+      "sha256": "08535c506b02d6714de4b970bcba3df902b1d3d440b4837a02e3718de3a53e74",
+      "bytes": 67847
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-counter.log",
+      "archive": "corrected-claw-counter.log",
+      "sha256": "f68517b3f67f121dce27ec07bc42eb3faff6218aac4ba3dc20e8612dbab4c30f",
+      "bytes": 3763
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-approach.log",
+      "archive": "corrected-claw-approach.log",
+      "sha256": "c46979670a876c87ceb03bdaebd81bae9f6569cbcfb95bfba10580cffe0f17b7",
+      "bytes": 3473
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-relay-start.log",
+      "archive": "corrected-relay-start.log",
+      "sha256": "1344588980342cfa152e664850f9a32c0faf6dda2d6abf80c41eb169e5f5a457",
+      "bytes": 3094
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-budget.jsonl",
+      "archive": "ai-routing-budget.jsonl",
+      "sha256": "58fb984f42ac237c62704f0d835a568eaf13e2ca239b4422ea7ecb44a5e56711",
+      "bytes": 535
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-chase.jsonl",
+      "archive": "ai-routing-chase.jsonl",
+      "sha256": "58b785f0b29526b7ac01d5faf2efed0eb3dac120270e6abb1465af308b149b32",
+      "bytes": 397
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-tests.log",
+      "archive": "final-tests.log",
+      "sha256": "5c68ad4f5c96318fd297e961963ed9148528082959f46c9b727db05cc3e517ea",
+      "bytes": 15393
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-types.log",
+      "archive": "final-types.log",
+      "sha256": "793b3289aad460c12104600252941dc521578230c52a1216a8d6668b76629cc3",
+      "bytes": 33
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-adapter.diff",
+      "archive": "native-adapter.diff",
+      "sha256": "7fb205bc6f90d5ffb683ec2d773c1c51189ceec88887e7b64736b6004308a8eb",
+      "bytes": 10043
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-map/rpc-evidence.jsonl",
+      "archive": "editor-rpc-evidence.jsonl",
+      "sha256": "45ff1d29df0b52af6d2b36080967c8b2bdf585a26d968089985306804035708c",
+      "bytes": 11520
+    },
+    {
+      "local": "/workspace/games/.scratch/scrap-signal-map/spawn-colliders-after.jsonl",
+      "archive": "editor-spawn-colliders-after.jsonl",
+      "sha256": "ae78834b2d983ae5fdb2b4d5f48882d6f2deea8b7b6559c4fb58dee1cd2e45cb",
+      "bytes": 1662
+    }
+  ]
+}

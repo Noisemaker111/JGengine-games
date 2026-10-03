@@ -1,0 +1,2 @@
+{"label":"bounded","entities":112,"objects":431,"frames":240,"averageMs":0.02855632083333409,"maxMs":0.9501199999999699,"peakWork":{"active":0,"idle":0,"raycasts":0,"groundQueries":0},"lastWork":{"active":0,"idle":0,"dormant":107,"raycasts":0,"groundQueries":0}}
+{"label":"bounded-contract","entities":114,"objects":431,"frames":240,"averageMs":0.37920925416666595,"maxMs":10.111159999999984,"peakWork":{"active":2,"idle":0,"raycasts":8,"groundQueries":4},"lastWork":{"active":0,"idle":0,"dormant":107,"raycasts":0,"groundQueries":0}}

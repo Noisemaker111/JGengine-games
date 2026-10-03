@@ -31,3 +31,5 @@
 {"request":{"method":"set_meta","id":"dead_air_barrel_east","patch":{"verticalOffset":-0.5}},"result":{"ok":true,"result":{"id":"dead_air_barrel_east","kind":"prop","meta":{"catalogId":"bandit_barrel","verticalOffset":-0.5}}}}
 {"request":{"method":"push_document_patch","patch":{"type":"commands","baseRevision":0,"commands":[{"type":"remove","id":"dead_air_barrel_east"}]}},"result":{"ok":true,"result":{"revision":1,"markers":451,"volumes":127,"paths":10,"annotations":0,"selection":[]}}}
 {"request":{"method":"set_meta","id":"zone_cores_blight","patch":{"settlementKit":"reactor"}},"result":{"ok":true,"result":{"id":"zone_cores_blight","kind":"zone","meta":{"zoneId":"cores_blight","level":24,"settlementKit":"reactor"}}}}
+{"request":{"method":"set_transform","id":"dead_air_spawn_1_0","z":565},"result":{"ok":true,"result":{"markers":451,"volumes":127,"paths":10,"annotations":0,"selection":[]}}}
+{"request":{"method":"set_transform","id":"dead_air_spawn_1_0","x":-510,"z":565},"result":{"ok":true,"result":{"markers":451,"volumes":127,"paths":10,"annotations":0,"selection":[]}}}

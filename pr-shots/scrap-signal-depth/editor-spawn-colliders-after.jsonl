@@ -1,0 +1,14 @@
+{"spawn":{"id":"dead_air_spawn_1_0","wave":1,"order":0,"catalogId":"husk","x":-510,"z":565},"y":34.27783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_1_1","wave":1,"order":1,"catalogId":"husk","x":-480,"z":577},"y":34.27783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_2_0","wave":2,"order":0,"catalogId":"husk","x":-525,"z":570},"y":34.27783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_2_1","wave":2,"order":1,"catalogId":"marauder","x":-489,"z":563},"y":34.27783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_3_0","wave":3,"order":0,"catalogId":"husk","x":-522,"z":561},"y":34.51783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_3_1","wave":3,"order":1,"catalogId":"marauder","x":-480,"z":572},"y":34.27783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"spawn":{"id":"dead_air_spawn_3_2","wave":3,"order":2,"catalogId":"loader","x":-498,"z":557},"y":34.45783504754558,"intersects":[],"probes":[[null,null,null],[null,null,null],[null,null,null]]}
+{"id":"dead_air_spawn_1_0","buildings":[]}
+{"id":"dead_air_spawn_1_1","buildings":[]}
+{"id":"dead_air_spawn_2_0","buildings":[]}
+{"id":"dead_air_spawn_2_1","buildings":[]}
+{"id":"dead_air_spawn_3_0","buildings":[]}
+{"id":"dead_air_spawn_3_1","buildings":[]}
+{"id":"dead_air_spawn_3_2","buildings":[]}
