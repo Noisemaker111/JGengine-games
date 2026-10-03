@@ -196,5 +196,15 @@
     "tree": "cd22fa160b135187414f41ff5ab30fdca7ba2979",
     "runtime": "499c647 / index-YJPeAFqr.js",
     "provenance": "Final root-reported documentation head; capture sources remain explicit."
+  },
+  "upstreamCollision": {
+    "pr": "https://github.com/Noisemaker111/jgengine/pull/1936",
+    "remoteCommit": "c5e2fa11290eb395d671ce90d9661a55eb0773b6",
+    "tree": "7232a432169ed727e35a3c0977926c5d053dcea3",
+    "focusedTests": 108,
+    "assertions": 6267,
+    "ci": "all six PASS",
+    "run": "https://github.com/Noisemaker111/jgengine/actions/runs/37111756953",
+    "provenance": "SDK candidate offline comparison only; published game native evidence unchanged. No native fix adoption before HQ verified release."
   }
 }
