@@ -1,4 +1,5 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { LoopPlayer } from "@jgengine/core/game/defineGame";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
@@ -65,8 +66,8 @@ function onInit(ctx: GameContext): void {
   setGamePhase(ctx, "menu");
 }
 
-function onNewPlayer(ctx: GameContext): void {
-  if (!seatPlayer(ctx, ctx.player.userId)) raiseToast(ctx, "Both hero seats are occupied.");
+function onNewPlayer(ctx: GameContext, player?: LoopPlayer): void {
+  if (!seatPlayer(ctx, player?.userId ?? ctx.player.userId)) raiseToast(ctx, "Both hero seats are occupied.");
   // Joining/reconnecting changes possession, never the puzzle already in progress.
 }
 

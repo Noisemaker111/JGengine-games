@@ -88,6 +88,7 @@ export function registerCommands(ctx: GameContext): void {
     apply(state, input) {
       if (duetStore.read(state).status !== "playing") return;
       const userId = commandUser(state, input);
+      if (controlledHero(state, userId) === null) return;
       if (!swapHero(state, userId)) raiseToast(state, "You only control one hero here.");
     },
   });
@@ -154,6 +155,8 @@ export function registerCommands(ctx: GameContext): void {
 }
 
 function commandUser(ctx: GameContext, input: unknown): string {
+  const actor = ctx.game.commands.actor();
+  if (actor !== null) return actor;
   const fromInput = commandInput(input).userId;
   return typeof fromInput === "string" ? fromInput : ctx.player.userId;
 }
