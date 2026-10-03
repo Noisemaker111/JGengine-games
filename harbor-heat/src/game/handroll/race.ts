@@ -97,8 +97,9 @@ export function createRace(driving: Driving): Race {
     }
     rivalState = advancePathFollow(rivalConfig, rivalState, dt);
     const [rx, , rz] = rivalState.position;
+    const rivalY = ctx.world.groundHeightAt(rx, rz);
     ctx.scene.entity.setPose(RIVAL_RACER_ID, {
-      position: [rx, ctx.world.groundHeightAt(rx, rz), rz],
+      position: [rx, rivalY, rz],
       rotationY: rivalState.heading,
       dt,
     });
@@ -106,7 +107,7 @@ export function createRace(driving: Driving): Race {
     if (playerPos === null) return;
     const events = race.update(ctx.time.now(), {
       [ctx.player.userId]: playerPos,
-      [RIVAL_RACER_ID]: [rx, 0, rz] as const,
+      [RIVAL_RACER_ID]: [rx, rivalY, rz] as const,
     });
     const finished = events.find((event) => event.type === "race.finished");
     if (finished !== undefined) {
@@ -147,7 +148,7 @@ export function createRace(driving: Driving): Race {
       const track = raceTrack({
         checkpoints: checkpoints.map(([x, z], i) => ({
           id: `cp_${i}`,
-          center: [x, 2, z] as const,
+          center: [x, ctx.world.groundHeightAt(x, z) + 2, z] as const,
           half: [10, 8, 10] as const,
         })),
         laps: 1,

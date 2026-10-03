@@ -108,11 +108,27 @@ describe("harbor circuit rivals", () => {
     const { ctx, race, route } = raceAt("race-loop");
     race.startRace(ctx);
     for (const [x, z] of route.checkpoints) {
-      ctx.scene.entity.setPose("entered-car", { position: [x, 0, z] });
+      ctx.scene.entity.setPose("entered-car", { position: [x, ctx.world.groundHeightAt(x, z), z] });
       race.tick(ctx, 1 / 60);
     }
     expect(raceStore.read(ctx)?.won).toBe(true);
     expect(race.raceActive()).toBe(false);
     expect(ctx.scene.entity.get(RIVAL_RACER_ID)).toBeNull();
+  });
+
+  test("elevated district gates accept the actual ground height for both racers", () => {
+    const { ctx, race, route } = raceAt("race-heights");
+    ctx.world.groundHeightAt = () => 14;
+    const [startX, startZ] = route.checkpoints.at(-1)!;
+    ctx.scene.entity.setPose("entered-car", { position: [startX, 14, startZ] });
+    race.startRace(ctx);
+    for (let i = 0; i < 60; i += 1) race.tick(ctx, 1 / 60);
+    expect(ctx.scene.entity.get(RIVAL_RACER_ID)?.position[1]).toBe(14);
+    expect(raceStore.read(ctx)?.position).toBe(2);
+    for (const [x, z] of route.checkpoints) {
+      ctx.scene.entity.setPose("entered-car", { position: [x, 14, z] });
+      race.tick(ctx, 1 / 60);
+    }
+    expect(raceStore.read(ctx)?.won).toBe(true);
   });
 });
