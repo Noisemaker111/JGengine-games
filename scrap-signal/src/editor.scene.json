@@ -5863,9 +5863,9 @@
       "id": "dead_air_spawn_1_0",
       "kind": "dead_air_spawn",
       "position": {
-        "x": -511,
+        "x": -510,
         "y": 0,
-        "z": 559
+        "z": 565
       },
       "label": "North claw rush",
       "meta": {

@@ -3,8 +3,15 @@ import { worldObjectById } from "../objects/catalog";
 import { enemyById } from "../entities/enemies/catalog";
 import { fittedObjectColliders } from "@jgengine/core/scene/colliders";
 import { createSceneRaycast } from "@jgengine/core/scene/sceneRaycast";
-import { objectModels } from "./models";
-import { terrainField } from "../../world";
+import { colliderBounds, resolveColliders } from "@jgengine/core/scene/colliders";
+import { defineGameDefinition } from "@jgengine/core/game/defineGame";
+import { createGameContext } from "@jgengine/core/runtime/gameContext";
+import { resolveStructureBuildings } from "@jgengine/core/world/environmentSummary";
+import { objectModels, entityModels } from "./models";
+import { assets } from "../assets";
+import { content } from "../content";
+import { setupWorld } from "./setup";
+import { physics, terrainField, world } from "../../world";
 import {
   AUTHORED_PIECES,
   DEAD_AIR_SITE,
@@ -207,6 +214,54 @@ describe("Dead Air tactical arena", () => {
       expect(crouched?.instanceId).toBe(id);
       if (piece.catalogId === "reload_baffle") expect(standing?.instanceId).toBe(id);
       else expect(standing).toBeNull();
+    }
+  });
+
+  test("all ambush bodies clear the real world props and building footprints with a forward path step", () => {
+    const ctx = createGameContext({
+      definition: defineGameDefinition({ name: "dead-air-clearance", assets, world, physics, multiplayer: "off" }),
+      content, models: { object: (id) => objectModels[id], entity: (id) => entityModels[id] },
+      player: { userId: "clearance-player", isNew: true },
+    });
+    setupWorld(ctx);
+    const buildings = world.structures?.flatMap((descriptor) => resolveStructureBuildings(descriptor)) ?? [];
+    expect(buildings.length).toBeGreaterThan(30);
+    for (const spawn of DEAD_AIR_SPAWNS) {
+      const y = ctx.world.groundHeightAt(spawn.x, spawn.z);
+      for (const object of ctx.scene.object.list()) {
+        for (const collider of resolveColliders(ctx.scene.object.collidersOf(object.instanceId))) {
+          if (collider.purpose !== "physical" || !collider.blocks) continue;
+          const bounds = colliderBounds(collider, object.position, object.rotationY);
+          const overlaps = spawn.x + 0.4 > bounds.min[0] && spawn.x - 0.4 < bounds.max[0]
+            && spawn.z + 0.4 > bounds.min[2] && spawn.z - 0.4 < bounds.max[2]
+            && y + 1.7 > bounds.min[1] && y + 0.05 < bounds.max[1];
+          expect(overlaps, `${spawn.id} overlaps ${object.instanceId}`).toBe(false);
+        }
+      }
+      for (const building of buildings) {
+        const overlaps = spawn.x + 0.4 > building.bounds.minX && spawn.x - 0.4 < building.bounds.maxX
+          && spawn.z + 0.4 > building.bounds.minZ && spawn.z - 0.4 < building.bounds.maxZ;
+        expect(overlaps, `${spawn.id} overlaps building ${building.id}`).toBe(false);
+      }
+      const dx = DEAD_AIR_SITE.x - spawn.x;
+      const dz = DEAD_AIR_SITE.z - spawn.z;
+      const length = Math.hypot(dx, dz);
+      const ux = dx / length;
+      const uz = dz / length;
+      for (const offset of [-0.4, 0, 0.4]) {
+        const hit = ctx.scene.raycast({
+          origin: [spawn.x - uz * offset, y + 0.7, spawn.z + ux * offset],
+          direction: [ux, 0, uz], maxDistance: 1.2,
+          filter: { entities: false, terrain: false }, accept: (impact) => impact.blocks,
+        });
+        expect(hit, `${spawn.id} forward body ray blocked`).toBeNull();
+      }
+      const id = `clearance_${spawn.id}`;
+      ctx.scene.entity.spawn(spawn.catalogId, { id, position: [spawn.x, y, spawn.z] });
+      ctx.scene.entity.moveTowardCommit(id, [DEAD_AIR_SITE.x, y, DEAD_AIR_SITE.z], { speed: 5, dt: 0.1, stopDistance: 0 });
+      const next = ctx.scene.entity.get(id)!.position;
+      expect((next[0] - spawn.x) * ux + (next[2] - spawn.z) * uz).toBeGreaterThan(0.45);
+      expect(Math.abs(ctx.world.groundHeightAt(next[0], next[2]) - y)).toBeLessThan(0.8);
     }
   });
 });
