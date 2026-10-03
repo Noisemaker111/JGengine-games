@@ -295,6 +295,12 @@ function tickRaceEconomy(ctx: GameContext): void {
   if (ctx.time.now() >= mission(ctx).raceClearAt) raceStore.clear(ctx);
 }
 
+function courierRecoveryNotice(ctx: GameContext): string {
+  const courier = courierStore.read(ctx);
+  if (courier.phase !== "running") return "";
+  return ` Parcel delivery ended with no delivery pay; ${courier.bond > 0 ? `$${courier.bond} bond forfeited. Free standard deliveries remain available.` : "no bond was charged."}`;
+}
+
 /** A cop on top of an on-foot wanted player for a sustained beat makes the arrest. */
 function tickBusted(ctx: GameContext, dt: number): void {
   const stars = handrollOf(ctx).wanted().stars;
@@ -322,8 +328,9 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   ctx.game.feed.push("harbor.log", { text: `Busted. HHPD released you for $${fine}.` });
+  const parcelNotice = courierRecoveryNotice(ctx);
   finishCourier(ctx, false, "recovery");
-  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
+  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.${parcelNotice}` });
   syncPhase(ctx);
 }
 
@@ -353,8 +360,9 @@ function tickWasted(ctx: GameContext): void {
   ctx.game.feed.push("harbor.log", {
     text: fee > 0 ? `Wasted. The clinic took $${fee}.` : "Wasted. The clinic took pity.",
   });
+  const parcelNotice = courierRecoveryNotice(ctx);
   finishCourier(ctx, false, "recovery");
-  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
+  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.${parcelNotice}` });
   syncPhase(ctx);
 }
 
