@@ -115,6 +115,7 @@ html, body, #root { height: 100%; margin: 0; background: #080e19; }
 }
 @media (max-height: 580px) and (min-width: 601px) {
   .rc-ui { --rc-feedback-inset: 42px; }
+  .rc-signals { width: max-content; }
   .rc-header p { display: none; }
   .rc-header { padding: 7px 12px; }
   .rc-hero { width: calc(100% - 190px); grid-template-columns: minmax(90px, .75fr) minmax(176px, 1.5fr) minmax(96px, 1fr); column-gap: 6px; }
@@ -124,7 +125,7 @@ html, body, #root { height: 100%; margin: 0; background: #080e19; }
   .rc-hero > .rc-aim { grid-column: 2; grid-row: 2; }
   .rc-hero > .rc-actions:not(.rc-aim):not(.rc-callouts) { grid-column: 3; grid-row: 2; }
   .rc-hero:not(:has(.rc-aim)) > .rc-actions:not(.rc-callouts) { grid-column: 2 / -1; }
-  .rc-hero > .rc-callouts { grid-column: 2 / -1; grid-row: 3; }
+  .rc-hero > .rc-actions.rc-callouts { grid-column: 2 / -1; grid-row: 3; }
   .rc-hero > .rc-hint[role="status"] { grid-column: 1; grid-row: 3; align-self: center; font-size: 9px; }
   .rc-hero > .rc-hint:not(.rc-role-hint):not([role="status"]) { grid-column: 1 / -1; grid-row: 4; }
   .rc-hero .rc-actions button { padding: 4px 2px; font-size: 10px; }
