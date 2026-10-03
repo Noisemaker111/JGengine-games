@@ -801,7 +801,16 @@
       "sha256": "afdfffe7bce759e7bae4d6f5e7c2271ea8b86448e1f1b1051105d19d65e6c67f",
       "gitBlob": "6bd32988b65e7bcd1dbf8d1dcee7432cdad1eb7a",
       "verified": true
+    },
+    {
+      "archive": "native-verification.md",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-verification.md",
+      "bytes": 14333,
+      "sha256": "a75f4e5045235b904b77b0560083988379c2a8dc5b109f0728403586621abb20",
+      "gitBlob": "38d4f87e5488aba979e6156048ca8f960c64ca72",
+      "verified": true
     }
   ],
-  "historicalLogs": "final-game-tests.log and provision-clean-tests.log are historical stage logs. final-tests.log is authoritative final159-test log."
+  "historicalLogs": "final-game-tests.log and provision-clean-tests.log are historical stage logs. final-tests.log is authoritative final159-test log.",
+  "nativeRecording": "Return MP4:14 logical native frames at20Hz; ffprobe800x450, VFR15encodedframes,0.760s,avg375/19fps,r_frame_rate25/1. Decoded frames0/6/13 inspected. No hardware FPS implication."
 }
