@@ -1,0 +1,452 @@
+{
+  "status": "complete",
+  "gameplaySourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+  "editorDocumentSHA256": "99d12e5fde85306d868d89e5e02af42d9a47f6c7c27b6d434b2805eb1c6d2f10",
+  "artifacts": [
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/baseline-layout.png",
+      "role": "native-baseline-layout",
+      "gameSourceHead": "194fa2c4480813c2d254a7f395c5f9c54b077288",
+      "sha256": "46d6fb3031c9f2e389d40a3c9ec6d8a4c204e61cb1de459ac9b3c7e895024991",
+      "bytes": 36331,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/baseline-layout.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/baseline-hot.log",
+      "role": "native-baseline-render-log",
+      "gameSourceHead": "194fa2c4480813c2d254a7f395c5f9c54b077288",
+      "sha256": "600f8f2c2579284da0d1b8d9b344ff6616907ee6fadfa7aeb5694a15de9cb28a",
+      "bytes": 3486,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/baseline-hot.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/native-gameplay-from-0.log",
+      "role": "four-room-native-gameplay",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "276acea0742136216e6a21359903fdcf1c93061662adb82bacd7468b4505d051",
+      "bytes": 28850,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/native-gameplay-from-0.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/native-command.json",
+      "role": "canonical-native-command",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "196b4e00a599ed876a15931bc06933388287e65b9c5998e004f5c95fbedd2285",
+      "bytes": 8293,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/native-command.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/final-probes.json",
+      "role": "native-observed-state",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "2851b58d40e9c0a7c90201e138eda8806e9f8e23c964deded30c1075ae5beb3f",
+      "bytes": 23119,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/final-probes.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/final-render-snapshots.json",
+      "role": "native-render-diagnostics",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "d7e554707ca1ba3475beb9cc41cc47418674c2e381ed6fc79d80751cd33a730f",
+      "bytes": 21843,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/final-render-snapshots.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/checkpoint-recovery-completion.json",
+      "role": "checkpoint-hazard-terminal-observations",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "d25ce405f579eb75341345155c27b08790a4bd90f5590fef08658df4da7dc31f",
+      "bytes": 2468,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/checkpoint-recovery-completion.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/live-hazard-recovery.png",
+      "role": "native-active-spike-recovery-half-resolution",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "7f15b9ffba3be40c197d637aa9ca1dd659ad5af68cd077f7cde9a0d15ddcd3e0",
+      "bytes": 177529,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/live-hazard-recovery.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/final-complete.png",
+      "role": "native-terminal-state-half-resolution",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "61b540efa8dbaa38f641f01d75fdc1037b0dc7f39aee84f002f60c5c89a8257d",
+      "bytes": 206158,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/final-complete.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-circuit-desktop.png",
+      "role": "accepted-native-circuit-desktop",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "209df8ea767b664ee6be092391c91252596bfc67c6420d922643f17e8c95b0a4",
+      "bytes": 271631,
+      "capturedAt": "2026-10-03T07:08:18.970Z",
+      "width": 1600,
+      "height": 900,
+      "canonicalCommand": "bun run drive --url http://127.0.0.1:5519 --timeout 300 --connect 9230 --reuse-storage --click Continue --probe desktop-circuit-start --key KeyD:40 --probe final-camera-key-east --key KeyA:40 --probe final-camera-key-roundtrip --probe room_interlock-move-0 --click Aim prism east --wait 200 --probe room_interlock-prism-6 --click Swap hero --click Move east --click Move east --probe room_interlock-move-14 --click Drop Weight --wait 200 --probe room_interlock-anchor-20 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-circuit-desktop.png --rpc {\"method\":\"debug_snapshot\"} --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move south --click Move south --click Move south --probe room_interlock-move-46 --click Aim prism north --wait 200 --probe room_interlock-prism-52 --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-68 --click Drop Weight --wait 200 --probe room_interlock-anchor-74 --click Swap hero --click Move north --click Move north --click Move north --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-96 --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-112 --wait 45000 --probe desktop-courtyard-start --click Swap hero --click Move east --probe room_crosswire-move-2 --click Aim prism east --wait 200 --probe room_crosswire-prism-8 --click Swap hero --click Move east --click Move east --click Move east --probe room_crosswire-move-18 --click Drop Weight --wait 200 --probe room_crosswire-anchor-24 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-courtyard-desktop.png --rpc {\"method\":\"debug_snapshot\"}",
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-circuit-desktop.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-circuit-desktop.shot.json",
+      "role": "canonical-capture-sidecar",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "545822ea2a89648c0514812012e80de6267a61e306f7dc798f086554a0471956",
+      "bytes": 6559,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-circuit-desktop.shot.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-circuit-mobile.png",
+      "role": "accepted-native-circuit-mobile",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "d12d2f3e54e07d1d5d80ffe0ea3ae12f681c502caec98188cfc834c871f53197",
+      "bytes": 279175,
+      "capturedAt": "2026-10-03T07:05:50.055Z",
+      "width": 780,
+      "height": 1688,
+      "canonicalCommand": "bun run drive --url http://127.0.0.1:5519 --timeout 300 --connect 9230 --device mobile --reuse-storage --click Continue --probe mobile-circuit-start --probe room_interlock-move-0 --click Aim prism east --wait 200 --probe room_interlock-prism-6 --click Swap hero --click Move east --click Move east --probe room_interlock-move-14 --click Drop Weight --wait 200 --probe room_interlock-anchor-20 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-circuit-mobile.png",
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-circuit-mobile.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-circuit-mobile.shot.json",
+      "role": "canonical-capture-sidecar",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "f0b639e7dc51f6ef7324071ad66c0f8aaefae251f3237435606b72bd577b9919",
+      "bytes": 5076,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-circuit-mobile.shot.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-courtyard-desktop.png",
+      "role": "accepted-native-courtyard-desktop",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "9586534adc1e8485ced25010b809ec373646d924963eb2f85560c407440183a0",
+      "bytes": 254189,
+      "capturedAt": "2026-10-03T07:10:11.013Z",
+      "width": 1600,
+      "height": 900,
+      "canonicalCommand": "bun run drive --url http://127.0.0.1:5519 --timeout 300 --connect 9230 --reuse-storage --click Continue --probe desktop-circuit-start --key KeyD:40 --probe final-camera-key-east --key KeyA:40 --probe final-camera-key-roundtrip --probe room_interlock-move-0 --click Aim prism east --wait 200 --probe room_interlock-prism-6 --click Swap hero --click Move east --click Move east --probe room_interlock-move-14 --click Drop Weight --wait 200 --probe room_interlock-anchor-20 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-circuit-desktop.png --rpc {\"method\":\"debug_snapshot\"} --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --click Move south --click Move south --click Move south --probe room_interlock-move-46 --click Aim prism north --wait 200 --probe room_interlock-prism-52 --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-68 --click Drop Weight --wait 200 --probe room_interlock-anchor-74 --click Swap hero --click Move north --click Move north --click Move north --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-96 --click Swap hero --click Move east --click Move east --click Move east --click Move east --click Move east --click Move east --probe room_interlock-move-112 --wait 45000 --probe desktop-courtyard-start --click Swap hero --click Move east --probe room_crosswire-move-2 --click Aim prism east --wait 200 --probe room_crosswire-prism-8 --click Swap hero --click Move east --click Move east --click Move east --probe room_crosswire-move-18 --click Drop Weight --wait 200 --probe room_crosswire-anchor-24 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-courtyard-desktop.png --rpc {\"method\":\"debug_snapshot\"}",
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-courtyard-desktop.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-courtyard-desktop.shot.json",
+      "role": "canonical-capture-sidecar",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "5a4d2bf834cd79ae3da2423e568ec5f96982ee272cadb2d4b02d60447d62a17b",
+      "bytes": 6456,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-courtyard-desktop.shot.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-courtyard-mobile.png",
+      "role": "accepted-native-courtyard-mobile",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "609ab43e99bf37b568bdacc03c083b859fd6046e23dbf7c78907f0bec3116819",
+      "bytes": 300062,
+      "capturedAt": "2026-10-03T07:10:55.599Z",
+      "width": 780,
+      "height": 1688,
+      "canonicalCommand": "bun run drive --url http://127.0.0.1:5519 --timeout 300 --connect 9230 --device mobile --reuse-storage --click Continue --probe mobile-courtyard-start --click Move east --probe room_crosswire-move-2 --click Aim prism east --wait 200 --probe room_crosswire-prism-8 --click Swap hero --click Move east --click Move east --click Move east --probe room_crosswire-move-18 --click Drop Weight --wait 200 --probe room_crosswire-anchor-24 --wait 5000 --shot /workspace/games/.scratch/coop-evidence/style-courtyard-mobile.png",
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-courtyard-mobile.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/style-courtyard-mobile.shot.json",
+      "role": "canonical-capture-sidecar",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "36683248f370c7153c37d6c5b984facc03b5e229179bc6400befb13a2b7f69fb",
+      "bytes": 5099,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/style-courtyard-mobile.shot.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/desktop.log",
+      "role": "native-two-style-desktop-log",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "514fd806e0f6046c54a6148fdbafd4ebb641e2f40d9c53282b5685e397b3bb22",
+      "bytes": 12446,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/desktop.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/desktop-command.json",
+      "role": "native-two-style-desktop-command",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "38eb4787d3e623b0f141ac212270b23be6719cf1fb9b961161f4d1915cf7c979",
+      "bytes": 2871,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/desktop-command.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/mobile-circuit.log",
+      "role": "native-phone-circuit-log",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "34da366f3043c63d83c54d5f3185a37cd118f31e73e67c689ddc4605a6f530e9",
+      "bytes": 2120,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/mobile-circuit.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/mobile-circuit-command.json",
+      "role": "native-phone-circuit-command",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "dc9b85b828e8c6e3ff2b466433e4cec683a95c6f185af0c82625b5af4b1fdc60",
+      "bytes": 686,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/mobile-circuit-command.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/mobile-courtyard.log",
+      "role": "native-phone-courtyard-log",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "e2adadf79543a17719d33c92dce04b3cae583f013ae9d10234666671343ad85f",
+      "bytes": 2124,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/mobile-courtyard.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/mobile-courtyard-command.json",
+      "role": "native-phone-courtyard-command",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "ccbbdf013c0b5c26a4a0809e01077a67059c1faa1696d330858605150054a030",
+      "bytes": 746,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/mobile-courtyard-command.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/visual-keyboard-probes.json",
+      "role": "final-keyboard-and-staged-role-observations",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "bd11aa72a83ca35445e26f5524dbc15c3d1702ac522a57b949e0da4a1c22d498",
+      "bytes": 8641,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/visual-keyboard-probes.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/visual-render-snapshots.json",
+      "role": "accepted-style-native-render-diagnostics",
+      "gameSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+      "sha256": "ba2491f676b91327d6e52dd975adfdcc0ff0e84c945b3d29100b97dd960daee5",
+      "bytes": 10845,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/visual-render-snapshots.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/native-final-courtyard.mp4",
+      "role": "accepted-native-short-recording",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "c07c13e3c6d718a531ec8cb510961f3de8a5a42f57507507532708973ee8687a",
+      "bytes": 113019,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/native-final-courtyard.mp4"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/clip-court-final.png",
+      "role": "accepted-final-short-viewport-capture",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "7ace9410b56725f392d2b9eb6be4a891386f312c361fd8ec03de87c42b393d5a",
+      "bytes": 74548,
+      "capturedAt": "2026-10-03T07:13:33.871Z",
+      "width": 800,
+      "height": 450,
+      "canonicalCommand": "bun run drive --url http://127.0.0.1:5519 --timeout 300 --connect 9230 --size half --reuse-storage --click Continue --record resonant-court-first-relay --record-fps 5 --probe clip-court-start --click Ready --key KeyD:40 --probe clip-key-east --key KeyA:40 --probe clip-key-roundtrip --click Move east --probe room_crosswire-move-2 --click Aim prism east --wait 200 --probe room_crosswire-prism-8 --click Swap hero --click Move east --click Move east --click Move east --probe room_crosswire-move-18 --key KeyE:120 --wait 200 --probe room_crosswire-anchor-24 --click Hold --wait 600 --click Go! --wait 3000 --probe clip-court-first-relay-sealed --shot /workspace/games/.scratch/coop-evidence/clip-court-final.png",
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/clip-court-final.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/clip-court-final.shot.json",
+      "role": "canonical-final-short-capture-sidecar",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "c7177a4a4d88385b28fc58fb12206f057b319898ecade4abe952bfeeae15709a",
+      "bytes": 5295,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/clip-court-final.shot.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/clip-court-entry.png",
+      "role": "recording-representative-entry-frame",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "7a1f4a89d6c04e933429d84ef53f9a968895e84964c19c16152ad8365a2bab56",
+      "bytes": 157465,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/clip-court-entry.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/clip-court-role-swap.png",
+      "role": "recording-representative-complementary-role-frame",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "0300ebd146c2e1266b08c44e47b3cf4be19d5e801847bbfe21e481c64684385d",
+      "bytes": 153626,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/clip-court-role-swap.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/clip-court-sealed.png",
+      "role": "recording-representative-relay-sealed-frame",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "5b92c01dd8635e96a97eb880abc9e41fdc50c091973716678491c7a1a332d4a9",
+      "bytes": 156112,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/clip-court-sealed.png"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/record-courtyard.log",
+      "role": "final-native-short-keyboard-device-callout-log",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "e4627d3781a66440a9a53ff4ddd8b1fc82070e5d4d1cfc7ab4e5e9bb26ee0e84",
+      "bytes": 3164,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/record-courtyard.log"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/record-courtyard-command.json",
+      "role": "final-native-short-canonical-command",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "e2175b56931270630b7884f1fd74a269a2a7caf7790113d2f8bf3ffae7a215de",
+      "bytes": 1051,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/record-courtyard-command.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/authoring-benchmark.json",
+      "role": "published-editor-identical-document-authoring-benchmark",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "0a9c7e7c643c25df733ce94b976c3145938a122f82559697642e3fdd847efa7a",
+      "bytes": 556,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/authoring-benchmark.json"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/benchmark-authoring.ts",
+      "role": "published-editor-identical-document-authoring-benchmark",
+      "gameSourceHead": "11a92d48a536f82e6b2ef02f04a63bf3129d4880",
+      "sha256": "b7d2c8dc8e86feac0e380ada8563b35ec20637f41056ad30926ff927bd26f836",
+      "bytes": 2234,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/benchmark-authoring.ts"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/native-plan.ts",
+      "role": "canonical-cli-orchestration-no-browser-harness",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "fd4e00747bc22da6ba01d2a0d42b0642dd99d0394591721ca5b4ff37d00da6b7",
+      "bytes": 4225,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/native-plan.ts"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/run-native.mjs",
+      "role": "canonical-cli-orchestration-no-browser-harness",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "09837d6c0443b0e1015095ad597a7cd1a2d96f77009d13ea5ecc4f150069931b",
+      "bytes": 2965,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/run-native.mjs"
+    },
+    {
+      "path": "/workspace/games/.scratch/coop-evidence/capture-styles.mjs",
+      "role": "canonical-cli-orchestration-no-browser-harness",
+      "gameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+      "sha256": "39656abbbee62b1ac496d53e4230050b2991c1e56d7dfaae4227e5b1ede4ee99",
+      "bytes": 4185,
+      "archiveUrl": "https://raw.githubusercontent.com/Noisemaker111/JGengine-games/pr-shots/pr-shots/resonant-coop-native/capture-styles.mjs"
+    }
+  ],
+  "observed": {
+    "campaignElapsedMs": 325688.42,
+    "nativeInput": "canonical drive clicks/key actions, planner reads editor semantic solution metadata; RPC only diagnostics",
+    "allFourRooms": true,
+    "checkpointReloadContinueRoom": 2,
+    "hazardRecoveries": 1,
+    "lastRoomTerminalStatus": 4,
+    "finalRelays": 3,
+    "finalExits": 2,
+    "cooperativeModeTested": "one browser, two complementary roles via Swap hero",
+    "transportLimitation": "published p2p shell session bootstrap absent: actual native host ran offline; no two-browser co-op claim"
+  },
+  "renderComparison": {
+    "chamber": "Hold the Line",
+    "baseline": {
+      "drawCalls": 927,
+      "triangles": 15656,
+      "objects": 30,
+      "viewport": "1280x900 published bundled capture (PNG dimensions verified)"
+    },
+    "final": {
+      "drawCalls": 153,
+      "triangles": 13956,
+      "objects": 30,
+      "viewport": "800x450 canonical native driver"
+    },
+    "drawSubmissionReductionPercent": 83.5,
+    "limitation": "Different state initial vs both exits and pixel count; no FPS or frame-time improvement claim. Software GL only. Both no render fallback or texture errors."
+  },
+  "authoringBenchmarkArtifact": "/workspace/games/.scratch/coop-map/authoring-benchmark.json",
+  "excluded": [
+    "portable-focus patched harness attempts",
+    "misnamed failed baseline solutions",
+    "pre-seat/grid/focus failure captures",
+    "old collinear-stage authored-map shots",
+    "pre-framing desktop/mobile style diagnostics",
+    "old8e0de4c half recording with callout text overlap",
+    "checkpoint-menu-diagnostic and failed ephemeral-profile Continue attempts"
+  ],
+  "visualSourceHead": "8e0de4c1a6e4c757e65d824158a14de0894ab50a",
+  "finalShortCaptureSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+  "finalGameSourceHead": "cf95f472a931ff8e832f1e06571385d0ef1cb43d",
+  "shortMediaFollowup": {
+    "scope": "Only max-height580/min-width601 CSS signal width and callout grid specificity changed after accepted desktop/portrait captures. Gameplay/editor document unchanged.",
+    "durationSeconds": 8.84,
+    "width": 800,
+    "height": 450,
+    "outputFPS": 5,
+    "encodedFrames": 45,
+    "elapsedMs": 37282.63,
+    "observed": [
+      "KeyD moves exactly one cell east",
+      "KeyA restores start",
+      "KeyE drops Anchor weight at p1",
+      "Ready/Hold/Go callouts count3",
+      "relay1 and gate1 sealed with prism and weight"
+    ],
+    "limitation": "5fps is recording output timing, not a runtime performance claim. Short viewport board remains small because all tiles are framed above controls."
+  },
+  "visualAcceptance": {
+    "desktop": "1600x900 both authored styles: all board tiles, station labels, spikes and exits visible without HUD overlap",
+    "phone": "390x844 CSS at DPR2,780x1688 PNG: both styles clear of controls; native movement/device actions pass",
+    "desktopElapsedMs": 137693.65,
+    "phoneCircuitElapsedMs": 28650.98,
+    "phoneCourtyardElapsedMs": 34174.76,
+    "render": [
+      {
+        "room": "Relay Circuit",
+        "drawCalls": 243,
+        "triangles": 26528,
+        "objects": 61,
+        "fallbacks": {},
+        "textureErrors": []
+      },
+      {
+        "room": "Relay Courtyard",
+        "drawCalls": 338,
+        "triangles": 42642,
+        "objects": 104,
+        "fallbacks": {},
+        "textureErrors": []
+      }
+    ]
+  },
+  "authoringBenchmark": {
+    "trials": 5,
+    "documents": "identical after each recipe",
+    "corridor": {
+      "cells": 119,
+      "singleCellRPCs": 121,
+      "batchRPCs": 3,
+      "singleCellMedianMs": 16.17,
+      "batchMedianMs": 1.07
+    },
+    "courtyard": {
+      "cells": 231,
+      "singleCellRPCs": 233,
+      "batchRPCs": 3,
+      "singleCellMedianMs": 56.89,
+      "batchMedianMs": 1.27
+    },
+    "interpretation": "Measured adoption of existing published editor whole-room batch authoring, not a new SDK performance claim. Scripted recipe/RPC latency, not human authoring stopwatch time."
+  },
+  "captureToolRecovery": {
+    "observed": "Daemon metadata absent while persistent Chrome9230 alive: unqualified driver launched ephemeral profiles, making cross-invocation reuse ineffective. Explicit --connect9230 recovered original room2 frontier.",
+    "limitation": "No game persistence bug claimed. Same-target reload+Continue was separately verified. Tool worker added actionable no-warm-profile guard and isolated daemon fixture state."
+  },
+  "sourceTrees": {
+    "11a92d48a536f82e6b2ef02f04a63bf3129d4880": "4b3b07ae01f32a235052d984aea052d2d54fed36",
+    "8e0de4c1a6e4c757e65d824158a14de0894ab50a": "a04ca72c4d4f3a246de1f408a56dd2b5fd73fcdc",
+    "cf95f472a931ff8e832f1e06571385d0ef1cb43d": "947d0aedfc19d85aace23ccd4cf67104d592f32f",
+    "194fa2c4480813c2d254a7f395c5f9c54b077288": "9cca258cea3282b02ca52d3f1402cea393b2147b"
+  },
+  "delivery": {
+    "gameRemoteHead": "f1f3de92da22d546c7199f32be2b63f139613a37",
+    "gameRemoteTree": "947d0aedfc19d85aace23ccd4cf67104d592f32f",
+    "finalBuild": "PASS Vite6.4.3,1186 modules,18.38 seconds",
+    "tests": "45 pass /629 assertions at presentation source8e0de4c; final short-landscape-only CSS separately verified natively",
+    "types": "PASS at presentation source8e0de4c; final followup CSS only",
+    "packageAndLockChanges": false
+  }
+}

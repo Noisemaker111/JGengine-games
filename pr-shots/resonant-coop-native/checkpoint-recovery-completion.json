@@ -1,0 +1,131 @@
+[
+  {
+    "probe": "checkpoint-menu",
+    "metrics": null
+  },
+  {
+    "probe": "checkpoint-resumed",
+    "metrics": {
+      "room": 2,
+      "status": 1,
+      "controlledHero": 1,
+      "ownedHeroes": 2,
+      "lumenX": -7,
+      "lumenZ": -2,
+      "anchorX": -7,
+      "anchorZ": 2,
+      "gates": 0,
+      "relays": 0,
+      "recoveries": 0,
+      "exits": 0,
+      "weight": 0,
+      "weightX": 0,
+      "weightZ": 0,
+      "prism": 0,
+      "prismX": 0,
+      "prismZ": 0,
+      "prismDirection": -1,
+      "callouts": 0
+    }
+  },
+  {
+    "probe": "before-live-hazard",
+    "metrics": {
+      "room": 3,
+      "status": 1,
+      "controlledHero": 1,
+      "ownedHeroes": 2,
+      "lumenX": -2,
+      "lumenZ": -1,
+      "anchorX": -6,
+      "anchorZ": 3,
+      "gates": 1,
+      "relays": 1,
+      "recoveries": 0,
+      "exits": 0,
+      "weight": 1,
+      "weightX": -6,
+      "weightZ": 3,
+      "prism": 1,
+      "prismX": -8,
+      "prismZ": -3,
+      "prismDirection": 1,
+      "callouts": 1
+    }
+  },
+  {
+    "probe": "live-hazard-recovered",
+    "metrics": {
+      "room": 3,
+      "status": 1,
+      "controlledHero": 1,
+      "ownedHeroes": 2,
+      "lumenX": -2,
+      "lumenZ": -1,
+      "anchorX": -6,
+      "anchorZ": 3,
+      "gates": 1,
+      "relays": 1,
+      "recoveries": 1,
+      "exits": 0,
+      "weight": 1,
+      "weightX": -6,
+      "weightZ": 3,
+      "prism": 1,
+      "prismX": -8,
+      "prismZ": -3,
+      "prismDirection": 1,
+      "callouts": 1
+    }
+  },
+  {
+    "probe": "live-hazard-returned-to-station",
+    "metrics": {
+      "room": 3,
+      "status": 1,
+      "controlledHero": 2,
+      "ownedHeroes": 2,
+      "lumenX": -8,
+      "lumenZ": -3,
+      "anchorX": -6,
+      "anchorZ": 3,
+      "gates": 1,
+      "relays": 1,
+      "recoveries": 1,
+      "exits": 0,
+      "weight": 1,
+      "weightX": -6,
+      "weightZ": 3,
+      "prism": 1,
+      "prismX": -8,
+      "prismZ": -3,
+      "prismDirection": 1,
+      "callouts": 2
+    }
+  },
+  {
+    "probe": "room_crosswire-advanced",
+    "metrics": {
+      "room": 3,
+      "status": 4,
+      "controlledHero": 2,
+      "ownedHeroes": 2,
+      "lumenX": 9,
+      "lumenZ": -3,
+      "anchorX": 9,
+      "anchorZ": 3,
+      "gates": 3,
+      "relays": 3,
+      "recoveries": 1,
+      "exits": 2,
+      "weight": 1,
+      "weightX": 6,
+      "weightZ": 3,
+      "prism": 1,
+      "prismX": 4,
+      "prismZ": -1,
+      "prismDirection": 1,
+      "callouts": 4
+    }
+  }
+]

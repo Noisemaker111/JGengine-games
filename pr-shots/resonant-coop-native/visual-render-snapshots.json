@@ -1,0 +1,452 @@
+[
+  {
+    "game": "Resonant Crossing",
+    "at": 1791011299693,
+    "why": "outside-sim (5/5 recent long frames): Cost is outside the sim driver \u2014 three.js render, React commit, GPU, GC, or tab throttle. Check the render sample: high draw calls/triangles mean scene cost (instancing, culling, terrain density); moderate counts with slow frames mean fill cost (dpr, AO/DOF passes, bloom) \u2014 try Quality low/medium.",
+    "frame": {
+      "fps": 0.9,
+      "avgFrameMs": 1166.5,
+      "p95FrameMs": 2606.8,
+      "maxFrameMs": 2606.8,
+      "avgSimMs": 0.9,
+      "maxSimMs": 7,
+      "avgOutsideMs": 1165.6,
+      "maxOutsideMs": 2606.6,
+      "longFrames": 15,
+      "samples": 16,
+      "phases": [
+        {
+          "name": "onTick",
+          "avgMs": 0.7,
+          "maxMs": 5.3,
+          "pctOfSim": 79
+        },
+        {
+          "name": "actions",
+          "avgMs": 0.5,
+          "maxMs": 1,
+          "pctOfSim": 51
+        },
+        {
+          "name": "time+input",
+          "avgMs": 0.1,
+          "maxMs": 0.2,
+          "pctOfSim": 13
+        }
+      ]
+    },
+    "render": {
+      "drawCalls": 243,
+      "triangles": 26528,
+      "geometries": 114,
+      "textures": 11
+    },
+    "latency": null,
+    "longFrameSummary": {
+      "count": 15,
+      "culprits": [
+        {
+          "culprit": "outside-sim",
+          "count": 15
+        }
+      ],
+      "maxFrameMs": 2606.8,
+      "maxDrawCalls": 243,
+      "maxGeometries": 115
+    },
+    "longFrames": [
+      {
+        "at": 1791011291693,
+        "frameMs": 1230.1,
+        "simMs": 1.2,
+        "outsideMs": 1228.9,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1228.9ms outside sim \u00b7 sim 1.2ms",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 1
+          },
+          {
+            "name": "time+input",
+            "ms": 0.2
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 236,
+          "triangles": 26012,
+          "geometries": 111,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011292655,
+        "frameMs": 961.6,
+        "simMs": 0.4,
+        "outsideMs": 961.2,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 961.2ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.3
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 243,
+          "triangles": 26528,
+          "geometries": 115,
+          "textures": 17
+        }
+      },
+      {
+        "at": 1791011295292,
+        "frameMs": 2606.8,
+        "simMs": 0.2,
+        "outsideMs": 2606.6,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 2606.6ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.2
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 243,
+          "triangles": 26528,
+          "geometries": 114,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011296322,
+        "frameMs": 1029.4,
+        "simMs": 0.3,
+        "outsideMs": 1029.1,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1029.1ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.3
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 243,
+          "triangles": 26528,
+          "geometries": 114,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011297113,
+        "frameMs": 790.2,
+        "simMs": 0.3,
+        "outsideMs": 789.9,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 789.9ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.3
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 243,
+          "triangles": 26528,
+          "geometries": 114,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011298960,
+        "frameMs": 1846.7,
+        "simMs": 0.3,
+        "outsideMs": 1846.4,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1846.4ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.3
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 61,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 243,
+          "triangles": 26528,
+          "geometries": 114,
+          "textures": 11
+        }
+      }
+    ],
+    "probes": {
+      "entities": 2,
+      "objects": 61,
+      "fallbacks": {},
+      "textureErrors": []
+    },
+    "discoveredCount": 336
+  },
+  {
+    "game": "Resonant Crossing",
+    "at": 1791011411020,
+    "why": "outside-sim (5/5 recent long frames): Cost is outside the sim driver \u2014 three.js render, React commit, GPU, GC, or tab throttle. Check the render sample: high draw calls/triangles mean scene cost (instancing, culling, terrain density); moderate counts with slow frames mean fill cost (dpr, AO/DOF passes, bloom) \u2014 try Quality low/medium.",
+    "frame": {
+      "fps": 0.7,
+      "avgFrameMs": 1256.1,
+      "p95FrameMs": 2439.4,
+      "maxFrameMs": 3040,
+      "avgSimMs": 0.5,
+      "maxSimMs": 7,
+      "avgOutsideMs": 1255.6,
+      "maxOutsideMs": 3039.8,
+      "longFrames": 96,
+      "samples": 102,
+      "phases": [
+        {
+          "name": "onTick",
+          "avgMs": 0.4,
+          "maxMs": 5.3,
+          "pctOfSim": 84
+        },
+        {
+          "name": "actions",
+          "avgMs": 0.2,
+          "maxMs": 1,
+          "pctOfSim": 44
+        },
+        {
+          "name": "time+input",
+          "avgMs": 0.1,
+          "maxMs": 0.2,
+          "pctOfSim": 23
+        }
+      ]
+    },
+    "render": {
+      "drawCalls": 338,
+      "triangles": 42642,
+      "geometries": 154,
+      "textures": 17
+    },
+    "latency": null,
+    "longFrameSummary": {
+      "count": 40,
+      "culprits": [
+        {
+          "culprit": "outside-sim",
+          "count": 40
+        }
+      ],
+      "maxFrameMs": 2574.5,
+      "maxDrawCalls": 338,
+      "maxGeometries": 172
+    },
+    "longFrames": [
+      {
+        "at": 1791011403081,
+        "frameMs": 1161.2,
+        "simMs": 1,
+        "outsideMs": 1160.2,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1160.2ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 1
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 331,
+          "triangles": 42126,
+          "geometries": 150,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011404033,
+        "frameMs": 952,
+        "simMs": 0.4,
+        "outsideMs": 951.6,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 951.6ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.4
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 338,
+          "triangles": 42642,
+          "geometries": 154,
+          "textures": 17
+        }
+      },
+      {
+        "at": 1791011405180,
+        "frameMs": 1144.8,
+        "simMs": 0.6,
+        "outsideMs": 1144.2,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1144.2ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.5
+          },
+          {
+            "name": "time+input",
+            "ms": 0.1
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 338,
+          "triangles": 42642,
+          "geometries": 153,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011406402,
+        "frameMs": 1222.1,
+        "simMs": 0.3,
+        "outsideMs": 1221.8,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1221.8ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.2
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 338,
+          "triangles": 42642,
+          "geometries": 154,
+          "textures": 17
+        }
+      },
+      {
+        "at": 1791011407545,
+        "frameMs": 1142.2,
+        "simMs": 0.3,
+        "outsideMs": 1141.9,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 1141.9ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.3
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 338,
+          "triangles": 42642,
+          "geometries": 153,
+          "textures": 11
+        }
+      },
+      {
+        "at": 1791011408444,
+        "frameMs": 898.7,
+        "simMs": 0.2,
+        "outsideMs": 898.5,
+        "culprit": "outside-sim",
+        "reason": "display/render/browser hitch 898.5ms outside sim",
+        "phases": [
+          {
+            "name": "onTick",
+            "ms": 0.2
+          }
+        ],
+        "probes": {
+          "entities": 2,
+          "objects": 104,
+          "fallbacks": {},
+          "textureErrors": []
+        },
+        "render": {
+          "drawCalls": 338,
+          "triangles": 42642,
+          "geometries": 154,
+          "textures": 17
+        }
+      }
+    ],
+    "probes": {
+      "entities": 2,
+      "objects": 104,
+      "fallbacks": {},
+      "textureErrors": []
+    },
+    "discoveredCount": 336
+  }
+]
