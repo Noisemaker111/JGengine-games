@@ -1,0 +1,632 @@
+[
+  {
+    "position": [
+      -520,
+      560
+    ],
+    "count": 4,
+    "triangles": 115806,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Broken.glb",
+        "count": 11,
+        "triangles": 5176
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Cable_3.glb",
+        "count": 4,
+        "triangles": 5264
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_2.glb",
+        "count": 16,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_MetalSupport.glb",
+        "count": 16,
+        "triangles": 748
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 20,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight_Broken.glb",
+        "count": 12,
+        "triangles": 118
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 5,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 2,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 7,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_Metal2.glb",
+        "count": 4,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 2,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 3,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Decal_Sign.glb",
+        "count": 3,
+        "triangles": 2
+      }
+    ]
+  },
+  {
+    "position": [
+      -180,
+      460
+    ],
+    "count": 8,
+    "triangles": 87988,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_4.glb",
+        "count": 32,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 42,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate4.glb",
+        "count": 8,
+        "triangles": 972
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_AccessPoint.glb",
+        "count": 9,
+        "triangles": 738
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat.glb",
+        "count": 40,
+        "triangles": 124
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Window.glb",
+        "count": 9,
+        "triangles": 488
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 7,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_Simple.glb",
+        "count": 32,
+        "triangles": 108
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat_Window.glb",
+        "count": 6,
+        "triangles": 476
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallWindow_Straight.glb",
+        "count": 6,
+        "triangles": 397
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Big.glb",
+        "count": 5,
+        "triangles": 328
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Light_Wide.glb",
+        "count": 10,
+        "triangles": 160
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 5,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Wide.glb",
+        "count": 4,
+        "triangles": 208
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopPlastic_Straight.glb",
+        "count": 5,
+        "triangles": 158
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Small.glb",
+        "count": 3,
+        "triangles": 210
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight.glb",
+        "count": 30,
+        "triangles": 10
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 6,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 5,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Metal.glb",
+        "count": 11,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_DarkPlates.glb",
+        "count": 8,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 2,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopSimple_Straight.glb",
+        "count": 3,
+        "triangles": 6
+      }
+    ]
+  },
+  {
+    "position": [
+      0,
+      0
+    ],
+    "count": 10,
+    "triangles": 114480,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_4.glb",
+        "count": 40,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 52,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate4.glb",
+        "count": 12,
+        "triangles": 972
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat_Window.glb",
+        "count": 17,
+        "triangles": 476
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Window.glb",
+        "count": 13,
+        "triangles": 488
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat.glb",
+        "count": 47,
+        "triangles": 124
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallWindow_Straight.glb",
+        "count": 14,
+        "triangles": 397
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_AccessPoint.glb",
+        "count": 7,
+        "triangles": 738
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_Simple.glb",
+        "count": 40,
+        "triangles": 108
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Big.glb",
+        "count": 7,
+        "triangles": 328
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 4,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Small.glb",
+        "count": 9,
+        "triangles": 210
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Light_Wide.glb",
+        "count": 10,
+        "triangles": 160
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopPlastic_Straight.glb",
+        "count": 9,
+        "triangles": 158
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 3,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight.glb",
+        "count": 55,
+        "triangles": 10
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Wide.glb",
+        "count": 2,
+        "triangles": 208
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopAstra_Straight.glb",
+        "count": 6,
+        "triangles": 66
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 6,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 6,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 8,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Metal.glb",
+        "count": 10,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_DarkPlates.glb",
+        "count": 10,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopSimple_Straight.glb",
+        "count": 5,
+        "triangles": 6
+      }
+    ]
+  },
+  {
+    "position": [
+      420,
+      300
+    ],
+    "count": 6,
+    "triangles": 194971,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Broken.glb",
+        "count": 21,
+        "triangles": 5176
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Cable_3.glb",
+        "count": 6,
+        "triangles": 5264
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_2.glb",
+        "count": 24,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_MetalSupport.glb",
+        "count": 24,
+        "triangles": 748
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 19,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 6,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight_Broken.glb",
+        "count": 20,
+        "triangles": 118
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 8,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 13,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_Metal2.glb",
+        "count": 6,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 4,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 1,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Decal_Sign.glb",
+        "count": 4,
+        "triangles": 2
+      }
+    ]
+  },
+  {
+    "position": [
+      520,
+      -260
+    ],
+    "count": 5,
+    "triangles": 70861,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_4.glb",
+        "count": 20,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 33,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate4.glb",
+        "count": 6,
+        "triangles": 972
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat_Window.glb",
+        "count": 12,
+        "triangles": 476
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Window.glb",
+        "count": 10,
+        "triangles": 488
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat.glb",
+        "count": 37,
+        "triangles": 124
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_AccessPoint.glb",
+        "count": 6,
+        "triangles": 738
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 8,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallWindow_Straight.glb",
+        "count": 6,
+        "triangles": 397
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_Simple.glb",
+        "count": 20,
+        "triangles": 108
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 6,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopPlastic_Straight.glb",
+        "count": 7,
+        "triangles": 158
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Small.glb",
+        "count": 5,
+        "triangles": 210
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Light_Wide.glb",
+        "count": 6,
+        "triangles": 160
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Wide.glb",
+        "count": 4,
+        "triangles": 208
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 7,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight.glb",
+        "count": 33,
+        "triangles": 10
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Big.glb",
+        "count": 1,
+        "triangles": 328
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 5,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopAstra_Straight.glb",
+        "count": 2,
+        "triangles": 66
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Metal.glb",
+        "count": 6,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_DarkPlates.glb",
+        "count": 5,
+        "triangles": 16
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 2,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/TopSimple_Straight.glb",
+        "count": 6,
+        "triangles": 6
+      }
+    ]
+  },
+  {
+    "position": [
+      -80,
+      -560
+    ],
+    "count": 7,
+    "triangles": 274934,
+    "models": [
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat_Window.glb",
+        "count": 120,
+        "triangles": 476
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Cable_3.glb",
+        "count": 8,
+        "triangles": 5264
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallWindow_Straight.glb",
+        "count": 92,
+        "triangles": 397
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight.glb",
+        "count": 92,
+        "triangles": 355
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Rail_2.glb",
+        "count": 28,
+        "triangles": 920
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Column_MetalSupport.glb",
+        "count": 28,
+        "triangles": 748
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallAstra_Straight_Flat.glb",
+        "count": 120,
+        "triangles": 124
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/WallBand_Straight_Broken.glb",
+        "count": 125,
+        "triangles": 118
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Small.glb",
+        "count": 49,
+        "triangles": 210
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Barrel_Large.glb",
+        "count": 18,
+        "triangles": 502
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Vent_Wide.glb",
+        "count": 38,
+        "triangles": 208
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Prop_Crate3.glb",
+        "count": 8,
+        "triangles": 204
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Frame_Square_Blocked.glb",
+        "count": 16,
+        "triangles": 48
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_Simple.glb",
+        "count": 6,
+        "triangles": 38
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Platform_Metal2.glb",
+        "count": 7,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Door_DarkMetal.glb",
+        "count": 6,
+        "triangles": 24
+      },
+      {
+        "url": "/models/quaternius-modular-scifi/Decal_Sign.glb",
+        "count": 7,
+        "triangles": 2
+      }
+    ]
+  }
+]
