@@ -35,6 +35,11 @@ body,
 .field-setting-choices button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .field-back { position: sticky; top: 0; z-index: 1; margin-top: 0; }
 .field-trigger-banner { max-width: min(320px, calc(100vw - 32px)); }
+.field-touch-controls { display: none; }
+@media (pointer: coarse) {
+  .field-keyboard-controls { display: none; }
+  .field-touch-controls { display: inline; }
+}
 @media (max-width: 600px), (pointer: coarse) {
   .field-trigger-banner { display: none; }
 }

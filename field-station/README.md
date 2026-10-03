@@ -21,10 +21,12 @@ The source's [CC0 license](https://github.com/KayKit-Game-Assets/KayKit-Characte
 permits modification and redistribution; a copy ships beside the model as
 `explorer.license.txt`. The game credits the creator in its UI.
 
-The adaptation removes the five knife/crossbow/throwable meshes, authors the
-character at 1.8 meters with feet at ground level, and keeps eight movement and
-reaction clips. The embedded atlas, body meshes and skin rig remain intact.
-Unused buffers are pruned with glTF Transform 4.3.0; the result is 531 KB.
+The adaptation removes the five knife/crossbow/throwable meshes and the cape,
+which covered the researcher's workwear and legs from the rear. It authors the
+character at 1.8 meters with feet at ground level and keeps eight movement and
+reaction clips. The embedded atlas, six body and limb meshes, and skin rig remain
+intact. Unused buffers are pruned with glTF Transform 4.3.0; the result is 526,568
+bytes (527 KB).
 `src/game/researcher.asset.json` records the source and derivative hashes,
 measured dimensions, north-facing orientation, meter units, center anchor and
 free placement rotation. Its `importSpec` uses the shared model-import contract,
@@ -42,5 +44,8 @@ bun --cwd=field-station run test
 
 The import script pins the reviewed source hash and stops if it changes.
 Metadata was measured with the published `@jgengine/assets/dims` reader.
-The asset test checks the shipped hash, rig, embedded texture, clips and geometry,
-and uses the shared model-response diagnostic before parsing it.
+The asset test checks the shipped hash, rig, six body and limb meshes, absent
+weapons and cape, embedded texture, clips and geometry. It uses the shared
+model-response diagnostic before parsing and samples idle, walk and run through
+the published model clone and animation-root reset to verify authored scale and
+grounded bounds.

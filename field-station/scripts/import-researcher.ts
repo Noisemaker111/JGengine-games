@@ -14,7 +14,7 @@ if (sourceSha256 !== "e825437cd4d2ee9c1960b517a74a69101e33eb409ae7fa8cedc7134a99
 
 const jsonLength = source.readUInt32LE(12);
 const document = JSON.parse(source.subarray(20, 20 + jsonLength).toString());
-const accessories = new Set(["Knife", "Knife_Offhand", "1H_Crossbow", "2H_Crossbow", "Throwable"]);
+const accessories = new Set(["Knife", "Knife_Offhand", "1H_Crossbow", "2H_Crossbow", "Throwable", "Rogue_Cape"]);
 const clips = ["Idle", "Walking_A", "Running_A", "Jump_Idle", "Jump_Start", "Jump_Land", "Hit_A", "Death_A"];
 for (const node of document.nodes) {
   if (accessories.has(node.name)) delete node.mesh;
@@ -31,7 +31,7 @@ for (const index of document.scenes[document.scene ?? 0].nodes) {
   node.translation = node.translation ?? [0, 0, 0];
   node.translation[1] -= sourceMinY * authorScale;
 }
-document.asset.extras = { source: "KayKit Adventurers / Rogue", author: "Kay Lousberg", license: "CC0-1.0", adaptation: "Field Station: unarmed, 1.8m, eight movement/reaction clips" };
+document.asset.extras = { source: "KayKit Adventurers / Rogue", author: "Kay Lousberg", license: "CC0-1.0", adaptation: "Field Station: unarmed, cape removed to expose workwear and boots, 1.8m, eight movement/reaction clips" };
 
 const json = Buffer.from(JSON.stringify(document));
 const paddedJson = Buffer.alloc(Math.ceil(json.length / 4) * 4, 0x20);

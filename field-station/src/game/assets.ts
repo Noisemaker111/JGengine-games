@@ -19,7 +19,7 @@ export const assetCredits: CreditsDocument = {
     heading: "3D assets",
     entries: [{
       label: "Kay Lousberg — KayKit Adventurers",
-      detail: "CC0-1.0 · Field Station unarmed researcher adaptation",
+      detail: "CC0-1.0 · Field Station researcher adaptation: weapons and cape removed",
       href: researcher.source.homepage,
     }],
   }],

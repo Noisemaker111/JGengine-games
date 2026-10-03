@@ -13,6 +13,13 @@ import { currentAnnouncement, subscribeAnnouncement } from "../triggers";
 import { collected, nearbySurveySite, noteCount, survey, surveySites } from "../survey";
 import { assetCredits } from "../assets";
 
+function FieldControls() {
+  return <p className="field-controls">
+    <span className="field-keyboard-controls">WASD move · Shift run · Space jump · E observe / file · P pause</span>
+    <span className="field-touch-controls">Joystick move · Run · Jump · Observe / file · Pause survey from the notebook</span>
+  </p>;
+}
+
 function SurveyNotebook() {
   const ctx = useGameContext();
   const state = useGameStore((context) => survey.read(context));
@@ -39,7 +46,7 @@ function SurveyNotebook() {
       </div>
       <p className="field-risk">Scorched ground drains health. Rescue loses unfiled notes. Grass and water are safe.</p>
       <div className="field-ledger"><span>Notes {noteCount(state)}/3</span><span>Reports {state.profile.reports}</span><span>Best {state.profile.bestQuality}/3</span></div>
-      <p className="field-controls">WASD move · Shift run · Space jump · E observe / file · P pause</p>
+      <FieldControls />
       <button className="field-pause" onClick={() => ctx.game.commands.run("survey.pause", null)}>Pause survey</button>
       {nearby !== null && <button className="field-interact" onClick={() => ctx.game.commands.run("survey.interact", null)}>
         E — {nearby.role === "station" ? "File report at desk" : `Record ${nearby.label.toLowerCase()}`}
@@ -73,7 +80,7 @@ function SurveyMenu() {
       </button>
       <button className="field-interact" onClick={() => router.open("settings")}>Settings</button>
       <button className="field-interact" onClick={() => router.open("credits")}>Credits</button>
-      <p className="field-controls">WASD move · Shift run · Space jump · E observe / file · P pause</p>
+      <FieldControls />
     </>}
     {router.current === "settings" && <div className="field-settings">
       {settings.categories.filter((category) => category.rows.length > 0).map((category) => <fieldset key={category.id}>

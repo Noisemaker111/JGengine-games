@@ -31,6 +31,10 @@ describe("Field Station committed researcher", () => {
     expect(glbJson.nodes.map((node: { name: string }) => node.name)).not.toContain("1H_Crossbow");
     expect(glbJson.nodes.map((node: { name: string }) => node.name)).not.toContain("2H_Crossbow");
     expect(glbJson.nodes.map((node: { name: string }) => node.name)).not.toContain("Throwable");
+    expect(glbJson.nodes.map((node: { name: string }) => node.name)).not.toContain("Rogue_Cape");
+    expect(glbJson.nodes.filter((node: { mesh?: number; skin?: number }) => node.mesh !== undefined && node.skin === 0).map((node: { name: string }) => node.name).sort()).toEqual([
+      "Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Head", "Rogue_LegLeft", "Rogue_LegRight",
+    ]);
     expect(glbJson.animations.map((animation: { name: string }) => animation.name)).toEqual(model.clips);
     expect(validateAssetSpace(model.space)).toEqual([]);
     expect(assetCredits.sections[0]?.entries[0]?.href).toBe(researcher.source.homepage);
