@@ -8,7 +8,7 @@ import { fieldkitVars } from "@/components/ui/jg-theme";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { runSessionStore, type RunSession, type SessionSnapshot } from "../run/session";
-import { ROUTE_GATES } from "../route/gates";
+import { ROUTE_GATES, gateAdvice } from "../route/gates";
 import { PICKUPS } from "../run/pickups";
 import { partById, PART_SLOTS } from "../parts/catalog";
 import { driveInputStore } from "../run/store";
@@ -16,6 +16,9 @@ import { Credits } from "./components/Credits";
 import { StartScreen } from "./components/StartScreen";
 import { RunResults } from "./components/RunResults";
 import { PartIcon } from "./components/PartIcon";
+import { createSessionPad } from "../vehicle/sessionPad";
+import { keybinds } from "../keybinds";
+import { applyBindingOverrides, loadBindingOverrides } from "@jgengine/core/input/bindingOverrides";
 
 const toSnapshot = (session: RunSession | undefined): SessionSnapshot | null => session?.snapshot() ?? null;
 function publishSession(ctx: GameContext, session: RunSession) {
@@ -33,6 +36,25 @@ export function GameUI() {
   const settings = useSettings();
   const uiRef = useRef<HTMLDivElement>(null);
   const [credits, setCredits] = useState(false);
+  useEffect(() => {
+    const sample = createSessionPad();
+    let frame = 0;
+    const poll = () => {
+      const pressed = sample(navigator.getGamepads?.() ?? [], applyBindingOverrides(keybinds, loadBindingOverrides("Drift Foundry")));
+      if (session && !settings.isOpen && !document.hidden) {
+        for (const action of pressed) {
+          const phase = session.snapshot().phase;
+          if (action === "startRun" && phase === "start" && !credits) commands.run("startRun", {});
+          if (action === "restart" && phase !== "start") commands.run("restart", {});
+          if (action === "pauseRun" && phase === "running") { session.togglePause(); drive?.reset(); publishSession(ctx, session); }
+          if (action === "keepEngine" && phase === "running" && !session.snapshot().paused) { session.toggleKeepEngine(); publishSession(ctx, session); }
+        }
+      }
+      frame = requestAnimationFrame(poll);
+    };
+    frame = requestAnimationFrame(poll);
+    return () => cancelAnimationFrame(frame);
+  }, [ctx, session, commands, settings.isOpen, credits, drive]);
   useLayoutEffect(() => {
     // The published shell listens on its focusable viewport. Removed menu/dialog
     // buttons otherwise leave focus on body, so keyboard driving never reaches it.
@@ -59,6 +81,7 @@ export function GameUI() {
       if (event.code === "Enter" && phase === "start" && !credits && !(event.target instanceof Element && event.target.closest("button"))) commands.run("startRun", {});
       if (event.code === "KeyR" && (phase === "won" || phase === "crushed")) commands.run("restart", {});
       if (action === "pauseRun" && phase === "running") { session?.togglePause(); drive?.reset(); if (session) publishSession(ctx, session); }
+      if (action === "keepEngine" && phase === "running") { session?.toggleKeepEngine(); if (session) publishSession(ctx, session); }
       if (event.code === "Escape" && credits) setCredits(false);
     };
     window.addEventListener("keydown", key);
@@ -73,7 +96,8 @@ export function GameUI() {
   const returnToTitle = () => { session.returnToTitle(); publishSession(ctx, session); drive?.reset(); };
   const nextGate = ROUTE_GATES.find(g => !snapshot.clearedGateIds.has(g.id));
   const distance = nextGate ? Math.max(0, nextGate.atZ - snapshot.pose.position[2]) : 470 - snapshot.pose.position[2];
-  const jumpNow = nextGate?.requirement === "jump" && distance <= Math.max(5, snapshot.pose.speedKmh / 3.6 * .5);
+  const advice = gateAdvice(snapshot.pose.position[2], snapshot.tuning, snapshot.pose.speedKmh / 3.6, snapshot.pose.airborne);
+  const jumpNow = advice?.action === "jump";
   const nextPickup = PICKUPS.find(p => !snapshot.collectedIds.has(p.id) && p.position[2] >= snapshot.pose.position[2] - 3);
   const toast = snapshot.toast?.body;
   const touch = (action: string, label: string) => <button aria-label={label} onPointerDown={e => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); drive?.press(action); }} onPointerUp={() => drive?.release(action)} onPointerCancel={() => drive?.release(action)} onLostPointerCapture={() => drive?.release(action)}>{label}</button>;
@@ -87,10 +111,10 @@ export function GameUI() {
       </header>
       <aside className={`df-gate-cue df-plate ${jumpNow ? "df-launch" : ""}`}>
         <span className="df-eyebrow">{nextGate ? `NEXT ${nextGate.requirement === "jump" ? "JUMP STACK" : "PLOW WALL"}` : "EXIT GATE"} / {Math.ceil(Math.max(0, distance))}m</span>
-        <b>{snapshot.pose.blockedByGate ? snapshot.tuning.jumpPower > 0 && nextGate?.requirement === "jump" ? "JUMP TO CLEAR THE STACK" : "MISSING ROUTE PART" : jumpNow ? "JUMP NOW · SPACE" : nextGate?.requirement === "jump" ? "JUMP ON THE TEAL MARKS" : nextGate ? "KEEP THE PLOW POINTED FORWARD" : "BRING IT HOME"}</b>
+        <b>{advice?.text ?? "BRING IT HOME"}</b>
         <span>{nextGate?.label ?? "470m escape line"}</span>
       </aside>
-      <aside className="df-build"><details><summary>YOUR BUILD · {Object.values(snapshot.installed).filter(Boolean).length}/4</summary><div>{PART_SLOTS.map(slot => <span key={slot}><PartIcon partId={snapshot.installed[slot]?.id ?? null}/><span><small>{slot.toUpperCase()}</small>{snapshot.installed[slot]?.label ?? "Empty"}</span></span>)}</div></details></aside>
+      <aside className="df-build"><details><summary>YOUR BUILD · {Object.values(snapshot.installed).filter(Boolean).length}/4</summary><div>{PART_SLOTS.map(slot => <span key={slot}><PartIcon partId={snapshot.installed[slot]?.id ?? null}/><span><small>{slot.toUpperCase()}</small>{snapshot.installed[slot]?.label ?? "Empty"}</span></span>)}</div><p>Truck motor: faster, wider turns. EV: slower, sharper steering. Keep your engine to pass later motor stations.</p></details><button className="df-engine-choice" aria-pressed={snapshot.keepEngine} onClick={() => { session.toggleKeepEngine(); publishSession(ctx, session); }}>{snapshot.keepEngine ? "KEEP ENGINE" : "ACCEPT ENGINE SWAPS"} <kbd>X</kbd></button></aside>
       <footer className="df-hud-bottom"><div className="df-plate df-speed"><b>{Math.round(snapshot.pose.speedKmh)}</b><span>KM/H</span><small>{snapshot.pose.airborne ? "AIRBORNE" : snapshot.armorSaveArmed ? "ARMOR ARMED" : "SALVAGE SPECIAL"}</small></div><div className="df-plate df-route"><span>{snapshot.clearedGateIds.size}/8 BARRIERS <b>{Math.min(100, Math.floor(snapshot.pose.position[2] / 470 * 100))}%</b></span><div><i style={{width: `${Math.min(100, snapshot.pose.position[2] / 470 * 100)}%`}}/></div><small>{nextPickup ? `NEXT SALVAGE · ${partById(nextPickup.partId)?.label} · ${Math.max(0, Math.round(nextPickup.position[2] - snapshot.pose.position[2]))}m` : "ALL SALVAGE PASSED · EXIT AHEAD"}</small></div></footer>
       {toast != null && <div className="df-toast" role="status">{String(toast)}</div>}
       <div className="df-touch"><div>{touch("steerLeft", "◀")}{touch("steerRight", "▶")}{touch("brake", "BRAKE")}</div><div>{touch("jumpHop", "JUMP")}{touch("throttle", "GO")}</div></div>

@@ -21,6 +21,7 @@ export interface ParkedRun {
   closestGap: number;
   wasNear: boolean;
   announcedSurge: string | null;
+  keepEngine?: boolean;
 }
 
 export function checkpointParts(run: ParkedRun): readonly InstalledPart[] {
@@ -40,6 +41,7 @@ export function readParkedRun(storage?: RecordStorage): ParkedRun | null {
     const categories = run.partIds.map((id: string) => partById(id)!.category);
     if (new Set(categories).size !== categories.length || run.partIds.some((id: string) => !PICKUPS.some(p => p.partId === id && run.collectedIds.includes(p.id)))) return null;
     if (typeof run.armorSaveArmed !== "boolean" || typeof run.wasNear !== "boolean" || !nonnegative(run.armorSavesUsed) || !Number.isInteger(run.armorSavesUsed) || !nonnegative(run.nearMissCount) || !Number.isInteger(run.nearMissCount) || !nonnegative(run.closestGap) || !(run.announcedSurge === null || typeof run.announcedSurge === "string")) return null;
+    if (run.keepEngine !== undefined && typeof run.keepEngine !== "boolean") return null;
     if (checkpointParts(run).length !== run.partIds.length) return null;
     return run;
   } catch { return null; }

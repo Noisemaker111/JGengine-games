@@ -4,7 +4,7 @@ import type { InstalledPart } from "@jgengine/core/item/modularItem";
 
 import { tuningFrom } from "../parts/build";
 import { partById } from "../parts/catalog";
-import { blockedZ, firstUnsatisfiedGate, gateSatisfied, ROUTE_GATES } from "./gates";
+import { blockedZ, firstUnsatisfiedGate, gateAdvice, gateSatisfied, ROUTE_GATES } from "./gates";
 import { CORRIDOR_LANE_SPAN, EXIT_Z } from "../run/constants";
 
 const NO_PARTS = tuningFrom([]);
@@ -30,6 +30,33 @@ function reachAt(x: number, tuning: ReturnType<typeof tuningFrom>): number {
 }
 
 describe("drift-foundry route gates", () => {
+  test("advice calls for missing parts before asking for a maneuver", () => {
+    expect(gateAdvice(105, NO_PARTS, 12)?.action).toBe("collect-plow");
+    expect(gateAdvice(140, PLOW_ONLY, 12)?.action).toBe("collect-springs");
+    expect(gateAdvice(105, PLOW_AND_JUMP, 12)?.action).toBe("brace");
+  });
+
+  test("a fast build receives its launch cue earlier than a slow build", () => {
+    expect(gateAdvice(145, PLOW_AND_JUMP, 16)?.action).toBe("jump");
+    expect(gateAdvice(145, PLOW_AND_JUMP, 6)?.action).toBe("approach");
+    expect(gateAdvice(148, PLOW_AND_JUMP, 6)?.action).toBe("jump");
+  });
+
+  test("a missed launch has a recoverable run-up and airborne passage keeps its line", () => {
+    const missed = gateAdvice(150, PLOW_AND_JUMP, 0);
+    expect(missed?.action).toBe("recover");
+    expect(missed?.text).toContain("REVERSE");
+    expect(gateAdvice(147, PLOW_AND_JUMP, 10)?.action).toBe("jump");
+    expect(gateAdvice(150, PLOW_AND_JUMP, 10, true)?.action).toBe("hold");
+    expect(blockedZ(0, 150, 147, PLOW_AND_JUMP)).toBe(147);
+    expect(blockedZ(0, 147, 151, PLOW_AND_JUMP, 1)).toBe(151);
+  });
+
+  test("advice advances with the route and stops after the final barricade", () => {
+    expect(gateAdvice(151, PLOW_AND_JUMP)?.gate.id).toBe("gate_flats_plow_1");
+    expect(gateAdvice(441, PLOW_AND_JUMP)).toBeNull();
+  });
+
   test("springs require actual height at a jump stack, and a bare hop cannot replace springs", () => {
     expect(blockedZ(0, 149, 151, PLOW_AND_JUMP, 0)).toBe(150);
     expect(blockedZ(0, 149, 151, PLOW_AND_JUMP, .7)).toBe(151);

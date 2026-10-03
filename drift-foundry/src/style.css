@@ -46,6 +46,9 @@
 .df-build details > div > span { display:flex; gap:8px; align-items:center; margin-top:8px; font-size:11px; }
 .df-build svg { width:26px; height:26px; }
 .df-build small { display:block; color:#758d96; font-size:9px; }
+.df-build details > p { margin:0; padding:0 10px 10px; font-size:10px; color:#b7c4c5; line-height:1.5; }
+.df-engine-choice { width:100%; margin-top:6px; padding:9px; background:#142329ee; color:#f1dfbf; border:1px solid #758d9660; border-radius:3px; font-size:9px; font-weight:800; pointer-events:auto; cursor:pointer; }
+.df-engine-choice[aria-pressed=true] { border-color:#56ded0; color:#56ded0; }
 .df-hud-bottom { position:absolute; left:18px; bottom:18px; display:flex; align-items:end; gap:12px; }
 .df-speed { width:132px; display:grid; grid-template-columns:1fr auto; align-items:baseline; }
 .df-speed b { font-size:36px; font-variant-numeric:tabular-nums; line-height:1.1; }

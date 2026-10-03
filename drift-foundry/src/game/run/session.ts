@@ -33,6 +33,7 @@ export interface RunOutcome {
 }
 
 export interface SessionSnapshot {
+  keepEngine: boolean;
   paused: boolean;
   records: RunRecords;
   recordsSaved: boolean;
@@ -66,6 +67,7 @@ export interface RunSession {
   returnToTitle(): void;
   togglePause(): void;
   suspend(value: boolean): void;
+  toggleKeepEngine(): void;
   tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean }): void;
 }
 
@@ -80,6 +82,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   let phase: RunPhase = "start";
   let paused = false;
   let suspended = false;
+  let keepEngine = false;
   let records = readRecords(storage);
   let recordsSaved = true;
   let personalBest: PersonalBest = "unchanged";
@@ -129,6 +132,12 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   function applyPickup(): void {
     const found: PickupDef | null = nearestUncollected(pose.position, collected);
     if (found === null) return;
+    const candidate = partById(found.partId);
+    if (keepEngine && candidate?.category === "engine" && partInSlotId(installed, "engine") !== null) {
+      collected.add(found.id);
+      pushRadio(`${candidate.label.toUpperCase()} PASSED — KEEPING THE CURRENT MOTOR`);
+      return;
+    }
     const grant = grantPickup(found, installed, collected);
     if (grant.status !== "accepted") return;
     const { part, ejected } = grant;
@@ -155,6 +164,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   function reset(): void {
     phase = "start";
     paused = false;
+    keepEngine = false;
     runTime = 0;
     installed = [];
     collected = new Set<string>();
@@ -177,7 +187,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
 
   function parkRun(): void {
     if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
-    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
+    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge, keepEngine };
     if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; pushToast("PARKED RUN SAVED — CONTINUE FROM THE PIT"); }
     else pushToast("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN");
   }
@@ -194,6 +204,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   return {
     snapshot() {
       return {
+        keepEngine,
         paused: paused || suspended,
         records,
         recordsSaved,
@@ -234,6 +245,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
           closestGap = checkpoint.closestGap;
           wasNear = checkpoint.wasNear;
           announcedSurge = checkpoint.announcedSurge;
+          keepEngine = checkpoint.keepEngine ?? false;
           vehicle.resetTo(checkpoint.position, checkpoint.heading);
           pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, airborne: false, blockedByGate: false };
           pushRadio("PARKED RUN RESTORED — YOUR BUILD IS STILL BOLTED ON");
@@ -252,6 +264,11 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     returnToTitle() { parkRun(); reset(); },
     togglePause() { if (phase === "running") { if (!paused) parkRun(); paused = !paused; } },
     suspend(value) { suspended = value; },
+    toggleKeepEngine() {
+      if (phase !== "running") return;
+      keepEngine = !keepEngine;
+      pushToast(keepEngine ? "KEEP MOTOR — NEXT ENGINE STATIONS WILL BE PASSED" : "ENGINE SWAPS ARMED — NEXT MOTOR WILL BE BOLTED ON");
+    },
     tick(dt, axis, input) {
       if (phase !== "running" || paused || suspended) return;
       // A resumed/background tab cannot advance the crusher by a large wall-clock delta.
