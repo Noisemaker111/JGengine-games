@@ -26,6 +26,7 @@ export const game = defineGame({
   physics,
   assets,
   input: keybinds,
+  touch: false, // GameUI supplies the same accessible discrete controls on every device.
   server: { mode: "coop" },
   save: "none",
   multiplayer: p2p({ topology: "private", room: "resonant-crossing" }),

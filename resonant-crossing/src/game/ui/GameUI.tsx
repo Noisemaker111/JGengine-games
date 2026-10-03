@@ -74,7 +74,7 @@ export function GameUI() {
     <header className="rc-header rc-panel">
       <div><span className="rc-eyebrow">Observatory of the Duet · {state.roomIndex + 1}/{ROOM_COUNT}</span>
         <h1>{room.name}</h1><p>{room.objective}</p></div>
-      <button className="rc-quiet" disabled={state.status !== "playing" || active === null} onClick={() => run("pause")} aria-label="Pause and settings">Ⅱ <span>Pause</span></button>
+      <button className="rc-quiet" disabled={state.status !== "playing" || active === null} onClick={() => run("pause")} aria-label="Pause and settings">Pause</button>
     </header>
     <div className="rc-signals rc-panel" aria-label="Circuit status">
       {room.plates.length > 0 && <span data-lit={state.pressedPlates.length === room.plates.length}>◆ Weight {state.pressedPlates.length}/{room.plates.length}</span>}
