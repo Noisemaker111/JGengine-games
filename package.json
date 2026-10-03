@@ -8,6 +8,13 @@
       "*"
     ],
     "catalog": {
+      "@jgengine/assets": "0.18.1",
+      "@jgengine/core": "0.18.1",
+      "@jgengine/editor": "0.18.0",
+      "@jgengine/node": "0.18.1",
+      "@jgengine/react": "0.18.1",
+      "@jgengine/shell": "0.18.1",
+      "@jgengine/ws": "0.18.1",
       "@react-three/drei": "^10.7.7",
       "@tailwindcss/vite": "^4.0.15",
       "@types/react": "^19",

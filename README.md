@@ -53,14 +53,13 @@ playtest limits.
 
 ## Engine version
 
-Games declare published `@jgengine/*` ranges starting at `^0.18.0`. The committed
-lockfile resolves core/react/shell/ws/assets to 0.18.1 and pins editor to 0.18.0;
-editor 0.18.1 requires the unpublished navbake package. Keep the lockfile and editor
-override together when changing dependencies. An intentional package update uses:
+One root `package.json` workspace catalog owns all published `@jgengine/*` SDK
+versions; game and shared workspace manifests use `catalog:` and never own SDK
+versions. Change the root catalog and regenerate `bun.lock` for an intentional
+SDK update. The CLI `jgengine` keeps its separate version cadence.
 
-```sh
-bun update @jgengine/core @jgengine/react @jgengine/shell @jgengine/ws @jgengine/assets @jgengine/editor
-```
+The current catalog preserves the installed SDK at 0.18.1, with editor at 0.18.0.
+Keep the editor override until its unpublished navbake dependency is resolved.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

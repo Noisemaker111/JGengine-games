@@ -12,11 +12,11 @@
     "art:author": "node scripts/author-models.mjs"
   },
   "dependencies": {
-    "@jgengine/assets": "^0.18.0",
-    "@jgengine/core": "^0.18.0",
-    "@jgengine/editor": "^0.18.0",
-    "@jgengine/react": "^0.18.0",
-    "@jgengine/shell": "^0.18.0",
+    "@jgengine/assets": "catalog:",
+    "@jgengine/core": "catalog:",
+    "@jgengine/editor": "catalog:",
+    "@jgengine/react": "catalog:",
+    "@jgengine/shell": "catalog:",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "react": "19.2.3",
@@ -24,7 +24,7 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "@jgengine/node": "^0.18.0",
+    "@jgengine/node": "catalog:",
     "@tailwindcss/vite": "^4.0.15",
     "@types/react": "^19",
     "@types/react-dom": "^19",

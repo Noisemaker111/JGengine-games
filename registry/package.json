@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@jgengine/react": "^0.18.0",
+    "@jgengine/react": "catalog:",
     "react": "19.2.3"
   },
   "devDependencies": {
