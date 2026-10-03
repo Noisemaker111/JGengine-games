@@ -29,6 +29,20 @@ test("menu and pause gate combat commands", () => {
   run.resume(ctx); run.endTurn(ctx);
   expect(run.getSnapshot().combat.round).toBe(2);
 });
+test("denied storage reads are visible from the title screen", () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
+    getItem() { throw new Error("denied"); }, setItem() { throw new Error("denied"); },
+  } });
+  try {
+    const { run } = boot();
+    expect(run.getSnapshot().saveStatus).toBe("unavailable");
+    expect(run.getSnapshot().canContinue).toBe(false);
+  } finally {
+    if (original) Object.defineProperty(globalThis, "localStorage", original);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  }
+});
 test("one Vulnerable stack affects the attack before expiring", () => {
   const {ctx, run, combat} = boot(); run.start(ctx);
   ctx.scene.entity.stats.set(ctx.player.userId, "vulnerable", {current: 1});
@@ -42,7 +56,9 @@ test("rest preserves the pack, heals 12 and clears battle Strength", () => {
   ctx.scene.entity.stats.set(ctx.player.userId, "strength", {current: 6});
   ctx.scene.entity.effect({from: ctx.player.userId, to: ENEMY_ID, effect: "strike", via: {amount: 999}});
   run.recover(ctx);
-  expect(run.getSnapshot().encounterIndex).toBe(1);
+  expect(run.getSnapshot().phase).toBe("route");
+  expect(run.getSnapshot().encounterIndex).toBe(0);
+  run.chooseRoute(ctx, "tollhouse"); run.leaveRoadNode(ctx); run.chooseRoute(ctx, "cairn_pass");
   expect(combat.getSnapshot().hero.hp).toBe(62);
   expect(combat.getSnapshot().hero.strength).toBe(0);
   const c = combat.getSnapshot();

@@ -34,6 +34,14 @@ function killEnemy(ctx: GameContext): void {
   ctx.scene.entity.effect({ from: HERO, to: ENEMY_ID, effect: "strike", via: { amount: 999 } });
 }
 
+function reachNextFight(ctx: GameContext, run: RunStore, next: "cairn_pass" | "borer_track" | "iron_gate" | "final_gate"): void {
+  if (run.getSnapshot().phase === "reward") run.skipReward(ctx);
+  const stop = next === "cairn_pass" || next === "borer_track" ? "tollhouse" : next === "iron_gate" ? "dry_shelter" : "gate_fire";
+  run.chooseRoute(ctx, stop);
+  run.leaveRoadNode(ctx);
+  run.chooseRoute(ctx, next);
+}
+
 describe("wayfarer-deck deck", () => {
   test("starting deck is 13 cards with the expected distribution", () => {
     const deck = buildStartingDeck();
@@ -151,13 +159,15 @@ describe("wayfarer-deck run progression", () => {
     }
   });
 
-  test("choosing a reward adds the card to the deck and starts the next encounter", () => {
+  test("choosing a reward adds the card and opens the road choices", () => {
     const { ctx, combat, run } = boot();
     killEnemy(ctx);
     const before = totalCards(combat);
     const picked = run.getSnapshot().rewardOptions[0]!;
     run.chooseReward(ctx, picked.type);
     expect(totalCards(combat)).toBe(before + 1);
+    expect(run.getSnapshot().phase).toBe("route");
+    reachNextFight(ctx, run, "cairn_pass");
     const snap = run.getSnapshot();
     expect(snap.phase).toBe("combat");
     expect(snap.encounterIndex).toBe(1);
@@ -166,13 +176,14 @@ describe("wayfarer-deck run progression", () => {
     expect(snap.combat.enemy.hp).toBe(ENCOUNTERS[1]!.maxHp);
   });
 
-  test("skipping a reward advances the run without growing the deck", () => {
+  test("skipping a reward opens the route without growing the deck", () => {
     const { ctx, combat, run } = boot();
     killEnemy(ctx);
     const before = totalCards(combat);
     run.skipReward(ctx);
     expect(totalCards(combat)).toBe(before);
-    expect(run.getSnapshot().encounterIndex).toBe(1);
+    expect(run.getSnapshot().phase).toBe("route");
+    expect(run.getSnapshot().encounterIndex).toBe(0);
   });
 
   test("the hero keeps hp carried across encounters instead of healing on win", () => {
@@ -187,13 +198,12 @@ describe("wayfarer-deck run progression", () => {
 
   test("clearing every encounter wins the run", () => {
     const { ctx, run } = boot();
-    for (let i = 0; i < ENCOUNTERS.length; i += 1) {
+    for (const next of ["cairn_pass", "iron_gate", "final_gate"] as const) {
       killEnemy(ctx);
-      if (i < ENCOUNTERS.length - 1) {
-        expect(run.getSnapshot().phase).toBe("reward");
-        run.skipReward(ctx);
-      }
+      expect(run.getSnapshot().phase).toBe("reward");
+      reachNextFight(ctx, run, next);
     }
+    killEnemy(ctx);
     expect(run.getSnapshot().phase).toBe("victory");
   });
 
@@ -227,10 +237,12 @@ describe("wayfarer-deck engine run phase", () => {
 
   test("completing the crossing ends the run â€” victory reads as ended (dock off)", () => {
     const { ctx, run } = boot();
-    for (let i = 0; i < ENCOUNTERS.length; i += 1) {
+    for (const next of ["cairn_pass", "iron_gate", "final_gate"] as const) {
       killEnemy(ctx);
-      if (i < ENCOUNTERS.length - 1) run.skipReward(ctx);
+      expect(run.getSnapshot().phase).toBe("reward");
+      reachNextFight(ctx, run, next);
     }
+    killEnemy(ctx);
     expect(run.getSnapshot().phase).toBe("victory");
     expect(gamePhase(ctx)).toBe("ended");
   });
@@ -247,7 +259,7 @@ describe("wayfarer-deck enemy roster", () => {
   test("cultist telegraphs a strength buff then applies Weak to the hero on schedule", () => {
     const { ctx, combat, run } = boot();
     killEnemy(ctx);
-    run.skipReward(ctx);
+    reachNextFight(ctx, run, "cairn_pass");
     expect(combat.getSnapshot().enemy.name).toBe("Cairn Whisperer");
     for (let i = 0; i < 4; i += 1) ctx.game.commands.run("endTurn", {});
     expect(ctx.scene.entity.stats.get(HERO, "weak")?.current).toBe(2);
@@ -256,9 +268,7 @@ describe("wayfarer-deck enemy roster", () => {
   test("ridge borer's multi-hit attack strikes twice for the intent amount", () => {
     const { ctx, combat, run } = boot();
     killEnemy(ctx);
-    run.skipReward(ctx);
-    killEnemy(ctx);
-    run.skipReward(ctx);
+    reachNextFight(ctx, run, "borer_track");
     expect(combat.getSnapshot().enemy.name).toBe("Ridge Borer");
     for (let i = 0; i < 3; i += 1) ctx.game.commands.run("endTurn", {});
     const before = combat.getSnapshot().hero.hp;
@@ -274,7 +284,8 @@ describe("wayfarer-deck reward cards", () => {
   test("exhaust cards move to the exhaust zone instead of discard when played", () => {
     const { ctx, combat, run } = boot();
     killEnemy(ctx);
-    run.chooseReward(ctx, "stone_shelter");
+    combat.addReward(ctx, "stone_shelter");
+    reachNextFight(ctx, run, "cairn_pass");
     let played = false;
     for (let i = 0; i < 3 && !played; i += 1) {
       const found = combat.getSnapshot().hand.find((entry) => entry.card.type === "stone_shelter");

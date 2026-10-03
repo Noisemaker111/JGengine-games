@@ -14,6 +14,22 @@ export function onInit(ctx: GameContext): void {
     });
   }
 
+  ctx.game.commands.define<{ nodeId: string }>("chooseRoute", {
+    apply: (state, input) => { runHandle.read(state).chooseRoute(state, input.nodeId); return state; },
+  });
+  ctx.game.commands.define<{ offerId: string; cardId?: string }>("buyRoad", {
+    apply: (state, input) => { runHandle.read(state).buyRoad(state, input.offerId, input.cardId); return state; },
+  });
+  ctx.game.commands.define<{ action: "heal" | "upgrade"; cardId?: string }>("restRoad", {
+    apply: (state, input) => { runHandle.read(state).restRoad(state, input.action, input.cardId); return state; },
+  });
+  ctx.game.commands.define<{ choiceId: string }>("chooseRoadEvent", {
+    apply: (state, input) => { runHandle.read(state).chooseRoadEvent(state, input.choiceId); return state; },
+  });
+  ctx.game.commands.define<Record<string, never>>("leaveRoadNode", {
+    apply: (state) => { runHandle.read(state).leaveRoadNode(state); return state; },
+  });
+
   ctx.game.commands.define<{ cardId: string }>("playCard", {
     validate: (state, input) => {
       const reason = runHandle.read(state).canPlay(input.cardId);
