@@ -1,5 +1,8 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
+import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import { actionContextStack } from "@jgengine/core/game/controlGate";
+import { keybinds } from "./game/keybinds";
 
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
@@ -38,6 +41,10 @@ export function onInit(ctx: GameContext): void {
 
   const input = createDriveInput();
   driveInputStore.write(ctx, input);
+  // Published shell 0.18.1 freezes its tracker at boot. Keep the codes registered
+  // while the menu gate blocks driving; starting removes that gate normally.
+  setGamePhase(ctx, "menu");
+  actionContextStack(ctx).push({ id: "menu", codes: keybinds, passthrough: false });
 }
 
 export function onNewPlayer(ctx: GameContext): void {
