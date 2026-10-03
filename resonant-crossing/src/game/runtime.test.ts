@@ -16,38 +16,37 @@ function boot() {
   return ctx;
 }
 describe("observable run boundaries", () => {
-  test("authoritative gameplay loop seats supplied members and preserves command caller identity", () => {
-    const runner = createHostedGameRunner({ definition: { ...game.game, loop }, content: game.content, host: { userId: "world-host", isNew: true } });
+  test("hosted native definition seats the real host and guest and preserves command caller identity", () => {
+    const runner = createHostedGameRunner({ definition: game.game, content: game.content, host: { userId: "host", isNew: true } });
     const ctx = runner.context();
-    runner.join("lumen-member", true);
-    expect(ctx.player.userId).toBe("world-host");
-    expect(controlledHero(ctx, "lumen-member")).toBe("lumen");
-    expect(ctx.player.possession.listOwned("lumen-member")).toContain("anchor");
-    expect(controlledHero(ctx, "world-host")).toBeNull();
-    runner.join("anchor-member", true);
-    expect(controlledHero(ctx, "anchor-member")).toBe("anchor");
-    expect(ctx.player.possession.listOwned("lumen-member")).not.toContain("anchor");
-    runner.command("lumen-member", "duet.start", {});
+    runner.join("host", true);
+    expect(ctx.player.userId).toBe("host");
+    expect(controlledHero(ctx, "host")).toBe("lumen");
+    expect(ctx.player.possession.listOwned("host")).toContain("anchor");
+    runner.join("guest", true);
+    expect(controlledHero(ctx, "guest")).toBe("anchor");
+    expect(ctx.player.possession.listOwned("host")).not.toContain("anchor");
+    runner.command("host", "duet.start", {});
     expect(duetStore.read(ctx).status).toBe("playing");
     const lumenPose = ctx.scene.entity.get("lumen")!.position;
     const anchorPose = ctx.scene.entity.get("anchor")!.position;
-    runner.command("anchor-member", "duet.east", { userId: "lumen-member" });
+    runner.command("guest", "duet.east", { userId: "host" });
     expect(ctx.scene.entity.get("lumen")!.position).toEqual(lumenPose);
     expect(ctx.scene.entity.get("anchor")!.position).toEqual([anchorPose[0] + 1, anchorPose[1], anchorPose[2]]);
-    runner.command("anchor-member", "ability", { userId: "lumen-member", dir: "east" });
+    runner.command("guest", "ability", { userId: "host", dir: "east" });
     expect(duetStore.read(ctx).latch.anchorCell).toEqual({ x: anchorPose[0] + 1, z: anchorPose[2] });
     expect(duetStore.read(ctx).latch.prism).toBeNull();
-    runner.command("lumen-member", "ability", { userId: "anchor-member", dir: "east" });
+    runner.command("host", "ability", { userId: "guest", dir: "east" });
     expect(duetStore.read(ctx).latch.prism?.cell).toEqual({ x: lumenPose[0], z: lumenPose[2] });
-    runner.command("anchor-member", "duet.callout", { id: "hold", userId: "lumen-member" });
+    runner.command("guest", "duet.callout", { id: "hold", userId: "host" });
     expect(duetStore.read(ctx).callout?.hero).toBe("anchor");
     runner.join("spectator-member", true);
     expect(controlledHero(ctx, "spectator-member")).toBeNull();
-    expect(controlledHero(ctx, "anchor-member")).toBe("anchor");
+    expect(controlledHero(ctx, "guest")).toBe("anchor");
     const before = { state: duetStore.read(ctx), lumen: ctx.scene.entity.get("lumen")!.position, anchor: ctx.scene.entity.get("anchor")!.position };
     for (const userId of ["spectator-member", "unseated-spoofer"]) {
       for (const command of ["duet.east", "duet.step", "ability", "duet.callout", "swap", "pause", "reset", "duet.start", "duet.restart"]) {
-        runner.command(userId, command, { userId: "lumen-member", dir: "east", id: "go", roomIndex: 3 });
+        runner.command(userId, command, { userId: "host", dir: "east", id: "go", roomIndex: 3 });
       }
     }
     expect({ state: duetStore.read(ctx), lumen: ctx.scene.entity.get("lumen")!.position, anchor: ctx.scene.entity.get("anchor")!.position }).toEqual(before);
