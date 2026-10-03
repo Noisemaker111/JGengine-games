@@ -9,12 +9,13 @@ import {
   type Vec2,
 } from "@jgengine/core/movement/formation";
 
+import { publishHud } from "./systems";
 import { BARRACKS_UNITS, BUILDINGS, combatantDef, COMBATANTS, TRAINABLE } from "./catalog";
 import { BUILD_CONFIG } from "./building";
 import { TRAINING_CONFIG } from "./production";
 import { FORMATION_SPACING, NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
-import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
+import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank, doctrine } from "./upgrades";
 import { castThunderClap } from "./hero";
 import { hudStore } from "./hudStore";
 
@@ -150,6 +151,11 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
   const armed = session.attackMoveArmed;
   session.attackMoveArmed = false;
 
+  if (armed) {
+    hudStore.set({ notice: `Advance and engage: ${units.length} troops. They clear threats before reaching the objective.` });
+    assignMoveFormation(ctx, units, x, z, true);
+    return ctx;
+  }
   const targetId = enemyNear(ctx, x, z);
   if (targetId !== null) {
     hudStore.set({ notice: `Attack ordered: ${units.length} troops.` });
@@ -182,7 +188,7 @@ function armAttackMove(ctx: GameContext): GameContext {
 
 /** Can the player afford `unitId` and does supply allow it? Shared by the command and the HUD gate. */
 export function canTrain(ctx: GameContext, unitId: string): boolean {
-  if (!matchRunning()) return false;
+  if (!matchRunning() || session.production.jobs.length >= (TRAINING_CONFIG.capacity ?? Infinity)) return false;
   if (livingUnits("player", "building").length === 0) return false;
   const def = TRAINABLE[unitId];
   if (def === undefined) return false;
@@ -195,18 +201,22 @@ export function canTrain(ctx: GameContext, unitId: string): boolean {
 }
 
 function trainUnit(ctx: GameContext, unitId: string): GameContext {
-  if (!canTrain(ctx, unitId)) return ctx;
+  if (!canTrain(ctx, unitId)) {
+    hudStore.set({ notice: "Recruitment needs spare supply, resources and an available queue slot. Soldiers require a standing Barracks." });
+    return ctx;
+  }
   const result = enqueue(session.production, TRAINING_CONFIG, { unitId });
   if (!result.ok) return ctx;
   session.production = result.state;
   for (const [currency, amount] of Object.entries(TRAINABLE[unitId]!.cost)) {
     ctx.game.economy.charge(ctx.player.userId, currency, amount);
   }
+  publishHud(ctx);
   return ctx;
 }
 
 function armBuild(ctx: GameContext, type: string): GameContext {
-  if (matchRunning() && canAffordBuilding(ctx, type))  { session.buildArmed = type; session.rallyArmed = false; session.attackMoveArmed = false; }
+  if (matchRunning() && canAffordBuilding(ctx, type))  { session.buildArmed = type; session.rallyArmed = false; session.attackMoveArmed = false; publishHud(ctx); }
   return ctx;
 }
 
@@ -217,6 +227,7 @@ export function canResearch(ctx: GameContext, upgradeId: string): boolean {
   if (!matchRunning()) return false;
   const up = UPGRADES[upgradeId];
   if (up === undefined) return false;
+  if (doctrine() !== null && doctrine() !== upgradeId) return false;
   if (pendingRanks(upgradeId) > 0) return false; // already researching this upgrade
   const rank = upgradeRank(upgradeId);
   if (rank >= up.maxRank) return false;

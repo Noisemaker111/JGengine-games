@@ -75,7 +75,7 @@ export interface SessionState {
   /** Enemy reinforcement clock; the AI director musters escalating waves off it. */
   enemyWave: EnemyWaveState;
   /** Hero ability state. Mana/XP/level live on the hero entity pools; only the cooldown is here. */
-  heroState: { abilityCooldown: number };
+  heroState: { abilityCooldown: number; recoveryIn: number };
   over: boolean;
   victory: boolean;
   trainSeq: number;
@@ -98,7 +98,7 @@ function fresh(): SessionState {
     supplyCap: TOWN_HALL_FOOD,
     attackMoveArmed: false,
     enemyWave: { director: createEnemyWaveDirector(), sent: 0, grace: ENEMY_WAVE_FIRST_DELAY },
-    heroState: { abilityCooldown: 0 },
+    heroState: { abilityCooldown: 0, recoveryIn: 0 },
     over: false,
     victory: false,
     trainSeq: 0,
@@ -119,7 +119,7 @@ export function matchRunning(): boolean {
 
 /** Supply is reserved when training is queued, not only when a recruit spawns. */
 export function reservedSupply(): number {
-  return [...activeJobs(session.production), ...queuedJobs(session.production)]
+  return session.production.jobs
     .reduce((sum, job) => sum + (combatantDef(job.spec.unitId)?.food ?? 0), 0);
 }
 
@@ -167,7 +167,7 @@ export function playerDepot(from: { x: number; z: number }): { id: string; x: nu
   let best: { id: string; x: number; z: number } | null = null;
   let bestDist = Infinity;
   for (const u of session.units.values()) {
-    if (u.faction !== "player" || u.catalogId !== "keep_player") continue;
+    if (u.faction !== "player" || u.catalogId !== "keep_player" && u.catalogId !== "barracks") continue;
     const point = u.guardPoint;
     if (point === undefined) continue;
     const d = Math.hypot(point.x - from.x, point.z - from.z);
@@ -177,4 +177,16 @@ export function playerDepot(from: { x: number; z: number }): { id: string; x: nu
     }
   }
   return best;
+}
+
+export function snapshotSession() {
+  const { units, nodes, resourceField, ...state } = session;
+  return structuredClone({ ...state, units: [...units], nodes: [...nodes], resources: resourceField?.snapshot() ?? null });
+}
+
+export function restoreSession(data: ReturnType<typeof snapshotSession>): void {
+  const { resources, units, nodes, ...state } = structuredClone(data);
+  session = { ...state, units: new Map(units), nodes: new Map(nodes), resourceField: null };
+  initResourceField(() => 0.5);
+  if (resources) session.resourceField?.hydrate(resources);
 }
