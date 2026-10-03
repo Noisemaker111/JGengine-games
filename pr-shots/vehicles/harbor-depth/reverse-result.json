@@ -1,0 +1,1215 @@
+[
+  {
+    "mode": "pure",
+    "t": 1,
+    "heading": 0,
+    "z": -5.860431629718454,
+    "v": -3.654231201231706,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 2,
+    "heading": 0,
+    "z": -11.316312848505971,
+    "v": -6.701276140215008,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 3,
+    "heading": 0,
+    "z": -18.045092043120395,
+    "v": -6.717652477087342,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 4,
+    "heading": 0,
+    "z": -24.77272038364585,
+    "v": -6.7340349995951145,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 5,
+    "heading": 0,
+    "z": -31.499195320211243,
+    "v": -6.750423733058221,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 6,
+    "heading": 0,
+    "z": -38.22670996022869,
+    "v": -6.701049307593177,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 7,
+    "heading": 0,
+    "z": -44.95526294183066,
+    "v": -6.717426862237066,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 8,
+    "heading": 0,
+    "z": -51.68375792597414,
+    "v": -6.733804720116699,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 9,
+    "heading": 0,
+    "z": -58.41000321182684,
+    "v": -6.750194689433576,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 10,
+    "heading": 0,
+    "z": -65.13728943380106,
+    "v": -6.700821493379384,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 11,
+    "heading": 0,
+    "z": -71.86561522345895,
+    "v": -6.7172002710235015,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 12,
+    "heading": 0,
+    "z": -78.59388423518891,
+    "v": -6.733579345327446,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 13,
+    "heading": 0,
+    "z": -85.32100042631147,
+    "v": -6.749964626868889,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 14,
+    "heading": 0,
+    "z": -92.04805721406403,
+    "v": -6.700592665652887,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 15,
+    "heading": 0,
+    "z": -98.77615480101235,
+    "v": -6.716972671696723,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 16,
+    "heading": 0,
+    "z": -105.50419683494773,
+    "v": -6.733352967795884,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 17,
+    "heading": 0,
+    "z": -112.23108726661867,
+    "v": -6.749739464366152,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 18,
+    "heading": 0,
+    "z": -118.9579195068079,
+    "v": -6.700368711647062,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 19,
+    "heading": 0,
+    "z": -125.68688755036317,
+    "v": -6.7167440327071155,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 20,
+    "heading": 0,
+    "z": -132.414701569659,
+    "v": -6.733125556141206,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 21,
+    "heading": 0,
+    "z": -139.14245714677776,
+    "v": -6.749507395940903,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 22,
+    "heading": 0,
+    "z": -145.8690579523202,
+    "v": -6.700137888742241,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 23,
+    "heading": 0,
+    "z": -152.59779580346867,
+    "v": -6.7165144490303765,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 24,
+    "heading": 0,
+    "z": -159.32538086599652,
+    "v": -6.732897204828732,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 25,
+    "heading": 0,
+    "z": -166.05290871536593,
+    "v": -6.749280270367072,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 26,
+    "heading": 0,
+    "z": -172.7792830155932,
+    "v": -6.699911982118977,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 27,
+    "heading": 0,
+    "z": -179.50888565395238,
+    "v": -6.716283887945698,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 28,
+    "heading": 0,
+    "z": -186.23624078495163,
+    "v": -6.732667881312786,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 29,
+    "heading": 0,
+    "z": -192.9635399370017,
+    "v": -6.749052177766704,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 30,
+    "heading": 0,
+    "z": -199.689686767507,
+    "v": -6.699685113617865,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 1,
+    "heading": -3.141592653589793,
+    "z": -2.1395683702815504,
+    "v": -3.654231201231706,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 2,
+    "heading": -3.141592653589793,
+    "z": 3.3163128485059703,
+    "v": -6.701276140215008,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 3,
+    "heading": -3.141592653589793,
+    "z": 10.04509204312039,
+    "v": -6.717652477087342,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 4,
+    "heading": -3.141592653589793,
+    "z": 16.772720383645865,
+    "v": -6.7340349995951145,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 5,
+    "heading": -3.141592653589793,
+    "z": 23.499195320211257,
+    "v": -6.750423733058221,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 6,
+    "heading": -3.141592653589793,
+    "z": 30.226709960228696,
+    "v": -6.701049307593177,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 7,
+    "heading": -3.141592653589793,
+    "z": 36.955262941830675,
+    "v": -6.717426862237066,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 8,
+    "heading": -3.141592653589793,
+    "z": 43.683757925974156,
+    "v": -6.733804720116699,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 9,
+    "heading": -3.141592653589793,
+    "z": 50.410003211826854,
+    "v": -6.750194689433576,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 10,
+    "heading": -3.141592653589793,
+    "z": 57.13728943380108,
+    "v": -6.700821493379384,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 11,
+    "heading": -3.141592653589793,
+    "z": 63.86561522345901,
+    "v": -6.7172002710235015,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 12,
+    "heading": -3.141592653589793,
+    "z": 70.59388423518897,
+    "v": -6.733579345327446,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 13,
+    "heading": -3.141592653589793,
+    "z": 77.32100042631153,
+    "v": -6.749964626868889,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 14,
+    "heading": -3.141592653589793,
+    "z": 84.04805721406409,
+    "v": -6.700592665652887,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 15,
+    "heading": -3.141592653589793,
+    "z": 90.77615480101241,
+    "v": -6.716972671696723,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 16,
+    "heading": -3.141592653589793,
+    "z": 97.50419683494779,
+    "v": -6.733352967795884,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 17,
+    "heading": -3.141592653589793,
+    "z": 104.23108726661873,
+    "v": -6.749739464366152,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 18,
+    "heading": -3.141592653589793,
+    "z": 110.95791950680795,
+    "v": -6.700368711647062,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 19,
+    "heading": -3.141592653589793,
+    "z": 117.68688755036322,
+    "v": -6.7167440327071155,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 20,
+    "heading": -3.141592653589793,
+    "z": 124.41470156965919,
+    "v": -6.733125556141206,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 21,
+    "heading": -3.141592653589793,
+    "z": 131.14245714677793,
+    "v": -6.749507395940903,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 22,
+    "heading": -3.141592653589793,
+    "z": 137.86905795232036,
+    "v": -6.700137888742241,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 23,
+    "heading": -3.141592653589793,
+    "z": 144.59779580346884,
+    "v": -6.7165144490303765,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 24,
+    "heading": -3.141592653589793,
+    "z": 151.3253808659967,
+    "v": -6.732897204828732,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 25,
+    "heading": -3.141592653589793,
+    "z": 158.0529087153661,
+    "v": -6.749280270367072,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 26,
+    "heading": -3.141592653589793,
+    "z": 164.77928301559336,
+    "v": -6.699911982118977,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 27,
+    "heading": -3.141592653589793,
+    "z": 171.50888565395255,
+    "v": -6.716283887945698,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 28,
+    "heading": -3.141592653589793,
+    "z": 178.2362407849518,
+    "v": -6.732667881312786,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 29,
+    "heading": -3.141592653589793,
+    "z": 184.96353993700188,
+    "v": -6.749052177766704,
+    "gear": 0
+  },
+  {
+    "mode": "pure",
+    "t": 30,
+    "heading": -3.141592653589793,
+    "z": 191.68968676750717,
+    "v": -6.699685113617865,
+    "gear": 0
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 1,
+    "z": -2.1395683702815713,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 3.654231201231637,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 1194.9724888976812,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 2,
+    "z": 3.3163128485058846,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.701276140214949,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2230.1744486292014,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 3,
+    "z": 10.045092043120334,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.717652477087519,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2235.620726350651,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 4,
+    "z": 16.772720383646245,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.734034999595906,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2241.069062418687,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 5,
+    "z": 23.499195320212202,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.75042373305871,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2246.5194652549076,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 6,
+    "z": 30.22670996022993,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.701049307593223,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2230.09901092132,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.2,
+    "from": 31.412789390844427,
+    "to": 31.232790686972976,
+    "dz": -0.17999870387145123,
+    "vel": [
+      0,
+      0,
+      -10.799922232287074
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.83529721349384
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.216666666666667,
+    "from": 31.232790686972976,
+    "to": 30.856902922924693,
+    "dz": -0.37588776404828295,
+    "vel": [
+      0,
+      0,
+      -22.553265842896977
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.701963880160505
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.233333333333333,
+    "from": 30.856902922924693,
+    "to": 30.483877390501632,
+    "dz": -0.37302553242306047,
+    "vel": [
+      0,
+      0,
+      -22.381531945383628
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.56863054682717
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.25,
+    "from": 30.483877390501632,
+    "to": 30.113710102163633,
+    "dz": -0.37016728833799917,
+    "vel": [
+      0,
+      0,
+      -22.21003730027995
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.43529721349384
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.266666666666667,
+    "from": 30.113710102163633,
+    "to": 29.74639708244878,
+    "dz": -0.3673130197148531,
+    "vel": [
+      0,
+      0,
+      -22.038781182891185
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.30196388016051
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.283333333333333,
+    "from": 29.74639708244878,
+    "to": 29.381934367929393,
+    "dz": -0.3644627145193873,
+    "vel": [
+      0,
+      0,
+      -21.867762871163237
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.168630546827174
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.3,
+    "from": 29.381934367929393,
+    "to": 29.020318007168214,
+    "dz": -0.36161636076117887,
+    "vel": [
+      0,
+      0,
+      -21.696981645670732
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          33.03529721349384
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.316666666666666,
+    "from": 29.020318007168214,
+    "to": 28.661544060674807,
+    "dz": -0.35877394649340744,
+    "vel": [
+      0,
+      0,
+      -21.526436789604446
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          32.90196388016051
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.333333333333333,
+    "from": 28.661544060674807,
+    "to": 28.30560860086216,
+    "dz": -0.3559354598126454,
+    "vel": [
+      0,
+      0,
+      -21.356127588758724
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          32.768630546827175
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.35,
+    "from": 28.30560860086216,
+    "to": 27.952507712003506,
+    "dz": -0.35310088885865554,
+    "vel": [
+      0,
+      0,
+      -21.186053331519332
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          32.63529721349384
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "jump",
+    "variant": "race-traffic",
+    "t": 6.366666666666666,
+    "from": 27.952507712003506,
+    "to": 27.60223749018932,
+    "dz": -0.3502702218141849,
+    "vel": [
+      0,
+      0,
+      -21.016213308851093
+    ],
+    "nearCars": [
+      {
+        "id": "traffic_3_1",
+        "position": [
+          -177.6,
+          1.28,
+          32.50196388016051
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 7,
+    "z": 16.352084083854916,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 14.72910617130168,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 2,
+      "rpm": 3373.3493221669337,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 8,
+    "z": 6.4209974422883915,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 5.403112027820498,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 1846.6172040091465,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 9,
+    "z": 5.084500007310191,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 1.3623937963107302,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 10,
+    "z": -3.777574419099463,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 12.605087285191772,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 4244.47972932295,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 11,
+    "z": -11.662758465943664,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 3.4284969910499896,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 1189.2189823746328,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 12,
+    "z": -11.627120944197745,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 2.193112675738824,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 13,
+    "z": -7.58057649256021,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 5.837274639954302,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 1920.9681514826375,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 14,
+    "z": -0.9547137655624363,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.709030148136748,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2232.753198596152,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 15,
+    "z": 5.774148520509999,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.725406032297343,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2238.19932632227,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 16,
+    "z": 12.501856075937594,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.741788128530928,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2243.6475211873594,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 17,
+    "z": 19.22841254764938,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.758176428134064,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2227.230742213382,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 18,
+    "z": 25.95600740502274,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.708801571262413,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2232.677180794416,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 19,
+    "z": 32.684641738567684,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.725178682573869,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2238.123716617551,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 20,
+    "z": 39.41212256510669,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.741561999160552,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2243.572317319106,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 21,
+    "z": 46.139544384207966,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.7579456408861915,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2227.1539892575483,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 22,
+    "z": 52.8669090847033,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.708572022800041,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2232.600839871903,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 23,
+    "z": 59.595314496763606,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.7249503664349675,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2238.047785512276,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 24,
+    "z": 66.32256763061797,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.741334908521139,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2243.4967937618208,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 25,
+    "z": 73.04976297928566,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.7577197691591095,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2227.0788710574734,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 26,
+    "z": 79.7779973036929,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 6.708341470369135,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 0,
+      "rpm": 2232.5241650599946,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 27,
+    "z": 85.19999999999999,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 0,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 28,
+    "z": 85.19999999999999,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 0,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 29,
+    "z": 85.19999999999999,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 0,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  },
+  {
+    "mode": "driving",
+    "variant": "race-traffic",
+    "t": 30,
+    "z": 85.19999999999999,
+    "telemetry": {
+      "mode": "ground",
+      "speedMs": 0,
+      "altitude": 0,
+      "verticalSpeed": 0,
+      "gear": 1,
+      "rpm": 850,
+      "stalled": false,
+      "vtol": false
+    }
+  }
+]

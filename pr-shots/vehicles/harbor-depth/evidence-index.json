@@ -14,7 +14,8 @@
     "limits": [
       "Earlier exit-forfeit run does not prove player race win or full player course; see coastNatural for latest natural rival finish",
       "Prior on-foot camera build; latest camera navigation proved in courier run"
-    ]
+    ],
+    "traceScope": "Earlier paid entry, acceleration and exit-forfeit; later natural rival finish in coastNatural."
   },
   "courier": {
     "trace": "courier-native-trace.json",
@@ -50,16 +51,6 @@
     "limits": [
       "No native express deadline failure yet",
       "Integration viewport advances slowly under software GL; no real hardware performance or driving feel claim"
-    ]
-  },
-  "verification": {
-    "focusedTests": 34,
-    "assertions": 151,
-    "failures": 0,
-    "files": [
-      "harbor-heat/src/game/race.test.ts",
-      "harbor-heat/src/game/handroll.test.ts",
-      "drift-foundry/src/game/route/gates.test.ts"
     ]
   },
   "devices": {
@@ -173,6 +164,37 @@
       "Published0.18.1 packages remain; collision ownership registered upstream separately; no game-source or dependency change during race"
     ],
     "collisionRegistration": "https://github.com/Noisemaker111/JGengine-games/issues/27#issuecomment-5967287714",
-    "harnessErrors": "Only benign outdated exact-label attempt Error: Missing Keep exploring; subsequent Keep exploring \u2197 native tap succeeded. No pageerrors recorded."
+    "harnessErrors": "Only benign outdated exact-label attempt Error: Missing Keep exploring; subsequent Keep exploring \u2197 native tap succeeded. No pageerrors recorded.",
+    "collisionIssue": "https://github.com/Noisemaker111/jgengine/issues/1935"
+  },
+  "earlierFocusedVerification": {
+    "focusedTests": 34,
+    "assertions": 151,
+    "failures": 0,
+    "files": [
+      "harbor-heat/src/game/race.test.ts",
+      "harbor-heat/src/game/handroll.test.ts",
+      "drift-foundry/src/game/route/gates.test.ts"
+    ]
+  },
+  "verification": {
+    "tests": 193,
+    "failures": 0,
+    "assertions": 6680,
+    "files": 34,
+    "testsByGame": {
+      "harbor": 99,
+      "drift": 94
+    },
+    "types": "both PASS",
+    "productionBuilds": "both PASS",
+    "gameChecks": "no configured CI checks",
+    "provenance": "Final root validation; earlier focused result retained separately."
+  },
+  "currentGamesRemote": {
+    "commit": "fb56e3e58305e6c504e2af9d84f81ab4f5c3ae46",
+    "tree": "cd22fa160b135187414f41ff5ab30fdca7ba2979",
+    "runtime": "499c647 / index-YJPeAFqr.js",
+    "provenance": "Final root-reported documentation head; capture sources remain explicit."
   }
 }
