@@ -1,0 +1,56 @@
+{
+  "source": "/workspace/JGengine-games/.claude/worktrees/field-station/.scratch/field-station-source/models/kaykit-adventurers/Rogue.glb",
+  "sourceSha256": "e825437cd4d2ee9c1960b517a74a69101e33eb409ae7fa8cedc7134a998fbb7d",
+  "derivative": "/workspace/JGengine-games/.claude/worktrees/field-station/field-station/public/models/explorer.glb",
+  "derivativeSha256": "b98a15acde6db4f6ce587d25ae419dcb8da4e4c7d1eaa4276b1646939389627a",
+  "bytes": 526568,
+  "capeAbsent": true,
+  "retainedBodyMeshes": [
+    "Rogue_ArmLeft",
+    "Rogue_ArmRight",
+    "Rogue_Body",
+    "Rogue_Head",
+    "Rogue_LegLeft",
+    "Rogue_LegRight"
+  ],
+  "bodyAccessorValuesIdentical": true,
+  "embeddedAtlasSha256": "a4032e877c3b91939f5cdbb630349c1998fdbc3211bbd587c111125500fe4cc5",
+  "embeddedAtlasIdentical": true,
+  "skinJoints": 41,
+  "skinBindMatricesIdentical": true,
+  "retainedClips": [
+    "Death_A",
+    "Hit_A",
+    "Idle",
+    "Jump_Idle",
+    "Jump_Land",
+    "Jump_Start",
+    "Running_A",
+    "Walking_A"
+  ],
+  "clipChannelsAndValuesIdentical": true,
+  "visualReviewPending": true,
+  "publishedDimensionsReader": "@jgengine/assets@0.18.1/dims",
+  "dims": {
+    "footprint": {
+      "w": 1.5987673645177076,
+      "d": 0.8358047127851506
+    },
+    "center": {
+      "x": 0,
+      "z": 0.009423976203352724
+    },
+    "minY": 0,
+    "maxY": 1.7999999999999998
+  },
+  "clips": [
+    "Death_A",
+    "Hit_A",
+    "Idle",
+    "Jump_Idle",
+    "Jump_Land",
+    "Jump_Start",
+    "Running_A",
+    "Walking_A"
+  ]
+}

@@ -1,0 +1,464 @@
+{
+  "version": 1,
+  "repository": "Noisemaker111/JGengine-games",
+  "gameWorktree": "/workspace/JGengine-games/.claude/worktrees/field-station",
+  "archiveBranch": "pr-shots",
+  "archiveDirectory": "field-station-rendering",
+  "currentGameCommit": "b242d9a0430830164999ff2d491d391c8fa34281",
+  "currentFieldStationTree": "869dae037d4c0472fe80696b9fb74444779b1777",
+  "priorCaptureGameCommit": "b6aae6effffd1685cb6a857e849ce88e1d5813f7",
+  "priorCaptureFieldStationTree": "535cf8aabf65e0d9c7c7c42b816ff113266b4fbe",
+  "toolCommit": "f13ccc2a9d992063fce5e97ab12107b603b7dcae",
+  "officialHelper": "/workspace/jgengine/.claude/worktrees/rendering-capture/scripts/pr-shots.ts",
+  "officialHelperSha256": "50c29cd7ee2e112a27c131d6ebf9ae8af4ca00a06d305162ebda40b00262476e",
+  "sceneProof": {
+    "gitBlob": "e28979aeb1b0af228e48b541d9a9672944f888be",
+    "sha256": "689058c0236e48cf2a44c6a8dbd68f6efd3b86925d76933d7c507a4ae319f2d3",
+    "sourceRevision": "7538b16615904ec94214d37e82e20e1c6ddbe1e9"
+  },
+  "createdAt": "2026-10-03T07:39:46.363578+00:00",
+  "notes": [
+    "Current game b242d9a is the reviewed cape-free researcher and coarse-control hint update. Earlier7538 captures retain the original cape and keyboard-only hint wording; they establish their recorded stage behavior/layout only.",
+    "Older motion evidence predates final yard-grass/banner corrections and does not establish final visual contact.",
+    "Encoded safe-report media is14.280s/285frames; the drive capture report describes14.2s/284frames. Bytes are preserved.",
+    "Authoring scripts are evidence only; do not execute them during publication. No retained live editor session revision or standalone RPC stdout was supplied.",
+    "Final cape-free frames and motion were reviewed by parent. Official helper awaits approval of this exact complete manifest and file bytes.",
+    "Upcoming final High/phone/stride/evidence roles must come from b242d9a with derivative b98a15ac\u2026 and use cape-free archive basenames. Original7538 High/phone captures must not satisfy final roles.",
+    "Authored scene is unchanged from7538: e28979aeb1b0af228e48b541d9a9672944f888be. Authoring source artifacts retain their original bytes/provenance.",
+    "Final cape-free clip is an exact native byte copy:39 captured frames at20fps/nominal1.9s; ffprobe40 encoded frames/2.000s/average20fps.3 extracted frames and contact sheet are derived diagnostics, clearly labelled.",
+    "cape-derivative-proof.json visualReviewPending:true records the earlier data-proof checkpoint; later visual review is recorded separately in finalReview/final-evidence-cape-free.json. Original proof bytes retained."
+  ],
+  "assets": [
+    {
+      "role": "baseline",
+      "basename": "baseline-boot.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/baseline-boot.png",
+      "sha256": "fff82e1474bf32e03c58a727c742bb5f85afa94ccfd74a37c56691ceaa70c66e",
+      "gitBlob": "4459d977f15e51d5e95b9814ff3203e84f014d01",
+      "bytes": 2295515,
+      "label": "Baseline boot before Field Station changes",
+      "sourceAge": "baseline before feature; exact runtime tool version not retained"
+    },
+    {
+      "role": "baseline-data",
+      "basename": "baseline-evidence.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/baseline-evidence.json",
+      "sha256": "49b4001ba8673887a587ba3166c0b3e979433883b9d108aa2dc14c61dbf53141",
+      "gitBlob": "0972a60f32e9b8ea2bdc2f7228148fd575e7fa6e",
+      "bytes": 1898,
+      "label": "Baseline measurements and play limits",
+      "sourceAge": "baseline before feature"
+    },
+    {
+      "role": "motion-data",
+      "basename": "motion-evidence.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/motion-evidence.json",
+      "sha256": "b6e97f8fc87bd113cf98dc7d69a335fda9df54788eb9f354628bd1fdc6b43b4e",
+      "gitBlob": "91461575e847f721b6248dd5753db3938cd0d8d5",
+      "bytes": 1472,
+      "label": "Walk/sprint inputs and layout checks",
+      "sourceAge": "earlier iteration before final yard-grass and banner corrections; exact rendered source tree not retained"
+    },
+    {
+      "role": "journey-data",
+      "basename": "survey-evidence.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/survey-evidence.json",
+      "sha256": "0d3626f37518d4f4a1fc09e84c2c588450b2dfba5a133efb6ce614711020a594",
+      "gitBlob": "ab8a5e678727ecf1f0402e81c12eccee908c3703",
+      "bytes": 2557,
+      "label": "Safe report and reload checkpoints",
+      "sourceAge": "reported game b6aae6e before banner correction"
+    },
+    {
+      "role": "reload",
+      "basename": "reloaded-menu.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/reloaded-menu.png",
+      "sha256": "7474936abe196d023badd8d9dcd6d1d718af61ef87ba84737d98a0ffabac67b4",
+      "gitBlob": "bd16388fef390a0b7bd152bc32f2134bd7cebace",
+      "bytes": 484902,
+      "label": "Saved report after reload",
+      "sourceAge": "reported journey game b6aae6e before banner correction"
+    },
+    {
+      "role": "settings",
+      "basename": "settings-low-verified.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/settings-low-verified.png",
+      "sha256": "459713bd5b7e74be3d2b41a69454069ecd3ff5e2c9f15b3b975beadf915ece15",
+      "gitBlob": "1bd98b018b19c323695720416f27e659b48dfa70",
+      "bytes": 481472,
+      "label": "Low setting selected",
+      "sourceAge": "pre-banner iteration; reported journey game b6aae6e"
+    },
+    {
+      "role": "credits",
+      "basename": "credits-verified.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/credits-verified.png",
+      "sha256": "93aef82b43bfac170bc9a961602afa5e840220573c52794f984d4b5da45ca59d",
+      "gitBlob": "47dd18ab899bc3d6abdbde1aa7da5642ebc52c23",
+      "bytes": 525681,
+      "label": "Creator and license credits",
+      "sourceAge": "pre-banner iteration; reported journey game b6aae6e"
+    },
+    {
+      "role": "journey-video",
+      "basename": "safe-report-14.2s.mp4",
+      "source": "/workspace/jgengine/.claude/worktrees/rendering-capture/shots/url-safe-report-fixed-half.mp4",
+      "sha256": "4df7ee9e8e3795f48593c96827f68b84173c74907724d8e28c8a72acb2ca8011",
+      "gitBlob": "b8fce5128f4b55549c832541d3b0b5f6d0e8e958",
+      "bytes": 2794320,
+      "label": "Safe report journey, captured before banner correction",
+      "sourceAge": "reported game b6aae6e; Field Station subtree535cf8aabf65e0d9c7c7c42b816ff113266b4fbe before banner correction",
+      "captureReport": {
+        "frames": 284,
+        "seconds": 14.2
+      },
+      "encodedMediaProbe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 800,
+            "height": 450,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "2375/119",
+            "nb_frames": "285"
+          }
+        ],
+        "format": {
+          "duration": "14.280000"
+        }
+      }
+    },
+    {
+      "role": "authoring-proof",
+      "basename": "authoring-evidence.json",
+      "source": "/workspace/JGengine-games/.claude/worktrees/field-station/.scratch/visual/authoring-evidence.json",
+      "sha256": "1d0c4135aeb06bd462bd6e28182b8a49362e880a452ff593d3d797cd3d132b63",
+      "gitBlob": "1e7df9c7b927f9c9eb3cdae8d84b79a90bf48710",
+      "bytes": 3447,
+      "label": "authoring-evidence.json",
+      "sourceAge": "scripts executed during authoring; retrospective proof checks current7538scene; no retained editor session revision or standalone stdout, transcript successes only"
+    },
+    {
+      "role": "authoring-script",
+      "basename": "author-scene.ts",
+      "source": "/workspace/JGengine-games/.claude/worktrees/field-station/.scratch/visual/author-scene.ts",
+      "sha256": "d9f5846f4214c02311eb40b3297b02e37756f08023f3e84d65394666f5289ca2",
+      "gitBlob": "57b850bfcaff97770f0dc25384caf2222fe44dd1",
+      "bytes": 2685,
+      "label": "author-scene.ts",
+      "sourceAge": "scripts executed during authoring; retrospective proof checks current7538scene; no retained editor session revision or standalone stdout, transcript successes only"
+    },
+    {
+      "role": "authoring-script",
+      "basename": "retune-grass.ts",
+      "source": "/workspace/JGengine-games/.claude/worktrees/field-station/.scratch/visual/retune-grass.ts",
+      "sha256": "528426282765baa45f0d229876c17e138bce72e85bbe0d25ef9e1240e719e0df",
+      "gitBlob": "c9058d24f8a27e5ae01f2ac2cebe57aa06104ad2",
+      "bytes": 985,
+      "label": "retune-grass.ts",
+      "sourceAge": "scripts executed during authoring; retrospective proof checks current7538scene; no retained editor session revision or standalone stdout, transcript successes only"
+    },
+    {
+      "role": "authoring-script",
+      "basename": "retune-yard-height.ts",
+      "source": "/workspace/JGengine-games/.claude/worktrees/field-station/.scratch/visual/retune-yard-height.ts",
+      "sha256": "ab136e2a9e6048bfd5b101756e1cee4f23905b58a45e591ccee8b8ceede492cd",
+      "gitBlob": "7ca2532033241ac720eb733d09995244bc2e4c13",
+      "bytes": 1006,
+      "label": "retune-yard-height.ts",
+      "sourceAge": "scripts executed during authoring; retrospective proof checks current7538scene; no retained editor session revision or standalone stdout, transcript successes only"
+    },
+    {
+      "role": "rescue",
+      "basename": "after-rescue.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/after-rescue.png",
+      "sha256": "cc7868a651db74640ca2f2c96f55a0722d4ee2daa5a0b1e4ededb6af8c23e4b9",
+      "gitBlob": "d94372ded6bc32c3dacef7fcd73bac0268388b20",
+      "bytes": 521546,
+      "label": "Rescue restores health and preserves the banked report",
+      "sourceAge": "Earlier rescue on game7538, parent reviewed HP and corrected banner; exact capture evidence JSON pending; original caped researcher, before b242 cape-free adaptation"
+    },
+    {
+      "role": "rescue-video",
+      "basename": "hazard-rescue.mp4",
+      "source": "/workspace/jgengine/.claude/worktrees/rendering-capture/shots/url-hazard-rescue-half.mp4",
+      "sha256": "455f571a476440e54d2dad6937fba62e91298a4ec5e3e8011203608690743bb5",
+      "gitBlob": "b54091853da2f25cb8438d5c5eb1a651afa37a6d",
+      "bytes": 1554314,
+      "label": "Hazard note then lethal exposure and rescue",
+      "sourceAge": "Earlier game7538; native drive179captureframes20fps nominal8.9s, encoded counts measured separately; original caped researcher, before b242 cape-free adaptation",
+      "encodedMediaProbe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 800,
+            "height": 450,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "20/1",
+            "nb_frames": "180"
+          }
+        ],
+        "format": {
+          "duration": "9.000000"
+        }
+      }
+    },
+    {
+      "role": "derivative-proof",
+      "basename": "cape-derivative-proof.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-assets/cape-derivative-proof.json",
+      "sha256": "63919f70fb031d55c5f2059e68339400bf930871fd79129ff75a2192be6357fe",
+      "gitBlob": "f4ba5898ec3087efdd86b81eebccd18ad89a629c",
+      "bytes": 1501,
+      "label": "Cape-free mesh, skin, texture and clip byte proof",
+      "sourceAge": "b242d9a0430830164999ff2d491d391c8fa34281 asset data; actual visual review pending"
+    },
+    {
+      "role": "asset-import-script",
+      "basename": "import-researcher-cape-free.ts",
+      "source": "/workspace/JGengine-games/.claude/worktrees/field-station/field-station/scripts/import-researcher.ts",
+      "sha256": "b665b33647e997f2b08c43465f08051ac60cd85d1bfbc9f95430222ec8f8cb31",
+      "gitBlob": "58589491614a1659ba53bfe3ea1d8d6946bfe63b",
+      "bytes": 2916,
+      "label": "Pinned cape-free researcher import recipe",
+      "sourceAge": "b242d9a0430830164999ff2d491d391c8fa34281 exact committed import recipe, pinned source; executed twice to identical derivative hash"
+    },
+    {
+      "role": "rescue-pause-data",
+      "basename": "rescue-pause-stage7538.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/rescue-pause-evidence.json",
+      "sha256": "ffabb5e7846d0b6a65ec303fb481e046b9d5b0942d6cb24768aec22d056e0929",
+      "gitBlob": "d7e074588fc0a76bd8caa7436728244eef54f8d7",
+      "bytes": 2140,
+      "label": "Earlier rescue and pause behavior evidence",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher; rescue toolf13ccc2, pause toolcbe6459"
+    },
+    {
+      "role": "pause",
+      "basename": "paused-survey-stage7538.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/paused-survey.png",
+      "sha256": "642b06c39108e97087526042300bb12540dada36566206d9248c3a0d3a1e0102",
+      "gitBlob": "23e513630cc0017be642cbcf5ec586f85d54cc43",
+      "bytes": 487770,
+      "label": "Paused survey menu before asset update",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher; toolcbe6459"
+    },
+    {
+      "role": "pause-walk",
+      "basename": "after-pause-walk-stage7538.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/after-pause-walk.png",
+      "sha256": "c25a3da06f4b17fd1d4aa48ce8ae337b9973d5d5b8e11cbe7569fd8b5377311b",
+      "gitBlob": "09a4861782e146f551fde918db66552b7d555ddc",
+      "bytes": 595885,
+      "label": "Paused movement leaves actor position unchanged",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher; toolcbe6459"
+    },
+    {
+      "role": "pause-video",
+      "basename": "pause-yard-stage7538.mp4",
+      "source": "/workspace/jgengine/.claude/worktrees/rendering-capture-mobile/shots/url-pause-yard-half.mp4",
+      "sha256": "b08c058f9a84ce475b36313e38cf0aed34cae8a0be079be3b8683a42ef6d9709",
+      "gitBlob": "4f6049c86d17a526de98f39ddc53aa00d65916ab",
+      "bytes": 401492,
+      "label": "Pause blocks movement and Resume restores it",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher; toolcbe6459, nominal39captureframes1.9s",
+      "encodedMediaProbe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 800,
+            "height": 450,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "20/1",
+            "nb_frames": "40"
+          }
+        ],
+        "format": {
+          "duration": "2.000000"
+        }
+      }
+    },
+    {
+      "role": "phone-stage-data",
+      "basename": "mobile-native-stage7538.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/mobile-native-evidence.json",
+      "sha256": "78a83578bde4a3b5bb7f2135dddba9472501a9e3253c6a598be8154fd5c7001e",
+      "gitBlob": "434730297e138e0d79bab047c35c659ceef6872d",
+      "bytes": 1709,
+      "label": "Earlier phone layout evidence and limitations",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher and old control hints; toolcbe6459; device emulation, no gesture exercise"
+    },
+    {
+      "role": "phone-stage-compact",
+      "basename": "phone-compact-stage7538.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-mobile-compact.png",
+      "sha256": "c77d2f0cad9aa455967b872d1260202b591b0e2e265923131b19a64ac9a424a9",
+      "gitBlob": "a8d663c230131119018d4b7792e078a54b47a3f2",
+      "bytes": 1843739,
+      "label": "Earlier compact phone notebook layout",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher and old control hints; toolcbe6459"
+    },
+    {
+      "role": "phone-stage-open",
+      "basename": "phone-open-stage7538.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-mobile-open.png",
+      "sha256": "f14293e3c21be58e51abe8d4bab35c37e510b4e2a58757c0185d3bfeb3a97708",
+      "gitBlob": "c9fb25338e3b72c2832b8a3a701f95ee5e6f261a",
+      "bytes": 1493682,
+      "label": "Earlier expanded phone notebook layout",
+      "sourceAge": "game7538b16615904ec94214d37e82e20e1c6ddbe1e9, original caped researcher and old control hints; toolcbe6459"
+    },
+    {
+      "role": "final-high",
+      "basename": "final-high-cape-free.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-high-cape-free.png",
+      "sha256": "aa35e45b49a55a3f2711cd0e3496f9cf4198d861a345006d2ed3a349b393d849",
+      "gitBlob": "e56fd3b7e54db387c357acb2d13991a803edddc6",
+      "bytes": 2150437,
+      "label": "Current cape-free researcher in High prairie scene",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "final-phone",
+      "basename": "final-phone-compact-cape-free.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-phone-compact-cape-free.png",
+      "sha256": "e018927deb94c59e4e136b80c28e475ac8f9a7422b38d1e9804afb030a5aab9c",
+      "gitBlob": "c9259204fe76d0a4c2b01e62ce26054462725a50",
+      "bytes": 1850857,
+      "label": "Current compact phone notebook and coarse control hints",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "final-phone",
+      "basename": "final-phone-open-cape-free.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-phone-open-cape-free.png",
+      "sha256": "6492f37cad136dea5097f021c07e5ef18795e60f387bb66eccc852493537ecf7",
+      "gitBlob": "d93021868c719dca9544fa0a8a116f8fd996d51f",
+      "bytes": 1491780,
+      "label": "Current expanded phone notebook and coarse control hints",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "stride",
+      "basename": "researcher-stride-cape-free.mp4",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/researcher-stride-cape-free.mp4",
+      "sha256": "15bdf81d47783573ea457141c3c7580a3a333082b9a8e84bdaad89646b3f6ec1",
+      "gitBlob": "d6f96cf917e6e339f8b49e0310afa272286d7b03",
+      "bytes": 555686,
+      "label": "Actual walk and sprint, cape-free boots visible",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen",
+      "encodedMediaProbe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 800,
+            "height": 450,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "20/1",
+            "nb_frames": "40"
+          }
+        ],
+        "format": {
+          "duration": "2.000000"
+        }
+      },
+      "captureReport": {
+        "frames": 39,
+        "fps": 20,
+        "seconds": 1.9
+      }
+    },
+    {
+      "role": "stride-frame",
+      "basename": "researcher-stride-cape-free-01.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/researcher-stride-cape-free-01.png",
+      "sha256": "3b5f7beb1c735c1d4951b6072def4fdbc93020d6e14e9c8530298ff64ff2327c",
+      "gitBlob": "8b79670ae8729b555230e4d06b99e31ecba7ad4c",
+      "bytes": 394934,
+      "label": "Native clip frame8: cape-free side walk",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "stride-frame",
+      "basename": "researcher-stride-cape-free-02.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/researcher-stride-cape-free-02.png",
+      "sha256": "e9803deca52d5d95b8cf22d2dd97e7dad7f411a35ace084994d4cc6e4b37e8e4",
+      "gitBlob": "efd073788d4e1b4e057f183760078be54dd10d09",
+      "bytes": 394768,
+      "label": "Native clip frame15: cape-free forward walk",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "stride-frame",
+      "basename": "researcher-stride-cape-free-03.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/researcher-stride-cape-free-03.png",
+      "sha256": "90542adee58b7e9844617ea3db64c5bd34b1901fc28bf012188ba7748e782599",
+      "gitBlob": "627336370e2b5463e28030444f75598af62751b0",
+      "bytes": 405085,
+      "label": "Native clip frame29: cape-free sprint",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "stride-contact",
+      "basename": "researcher-stride-cape-free-contact.png",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/researcher-stride-cape-free-contact.png",
+      "sha256": "84b96ea33952d914b5ec1d56870e3fcc2a93e1dfb4ba88d101a57ed9cab7c0b1",
+      "gitBlob": "ba47c5c830817aa6fb530badd2508fc1b0beeedb",
+      "bytes": 161153,
+      "label": "Contact sheet of the three extracted native stride frames",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    },
+    {
+      "role": "final-evidence",
+      "basename": "final-evidence-cape-free.json",
+      "source": "/workspace/JGengine-games/.scratch/field-station-playtest/final-evidence-cape-free.json",
+      "sha256": "34eb55997753e99cec3098cb75b4d5bc29e07594e147a55e6b17be0b15e7fc58",
+      "gitBlob": "b788e1c8169c35c019e81133095dbd27ca3a9eeb",
+      "bytes": 16713,
+      "label": "Current source, native motion, High/phone inspection and retained limits",
+      "sourceAge": "Current game b242d9a0430830164999ff2d491d391c8fa34281; official capture tool cbe6459ff619519f7c2b1c37c074183e7064f5b1; cape-free derivativeb98a15ac\u2026; parent inspected actual frames, source frozen"
+    }
+  ],
+  "pendingRoles": [],
+  "publicationReady": true,
+  "previousReviewedGameCommit": "7538b16615904ec94214d37e82e20e1c6ddbe1e9",
+  "previousReviewedFieldStationTree": "dabcb912ce1818012a2209b35164d9820a976dfc",
+  "currentResearcherSha256": "b98a15acde6db4f6ce587d25ae419dcb8da4e4c7d1eaa4276b1646939389627a",
+  "pendingBasenames": {
+    "final-high": [
+      "final-high-cape-free.png"
+    ],
+    "final-phone": [
+      "final-phone-compact-cape-free.png",
+      "final-phone-open-cape-free.png"
+    ],
+    "stride": [
+      "researcher-stride-cape-free.mp4"
+    ],
+    "final-evidence": [
+      "final-evidence-cape-free.json"
+    ]
+  },
+  "currentCaptureToolRevision": "cbe6459ff619519f7c2b1c37c074183e7064f5b1",
+  "finalReview": {
+    "gameRevision": "b242d9a0430830164999ff2d491d391c8fa34281",
+    "inspectedArtifacts": [
+      "final-high-cape-free.png",
+      "final-phone-compact-cape-free.png",
+      "final-phone-open-cape-free.png",
+      "researcher-stride-cape-free-01.png",
+      "researcher-stride-cape-free-02.png",
+      "researcher-stride-cape-free-03.png"
+    ],
+    "result": "Parent approved narrow visible boots and settled UI/control hints; retained polish, touch and startup-diagnostic gaps. No broad visual/performance claim.",
+    "sourceWorkingTree": "Clean and frozen at captured game revision"
+  }
+}

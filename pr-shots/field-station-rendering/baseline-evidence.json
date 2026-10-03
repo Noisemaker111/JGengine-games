@@ -1,0 +1,40 @@
+{
+  "game": "Field Station",
+  "url": "http://127.0.0.1:5173",
+  "screenshot": "baseline-boot.png",
+  "viewport": [1600, 900],
+  "perfCommand": "bunx jgengine drive --url http://127.0.0.1:5173 --wait 20000 --rpc '{\"method\":\"debug_perf_reset\"}' --key KeyW:3000 --key KeyD:3000 --key KeyE:100 --wait 20000 --rpc '{\"method\":\"debug_snapshot\"}'",
+  "performance": {
+    "at": 1791007268559,
+    "avgFrameMs": 15735.5,
+    "avgSimMs": 2.3,
+    "avgOutsideMs": 15733.2,
+    "samples": 3,
+    "drawCalls": 462,
+    "triangles": 6591856,
+    "geometries": 75,
+    "textures": 7,
+    "textureErrors": [],
+    "caveat": "Software GL; only three post-reset frame samples. Frame rate is not player hardware performance. Fallback counts fluctuated between omittedMapping=1 and empty in recent frames."
+  },
+  "strictPlaytest": {
+    "exitCode": 1,
+    "probed": false,
+    "reason": "Game declares no capture.probe; input dispatched but movement delta and actual hazard failure cannot be proven."
+  },
+  "deterministicTests": {
+    "command": "bun test src/game/health.test.ts src/game/world.world.test.ts",
+    "passed": 11,
+    "failed": 0,
+    "observed": "Authored hazard drains from100to82 in1s; exit regenerates to90 in1s; health0.5 in hazard resets actor to spawn with100HP."
+  },
+  "visualDefects": [
+    "Capsule actor is a render fallback, centered around x800,y465.",
+    "Dense grass overlaps soil pads; foreground has high frequency jagged blades.",
+    "Only tiny HP HUD at lower-left; no role, controls, goal, decisions or progression.",
+    "Bookcase and soil pads lack player-readable context."
+  ],
+  "lifecycle": "always-live",
+  "save": "none",
+  "baselineLimits": "No menu, pause, objective, progression, win state, Continue or saved progress; hazard death immediately respawns full health. Portable published drive lacks recording and --probe; engine drive lacks external --url."
+}

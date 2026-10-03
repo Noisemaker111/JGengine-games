@@ -1,0 +1,14 @@
+{
+  "gameRevision": "7538b16615904ec94214d37e82e20e1c6ddbe1e9",
+  "toolRevision": "cbe6459ff619519f7c2b1c37c074183e7064f5b1",
+  "method": "Official native drive --url --connect9255 --reuse-storage --device mobile --size full; JG_CAPTURE_SCREENCAST=0; actual Continue button and notebook click,20second waits; High choice retained from verified actual Settings choice",
+  "cssViewport": [390,844], "deviceScaleFactor": 2, "physicalDimensions": [780,1688],
+  "screenshots": ["final-mobile-compact.png", "final-mobile-open.png"],
+  "probe": {"x": 6, "y": 0.23849985683472946, "z": 6, "notes": 0, "reports": 1, "quality": 2, "playing": 1, "health": 100},
+  "inspection": "Both settled actual frames have readable/wrapping notebook, HP visible aroundy656–672CSS, movement joystick begins abouty709CSS, three action icons fit bottom-right. Expanded notebook shows Pause and Credits and ends well aboveHP; no visible current-frame collision.",
+  "remainingDiagnosticGap": "During boot shared mobile layout diagnostic reported health intersects control:movement by3931px². Current settled frames show about37CSS gap, so transient warning is retained without claiming startup collision fixed.",
+  "inputLimit": "Official --device enables coarse/touch emulation and controls presence; native --click dispatches trusted mouse events. Actual touch gestures, joystick movement and touch action buttons were not exercised.",
+  "assetLimit": "High rear cape occludes legs; parent is removing cape after browser release. These are valid7538b1 stage layout frames, not final cape-free asset media.",
+  "browserReleased": true,
+  "warmProfile": "Chrome9255 retained actual saved report1/best2/High; no localStorage reset"
+}

@@ -1,0 +1,509 @@
+{
+  "gameRevision": "b242d9a0430830164999ff2d491d391c8fa34281",
+  "captureToolRevision": "cbe6459ff619519f7c2b1c37c074183e7064f5b1",
+  "publishedSDK": "@jgengine/* 0.18.1, unchanged; game never aliased engine source",
+  "model": {
+    "file": "public/models/explorer.glb",
+    "sha256": "b98a15acde6db4f6ce587d25ae419dcb8da4e4c7d1eaa4276b1646939389627a",
+    "bytes": 526568,
+    "change": "Cape removed; same unarmed researcher, six skinned meshes and eight clips; dimensions unchanged."
+  },
+  "method": "Official native drive against http://127.0.0.1:5173, connecting to port9255 with --reuse-storage. Genuine rendered readiness; JG_CAPTURE_SCREENCAST=0 current-frame screenshots. Software GL workloads were serialized. No custom browser or CDP scripts.",
+  "profile": "High selected through actual Settings button and verified stage7538 final-settings-high.png, retained through current warm profile. Saved report1/Best2 preserved; no state/position mutations.",
+  "desktop": {
+    "screenshot": "final-high-cape-free.png",
+    "viewport": [
+      1600,
+      900
+    ],
+    "camera": "Natural orbit camera; authoredspawn6,6; no --look/--spawn staging",
+    "inspection": "Cape absent; body,belt,pants,brownboots visible. Notebook objective/sites/ledger/controls upper-left andHP bottom-left fit without clipping/overlap."
+  },
+  "motion": {
+    "route": "Continue field log; actual A500ms side walk, W500ms walk, ShiftLeft+A500ms sprint, wait100ms.",
+    "checkpoints": [
+      {
+        "probe": "start",
+        "metrics": {
+          "x": 6,
+          "y": 0.23849985683472946,
+          "z": 6,
+          "notes": 0,
+          "reports": 1,
+          "quality": 2,
+          "playing": 1,
+          "health": 100
+        }
+      },
+      {
+        "probe": "sidewalk",
+        "metrics": {
+          "x": 7.347351688286412,
+          "y": 0.23849985683472946,
+          "z": 5.979075381203623,
+          "notes": 0,
+          "reports": 1,
+          "quality": 2,
+          "playing": 1,
+          "health": 100
+        }
+      },
+      {
+        "probe": "walking",
+        "metrics": {
+          "x": 7.410732782626753,
+          "y": 0.24355536787256737,
+          "z": 7.32535400115504,
+          "notes": 0,
+          "reports": 1,
+          "quality": 2,
+          "playing": 1,
+          "health": 100
+        }
+      },
+      {
+        "probe": "sprint",
+        "metrics": {
+          "x": 10.440504468630962,
+          "y": 0.33073045615000995,
+          "z": 7.271810666667818,
+          "notes": 0,
+          "reports": 1,
+          "quality": 2,
+          "playing": 1,
+          "health": 100
+        }
+      }
+    ],
+    "walkSideMetres": 1.3475141600740295,
+    "walkForwardMetres": 1.34776974504478,
+    "sprintMetres": 3.030244768658268,
+    "sourceClip": "/workspace/jgengine/.claude/worktrees/rendering-capture-mobile/shots/url-researcher-stride-cape-free-half.mp4",
+    "clip": "researcher-stride-cape-free.mp4",
+    "copy": "Exact byte copy, no transcode",
+    "sha256": "15bdf81d47783573ea457141c3c7580a3a333082b9a8e84bdaad89646b3f6ec1",
+    "bytes": 555686,
+    "nativeCapturedFrames": 39,
+    "nativeLockstepFps": 20,
+    "nativeGameSeconds": 1.9,
+    "ffprobe": {
+      "encodedFrames": 40,
+      "durationSeconds": 2,
+      "width": 800,
+      "height": 450,
+      "averageFrameRate": "20/1",
+      "rFrameRate": "25/1",
+      "note": "Encoder duplication produces40 encoded frames from39 native captured frames; nominal r_frame_rate differs from average."
+    },
+    "extractedFrames": [
+      "researcher-stride-cape-free-01.png",
+      "researcher-stride-cape-free-02.png",
+      "researcher-stride-cape-free-03.png"
+    ],
+    "frameIndices": [
+      8,
+      15,
+      29
+    ],
+    "inspection": "Independent animation review and direct inspection show no cape or weapon, changing walking leg and arm poses, and forward leaning sprint with an extended trailing boot. Boots and shadow meet the yard with no obvious hover or sink. The40\u201360px actor prevents a precise foot-lock or sliding conclusion."
+  },
+  "performance": {
+    "route": "1600x900 High; activewarm20s; debug_perf_reset; W3000ms; D3000ms; E100ms; wait20s; debug_snapshot",
+    "snapshot": {
+      "game": "Field Station",
+      "at": 1791015410267,
+      "why": "outside-sim (5/5 recent long frames): Cost is outside the sim driver \u2014 three.js render, React commit, GPU, GC, or tab throttle. Check the render sample: high draw calls/triangles mean scene cost (instancing, culling, terrain density); moderate counts with slow frames mean fill cost (dpr, AO/DOF passes, bloom) \u2014 try Quality low/medium.",
+      "frame": {
+        "fps": 0.1,
+        "avgFrameMs": 8893.2,
+        "p95FrameMs": 22130.8,
+        "maxFrameMs": 22130.8,
+        "avgSimMs": 0.9,
+        "maxSimMs": 3.2,
+        "avgOutsideMs": 8892.3,
+        "maxOutsideMs": 22130.2,
+        "longFrames": 13,
+        "samples": 14,
+        "phases": [
+          {
+            "name": "pose",
+            "avgMs": 0.6,
+            "maxMs": 1.6,
+            "pctOfSim": 71
+          },
+          {
+            "name": "onTick",
+            "avgMs": 0.4,
+            "maxMs": 1.8,
+            "pctOfSim": 42
+          },
+          {
+            "name": "actions",
+            "avgMs": 0.1,
+            "maxMs": 0.1,
+            "pctOfSim": 11
+          },
+          {
+            "name": "time+input",
+            "avgMs": 0.1,
+            "maxMs": 0.1,
+            "pctOfSim": 11
+          }
+        ]
+      },
+      "render": {
+        "drawCalls": 480,
+        "triangles": 3104068,
+        "geometries": 79,
+        "textures": 12
+      },
+      "latency": null,
+      "longFrameSummary": {
+        "count": 13,
+        "culprits": [
+          {
+            "culprit": "outside-sim",
+            "count": 13
+          }
+        ],
+        "maxFrameMs": 22130.8,
+        "maxDrawCalls": 480,
+        "maxGeometries": 82
+      },
+      "longFrames": [
+        {
+          "at": 1791015352163,
+          "frameMs": 9514.9,
+          "simMs": 0.9,
+          "outsideMs": 9514,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 9514.0ms outside sim",
+          "phases": [
+            {
+              "name": "pose",
+              "ms": 0.8
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752601310279652,
+              "y": 0.23849985683472946,
+              "z": 6.115598176194254,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        },
+        {
+          "at": 1791015360959,
+          "frameMs": 8794.5,
+          "simMs": 1.6,
+          "outsideMs": 8792.9,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 8792.9ms outside sim \u00b7 sim 1.6ms",
+          "phases": [
+            {
+              "name": "pose",
+              "ms": 1.6
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752425004270653,
+              "y": 0.23849985683472946,
+              "z": 6.115598219755505,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        },
+        {
+          "at": 1791015370634,
+          "frameMs": 9673.2,
+          "simMs": 3.2,
+          "outsideMs": 9670,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 9670.0ms outside sim \u00b7 sim 3.2ms",
+          "phases": [
+            {
+              "name": "onTick",
+              "ms": 1.8
+            },
+            {
+              "name": "pose",
+              "ms": 1
+            },
+            {
+              "name": "time+input",
+              "ms": 0.1
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752405469008018,
+              "y": 0.23849985683472946,
+              "z": 6.115598224582229,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        },
+        {
+          "at": 1791015379312,
+          "frameMs": 8679.8,
+          "simMs": 0.8,
+          "outsideMs": 8679,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 8679.0ms outside sim",
+          "phases": [
+            {
+              "name": "pose",
+              "ms": 0.7
+            },
+            {
+              "name": "onTick",
+              "ms": 0.1
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752403304439218,
+              "y": 0.23849985683472946,
+              "z": 6.115598225117045,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        },
+        {
+          "at": 1791015389304,
+          "frameMs": 9992.1,
+          "simMs": 0.7,
+          "outsideMs": 9991.4,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 9991.4ms outside sim",
+          "phases": [
+            {
+              "name": "pose",
+              "ms": 0.6
+            },
+            {
+              "name": "actions",
+              "ms": 0.1
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752403064598158,
+              "y": 0.23849985683472946,
+              "z": 6.115598225176305,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        },
+        {
+          "at": 1791015398978,
+          "frameMs": 9673.1,
+          "simMs": 0.6,
+          "outsideMs": 9672.5,
+          "culprit": "outside-sim",
+          "reason": "display/render/browser hitch 9672.5ms outside sim",
+          "phases": [
+            {
+              "name": "pose",
+              "ms": 0.6
+            }
+          ],
+          "probes": {
+            "entities": 1,
+            "objects": 0,
+            "fallbacks": {},
+            "textureErrors": [],
+            "field-station": {
+              "x": 5.752403038023012,
+              "y": 0.23849985683472946,
+              "z": 6.115598225182871,
+              "notes": 0,
+              "reports": 1,
+              "quality": 2,
+              "playing": 1,
+              "health": 100
+            }
+          },
+          "render": {
+            "drawCalls": 480,
+            "triangles": 3104068,
+            "geometries": 79,
+            "textures": 12
+          }
+        }
+      ],
+      "probes": {
+        "entities": 1,
+        "objects": 0,
+        "fallbacks": {},
+        "textureErrors": [],
+        "field-station": {
+          "x": 5.752403038023012,
+          "y": 0.23849985683472946,
+          "z": 6.115598225182871,
+          "notes": 0,
+          "reports": 1,
+          "quality": 2,
+          "playing": 1,
+          "health": 100
+        }
+      },
+      "logs": [
+        {
+          "at": 1791015190247,
+          "level": "warn",
+          "message": "[jgengine:extractBlocks] 70 streets extracted only 12 block face(s) \u2014 implausibly few, likely a silent proximity-welding collapse on wandered / arc-filleted centerlines (the WELD_RADIUS heuristic assumes near-aligned streets). The fabric will look empty rather than error. Trace blocks from the exact street graph with extractGraphBlocks() instead, which is robust against centerlines that defeat wel\u2026"
+        }
+      ],
+      "discoveredCount": 425
+    },
+    "baseline": {
+      "samples": 3,
+      "avgFrameMs": 15735.5,
+      "avgSimMs": 2.3,
+      "avgOutsideMs": 15733.2,
+      "drawCalls": 462,
+      "triangles": 6591856
+    },
+    "triangleReductionPercent": 52.9,
+    "priorCapedStage": {
+      "gameRevision": "7538b16615904ec94214d37e82e20e1c6ddbe1e9",
+      "drawCalls": 484,
+      "triangles": 3104404
+    },
+    "capeOnlyDifference": {
+      "drawCalls": -4,
+      "triangles": -336
+    },
+    "budget": {
+      "cinematicDrawCalls": 600,
+      "cinematicTriangles": 1500000,
+      "drawCallsResult": "pass",
+      "trianglesResult": "fail"
+    },
+    "limitation": "SwiftShader software GL:14 final post-reset samples versus3 baseline samples, plus native frame-grace versus portable baseline timing, prevent reliable hardware frame-rate or speedup claims. Timed route displacement is small because frame intervals exceed input holds; movement is separately proven using20fps lockstep."
+  },
+  "mobile": {
+    "screenshots": [
+      "final-phone-compact-cape-free.png",
+      "final-phone-open-cape-free.png"
+    ],
+    "cssViewport": [
+      390,
+      844
+    ],
+    "deviceScaleFactor": 2,
+    "physicalDimensions": [
+      780,
+      1688
+    ],
+    "method": "Official native --device mobile coarse/touchprofile; Continue,20s wait,compactshot; trustedmouse clickFIELD NOTEBOOK,20s wait,openshot",
+    "probe": {
+      "x": 6,
+      "y": 0.23849985683472946,
+      "z": 6,
+      "notes": 0,
+      "reports": 1,
+      "quality": 2,
+      "playing": 1,
+      "health": 100
+    },
+    "inspection": "Notebook chip and opened panel are readable. Joystick/Run/Jump/Observe/Pause instructions wrap across two lines; Pause and Credits are visible. Ledger remains intact. HP sits around y656\u2013672CSS above joystick y709CSS, about37CSS gap; three action icons fit. Cape-free boots are visible. Settled frames show no clipping or overlap.",
+    "diagnosticGap": "Startup shared layout warning repeats health intersects control:movement3931px\u00b2 at390x844. Settledframes have clear gap; transient diagnostic retained, no startupfixclaim.",
+    "touchGap": "The device profile enables coarse pointer and touch support and displays the controls. Official --click dispatches trusted mouse events. Actual touch gestures, joystick movement and action-button touches remain untested."
+  },
+  "priorActualGameplayEvidence": [
+    {
+      "gameRevision": "b6aae6e",
+      "file": "survey-evidence.json",
+      "checks": "Realpond+meadowE notes2, deskE file report1Best2, actualreload retains report/quality andContinue resumes"
+    },
+    {
+      "gameRevision": "7538b16615904ec94214d37e82e20e1c6ddbe1e9",
+      "file": "rescue-pause-evidence.json",
+      "checks": "RealhazardE notes1HP88.3\u21926virtualsecslethalrescue spawn6,6HP100notes0report1Best2; Ppause blocksW500ms identicalposition/HP; realResume\u2192W500ms moves1.34755m"
+    }
+  ],
+  "scope": "Current changes are the cosmetic asset and mobile control hints only. Full banking and rescue were not repeated; earlier valid gameplay stages are labelled separately.",
+  "remainingLimits": [
+    "Cinematic triangle budget exceeded.",
+    "Cloud contour bands, flat confetti-like turf and faint shadows remain; no overall polish claim.",
+    "Startup mobile collision diagnostic remains despite the clear gap in settled frames.",
+    "Touch gestures and precise foot locking remain unproven."
+  ],
+  "sourceWorkingTree": "Clean at b242d9a, verified during capture.",
+  "browserReleased": true,
+  "warmProfile": "Chrome on port 9255 retained the actual saved report1, best quality2 and High setting. The owned capture page closed."
+}

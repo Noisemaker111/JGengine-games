@@ -1,0 +1,27 @@
+{
+  "gameRevision": "7538b16615904ec94214d37e82e20e1c6ddbe1e9",
+  "method": "Official native drive --url, warm Chrome9255 --reuse-storage; real keys/buttons; 800x450; 20fps lockstep; Low selected previously through actual Settings button; no synthetic world/state commands",
+  "rescue": {
+    "toolRevision": "f13ccc2a",
+    "route": "Continue field log; open FIELD NOTEBOOK; Shift+A1200ms; Shift+W1000ms; E100ms; wait6000ms",
+    "hazardPosition": {"x": 13.61047389465, "z": 11.83484186648, "health": 90.1, "notes": 0, "reports": 1, "quality": 2},
+    "hazardNote": {"x": 13.61047637167, "z": 11.87361222334, "health": 88.3, "notes": 1, "reports": 1, "quality": 2},
+    "rescued": {"x": 6, "y": 0.23849985683472946, "z": 6, "health": 100, "notes": 0, "reports": 1, "quality": 2, "playing": 1},
+    "clip": "/workspace/jgengine/.claude/worktrees/rendering-capture/shots/url-hazard-rescue-half.mp4",
+    "frames": 179, "fps": 20, "seconds": 8.9, "megabytes": 1.55,
+    "screenshot": "after-rescue.png",
+    "inspection": "Notebook left, health bottom-left, recovery/hazard banner bottom-right fit without overlap at800x450. Near-death extracted frame shows HP5 and notes1 before rescue. Low-profile actor rendering cannot establish High rig fidelity or complete foot grounding."
+  },
+  "pause": {
+    "toolRevision": "cbe6459ff619519f7c2b1c37c074183e7064f5b1",
+    "route": "Continue; P100ms; wait100ms; W500ms; Resume survey click; wait100ms; W500ms",
+    "active": {"x": 6, "y": 0.23849985683472946, "z": 6, "health": 100, "playing": 1},
+    "paused": {"x": 6, "y": 0.23849985683472946, "z": 6, "health": 100, "playing": 0},
+    "pausedWalk": {"x": 6, "y": 0.23849985683472946, "z": 6, "health": 100, "playing": 0},
+    "resumedWalk": {"x": 6, "y": 0.23849985683472946, "z": 7.347551845678231, "health": 100, "playing": 1},
+    "bankedReportThroughout": {"notes": 0, "reports": 1, "quality": 2},
+    "clip": "/workspace/jgengine/.claude/worktrees/rendering-capture-mobile/shots/url-pause-yard-half.mp4",
+    "frames": 39, "fps": 20, "seconds": 1.9, "megabytes": 0.40,
+    "screenshots": ["paused-survey.png", "after-pause-walk.png"]
+  }
+}

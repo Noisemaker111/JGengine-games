@@ -1,0 +1,33 @@
+{
+  "gameRevision": "b6aae6e",
+  "captureToolRevision": "f13ccc2a",
+  "method": "Official native drive --url; Low selected through real Settings button; 800x450;20fps lockstep; actual keys and E, no world/state pokes",
+  "route": "Shift+D2300ms, E100ms, Shift+A5450ms, Shift+W1400ms, E100ms, Shift+D4100ms, E100ms",
+  "clip": "/workspace/jgengine/.claude/worktrees/rendering-capture/shots/url-safe-report-fixed-half.mp4",
+  "clipFrames": 284,
+  "clipSeconds": 14.2,
+  "clipMegabytes": 2.79,
+  "checkpoints": [
+    {"name": "start", "x": 6, "z": 6, "notes": 0, "reports": 0, "quality": 0, "health": 100},
+    {"name": "pond-note", "x": -8.392337319283842, "z": 5.288175024537601, "notes": 1, "reports": 0, "quality": 0, "health": 100},
+    {"name": "meadow-note", "x": 25.953853796647056, "z": 12.277083156039133, "notes": 2, "reports": 0, "quality": 0, "health": 100},
+    {"name": "desk-position", "x": 0.2763787445198976, "z": 10.963994455236845, "notes": 2, "reports": 0, "quality": 0, "health": 93.40000000000006},
+    {"name": "filed-report", "x": 0.2376636483920742, "z": 10.96192517755536, "notes": 0, "reports": 1, "quality": 2, "health": 94.20000000000007}
+  ],
+  "reload": {
+    "method": "Official native --reuse-storage --reload, followed by real Continue field log click",
+    "beforeReload": {"x": 6, "z": 6, "notes": 0, "reports": 1, "quality": 2, "playing": 0, "health": 100},
+    "afterReload": {"x": 6, "z": 6, "notes": 0, "reports": 1, "quality": 2, "playing": 0, "health": 100},
+    "afterContinue": {"x": 6, "z": 6, "notes": 0, "reports": 1, "quality": 2, "playing": 1, "health": 100},
+    "screenshots": ["reloaded-menu.png", "resumed-survey.png"]
+  },
+  "settings": {
+    "screenshot": "settings-low-verified.png",
+    "inspection": "Low visibly pressed; High unpressed; Back visible in header. Choice persisted through a fresh page load.",
+    "render": {"drawCalls": 249, "triangles": 1552216, "fallbacks": {}, "textureErrors": []},
+    "creditsScreenshot": "credits-verified.png",
+    "creditsInspection": "Kay Lousberg/KayKit CC0 and unarmed researcher adaptation credited; Back visible and successfully clicked."
+  },
+  "layout": "Expanded notebook cap removed health overlap at800x450. A legacy trigger-banner overlapped notebook during real hazard traversal; reported for parent correction. No final compact layout signoff until correction.",
+  "notYetProven": ["optional scorch note + lethal hazard rescue keeps banked report", "final banner-corrected compact hazard frame", "touch controls through actual touch emulation"]
+}

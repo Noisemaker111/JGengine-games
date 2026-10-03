@@ -1,0 +1,31 @@
+{
+  "tool": "Official drive-dev.ts from verified rendering-capture worktree f13ccc2a",
+  "url": "http://127.0.0.1:5173",
+  "viewport": [800, 450],
+  "recordFps": 20,
+  "walk": {
+    "input": "KeyW:500",
+    "before": {"x": 6, "z": 6},
+    "after": {"x": 6, "z": 7.347551845678231},
+    "deltaMeters": 1.347551845678231
+  },
+  "sprintFixed": {
+    "input": "ShiftLeft+KeyW:500",
+    "before": {"x": 6, "z": 7.347551845678231},
+    "after": {"x": 6, "z": 10.431991534225912},
+    "deltaMeters": 3.084439688547681,
+    "health": 100,
+    "playing": 1,
+    "clip": "/workspace/jgengine/.claude/worktrees/rendering-capture/shots/url-sprint-fixed-half.mp4",
+    "frames": 27,
+    "sizeMb": 0.52
+  },
+  "discoveredFix": "Raw ShiftLeft/ShiftRight binding declarations never matched normalized Shift events; parent changed sprint binding to canonical Shift and added event-tracker regression.",
+  "animationInspection": "Walking upper-body arm swing and torso tilt visible; feet hidden by grass, so grounding and stride sliding are not proven. Sprint frames provided to animation owner.",
+  "mobileFixed": {
+    "screenshot": "after-mobile-fixed.png",
+    "physicalDimensions": [780, 1688],
+    "cssViewport": [390, 844],
+    "inspection": "Expanded notebook now280CSS px wide and readable; all text wraps, no clipping or overlap; HP visible. Chip can collapse notebook. Portable mobile harness does not emulate touch points, so this artifact does not prove touch controls."
+  }
+}
