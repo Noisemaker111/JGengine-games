@@ -12,8 +12,7 @@
       "F exited entered car and race settled finished true/won false with native LOST DOM"
     ],
     "limits": [
-      "No native full race or natural rival finish",
-      "No player race win proven",
+      "Earlier exit-forfeit run does not prove player race win or full player course; see coastNatural for latest natural rival finish",
       "Prior on-foot camera build; latest camera navigation proved in courier run"
     ]
   },
@@ -106,9 +105,74 @@
       ]
     },
     "limitations": [
-      "Phone HUD/courier/hotbar are visibly tiny under published automatic HudCanvas zoom; touch controls and pause modal fit",
       "No physical controller or real hardware performance/feel claim",
       "No native express deadline failure yet"
     ]
+  },
+  "finalHud": {
+    "bundle": "index-YJPeAFqr.js",
+    "commit": "499c647",
+    "trace": "harbor-hud-final-trace.json",
+    "provenance": "Native trusted CDP touch on 390x844 portrait and 640x400 landscape; read-only bounds, hit tests, store observation. Software GL; no hardware performance claim.",
+    "passed": [
+      "Portrait slot 2 selected state.slot 1 without player movement",
+      "Native pause/resume clean above blurred HUD",
+      "Standard return/dismiss without cash loss",
+      "Landscape Dispatch expansion, slot 3 selection, trusted scrolling to buttons, standard acceptance/return/dismiss",
+      "Landscape map chip opens/closes",
+      "Ground-car portrait full standard/express terms readable and buttons reachable",
+      "Native express acceptance cash250\u2192150/cargo100%; intact return cash150\u2192250/bond100 refunded/no reward/no failure; receipt dismissed"
+    ],
+    "images": [
+      "harbor-hud-touch-portrait-hotbar-pass.png",
+      "harbor-hud-touch-portrait-paused-final.png",
+      "harbor-hud-touch-portrait-return-final.png",
+      "harbor-hud-touch-landscape-chips.png",
+      "harbor-hud-touch-landscape-open-dispatch-slot3.png",
+      "harbor-hud-touch-landscape-dispatch-scroll.png",
+      "harbor-hud-touch-landscape-map.png",
+      "harbor-hud-touch-portrait-car.png",
+      "harbor-hud-touch-portrait-courier-offers.png",
+      "harbor-hud-touch-portrait-express-terms.png",
+      "harbor-hud-touch-portrait-express-return.png"
+    ],
+    "bounds": "Observed HUD zoom0.85; no data-hud-overflow/layout-collision attributes on final samples. Landscape map popup visually overlays right HUD temporarily; do not claim no visual overlap.",
+    "supersededDefects": [
+      "hud-before-hotbar-fix.json / hud-before-hotbar-fix-hit-test.json / hud-before-hotbar-fix-portrait.png: invisible joystick capture intercepted old bottom hotbar; fixed final trusted slot tests",
+      "hud-before-modal-layer-fix.json / hud-before-modal-layer-fix.png: z50 HUD intercepted native Resume; fixed z45 HUD below menu50"
+    ],
+    "harnessNote": "One ground-car dismissal attempt used stale exact label Keep exploring; retry Keep exploring \u2197 succeeded. This is a harness label mismatch, not an application error.",
+    "rejectedImages": [
+      "harbor-hud-touch-portrait-pause-layers.png: earlier native pause tap hit temporary rotation hint; no modal shown, not pause proof",
+      "hud-before-modal-layer-fix.png: old z50 HUD painted over menu; fixed499c647 final modal proof supersedes",
+      "hud-before-hotbar-fix-portrait.png / hud-before-hotbar-fix-landscape.png: joystick intercepted old hotbar, superseded by final native selection passes"
+    ]
+  },
+  "currentGamesRemoteHead": "fb56e3e (root-reported documentation head; Harbor runtime frozen499c647/index-YJPeAFqr.js)",
+  "coastNatural": {
+    "trace": "coast-natural-trace.json",
+    "helper": "hud-review.mjs",
+    "bundle": "index-YJPeAFqr.js",
+    "provenance": "Native keyboard/mouse menus and trusted CDP touch. Read-only React context observation. Low/shadows off;390x844/640x400 captures,1x1 and32x20 integration-only progression. No clock, pose, store, economy, or race-state writes. Software GL, no physical hardware performance/feel claim.",
+    "images": [
+      "harbor-hud-touch-coast-natural-start.png",
+      "harbor-hud-touch-coast-native-obstructed.png",
+      "harbor-hud-touch-coast-natural-result.png"
+    ],
+    "observed": [
+      "Native walk to Bandolero; E entered veh_10 then separate E started race-coast versus Tavo; $250\u2192$50",
+      "Native reverse/steering/handbrake driving retained same vehicle throughout",
+      "Observed reverse speeds24\u201325km/h and actual progress down shore toz85.2",
+      "Tavo moving at51.525s[-60,15.46],59.525s[-136.54,0], then natural finish61.7751s",
+      "Final race.activefalse/finishedtrue/wonfalse/playercheckpoint1of8/position2; drivingIdveh_10 unchanged",
+      "Native LOST DOM and painted640x400 final LOST banner inspected; no native F/Exit/vehicle switch after race start"
+    ],
+    "limits": [
+      "No player course completion or player win proven",
+      "Player checkpoint2 not reached: solid blocking nearz85.2 and traffic collision impulses caused uneven reverse progress",
+      "Published0.18.1 packages remain; collision ownership registered upstream separately; no game-source or dependency change during race"
+    ],
+    "collisionRegistration": "https://github.com/Noisemaker111/JGengine-games/issues/27#issuecomment-5967287714",
+    "harnessErrors": "Only benign outdated exact-label attempt Error: Missing Keep exploring; subsequent Keep exploring \u2197 native tap succeeded. No pageerrors recorded."
   }
 }
