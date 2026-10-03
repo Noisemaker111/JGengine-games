@@ -197,8 +197,8 @@ export function registerCommands(ctx: GameContext): void {
       }
       const x = GARAGE_POS[0] + 6;
       const z = GARAGE_POS[2] + 6;
+      // The shared allocator keeps repeated purchases distinct, including after a saved-world reload.
       state.scene.entity.spawn(def.id, {
-        id: `bought_${state.time.now().toFixed(0)}_${def.id}`,
         position: [x, state.world.groundHeightAt(x, z), z],
         role: "prop",
       });
