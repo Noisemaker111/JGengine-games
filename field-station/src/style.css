@@ -34,6 +34,10 @@ body,
 .field-setting-choices button[aria-pressed="true"] { color: #202c24; background: #d9deb7; }
 .field-setting-choices button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .field-back { position: sticky; top: 0; z-index: 1; margin-top: 0; }
+.field-trigger-banner { max-width: min(320px, calc(100vw - 32px)); }
+@media (max-width: 600px), (pointer: coarse) {
+  .field-trigger-banner { display: none; }
+}
 @media (max-width: 600px) {
   .field-notebook { width: min(280px, calc(100vw - 24px)); padding: 12px; }
   .field-notebook h1 { font-size: 20px; }

@@ -104,7 +104,7 @@ function TriggerBanner() {
         ? "text-emerald-300"
         : "text-cyan-200";
   return (
-    <div className={`rounded-sm bg-black/75 px-3 py-1.5 text-sm font-semibold ${tone}`}>
+    <div className={`field-trigger-banner rounded-sm bg-black/75 px-3 py-1.5 text-sm font-semibold ${tone}`}>
       {announcement.message}
     </div>
   );
@@ -123,7 +123,7 @@ export function GameUI() {
       <HudPanel id="health" anchor="bottom-left" compact="keep" interactive={false}>
         <HealthBar label="HP" shape="pill" width={220} />
       </HudPanel>
-      <HudPanel id="trigger-banner" anchor="top" compact="keep" interactive={false}>
+      <HudPanel id="trigger-banner" anchor="bottom-right" compact="keep" interactive={false}>
         <TriggerBanner />
       </HudPanel>
       </>}
