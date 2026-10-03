@@ -26,9 +26,12 @@ describe("puzzle command and recovery boundaries", () => {
     }
     for (const input of [{ dir: 3 }, { dir: "diagonal" }, { userId: "unseated" }]) ctx.game.commands.run("ability", input);
     for (const input of [null, {}, { id: "unknown" }, { id: "hold", userId: "unseated" }]) ctx.game.commands.run("duet.callout", input);
+    for (const command of ["reset", "pause", "duet.start", "duet.restart"]) ctx.game.commands.run(command, { userId: "unseated", roomIndex: 3 });
     expect(ctx.scene.entity.get("lumen")!.position).toEqual(pose);
     expect(duetStore.read(ctx).latch).toEqual(latch);
     expect(duetStore.read(ctx).callout).toBeNull();
+    expect(duetStore.read(ctx).status).toBe("playing");
+    expect(duetStore.read(ctx).roomIndex).toBe(0);
   });
 
   test("callouts identify the controlled role and remain held through pause", () => {

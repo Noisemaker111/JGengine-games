@@ -49,12 +49,14 @@ export function registerCommands(ctx: GameContext): void {
   });
   ctx.game.commands.define("duet.start", {
     apply(state, input) {
+      if (controlledHero(state, commandUser(state, input)) === null) return;
       const index = commandInput(input).roomIndex;
       startRun(state, typeof index === "number" ? index : undefined);
     },
   });
   ctx.game.commands.define("pause", {
-    apply(state) {
+    apply(state, input) {
+      if (controlledHero(state, commandUser(state, input)) === null) return;
       const status = duetStore.read(state).status;
       if (status !== "playing" && status !== "paused") return;
       duetStore.update(state, s => ({ ...s, status: status === "paused" ? "playing" : "paused" }));
@@ -105,7 +107,8 @@ export function registerCommands(ctx: GameContext): void {
   });
 
   ctx.game.commands.define("reset", {
-    apply(state) {
+    apply(state, input) {
+      if (controlledHero(state, commandUser(state, input)) === null) return;
       if (!["playing", "paused"].includes(duetStore.read(state).status)) return;
       resetRoom(state);
       raiseToast(state, "Room reset.");
@@ -113,7 +116,8 @@ export function registerCommands(ctx: GameContext): void {
   });
 
   ctx.game.commands.define("duet.restart", {
-    apply(state) {
+    apply(state, input) {
+      if (controlledHero(state, commandUser(state, input)) === null) return;
       startRun(state);
     },
   });
