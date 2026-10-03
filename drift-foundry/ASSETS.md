@@ -25,6 +25,22 @@ Existing yard props retain their catalog source credits: Kay Lousberg's
 [KayKit City Builder](https://kaylousberg.itch.io/kaykit-city-builder-bits) and
 [KayKit Dungeon](https://kaylousberg.itch.io/kaykit-dungeon), and the
 [ambientCG Ground025](https://ambientcg.com/view?id=Ground025) ground material.
-The in-game credits list those sources. Local `public/models/` and `public/materials/`
-are unchanged copies of the engine's licensed asset files, provisioned for standalone
-development according to this repository's ignored asset-cache convention.
+The in-game credits list those sources. For a fresh checkout, install dependencies
+from the repository root, then provision all three sources with the installed
+published assets CLI:
+
+```sh
+bun install --frozen-lockfile
+cd drift-foundry
+bun run --bun assets pull kaykit-city-builder --dir public
+bun run --bun assets pull kaykit-dungeon --dir public
+bun run --bun assets pull ambientcg-ground025 --dir public
+bun run dev
+```
+
+The CLI creates ignored `public/models/<source>/` and
+`public/materials/<source>/` directories. No engine checkout or SDK alias is needed.
+Published `@jgengine/assets` 0.18.1 first downloads from the
+[JGengine packs release mirror](https://github.com/Noisemaker111/jgengine/releases/tag/packs),
+then falls back to the catalog's provider URLs. Original game models stay bundled
+from `src/game/art/`.
