@@ -10,6 +10,7 @@ export interface Prism {
 export interface Latch {
   readonly anchorCell: V2 | null;
   readonly prism: Prism | null;
+  readonly completedRelays?: readonly string[];
 }
 
 export type HeroCells = Record<HeroId, V2>;
@@ -22,6 +23,9 @@ export interface RoomState {
   /** Cells a hero may not enter this frame: closed-gate cells (walls are already off-floor). */
   readonly blocked: ReadonlySet<string>;
   readonly beamPath: readonly V2[];
+  readonly completedRelays: readonly string[];
+  readonly readyRelay: string | null;
+  readonly nextRelay: string | null;
   readonly solved: boolean;
 }
 
@@ -80,15 +84,31 @@ export function deriveRoomState(room: RoomDef, latch: Latch, heroes: HeroCells):
   let open = new Set<string>();
   let powered = new Set<string>();
   let beamPath: V2[] = [];
+  const relays = room.relays ?? [];
+  const retained = new Set((latch.completedRelays ?? []).filter(id => relays.some(relay => relay.id === id)));
+  let completed = new Set(retained);
+  let readyRelay: string | null = null;
   for (let iteration = 0; iteration < room.gates.length + 2; iteration++) {
     const closed = closedGateCellKeys(room, open);
     const beam = traceBeam(room, latch.prism, floor, closed);
+    completed = new Set(retained);
+    readyRelay = null;
+    for (const relay of relays) {
+      if (retained.has(relay.id)) continue;
+      if (relay.requires.every(id => retained.has(id)) &&
+        relay.plates.every(id => pressed.has(id)) && relay.receivers.every(id => beam.powered.has(id))) {
+        completed.add(relay.id);
+        readyRelay = relay.id;
+        break;
+      }
+    }
     const nextOpen = new Set<string>();
     for (const gate of room.gates) {
       const platesOk = gate.plates.every((p) => pressed.has(p));
       const receiversOk = gate.receivers.every((r) => beam.powered.has(r));
-      const hasRequirement = gate.plates.length > 0 || gate.receivers.length > 0;
-      if (hasRequirement && platesOk && receiversOk) nextOpen.add(gate.id);
+      const relaysOk = (gate.relays ?? []).every(id => completed.has(id));
+      const hasRequirement = gate.plates.length > 0 || gate.receivers.length > 0 || (gate.relays?.length ?? 0) > 0;
+      if (hasRequirement && platesOk && receiversOk && relaysOk) nextOpen.add(gate.id);
     }
     const stable = setsEqual(nextOpen, open) && setsEqual(beam.powered, powered);
     open = nextOpen;
@@ -100,11 +120,13 @@ export function deriveRoomState(room: RoomDef, latch: Latch, heroes: HeroCells):
   const signals = new Set<string>([...pressed, ...powered]);
   const activeSpikes: string[] = [];
   for (const spike of room.spikes) {
-    const retracted = spike.retractedBy !== null && signals.has(spike.retractedBy);
+    const retracted = (spike.retractedBy !== null && signals.has(spike.retractedBy)) ||
+      (spike.retractedByRelay !== undefined && completed.has(spike.retractedByRelay));
     if (!retracted) activeSpikes.push(spike.id);
   }
 
-  const solved = sameCell(heroes.lumen, room.exit.lumen) && sameCell(heroes.anchor, room.exit.anchor);
+  const solved = relays.every(relay => completed.has(relay.id)) &&
+    sameCell(heroes.lumen, room.exit.lumen) && sameCell(heroes.anchor, room.exit.anchor);
 
   return {
     pressedPlates: [...pressed],
@@ -113,6 +135,9 @@ export function deriveRoomState(room: RoomDef, latch: Latch, heroes: HeroCells):
     activeSpikes,
     blocked: closedGateCellKeys(room, open),
     beamPath,
+    completedRelays: [...completed],
+    readyRelay,
+    nextRelay: relays.find(relay => !completed.has(relay.id))?.id ?? null,
     solved,
   };
 }

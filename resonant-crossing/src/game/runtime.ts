@@ -28,11 +28,15 @@ function heroesOwnedBy(ctx: GameContext, userId: string): HeroId[] {
 }
 
 /** Assign a joining player to a hero seat: first player drives both (swappable); a second takes Anchor. */
-export function seatPlayer(ctx: GameContext, userId: string): void {
+export function seatPlayer(ctx: GameContext, userId: string): boolean {
+  if (userId.length === 0) return false;
   const s = seats(ctx);
   if (s.lumen === userId || s.anchor === userId) {
-    ctx.player.possession.possess(userId, s.lumen === userId ? "lumen" : "anchor");
-    return;
+    const current = controlledHero(ctx, userId);
+    const hero = current ?? (s.lumen === userId ? "lumen" : "anchor");
+    ctx.player.possession.own(userId, hero);
+    ctx.player.possession.possess(userId, hero);
+    return true;
   }
   if (s.lumen === null) {
     s.lumen = userId;
@@ -42,13 +46,18 @@ export function seatPlayer(ctx: GameContext, userId: string): void {
       s.anchor = userId; // solo: own both, swap between them
       ctx.player.possession.own(userId, "anchor");
     }
-    return;
+    return true;
   }
+  if (s.anchor !== null && s.anchor !== s.lumen) return false;
   // second distinct player claims Anchor, taking it from a solo player if needed
-  if (s.anchor !== null && s.anchor === s.lumen) ctx.player.possession.disown(s.anchor, "anchor");
+  if (s.anchor !== null && s.anchor === s.lumen) {
+    ctx.player.possession.disown(s.anchor, "anchor");
+    ctx.player.possession.possess(s.lumen, "lumen");
+  }
   s.anchor = userId;
   ctx.player.possession.own(userId, "anchor");
   ctx.player.possession.possess(userId, "anchor");
+  return true;
 }
 
 export function swapHero(ctx: GameContext, userId: string): boolean {
@@ -61,6 +70,14 @@ export function swapHero(ctx: GameContext, userId: string): boolean {
   return true;
 }
 
+export function controlledHero(ctx: GameContext, userId: string): HeroId | null {
+  const s = seats(ctx);
+  if (s.lumen !== userId && s.anchor !== userId) return null;
+  const active = ctx.player.possession.active(userId);
+  if (active !== "lumen" && active !== "anchor") return null;
+  return ctx.player.possession.owns(userId, active) ? active : null;
+}
+
 export function activeHero(ctx: GameContext, userId: string): HeroId {
   const active = ctx.player.possession.active(userId);
   return active === "anchor" ? "anchor" : "lumen";
@@ -69,7 +86,11 @@ export function activeHero(ctx: GameContext, userId: string): HeroId {
 export function loadCurrentRoom(ctx: GameContext): void {
   const current = levelSeq(ctx).current();
   if (current === null) return;
-  const room = current.config;
+  const room = ROOMS[current.index];
+  if (room === undefined || room.id !== current.id) return;
+  const possession = [...new Set([seats(ctx).lumen, seats(ctx).anchor])]
+    .filter((userId): userId is string => userId !== null)
+    .map(userId => ({ userId, hero: controlledHero(ctx, userId) ?? (seats(ctx).lumen === userId ? "lumen" : "anchor") }));
   duetStore.update(ctx, (state) => ({ ...state, ...freshRoom(current.index), active: "lumen",
     pressedPlates: [], poweredReceivers: [], openGates: [], activeSpikes: [], exits: [] }));
   clearToast(ctx);
@@ -78,9 +99,9 @@ export function loadCurrentRoom(ctx: GameContext): void {
   applyRoomVisuals(ctx, room, signals);
   duetStore.update(ctx, state => ({ ...state, pressedPlates: signals.pressedPlates,
     poweredReceivers: signals.poweredReceivers, openGates: signals.openGates, activeSpikes: signals.activeSpikes }));
-  for (const userId of [seats(ctx).lumen, seats(ctx).anchor]) {
-    if (userId !== null) ctx.player.possession.possess(userId, seats(ctx).lumen === userId ? "lumen" : "anchor");
-  }
+  for (const { userId, hero } of possession) ctx.player.possession.possess(userId, hero);
+  const localHero = controlledHero(ctx, ctx.player.userId);
+  if (localHero !== null) duetStore.update(ctx, state => ({ ...state, active: localHero }));
 }
 
 export function startRun(ctx: GameContext, roomIndex = 0): void {

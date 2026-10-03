@@ -1,25 +1,10 @@
-import type { EditorDocument } from "@jgengine/core/editor/index";
+import { decodeEditorDocument, type EditorDocument } from "@jgengine/core/editor/index";
+import scene from "./editor.scene.json";
 
-import { ROOM_GRIDS } from "./game/rooms/catalog";
-
-/**
- * Scene document for resonant-crossing: every room's geometry (floors, walls, hazards, spawns, gates,
- * exits) as an editor-owned grid layer. The ASCII maps in `game/rooms/catalog.ts` are only the
- * import adapter that produces these grids; the grid document is the canonical representation the
- * room parser, gameplay, and rendering all read. Loaded by the editor via `loadGameLayers`.
- */
 export function buildResonantCrossingEditorLayers(): EditorDocument {
-  return {
-    version: 1,
-    markers: [],
-    volumes: [],
-    paths: [],
-    annotations: [],
-    prefabs: [],
-    collections: [],
-    catalogs: [],
-    grids: ROOM_GRIDS.map((layer) => ({ ...layer })),
-  };
+  const result = decodeEditorDocument(structuredClone(scene));
+  if (!result.ok) throw new Error(JSON.stringify(result.errors));
+  return result.document;
 }
 
 export const editorLayers = buildResonantCrossingEditorLayers;

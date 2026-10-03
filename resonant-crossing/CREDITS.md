@@ -1,7 +1,8 @@
 # Resonant Crossing credits
 
 The Observatory of the Duet, its two automata, brass instruments, chamber geometry,
-starfield, interface and puzzles are authored in this game's source. The geometry
+starfield and chamber layouts are authored in editor.scene.json. The interface,
+puzzles and automaton models are original work. The geometry
 uses Three.js primitives and does not require external model or texture downloads.
 
 The existing published asset catalog retains KayKit Dungeon and KayKit Adventurers

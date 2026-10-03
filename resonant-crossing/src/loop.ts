@@ -1,10 +1,11 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { LoopPlayer } from "@jgengine/core/game/defineGame";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { registerCommands } from "./game/abilities";
 import { ROOMS } from "./game/rooms/catalog";
-import { activeSpikeCells, type Latch, type RoomState } from "./game/rooms/engine";
+import { activeSpikeCells, isWalkable, type Latch, type RoomState } from "./game/rooms/engine";
 import { applyRoomVisuals, currentRoomState } from "./game/rooms/setup";
 import { advanceRoom, seatPlayer, startRun } from "./game/runtime";
 import { duetStore, pruneToast, raiseToast } from "./game/stores";
@@ -65,8 +66,8 @@ function onInit(ctx: GameContext): void {
   setGamePhase(ctx, "menu");
 }
 
-function onNewPlayer(ctx: GameContext): void {
-  seatPlayer(ctx, ctx.player.userId);
+function onNewPlayer(ctx: GameContext, player?: LoopPlayer): void {
+  if (!seatPlayer(ctx, player?.userId ?? ctx.player.userId)) raiseToast(ctx, "Both hero seats are occupied.");
   // Joining/reconnecting changes possession, never the puzzle already in progress.
 }
 
@@ -82,28 +83,45 @@ function onTick(ctx: GameContext, dt: number): void {
 
   let state = currentRoomState(ctx, room);
 
-  // Hazards: a hero standing on a live spike is bounced back to its spawn.
-  const spikes = activeSpikeCells(room, state);
+  let spikes = activeSpikeCells(room, state);
   if (spikes.size > 0) {
-    let zapped = false;
+    let zapped = 0;
     for (const heroId of HERO_IDS) {
       const entity = ctx.scene.entity.get(heroId);
       if (entity === null) continue;
       const cell = { x: Math.round(entity.position[0]), z: Math.round(entity.position[2]) };
       if (!spikes.has(cellKey(cell))) continue;
-      const spawn = room.spawn[heroId];
-      ctx.scene.entity.setPose(heroId, { position: [spawn.x, 0, spawn.z], rotationY: 0, dt: 0 });
-      zapped = true;
+      const safe = duetStore.read(ctx).safeCells[heroId];
+      const recovery = safe !== null && isWalkable(room, state, safe) && !spikes.has(cellKey(safe)) ? safe : room.spawn[heroId];
+      ctx.scene.entity.setPose(heroId, { position: [recovery.x, 0, recovery.z], rotationY: 0, dt: 0 });
+      zapped++;
     }
     if (zapped) {
-      raiseToast(ctx, "Zapped! Retract the spikes first.");
+      duetStore.update(ctx, s => ({ ...s, recoveries: s.recoveries + zapped }));
+      raiseToast(ctx, "Spikes live! Returned to safe ground. Your relays and devices are preserved.");
       state = currentRoomState(ctx, room);
+      spikes = activeSpikeCells(room, state);
     }
   }
 
+  if (state.readyRelay !== null) {
+    duetStore.update(ctx, s => ({ ...s, latch: { ...s.latch, completedRelays: state.completedRelays } }));
+    const relay = room.relays?.find(relay => relay.id === state.readyRelay);
+    const final = room.relays?.every(relay => state.completedRelays.includes(relay.id));
+    raiseToast(ctx, `${relay?.label ?? state.readyRelay} secured. ${final ? "Keep the final light and weight held; guide both heroes to their exits." : "Move your devices to the next circuit."}`);
+  }
+
   const heroes = heroCells(ctx);
+  const safeCells = duetStore.read(ctx).safeCells;
+  const nextSafe = { ...safeCells };
+  for (const id of HERO_IDS) {
+    if (!spikes.has(cellKey(heroes[id])) && isWalkable(room, state, heroes[id])) nextSafe[id] = heroes[id];
+  }
+  if (HERO_IDS.some(id => safeCells[id] === null || !sameCell(safeCells[id]!, nextSafe[id]!))) {
+    duetStore.update(ctx, s => ({ ...s, safeCells: nextSafe }));
+  }
   const exits = HERO_IDS.filter(id => sameCell(heroes[id], room.exit[id]));
-  const signature = room.id + [state.openGates, state.pressedPlates, state.poweredReceivers, state.activeSpikes, exits]
+  const signature = room.id + [state.openGates, state.pressedPlates, state.poweredReceivers, state.activeSpikes, state.completedRelays, exits]
     .map((list) => [...list].sort().join(","))
     .join("|");
   if (signature !== lastSignature(ctx).value) {
@@ -119,7 +137,7 @@ function onTick(ctx: GameContext, dt: number): void {
     lastSignature(ctx).value = signature;
   }
 
-  updateBeamVfx(ctx, store.latch, state);
+  updateBeamVfx(ctx, duetStore.read(ctx).latch, state);
 
   if (store.status === "playing") {
     if (state.solved) duetStore.update(ctx, (s) => ({ ...s, status: "solved", solveTimer: SOLVE_HOLD_SECONDS }));
