@@ -1,0 +1,66 @@
+{
+  "baselineAndControls": "Native keyboard and mouse only; read-only React observation; no teleport, store writes, command invocation or economy changes. Low/shadows off. Tiny route viewport is integration evidence only, with 640x400 receipt and race captures.",
+  "coastRace": {
+    "trace": "coast-native-trace.json",
+    "validImage": "coast-race-native.png",
+    "invalidImage": "coast-race-forfeit.png",
+    "invalidReason": "Captured stale active HUD before lost result painted; do not present this image as forfeit outcome proof.",
+    "observed": [
+      "Native E entered Bandolero veh_10 near authored Coast start",
+      "E started race-coast and charged $200 (cash250\u219250)",
+      "Native throttle reached24km/h",
+      "F exited entered car and race settled finished true/won false with native LOST DOM"
+    ],
+    "limits": [
+      "No native full race or natural rival finish",
+      "No player race win proven",
+      "Prior on-foot camera build; latest camera navigation proved in courier run"
+    ]
+  },
+  "courier": {
+    "trace": "courier-native-trace.json",
+    "images": [
+      "courier-standard-return.png",
+      "courier-standard-delivered.png"
+    ],
+    "return": {
+      "phase": "lost",
+      "reason": "returned",
+      "cash": 250,
+      "reward": 0,
+      "completed": 0,
+      "failed": 0
+    },
+    "delivery": {
+      "phase": "won",
+      "recipient": "Mainsail lifeguards",
+      "remaining": 53.5743,
+      "reward": 357,
+      "cash": 607,
+      "credReward": 15,
+      "completed": 1
+    },
+    "cameraAfterProof": [
+      "D+Shift moves [-190,40]\u2192[-188.181,40.751]",
+      "S+Shift20wallseconds moves [-188.500,42.051]\u2192[-190.737,47.469]",
+      "Alternating S and S+D stayed on coastal route without camera feedback looping"
+    ],
+    "bundle": [
+      "http://127.0.0.1:4618/assets/index-ak2xXu6F.js"
+    ],
+    "limits": [
+      "No native express failure/refund yet",
+      "Integration viewport advances about one game second per20-25wallseconds; no real hardware performance or driving feel claim"
+    ]
+  },
+  "verification": {
+    "focusedTests": 34,
+    "assertions": 151,
+    "failures": 0,
+    "files": [
+      "harbor-heat/src/game/race.test.ts",
+      "harbor-heat/src/game/handroll.test.ts",
+      "drift-foundry/src/game/route/gates.test.ts"
+    ]
+  }
+}
