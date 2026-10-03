@@ -5,13 +5,14 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase } from "@jgengine/core/game/gamePhase";
 import { setGamePhase } from "./game/phase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
-import { activeCharacter, talentTree } from "./game/characters";
+import { activeCharacter, talentTree, bonus } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth, notePlayerShield } from "./game/feel";
 import { tickWeaponHandling, resetWeaponHandling } from "./game/combatFeel";
 import { rememberGun, restoreGuns } from "./game/lootPersistence";
-import { advanceGunDrought } from "./game/progression";
+import { advanceGunDrought, shieldCapacityFor } from "./game/progression";
+import { AMMO_STAT_IDS } from "./game/ammo";
 import { installCombatProbe } from "./game/combatProbe";
 import { tickEnemies } from "./game/entities/enemies/ai";
 import { enemyById, levelXpFor } from "./game/entities/enemies/catalog";
@@ -43,6 +44,7 @@ import {
   selectedSlotStore,
   progressionStore,
   pendingChassisStore,
+  blackMarketStore,
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
@@ -51,6 +53,10 @@ const dropRng = seededRng("scrap-gun-drops");
 const RESPAWN_SWEEP_SECONDS = 25;
 const DOWNED_WALK_SPEED = 1.6;
 const STATION_DISCOVER_RADIUS = 8;
+
+function livingWalkSpeed(): number {
+  return Math.round(player.walkSpeed * (1 + bonus("moveSpeed")) * 10) / 10;
+}
 
 function deathAnchor(ctx: GameContext, event: EntityDiedEvent): readonly [number, number, number] {
   const dead = ctx.scene.entity.get(event.instanceId);
@@ -139,7 +145,7 @@ function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
     }
     if (reservePhase(ctx) === "downed") {
       powerSurge(ctx);
-      ctx.scene.entity.update(userId, { movement: { walkSpeed: player.walkSpeed } });
+      ctx.scene.entity.update(userId, { movement: { walkSpeed: livingWalkSpeed() } });
       ctx.scene.entity.floatText({ instanceId: userId, text: "POWER SURGE!", kind: "pickup" });
     }
     if (enemy.id === "captain_rusk") ruskDownStore.write(ctx, true);
@@ -190,7 +196,7 @@ function respawnAtNewU(ctx: GameContext): void {
   const y = ctx.world.groundHeightAt(station.x, station.z);
   ctx.scene.entity.update(userId, {
     position: [station.x, y, station.z],
-    movement: { walkSpeed: player.walkSpeed },
+    movement: { walkSpeed: livingWalkSpeed() },
   });
   const health = ctx.scene.entity.stats.get(userId, "health");
   if (health !== null) ctx.scene.entity.stats.delta(userId, "health", health.max);
@@ -226,8 +232,9 @@ function restorePendingChassis(ctx: GameContext): void {
       rotationX: pending.rotationX, rotationY: pending.rotationY, rotationZ: pending.rotationZ,
       movement: { walkSpeed: DOWNED_WALK_SPEED },
     });
-    for (const [statId, stat] of Object.entries(pending.stats)) ctx.scene.entity.stats.set(userId, statId, stat);
   }
+  ctx.scene.entity.update(userId, { movement: { walkSpeed: DOWNED_WALK_SPEED } });
+  for (const [statId, stat] of Object.entries(pending.stats)) ctx.scene.entity.stats.set(userId, statId, stat);
   pendingChassisStore.write(ctx, null);
 }
 
@@ -321,6 +328,8 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
   resetWeaponHandling(ctx);
   if ((await loadSavedProgress(ctx)) && resumeBuild(ctx)) {
     restoreGuns(ctx);
+    restorePendingChassis(ctx);
+    const rebuilt = recoverMissingSavedChassis(ctx);
     session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     const relay = relayStore.read(ctx);
@@ -328,9 +337,39 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
     setGamePhase(ctx, ended ? "ended" : "playing");
     if (ended) ctx.time.pause();
     else ctx.time.play();
+    if (rebuilt) await ctx.game.save?.checkpoint();
     return;
   }
   if (activeCharacter() === null) setGamePhase(ctx, "menu");
+}
+
+function recoverMissingSavedChassis(ctx: GameContext): boolean {
+  const userId = ctx.player.userId;
+  if (ctx.scene.entity.get(userId) !== null || pendingChassisStore.read(ctx) !== null) return false;
+  const station = nearestDiscoveredStation(ctx);
+  ctx.scene.entity.spawn(player.id, {
+    id: userId, role: "player", position: [station.x, ctx.world.groundHeightAt(station.x, station.z), station.z],
+    rotationY: PLAYER_SPAWN_YAW, movement: { walkSpeed: DOWNED_WALK_SPEED },
+  });
+  const market = blackMarketStore.read(ctx);
+  for (const [statId, spec] of Object.entries(player.stats)) {
+    let max = spec.max;
+    if (statId === "health") max = Math.round(max * (1 + bonus("maxHealth"))) + 25 * (market.health ?? 0);
+    else if (statId === "shield") max = shieldCapacityFor(max + 25 * (market.shield ?? 0), "balanced", progressionStore.read(ctx).shieldProfile);
+    else if (statId === "grenades") max += market.grenade ?? 0;
+    else if (Object.values(AMMO_STAT_IDS).includes(statId)) {
+      for (let rank = 0; rank < (market.ammo ?? 0); rank += 1) max = Math.round(max * 1.3);
+    }
+    ctx.scene.entity.stats.set(userId, statId, { max, current: spec.min ?? 0, min: spec.min ?? 0 });
+  }
+  enterDowned(ctx, ctx.time.now() * 1000);
+  const relay = relayStore.read(ctx);
+  for (const id of relay.enemies) ctx.scene.entity.despawn(id);
+  relayStore.write(ctx, {
+    ...relay, phase: "lost", enemies: [],
+    reason: "The previous checkpoint lost your chassis stats, level/XP and reserve ammo. Your saved talents, upgrades and capacitor profile rebuilt the chassis. Items, cash, missions and equipment choices were retained. Return to reconstruct with the usual fee; reserve ammo starts empty.",
+  });
+  return true;
 }
 
 function onTick(ctx: GameContext, dt: number): void {
@@ -353,4 +392,4 @@ function onTick(ctx: GameContext, dt: number): void {
   notePlayerShield(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "shield")?.current ?? null);
 }
 
-export const loop = { onInit, onNewPlayer, onTick };
+export const loop = { onInit, onNewPlayer, onTick, resumeOrStart };

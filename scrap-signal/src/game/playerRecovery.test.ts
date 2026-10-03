@@ -11,10 +11,15 @@ import { pickCharacter, resetCharacterState } from "./characters";
 import { setGamePhase } from "./phase";
 import { player } from "./entities/players/catalog";
 import { RELAY, relayStore } from "./relay";
-import { pendingChassisStore, reserveStore } from "./stores";
+import { pendingChassisStore, reserveStore, blackMarketStore, characterIdStore, talentRanksStore, progressionStore } from "./stores";
 import { reservePhase, powerSurge } from "./handroll/reserve";
 import { starterPistol } from "./items/weapons/catalog";
 import { enemyTacticsStore, rememberHome } from "./entities/enemies/ai";
+import { gunById, registerGun, rollGun } from "./handroll/roll";
+import { seededRng } from "@jgengine/core/random/rng";
+import { rememberGun } from "./lootPersistence";
+import { shieldProfileById } from "./progression";
+import { resumeBuild } from "./commands";
 
 afterEach(resetCharacterState);
 
@@ -135,4 +140,108 @@ test("checkpoint between native despawn and the next game tick retains the pendi
   expect(reservePhase(reboot)).toBe("downed");
   loop.onTick(reboot, 1 / 60);
   expect(reboot.scene.entity.get("p1")).not.toBeNull();
+});
+
+test("checkpoint inside the death event restores an existing pending actor with downed movement", async () => {
+  const backend = memorySaveBackend();
+  const ctx = boot(backend);
+  let checkpoint: Promise<void> | undefined;
+  ctx.game.events.on("entity.died", (event) => {
+    if (event.instanceId === "p1") checkpoint = ctx.game.save!.checkpoint();
+  });
+  fatalHit(ctx);
+  expect(checkpoint).toBeDefined();
+  await checkpoint;
+  const reboot = boot(backend);
+  expect(await reboot.game.save!.load()).toBe(true);
+  expect(reboot.scene.entity.get("p1")).not.toBeNull();
+  expect(pendingChassisStore.read(reboot)).not.toBeNull();
+  expect(reservePhase(reboot)).toBe("downed");
+  loop.onTick(reboot, 1 / 60);
+  expect(reboot.scene.entity.get("p1")?.movement.walkSpeed).toBe(1.6);
+  expect(reboot.scene.entity.stats.get("p1", "health")?.current).toBe(1);
+  expect(pendingChassisStore.read(reboot)).toBeNull();
+});
+
+test("reconstruction and power surge retain learned movement speed instead of resetting to the base chassis", () => {
+  const ctx = boot();
+  characterIdStore.write(ctx, "nyx");
+  talentRanksStore.write(ctx, { nyx_lightweight_rails: 2 });
+  expect(resumeBuild(ctx)).toBe(true);
+  ctx.game.commands.run("relay.start", {});
+  fatalHit(ctx);
+  loop.onTick(ctx, 1 / 60);
+  expect(ctx.scene.entity.get("p1")?.movement.walkSpeed).toBe(1.6);
+  ctx.game.commands.run("relay.continue", {});
+  expect(ctx.scene.entity.get("p1")?.movement.walkSpeed).toBe(6.4);
+  fatalHit(ctx);
+  loop.onTick(ctx, 1 / 60);
+  ctx.scene.entity.spawn("husk", { id: "surge-target", position: [RELAY.x + 30, 0, RELAY.z] });
+  ctx.scene.entity.effect({ from: "p1", to: "surge-target", effect: "damage", via: { amount: 1000 } });
+  expect(reservePhase(ctx)).toBe("up");
+  expect(ctx.scene.entity.get("p1")?.movement.walkSpeed).toBe(6.4);
+});
+
+test("an older missing-chassis checkpoint rebuilds a damaged saved build without charging or refilling twice", async () => {
+  const backend = memorySaveBackend();
+  const old = boot(backend);
+  characterIdStore.write(old, "gunk");
+  talentRanksStore.write(old, { gunk_reinforced_chassis: 2 });
+  blackMarketStore.write(old, { health: 1, shield: 1, ammo: 1, grenade: 1 });
+  progressionStore.write(old, { contractGun: "relay_breacher", shieldProfile: "bulwark", gunDrought: 3 });
+  old.game.quest!.accept("p1", "q_ripper_control");
+  old.game.quest!.progress("p1", "q_ripper_control", "pups", 2);
+  old.game.economy.grant("p1", "cash", 27);
+  const gun = rollGun(seededRng("legacy-recovered-salvage"), 4, { family: "rifle", rarity: "rare" });
+  old.player.inventory.put("hotbar", gun.id, 1, { slot: 1 });
+  rememberGun(old, gun.id);
+  old.game.commands.run("relay.start", {});
+  old.scene.entity.despawn("p1");
+  pendingChassisStore.clear(old);
+  reserveStore.write(old, { phase: "up", untilMs: 0 });
+  await old.game.save!.checkpoint();
+  registerGun({ ...gun, name: "unhydrated registry" });
+
+  const reboot = boot(backend);
+  await loop.resumeOrStart(reboot);
+  expect(reboot.scene.entity.get("p1")?.role).toBe("player");
+  expect(reservePhase(reboot)).toBe("downed");
+  expect(gamePhase(reboot)).toBe("ended");
+  expect(relayStore.read(reboot).phase).toBe("lost");
+  expect(relayStore.read(reboot).enemies).toHaveLength(0);
+  expect(relayStore.read(reboot).reason).toContain("level/XP and reserve ammo");
+  expect(reboot.scene.entity.stats.get("p1", "health")).toMatchObject({ current: 1, min: 1, max: 129 });
+  expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBe(0);
+  expect(reboot.scene.entity.stats.get("p1", "shield")?.max).toBeCloseTo(119);
+  expect(reboot.scene.entity.stats.get("p1", "ammo_pistol")).toMatchObject({ current: 0, max: 260 });
+  expect(reboot.scene.entity.stats.get("p1", "ammo_smg")?.current).toBe(0);
+  expect(reboot.scene.entity.stats.get("p1", "ammo_shotgun")?.current).toBe(0);
+  expect(reboot.scene.entity.stats.get("p1", "grenades")).toMatchObject({ current: 0, max: 7 });
+  expect(reboot.scene.entity.stats.get("p1", "level")?.current).toBe(1);
+  expect(reboot.scene.entity.stats.get("p1", "xp")?.current).toBe(0);
+  expect(progressionStore.read(reboot).shieldProfile).toBe("bulwark");
+  expect(shieldProfileById(progressionStore.read(reboot).shieldProfile)?.name).toBe("Siege capacitor");
+  expect(progressionStore.read(reboot).contractGun).toBe("relay_breacher");
+  expect(gunById(gun.id)).toEqual(gun);
+  expect(reboot.player.inventory.state("hotbar").slots[1]?.itemId).toBe(gun.id);
+  expect(reboot.game.economy.balance("p1", "cash")).toBe(77);
+  expect(reboot.game.quest!.list("p1").find((quest) => quest.questId === "q_ripper_control")?.objectives.find((objective) => objective.id === "pups")?.progress).toBe(2);
+
+  const pendingReturn = boot(backend);
+  await loop.resumeOrStart(pendingReturn);
+  expect(pendingReturn.scene.entity.stats.get("p1", "health")?.current).toBe(1);
+  expect(pendingReturn.game.economy.balance("p1", "cash")).toBe(77);
+  pendingReturn.game.commands.run("relay.continue", {});
+  expect(pendingReturn.game.economy.balance("p1", "cash")).toBe(72);
+  expect(pendingReturn.scene.entity.stats.get("p1", "health")?.current).toBe(129);
+  expect(pendingReturn.scene.entity.stats.get("p1", "shield")?.current).toBeCloseTo(119);
+  expect(pendingReturn.scene.entity.stats.get("p1", "ammo_pistol")?.current).toBe(0);
+  await pendingReturn.game.save!.checkpoint();
+  const nextBoot = boot(backend);
+  await loop.resumeOrStart(nextBoot);
+  expect(nextBoot.game.economy.balance("p1", "cash")).toBe(72);
+  expect(reservePhase(nextBoot)).toBe("up");
+  expect(relayStore.read(nextBoot).phase).toBe("idle");
+  nextBoot.game.commands.run("relay.continue", {});
+  expect(nextBoot.game.economy.balance("p1", "cash")).toBe(72);
 });
