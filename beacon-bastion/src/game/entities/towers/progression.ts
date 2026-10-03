@@ -25,7 +25,8 @@ export function upgradeCost(def: TowerDef, level: number): number | null {
 /** Everything spent on a tower so far: placement plus every upgrade below `level`. */
 export function investedGold(def: TowerDef, level: number): number {
   let total = def.cost;
-  for (let from = 1; from < level; from += 1) total += upgradeCost(def, from) ?? 0;
+  for (let from = 1; from < level; from += 1)
+    total += upgradeCost(def, from) ?? 0;
   return total;
 }
 
@@ -33,12 +34,25 @@ export function sellValue(def: TowerDef, level: number): number {
   return Math.round(investedGold(def, level) * SELL_REFUND_RATIO);
 }
 
-export function towerStats(def: TowerDef, level: number): TowerCombatStats {
+export function towerStats(
+  def: TowerDef,
+  level: number,
+  branch?: "power" | "reach",
+): TowerCombatStats {
   const steps = Math.max(0, level - 1);
   return {
-    range: def.range + RANGE_PER_LEVEL * steps,
-    damage: def.damage * (1 + DAMAGE_PER_LEVEL * steps),
-    fireRateHz: def.fireRateHz * (1 + FIRE_RATE_PER_LEVEL * steps),
-    splashRadius: def.splashRadius > 0 ? def.splashRadius + SPLASH_PER_LEVEL * steps : 0,
+    range:
+      (def.range + RANGE_PER_LEVEL * steps) *
+      (branch === "reach" ? 1.4 : branch === "power" ? 0.85 : 1),
+    damage:
+      def.damage *
+      (1 + DAMAGE_PER_LEVEL * steps) *
+      (branch === "power" ? 1.7 : branch === "reach" ? 0.8 : 1),
+    fireRateHz:
+      def.fireRateHz *
+      (1 + FIRE_RATE_PER_LEVEL * steps) *
+      (branch === "power" ? 0.8 : 1),
+    splashRadius:
+      def.splashRadius > 0 ? def.splashRadius + SPLASH_PER_LEVEL * steps : 0,
   };
 }
