@@ -38,6 +38,9 @@ export interface PlacedObject {
   stock: number;
   soldTotal: number;
   occupants: number;
+  wear?: number;
+  upgrade?: "efficient" | "premium" | null;
+  closed?: boolean;
 }
 
 export type GuestPhase = "seeking" | "busy" | "leaving";
@@ -56,6 +59,7 @@ export interface GuestState {
   target: readonly [number, number, number] | null;
   busy: number;
   litterTimer: number;
+  visited?: string[];
 }
 
 export type Tone = "good" | "bad" | "info";
@@ -97,6 +101,9 @@ export interface Session {
   saveStatus: string;
   won: boolean;
   winDismissed: boolean;
+  marketing: "local" | "festival";
+  supply: "lean" | "buffered";
+  layoutRevision: number;
 }
 
 function freshSession(): Session {
@@ -130,6 +137,9 @@ function freshSession(): Session {
     saveStatus: "Saved on builds, ticket changes, pause and day close",
     won: false,
     winDismissed: false,
+    marketing: "local",
+    supply: "lean",
+    layoutRevision: 0,
   };
 }
 

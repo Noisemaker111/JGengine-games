@@ -9,10 +9,14 @@ import { BrightwayParkWorldOverlay } from "./game/render/WorldOverlay";
 import { GameUI } from "./game/ui/GameUI";
 import { loop } from "./loop";
 import { physics, world } from "./world";
+import { editorLayers } from "./editorLayers";
+import { session } from "./game/session";
 
 export const game = defineGame({
   name: "Brightway Park",
   world,
+  editorLayers,
+  scenePlacement: false,
   physics,
   assets,
   input: keybinds,
@@ -27,7 +31,16 @@ export const game = defineGame({
   objectModels,
   WorldOverlay: BrightwayParkWorldOverlay,
   worldHealthBars: false,
-  capture: { play: ["park.start"], states: { paused: ["park.start", "pauseToggle"] } },
+  capture: {
+    play: ["park.start"], states: { paused: ["park.start", "pauseToggle"] },
+    probe: ctx => ({ cash: session.cash, day: session.day, rating: session.rating,
+      guests: session.guests.size, revenue: session.revenueToday, litter: session.litter,
+      wear: [...session.placed.values()].reduce((n, p) => n + (p.wear ?? 0), 0),
+      paused: Number(ctx.time.isPaused()), festival: Number(session.marketing === "festival"),
+      closed: [...session.placed.values()].filter(p => p.closed).length,
+      upgraded: [...session.placed.values()].filter(p => p.upgrade).length,
+      stock: [...session.placed.values()].reduce((n, p) => n + p.stock, 0) }),
+  },
   pointer: { moveCommand: "park.pointer", secondaryCommand: "build.clear" },
   camera: {
     rig: "rts",

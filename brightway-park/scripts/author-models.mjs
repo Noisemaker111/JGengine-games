@@ -2,6 +2,7 @@
 // No external artwork or source models are used in these meshes.
 import * as T from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -144,8 +145,37 @@ const models={ ride_carousel:carousel(), ride_coaster:station(), ride_ferris:fer
 for(let i=0;i<5;i++) models[`guest_${'abcde'[i]}`]=guest([P.coral,P.blue,P.gold,P.mint,P.pink][i],i);
 Object.assign(models,rotors);
 const exporter=new GLTFExporter(); let bytes=0;
+function compact(root) {
+  root.updateMatrixWorld(true);
+  const inverse = root.matrixWorld.clone().invert();
+  const pieces = [], originals = [], cabins = [];
+  root.traverse(node => {
+    if (node !== root && node.name.startsWith('Cabin_')) cabins.push(node);
+    if (!node.isMesh) return;
+    for (let parent = node.parent; parent && parent !== root; parent = parent.parent) {
+      if (parent.name.startsWith('Cabin_')) return;
+    }
+    if (node.isSkinnedMesh || Array.isArray(node.material) || node.material.map || node.material.vertexColors || node.material.roughness !== .7 || node.material.metalness !== 0) {
+      throw new Error(`Cannot compact ${root.name}: preserve incompatible material or animation first`);
+    }
+    const geometry = node.geometry.index ? node.geometry.toNonIndexed() : node.geometry.clone();
+    geometry.applyMatrix4(inverse.clone().multiply(node.matrixWorld));
+    const color = node.material.color, colors = new Float32Array(geometry.attributes.position.count * 3);
+    for (let i = 0; i < colors.length; i += 3) { colors[i] = color.r; colors[i + 1] = color.g; colors[i + 2] = color.b; }
+    geometry.setAttribute('color', new T.BufferAttribute(colors, 3));
+    pieces.push(geometry); originals.push(node);
+  });
+  for (const cabin of cabins) compact(cabin);
+  if (!pieces.length) return;
+  const merged = mergeGeometries(pieces, false);
+  if (!merged) throw new Error(`Cannot compact ${root.name}: incompatible geometry`);
+  for (const node of originals) node.parent.remove(node);
+  root.add(new T.Mesh(merged, new T.MeshStandardMaterial({ vertexColors: true, roughness: .7, metalness: 0 })));
+  for (const piece of pieces) piece.dispose();
+}
 for(const [name,g] of Object.entries(models)){
-  g.name=name; const buffer=await exporter.parseAsync(g,{binary:true,copyright:'Original geometry authored for Brightway Park, 2026'});
+  g.name=name; compact(g);
+  const buffer=await exporter.parseAsync(g,{binary:true,copyright:'Original geometry authored for Brightway Park, 2026'});
   await writeFile(new URL(`${name}.glb`,out),Buffer.from(buffer)); bytes+=buffer.byteLength;
 }
 console.log(`Authored ${Object.keys(models).length} original GLBs (${bytes.toLocaleString()} bytes) in ${fileURLToPath(out)}`);
