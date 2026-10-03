@@ -1060,9 +1060,19 @@
           "z": -2
         },
         {
-          "x": -5,
+          "x": -1,
           "y": 0.025,
           "z": -2
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": -2
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": 1
         },
         {
           "x": 1,
@@ -1126,7 +1136,7 @@
           "z": -3
         },
         {
-          "x": -6,
+          "x": -3,
           "y": 0.025,
           "z": -3
         },
@@ -1136,7 +1146,27 @@
           "z": -3
         },
         {
-          "x": 6,
+          "x": 1,
+          "y": 0.025,
+          "z": -2
+        },
+        {
+          "x": 1,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": 4,
+          "y": 0.025,
+          "z": -3
+        },
+        {
+          "x": 4,
+          "y": 0.025,
+          "z": -1
+        },
+        {
+          "x": 4,
           "y": 0.025,
           "z": -3
         },
@@ -1207,12 +1237,12 @@
           "z": -4
         },
         {
-          "x": 2,
+          "x": 1,
           "y": 0.025,
           "z": -4
         },
         {
-          "x": 2,
+          "x": 1,
           "y": 0.025,
           "z": 3
         }
@@ -1818,7 +1848,7 @@
         "6,1": "G",
         "7,1": ".",
         "8,1": ".",
-        "9,1": "s",
+        "9,1": ".",
         "10,1": ".",
         "11,1": ".",
         "12,1": "H",
@@ -1835,7 +1865,7 @@
         "6,2": "#",
         "7,2": ".",
         "8,2": ".",
-        "9,2": ".",
+        "9,2": "s",
         "10,2": ".",
         "11,2": ".",
         "12,2": "#",
@@ -2144,10 +2174,10 @@
           }
         ],
         "roleHints": {
-          "lumen": "Call the receiver and aim the prism along the cyan lane. Move it only after the relay seals.",
+          "lumen": "Read the next receiver line: first aim east, then north in the middle bay.",
           "anchor": "Hold the matching amber plate. Carry the weight forward after the relay seals."
         },
-        "hint": "The last gate needs the current plate AND receiver. Earlier relays remain sealed. The courtyard perimeter avoids the spikes.",
+        "hint": "Seal each relay before carrying devices onward. The next receiver has a different line of sight. Keep the final weight and light live; the courtyard perimeter avoids spikes.",
         "solution": [
           {
             "kind": "move",
@@ -2175,13 +2205,13 @@
             "hero": "lumen",
             "target": "receiver:r_s",
             "offset": {
-              "x": -2,
-              "z": 0
+              "x": 0,
+              "z": 2
             }
           },
           {
             "kind": "prism",
-            "dir": "east"
+            "dir": "north"
           },
           {
             "kind": "move",
@@ -2271,12 +2301,12 @@
         "8,2": ".",
         "9,2": ".",
         "10,2": ".",
-        "11,2": "s",
+        "11,2": ".",
         "12,2": ".",
         "13,2": "I",
         "14,2": ".",
         "15,2": ".",
-        "16,2": "t",
+        "16,2": ".",
         "17,2": ".",
         "18,2": "H",
         "19,2": "o",
@@ -2318,7 +2348,7 @@
         "13,4": "#",
         "14,4": ".",
         "15,4": ".",
-        "16,4": ".",
+        "16,4": "t",
         "17,4": ".",
         "18,4": "#",
         "19,4": ".",
@@ -2376,7 +2406,7 @@
         "8,7": ".",
         "9,7": ".",
         "10,7": ".",
-        "11,7": ".",
+        "11,7": "s",
         "12,7": ".",
         "13,7": "#",
         "14,7": ".",
@@ -2705,10 +2735,10 @@
           }
         ],
         "roleHints": {
-          "lumen": "Call the receiver and aim the prism along the cyan lane. Move it only after the relay seals.",
+          "lumen": "Read the next receiver line: first aim east, then south beside the island, then east in the final terrace.",
           "anchor": "Hold the matching amber plate. Carry the weight forward after the relay seals."
         },
-        "hint": "The last gate needs the current plate AND receiver. Earlier relays remain sealed. The courtyard perimeter avoids the spikes.",
+        "hint": "Seal each relay before carrying devices onward. The next receiver has a different line of sight. Keep the final weight and light live; the courtyard perimeter avoids spikes.",
         "solution": [
           {
             "kind": "move",
@@ -2736,13 +2766,13 @@
             "hero": "lumen",
             "target": "receiver:r_s",
             "offset": {
-              "x": -2,
-              "z": 0
+              "x": 0,
+              "z": -4
             }
           },
           {
             "kind": "prism",
-            "dir": "east"
+            "dir": "south"
           },
           {
             "kind": "move",

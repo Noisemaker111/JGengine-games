@@ -77,6 +77,28 @@ describe("authored campaign", () => {
     invalid(document => { (document.grids![2]!.meta!.relays as { requires: string[] }[])[0]!.requires = ["relay2"]; }, "unknown signal");
   });
 
+  for (const room of ROOMS.filter(room => (room.relays?.length ?? 0) > 0)) {
+    test(`${room.id}: each later relay requires a new prism line`, () => {
+      const aimMoves = room.solution!.filter(op => op.kind === "move" && op.target.startsWith("receiver:"));
+      const prismOps = room.solution!.filter(op => op.kind === "prism");
+      for (let stage = 1; stage < room.relays!.length; stage++) {
+        const previousMove = aimMoves[stage - 1]!;
+        const previousPrism = prismOps[stage - 1]!;
+        if (previousMove.kind !== "move" || previousPrism.kind !== "prism") throw new Error("Invalid authored aim plan");
+        const signal = targetCell(room, previousMove.target);
+        const prismCell = { x: signal.x + previousMove.offset!.x, z: signal.z + previousMove.offset!.z };
+        const relay = room.relays![stage]!;
+        const plate = room.plates.find(plate => plate.id === relay.plates[0])!.cell;
+        const completed = room.relays!.slice(0, stage).map(relay => relay.id);
+        const state = deriveRoomState(room, { prism: { cell: prismCell, dir: previousPrism.dir }, anchorCell: plate, completedRelays: completed },
+          { lumen: prismCell, anchor: plate });
+        for (const receiver of relay.receivers) expect(state.poweredReceivers).not.toContain(receiver);
+        expect(state.completedRelays).toEqual(completed);
+        if (room.id === "crosswire" && stage === 1) expect(state.activeSpikes).toContain("s_X");
+      }
+    });
+  }
+
   for (const room of ROOMS) {
     test(`${room.id}: authored references are complete`, () => {
       const floor = new Set(room.floor.map(cellKey));
@@ -108,6 +130,7 @@ describe("authored campaign", () => {
         return state;
       };
       expect(room.solution?.length).toBeGreaterThan(0);
+      let prismStage = 0;
       for (const op of room.solution!) {
         if (op.kind === "prism") latch = { ...latch, prism: { cell: { ...heroes.lumen }, dir: op.dir } };
         else if (op.kind === "anchor") latch = { ...latch, anchorCell: { ...heroes.anchor } };
@@ -122,7 +145,10 @@ describe("authored campaign", () => {
             retain();
           }
         }
-        retain();
+        const state = retain();
+        if (op.kind === "prism" && room.relays?.length) {
+          expect(state.poweredReceivers).toEqual(room.relays[prismStage++]!.receivers);
+        }
       }
       expect(retain().solved).toBe(true);
       expect(latch.completedRelays).toHaveLength(room.relays?.length ?? 0);
