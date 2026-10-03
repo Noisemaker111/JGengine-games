@@ -1,0 +1,163 @@
+--- /workspace/engine/scripts/drive-dev.ts	2026-10-03 05:55:18.479310642 +0000
++++ /workspace/games/.scratch/scrap-signal-evidence/drive-native.ts	2026-10-03 06:39:07.749526349 +0000
+@@ -18,6 +18,7 @@
+  * the requested game or website Vite target. Manual `--keep`/`--connect` also
+  * remains available. `--size half` is the cheap iteration mode.
+  */
++import { waitForHonestFrame, RAF_EXPR } from "./portable-browser.mjs";
+ import { existsSync, mkdirSync, statSync } from "node:fs";
+ import { isAbsolute, join, resolve } from "node:path";
+ import {
+@@ -37,20 +38,21 @@
+   withBrowserSession,
+   writePngAtomic,
+   type SizeMode,
+-} from "./browser-lib";
+-import { attachDaemon, ensureDaemonTarget } from "./shoot-daemon";
+-import { lookSearchParams, parseLookAim } from "./lookArg";
+-import { decodePng } from "./png-reader";
+-import { shotSignature } from "./shot-metrics";
+-import { buildShotRecord, clearShotTarget, describeReplacement, writeShotRecord } from "./shotProvenance";
+-import { classifyRenderCadence, summarizePlaytest, type ProbeSample } from "./playtest";
+-import { focusGameSurface, holdComplete } from "./gameSurfaceFocus";
+-import { framesFromTimeline, thinFrames, type TimedPng } from "./apng";
+-import { assembleGif } from "./gif";
+-import { assembleMp4 } from "./video";
++} from "/workspace/engine/scripts/browser-lib";
++import { attachDaemon, ensureDaemonTarget } from "/workspace/engine/scripts/shoot-daemon";
++import { lookSearchParams, parseLookAim } from "/workspace/engine/scripts/lookArg";
++import { decodePng } from "/workspace/engine/scripts/png-reader";
++import { shotSignature } from "/workspace/engine/scripts/shot-metrics";
++import { buildShotRecord, clearShotTarget, describeReplacement, writeShotRecord } from "/workspace/engine/scripts/shotProvenance";
++import { classifyRenderCadence, summarizePlaytest, type ProbeSample } from "/workspace/engine/scripts/playtest";
++import { focusGameSurface, holdComplete } from "/workspace/engine/scripts/gameSurfaceFocus";
++import { framesFromTimeline, thinFrames, type TimedPng } from "/workspace/engine/scripts/apng";
++import { assembleGif } from "/workspace/engine/scripts/gif";
++import { assembleMp4 } from "/workspace/engine/scripts/video";
+ 
+ type Step =
+   | { kind: "click"; text: string }
++  | { kind: "mouse"; dx: number; dy: number }
+   | { kind: "key"; code: string; holdMs: number }
+   | { kind: "wait"; ms: number }
+   | { kind: "shot"; name: string; out?: string }
+@@ -229,6 +231,10 @@
+       args.timeoutExplicit = true;
+     }
+     else if (value === "--click") args.steps.push({ kind: "click", text: argv[++index] ?? "" });
++    else if (value === "--mouse-look") {
++      const [dx, dy] = (argv[++index] ?? "0,0").split(",").map(Number);
++      args.steps.push({kind:"mouse",dx:dx!,dy:dy!});
++    }
+     else if (value === "--wait") args.steps.push({ kind: "wait", ms: Number(argv[++index] ?? 500) });
+     else if (value === "--key") {
+       const spec = argv[++index] ?? "KeyW:1000";
+@@ -400,8 +406,13 @@
+  */
+ async function sendKeys(session: CdpSession, chord: string, type: "keyDown" | "keyUp"): Promise<void> {
+   for (const code of chord.split("+")) {
+-    const key = code.startsWith("Key") ? code.slice(3).toLowerCase() : code;
+-    await session.send("Input.dispatchKeyEvent", { type, code, key });
++    if (/^mouse[012]$/.test(code)) {
++      const point = await session.evaluate<{ x: number; y: number }>(`(() => { const r = document.querySelector("canvas").getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
++      await session.send("Input.dispatchMouseEvent", {type: type === "keyDown" ? "mousePressed" : "mouseReleased", x:point!.x, y:point!.y, button:code === "mouse2" ? "right" : code === "mouse1" ? "middle" : "left", clickCount:1});
++    } else {
++      const key = code.startsWith("Key") ? code.slice(3).toLowerCase() : code;
++      await session.send("Input.dispatchKeyEvent", { type, code, key });
++    }
+   }
+ }
+ 
+@@ -415,7 +426,7 @@
+   for (;;) {
+     await new Promise((r) => setTimeout(r, 100));
+     const framesElapsed = (await readFrames(session)) - startFrames;
+-    if (holdComplete({ nowMs: Date.now(), deadlineMs, hardCapMs, framesElapsed })) break;
++    if (holdComplete({ nowMs: Date.now(), deadlineMs, hardCapMs, framesElapsed }) && framesElapsed >= 2) break;
+   }
+   await sendKeys(session, chord, "keyUp");
+ }
+@@ -645,19 +656,19 @@
+   if (replacement !== null) console.error(`drive: ${replacement}`);
+ }
+ 
++if (process.env.SCRAP_SIGNAL_SMALL_VIEWPORT === "1") { DEVICES.desktop.width = 800; DEVICES.desktop.height = 450; }
+ const args = parseArgs(process.argv.slice(2));
+ if (args.help) {
+   console.log(HELP);
+   process.exit(0);
+ }
+ 
+-const outDir = resolve(import.meta.dir, "../shots");
++const outDir = "/workspace/games/.scratch/scrap-signal-evidence";
+ if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+ 
+-const daemon = args.connect === undefined ? await attachDaemon() : null;
+-const dev = daemon === null
+-  ? args.site === undefined ? await ensureDevServer() : await ensureWebServer()
+-  : await ensureDaemonTarget(daemon, args.site === undefined ? "dev" : "web");
++const daemon = null;
++const standaloneUrl = process.env.SCRAP_SIGNAL_URL ?? "http://127.0.0.1:5176/";
++const dev = { child: null, pid: undefined, base: standaloneUrl, port: Number(new URL(standaloneUrl).port) };
+ 
+ const lockstep = args.record !== undefined && !args.recordRealtime && !args.playtest;
+ const lockstepVirtualMs = args.steps.reduce(
+@@ -678,17 +689,21 @@
+     leaveWarm: args.keep || daemon !== null,
+     chromePrefix: "jg-drive-",
+     // One real render + capture per output frame — give the watchdog room.
+-    ...(lockstep ? { hardDeadlineMs: args.timeoutMs + 120_000 + lockstepProjected * 3_000 } : {}),
++    hardDeadlineMs: Math.max(900_000, args.timeoutMs + 120_000 + lockstepProjected * 6_000),
+   },
+   async ({ debugPort }) => {
+     let code = 0;
+-    const session = await openPageSession(debugPort);
++    const reusePage = process.env.SCRAP_SIGNAL_REUSE_PAGE === "1";
++    const targets = reusePage ? await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json() : [];
++    const prior = targets.find((target: {type:string;url:string}) => target.type === "page" && target.url.startsWith(new URL(standaloneUrl).origin));
++    if (reusePage && prior === undefined) throw new Error("No existing native game page to resume");
++    const session = reusePage ? await CdpSession.connect(prior.webSocketDebuggerUrl, 15000) : await openPageSession(debugPort);
+     try {
+       await session.send("Page.enable");
+       await session.send("Runtime.enable");
+       await applyDevice(session, "desktop", args.size);
+-      const path = args.site === undefined ? "/" : args.site.startsWith("/") ? args.site : `/${args.site}`;
+-      const url = new URL(path, dev.base);
++      const path = new URL(standaloneUrl).pathname;
++      const url = new URL(standaloneUrl);
+       if (args.site === undefined) {
+         url.searchParams.set("game", args.game);
+         url.searchParams.set("mode", args.mode);
+@@ -703,8 +718,12 @@
+         for (const [key, value] of Object.entries(lookSearchParams(aim))) url.searchParams.set(key, value);
+       }
+       if (args.playtest) url.searchParams.set("seed", String(args.seed));
+-      if (!args.reuseStorage) await clearOriginStorage(session, new URL(url.toString()).origin);
+-      await navigateCapturePageWithRetry(session, url.toString(), dev.base, args.timeoutMs);
++      if (!reusePage && !args.reuseStorage) await clearOriginStorage(session, new URL(url.toString()).origin);
++      if (!reusePage) {
++        await session.send("Page.navigate", { url: url.toString() });
++        await waitForHonestFrame(session, url.toString(), args.timeoutMs);
++        await session.evaluate(RAF_EXPR, {awaitPromise:true});
++      }
+       if (aim !== undefined) {
+         const applied = await session.evaluate<string | null>(`document.documentElement.dataset.jgLook ?? null`);
+         if (typeof applied !== "string" || applied.length === 0) {
+@@ -789,6 +808,9 @@
+           } else {
+             await holdKey(session, step.code, step.holdMs);
+           }
++        } else if (step.kind === "mouse") {
++          const point = await session.evaluate<{x:number;y:number}>(`(() => {const r=document.querySelector("canvas").getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};})()`);
++          await session.send("Input.dispatchMouseEvent", {type:"mouseMoved",x:point!.x+step.dx,y:point!.y+step.dy});
+         } else if (step.kind === "wait") {
+           if (recorder !== null) await recorder.advance(step.ms);
+           else await new Promise((r) => setTimeout(r, step.ms));
+@@ -910,6 +932,7 @@
+         console.error(`drive: next drive → bun run drive ${args.game} --mode ${args.mode} --connect ${debugPort} --size half ...`);
+       }
+     } finally {
++      if (process.env.SCRAP_SIGNAL_KEEP_PAGE === "1") (session as unknown as {ownedTarget?: unknown}).ownedTarget = undefined;
+       await session.close();
+     }
+     return code;
