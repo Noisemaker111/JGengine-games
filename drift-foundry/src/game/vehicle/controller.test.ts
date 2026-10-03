@@ -8,10 +8,8 @@ import { CORRIDOR_DRIVE_HALF_WIDTH } from "../run/constants";
 import type { KartTuning } from "../parts/build";
 
 /**
- * Feel-parity oracle: the hand-rolled integrator this controller replaced, verbatim, so the
- * migration onto `@jgengine/core/physics/kinematicVehicle` is held to the driving feel that
- * shipped rather than to "the tests still pass". Two divergences are known, intentional and
- * asserted separately below; everything else must match to floating-point tolerance.
+ * The former integrator with the intentional powered road load added. All other feel constants,
+ * including released-pedal coast, braking and hop timing, still match the original controller.
  */
 const METERS_PER_SECOND_TO_KMH = 3.6;
 const GRAVITY = 22;
@@ -21,6 +19,7 @@ const BRACE_TURN_PENALTY = 0.25;
 const GRIP_STRENGTH = 7;
 const TURN_SPEED_REF = 6;
 const ROLLING_DRAG = 3.5;
+const POWERED_ROAD_LOAD = 0.12;
 
 function createLegacyController(spawn: { position: readonly [number, number, number]; heading: number }): {
   tick(
@@ -73,6 +72,9 @@ function createLegacyController(spawn: { position: readonly [number, number, num
       const newLateral = lateralSpeed * keep;
       vx = fx * forwardSpeed - fz * newLateral;
       vz = fz * forwardSpeed + fx * newLateral;
+      const roadLoad = axis.throttle > 0 ? Math.max(0, 1 - POWERED_ROAD_LOAD * dt) : 1;
+      vx *= roadLoad;
+      vz *= roadLoad;
 
       const candidateX = Math.max(-CORRIDOR_DRIVE_HALF_WIDTH, Math.min(CORRIDOR_DRIVE_HALF_WIDTH, x + vx * dt));
       if (candidateX !== x + vx * dt) vx = 0;
@@ -97,7 +99,7 @@ function createLegacyController(spawn: { position: readonly [number, number, num
       return {
         position: [x, groundY + airOffset, z],
         heading,
-        speedKmh: Math.abs(forwardSpeed) * METERS_PER_SECOND_TO_KMH,
+        speedKmh: Math.abs(forwardSpeed * roadLoad) * METERS_PER_SECOND_TO_KMH,
         airborne: airOffset > 0,
         blockedByGate,
       };
@@ -262,6 +264,20 @@ describe("createVehicleController — corridor and gates", () => {
     expect(pose.speedKmh).toBeGreaterThan(speedAtGate * 0.9);
     for (let i = 0; i < 240; i += 1) pose = controller.tick(DT, drive({ throttle: 1 }), LOADED, NO_INPUT, FLAT);
     expect(pose.position[2]).toBeGreaterThan(110);
+  });
+
+  test("a lower-speed motor preserves swap momentum then settles toward its own top speed under held throttle", () => {
+    const controller = createVehicleController({ position: [0, 0, -1000], heading: 0 });
+    let pose = controller.tick(DT, drive({ throttle: 1 }), BARE, NO_INPUT, FLAT);
+    for (let i = 0; i < 240; i++) pose = controller.tick(DT, drive({ throttle: 1 }), BARE, NO_INPUT, FLAT);
+    const speedBeforeSwap = pose.speedKmh;
+    const slowerMotor = { ...BARE, topSpeed: 10 };
+    pose = controller.tick(DT, drive({ throttle: 1 }), slowerMotor, NO_INPUT, FLAT);
+    expect(pose.speedKmh).toBeGreaterThan(speedBeforeSwap * 0.95);
+    expect(pose.speedKmh).toBeGreaterThan(slowerMotor.topSpeed * METERS_PER_SECOND_TO_KMH);
+    for (let i = 0; i < 720; i++) pose = controller.tick(DT, drive({ throttle: 1 }), slowerMotor, NO_INPUT, FLAT);
+    expect(pose.speedKmh).toBeLessThan((slowerMotor.topSpeed + 0.5) * METERS_PER_SECOND_TO_KMH);
+    expect(pose.speedKmh).toBeGreaterThan((slowerMotor.topSpeed - 0.5) * METERS_PER_SECOND_TO_KMH);
   });
 
   test("resetTo returns the kart to a standstill at the given pose", () => {

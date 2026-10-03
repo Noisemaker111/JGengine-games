@@ -94,21 +94,68 @@ author('row-six-buggy', ({ box, cylinder, tube, ring }) => {
 
 for (const [name, color] of [['engine', 1], ['front', 2], ['wheels', 6], ['frame', 3]]) author(`pickup-${name}`, ({ box, tube, cylinder, ring }) => {
   cylinder(1.05, .16, [0, .08, 0], 0); ring(.94, .06, [0, .2, 0], color, [Math.PI / 2, 0, 0]);
-  for (const x of [-.7, .7]) tube([x, .12, 0], [x, 1.8, 0], .055, color);
-  tube([-.7, 1.8, 0], [.7, 1.8, 0], .055, color);
+  for (const x of [-.7, .7]) tube([x, .12, 0], [x, 3.5, 0], .075, color);
+  tube([-.7, 3.5, 0], [.7, 3.5, 0], .075, color);
+  box([1.35, 1.25, .08], [0, 2.6, .25], 0);
+  for (const x of [-.62, .62]) box([.08, 1.05, .09], [x, 2.6, .18], color);
   if (name === 'engine') {
-    box([.8, .55, .6], [0, .95, 0], 3);
-    for (const x of [-.27, 0, .27]) cylinder(.11, .36, [x, 1.35, 0], color);
+    box([.8, .55, .6], [0, 2.45, 0], 3);
+    for (const x of [-.27, 0, .27]) cylinder(.11, .36, [x, 2.85, 0], color);
   } else if (name === 'wheels') {
-    ring(.42, .13, [0, 1, 0], 5); ring(.23, .07, [0, 1, .07], color);
-    for (let i = 0; i < 5; i++) ring(.2, .03, [.8, .45 + i * .18, .15], color, [Math.PI / 2, 0, 0]);
+    ring(.42, .13, [0, 2.5, 0], 5); ring(.23, .07, [0, 2.5, -.1], color);
+    for (let i = 0; i < 5; i++) ring(.2, .03, [.8, 1.95 + i * .18, .15], color, [Math.PI / 2, 0, 0]);
   } else if (name === 'front') {
-    box([1.1, .55, .12], [0, 1, 0], color, [-.25, 0, 0]);
-    for (const x of [-.35, 0, .35]) box([.13, .05, .16], [x, .72, .13], 0);
+    box([1.1, .55, .12], [0, 2.5, 0], color, [-.25, 0, 0]);
+    for (const x of [-.35, 0, .35]) box([.13, .05, .16], [x, 2.22, -.13], 0);
   } else {
-    for (const x of [-.4, .4]) tube([x, .6, 0], [x, 1.4, 0], .08, color);
-    tube([-.4, 1.4, 0], [.4, 1.4, 0], .08, color); tube([-.4, .6, 0], [.4, 1.4, 0], .05, 2);
+    for (const x of [-.4, .4]) tube([x, 2.1, 0], [x, 2.9, 0], .08, color);
+    tube([-.4, 2.9, 0], [.4, 2.9, 0], .08, color); tube([-.4, 2.1, 0], [.4, 2.9, 0], .05, 2);
   }
+});
+
+for (const [name, color] of [['jump', 6], ['plow', 2]]) author(`route-${name}-post`, ({ box, cylinder }) => {
+  box([1.2, .22, 1.2], [0, .11, 0], 0);
+  cylinder(.1, 3.8, [0, 2.0, 0], 3);
+  box([1.8, 1.7, .22], [0, 4.0, 0], 0);
+  for (const z of [-.15, .15]) {
+    box([1.6, 1.5, .04], [0, 4.0, z], color);
+    if (name === 'jump') {
+      box([.15, .72, .04], [0, 3.95, z * 1.2], 0);
+      for (const side of [-1, 1]) box([.65, .15, .04], [side * .2, 4.24, z * 1.2], 0, [0, 0, side * -.65]);
+    } else {
+      for (const x of [-.3, .3]) for (const side of [-1, 1])
+        box([.58, .14, .04], [x + .08, 4.0 + side * .18, z * 1.2], 0, [0, 0, side * -.65]);
+    }
+  }
+});
+
+author('exit-gantry', ({ box, cylinder, tube }) => {
+  for (const side of [-1, 1]) {
+    const x = side * 10;
+    box([2.4, .25, 2.6], [x, .125, 0], 0);
+    box([.55, 8.8, .65], [x, 4.65, 0], 3);
+    for (const z of [-.65, .65]) {
+      tube([x - side * .75, .25, z], [x + side * .75, 8.85, z], .085, 1);
+      tube([x + side * .75, .25, z], [x - side * .75, 8.85, z], .085, 3);
+    }
+    for (let y = 1; y <= 8; y += 1) {
+      box([1.55, .14, .08], [x, y, -.73], 2);
+      box([.32, .14, .09], [x + side * .34, y, -.79], 0, [0, 0, -.45]);
+    }
+    box([1.4, .22, 1.9], [x, 9, 0], 1);
+    cylinder(.16, 1.1, [x, 10.6, 0], 3);
+    box([.46, .35, .46], [x, 11.05, 0], 6);
+  }
+  for (const y of [9.25, 10.35]) box([21.6, .3, 1.3], [0, y, 0], 3);
+  for (let x = -10; x < 10; x += 2) {
+    tube([x, 9.3, -.5], [x + 2, 10.3, -.5], .085, 1);
+    tube([x, 10.3, -.5], [x + 2, 9.3, -.5], .085, 2);
+  }
+  box([5, 1.15, .18], [0, 9.8, -.75], 0);
+  box([4.7, .88, .06], [0, 9.8, -.87], 2);
+  for (const x of [-1.35, 0, 1.35]) for (const side of [-1, 1])
+    box([.8, .14, .06], [x + .12, 9.8 + side * .24, -.93], 0, [0, 0, side * -.65]);
+  box([4.5, .09, .12], [0, 9.15, -.8], 4);
 });
 
 author('jump-barrier', ({ box, cylinder }) => {

@@ -7,10 +7,12 @@ import { entityModels, objectModels } from "./game/models";
 import { GameUI } from "./game/ui/GameUI";
 import { lifecycle, onInit, onNewPlayer, onTick } from "./loop";
 import { physics, world } from "./world";
+import { editorLayers } from "./editorLayers";
 
 export const game = defineGame({
   name: "Drift Foundry",
   world,
+  editorLayers,
   physics,
   input: keybinds,
   assets,
@@ -44,6 +46,15 @@ export const game = defineGame({
   },
   entityModels,
   objectModels,
+  visibility: {
+    culling: { defaultMaxRenderDistance: 140, preloadMargin: 18, hysteresis: 8 },
+    entities: { kart_player: { alwaysVisible: true }, compactor_wall: { maxRenderDistance: 120 } },
+  },
+  graphics: {
+    low: { renderScale: 0.5, drawDistance: 100, cascades: 1, shadowMapSize: 512, postStages: { ao: false, bloom: false, dof: false, smaa: false } },
+    medium: { renderScale: 1, drawDistance: 140, cascades: 2, shadowMapSize: 512 },
+    high: { renderScale: 1.5, drawDistance: 200, cascades: 2, shadowMapSize: 1024 },
+  },
   shadows: true,
   // Low warm key over the driver's right wall: the near row is short enough that its shadow stops
   // mid-corridor, so the run is split lit/shadow lengthwise. The cool hemisphere and blue fill keep
@@ -60,10 +71,10 @@ export const game = defineGame({
         position: [110, 95, -46],
         castShadow: true,
         // The run is 470m long, so a single ortho frustum drops contact shadows a few seconds in.
-        cascades: 3,
-        shadowMapSize: 1024,
+        cascades: 2,
+        shadowMapSize: 512,
         shadowCameraSize: 64,
-        shadowMaxFar: 220,
+        shadowMaxFar: 100,
         shadowNormalBias: 0.035,
       },
       { color: "#9a8478", intensity: 0.3, position: [82, 38, 96] },

@@ -134,3 +134,45 @@ export function firstUnsatisfiedGate(tuning: KartTuning): RouteGate | null {
   }
   return earliest;
 }
+
+export type GateAction = "collect-plow" | "collect-springs" | "brace" | "approach" | "jump" | "recover" | "hold";
+
+export interface GateAdvice {
+  gate: RouteGate;
+  distance: number;
+  action: GateAction;
+  text: string;
+}
+
+/** Next barricade and the driving decision that keeps this build moving. Speed is in m/s. */
+export function gateAdvice(z: number, tuning: KartTuning, speedMs = 0, airborne = false): GateAdvice | null {
+  let gate: RouteGate | null = null;
+  for (const candidate of ROUTE_GATES) {
+    if (candidate.atZ < z) continue;
+    if (gate === null || candidate.atZ < gate.atZ) gate = candidate;
+  }
+  if (gate === null) return null;
+  const distance = gate.atZ - z;
+  let action: GateAction;
+  let text: string;
+  if (!gateSatisfied(gate, tuning)) {
+    action = gate.requirement === "plow" ? "collect-plow" : "collect-springs";
+    text = gate.requirement === "plow" ? "COLLECT THE PLOW BEFORE THE WALL" : "COLLECT SPRINGS BEFORE THE STACK";
+  } else if (gate.requirement === "plow") {
+    action = "brace";
+    text = "BRACE THE PLOW FOR MORE PUSH — STEERING GETS HEAVIER";
+  } else if (airborne) {
+    action = "hold";
+    text = "HOLD YOUR LINE OVER THE STACK";
+  } else if (distance < 1.5) {
+    action = "recover";
+    text = "REVERSE A FEW METERS, THEN ACCELERATE AND JUMP";
+  } else if (distance <= Math.max(2, Math.max(0, speedMs) * .35)) {
+    action = "jump";
+    text = "JUMP NOW — KEEP THE THROTTLE ON";
+  } else {
+    action = "approach";
+    text = "BUILD SPEED — JUMP AS THE STACK GETS CLOSE";
+  }
+  return { gate, distance, action, text };
+}

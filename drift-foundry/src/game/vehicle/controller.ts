@@ -22,6 +22,7 @@ const GRIP_STRENGTH = 7;
 const TURN_SPEED_REF = 6;
 /** Flat coast deceleration with throttle and brake released, world units/s². */
 const ROLLING_DRAG = 3.5;
+const POWERED_ROAD_LOAD = 0.12;
 /** Brake force as a multiple of engine accel — a kart stops harder than it launches. */
 const BRAKE_ACCEL_FACTOR = 1.3;
 /** Reverse tops out at this fraction of forward top speed... */
@@ -98,6 +99,7 @@ export function createVehicleController(spawn: {
   let frameTuning: KartTuning | null = null;
   let blockedByGate = false;
   let airHeight = 0;
+  let poweredRoadLoad = 0;
 
   const vehicle: KinematicVehicle = createKinematicVehicle(
     // Placeholder stats: the first tick retunes to the kart's real, part-derived numbers.
@@ -105,6 +107,8 @@ export function createVehicleController(spawn: {
     {
       position: spawn.position,
       heading: spawn.heading,
+      // A weaker motor cannot sustain a faster motor's inherited speed forever at full throttle.
+      dragAt: () => poweredRoadLoad,
       clampMove: (from, to) => {
         const x = Math.max(-CORRIDOR_DRIVE_HALF_WIDTH, Math.min(CORRIDOR_DRIVE_HALF_WIDTH, to[0]));
         if (frameTuning === null) return [x, to[1]];
@@ -126,6 +130,7 @@ export function createVehicleController(spawn: {
         appliedTuning = tuning;
       }
       frameTuning = tuning;
+      poweredRoadLoad = axis.throttle > 0 ? POWERED_ROAD_LOAD : 0;
       blockedByGate = false;
 
       const braced = input.plowBracing && tuning.hasPlow;
@@ -151,6 +156,7 @@ export function createVehicleController(spawn: {
       vehicle.resetTo(position, resetHeading);
       blockedByGate = false;
       airHeight = 0;
+      poweredRoadLoad = 0;
     },
   };
 }
