@@ -14,27 +14,33 @@ export interface FurnitureDef {
   height: number;
   useRadius: number;
   blurb: string;
+  capacity: number;
+  runningCost: number;
 }
 
 export const FURNITURE: FurnitureDef[] = [
   {
     id: "nutrient_font",
+    capacity: 2,
+    runningCost: 3,
     name: "Nutrient Font",
     role: "hunger",
     cost: 120,
-    satisfyPerSecond: 22,
+    satisfyPerSecond: 12,
     color: "#ffb347",
     footprint: { w: 2, d: 2 },
     height: 1.4,
     useRadius: 2.2,
-    blurb: "Draws a warm broth from the habitat's mineral core.",
+    blurb: "One pantry ration becomes a full meal. Two household members can eat together.",
   },
   {
     id: "sleep_pod",
+    capacity: 2,
+    runningCost: 3,
     name: "Torpor Pod",
     role: "energy",
     cost: 160,
-    satisfyPerSecond: 20,
+    satisfyPerSecond: 10,
     color: "#7ec8ff",
     footprint: { w: 2.4, d: 3 },
     height: 1.1,
@@ -43,22 +49,26 @@ export const FURNITURE: FurnitureDef[] = [
   },
   {
     id: "chat_ring",
+    capacity: 4,
+    runningCost: 2,
     name: "Bond Ring",
     role: "social",
     cost: 140,
-    satisfyPerSecond: 16,
+    satisfyPerSecond: 6,
     color: "#ff8fb0",
     footprint: { w: 3.2, d: 3.2 },
     height: 0.7,
     useRadius: 3,
-    blurb: "A sunken circle where household members trade signals.",
+    blurb: "Trade signals with a companion to build trust. Alone, it only eases loneliness.",
   },
   {
     id: "holo_arcade",
+    capacity: 2,
+    runningCost: 4,
     name: "Holo Arcade",
     role: "fun",
     cost: 180,
-    satisfyPerSecond: 21,
+    satisfyPerSecond: 9,
     color: "#b98cff",
     footprint: { w: 2, d: 2 },
     height: 1.8,
@@ -67,18 +77,22 @@ export const FURNITURE: FurnitureDef[] = [
   },
   {
     id: "bloom_planter",
+    capacity: 2,
+    runningCost: 1,
     name: "Bloom Planter",
     role: "fun",
     cost: 70,
-    satisfyPerSecond: 9,
+    satisfyPerSecond: 5,
     color: "#63d6a3",
     footprint: { w: 1.6, d: 1.6 },
     height: 1.3,
     useRadius: 2,
-    blurb: "Cheap alien flora that lifts spirits just by tending it.",
+    blurb: "A 20-second Bloom shift yields four rations and 48 credits. Friends tending together harvest more.",
   },
   {
     id: "work_console",
+    capacity: 1,
+    runningCost: 4,
     name: "Yield Console",
     role: "work",
     cost: 220,
@@ -87,7 +101,7 @@ export const FURNITURE: FurnitureDef[] = [
     footprint: { w: 2.4, d: 1.6 },
     height: 1.3,
     useRadius: 2.2,
-    blurb: "A career station: work a shift here to earn credits.",
+    blurb: "One worker at a time. A full Yield shift earns 100 credits; tired workers must recover.",
   },
 ];
 
@@ -95,7 +109,7 @@ export const FURNITURE_BY_ID: Record<string, FurnitureDef> = Object.fromEntries(
   FURNITURE.map((def) => [def.id, def]),
 );
 
-export const WORK_EARN_PER_SECOND = 14;
+export const WORK_EARN_PER_SECOND = 5;
 
 export interface DecorDef {
   id: string;

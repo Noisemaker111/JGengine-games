@@ -15,4 +15,8 @@ export const assets: AssetCatalog = buildCatalog({
 });
 
 const materials = buildMaterialCatalog({ basePath: "/materials" });
-export const HABITAT_FLOOR_MATERIAL = materials.resolve("ambientcg-metalplates001")!.maps;
+// This published pack has no AO download. White explicitly means no baked occlusion.
+export const HABITAT_FLOOR_MATERIAL = {
+  ...materials.resolve("ambientcg-metalplates001")!.maps,
+  ao: "/materials/imported/odd-orbit/neutral-ao.svg",
+};

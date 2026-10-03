@@ -6,6 +6,8 @@ import { ALIEN_KIND, JOBS } from "../entities/aliens/catalog";
 import { emptyNeeds } from "../needs/needs";
 import { householdStore } from "../session/store";
 import { createHousehold, pairKey, type HouseholdState, type MemberState } from "../session/types";
+import { LIFE_EVENT_SECONDS } from "./events";
+import { createHouseholdEconomy } from "./economy";
 import { SCENE_PLACEMENTS } from "../../editorLayers";
 
 const MEMBER_COUNT = 4;
@@ -15,6 +17,9 @@ export function setupWorld(ctx: GameContext): void {
   const current = householdStore.read(ctx);
   if (current.order.length > 0) return;
   const state = createHousehold(current.seed);
+  state.day = ctx.time.calendar().day;
+  state.nextLifeEventAt = ctx.time.now() + LIFE_EVENT_SECONDS;
+  state.economy = createHouseholdEconomy(ctx.time.now());
 
   for (const placement of SCENE_PLACEMENTS) {
     const y = ctx.world.groundHeightAt(placement.x, placement.z);
@@ -50,6 +55,16 @@ export function setupWorld(ctx: GameContext): void {
       action: { kind: "idle" },
       assignedByPlayer: false,
       actionUntil: 0,
+      lifestyle: i % 2 === 0 ? "yield" : "bloom",
+      stress: 0,
+      recovering: false,
+      workToday: 0,
+      harvestToday: 0,
+      shiftProgress: 0,
+      shiftDay: -1,
+      completedShifts: 0,
+      missedShifts: 0,
+      concern: null,
     };
     state.members[id] = member;
     state.order.push(id);
