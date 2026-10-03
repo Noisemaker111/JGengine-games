@@ -23,6 +23,8 @@ The pantry supplies meals. Six rations cost 36 credits, subject to a 40-ration c
 
 Actions and each game second checkpoint to the browser-local key `odd-orbit.household-save.v1`. Saves include the household, clock, entities, furniture poses, stats, economy cursor and next event deadline. Reload opens the paused menu; Continue resumes the saved moment without offline event bursts or duplicate bills. Invalid/newer data stays untouched until explicit New household; unavailable storage is shown honestly. Saving stays on the current browser origin.
 
+Directing the same activity at the same furnishing preserves the ongoing action while renewing player direction. Each meal spends one ration when it begins; repeating that direction also lets an already-paid meal finish after the pantry empties or the household reloads.
+
 Each settlement processes at most seven overdue bills. Remaining due cycles stay
 in the saved economy cursor and settle on later simulation steps; repayment stops
 when the outstanding debt reaches zero. Bills skipped by an older build cannot

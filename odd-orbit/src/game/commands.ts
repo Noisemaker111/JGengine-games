@@ -182,7 +182,11 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
     if (obj !== null && def !== undefined && state.selectedMemberId !== null) {
       const member = state.members[state.selectedMemberId];
       if (member !== undefined) {
-        member.action = { kind: "seek", goal: def.role, objId: obj.instanceId };
+        const current = member.action;
+        // A repeated direction keeps an ongoing activity, including its already-paid meal.
+        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== def.role || current.objId !== obj.instanceId) {
+          member.action = { kind: "seek", goal: def.role, objId: obj.instanceId };
+        }
         member.assignedByPlayer = true;
         member.actionUntil = ctx.time.now() + 12;
         pushEvent(state, `${member.name} sent to the ${def.name}.`, ctx.time.now(), "info");
@@ -255,7 +259,10 @@ function registerHouseholdCommands(ctx: GameContext): void {
         objects.sort((a, b) => Math.hypot(a.position[0] - from[0], a.position[2] - from[2]) - Math.hypot(b.position[0] - from[0], b.position[2] - from[2]));
         const obj = objects[0];
         if (obj === undefined) return;
-        member.action = { kind: "seek", goal, objId: obj.instanceId };
+        const current = member.action;
+        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== goal || current.objId !== obj.instanceId) {
+          member.action = { kind: "seek", goal, objId: obj.instanceId };
+        }
         member.assignedByPlayer = true;
         member.actionUntil = gameCtx.time.now() + 12;
       }
