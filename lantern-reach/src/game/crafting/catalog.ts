@@ -1,6 +1,11 @@
 import type { RecipeDef } from "@jgengine/core/crafting/recipe";
 
+export const CRAFT_TRAINING_WINDOW = 75;
+
 export const RECIPES: readonly RecipeDef[] = [
+  { id: "recipe_mithril_mining_pick", category: "engineering", inputs: [{ itemId: "bone_fragments", count: 3 }, { itemId: "linen_scrap", count: 1 }], outputs: [{ itemId: "mithril_mining_pick", count: 1 }] },
+  { id: "recipe_ironbark_axe", category: "engineering", inputs: [{ itemId: "linen_scrap", count: 3 }, { itemId: "bone_fragments", count: 1 }], outputs: [{ itemId: "ironbark_axe", count: 1 }] },
+  { id: "recipe_silverleaf_sickle", category: "engineering", inputs: [{ itemId: "spider_leg", count: 3 }, { itemId: "linen_scrap", count: 1 }], outputs: [{ itemId: "silverleaf_sickle", count: 1 }] },
   {
     id: "recipe_eastbrook_arming_sword",
     category: "weaponcrafting",
@@ -136,6 +141,9 @@ export const RECIPES: readonly RecipeDef[] = [
 ];
 
 export const RECIPE_SKILL: Record<string, number> = {
+  recipe_mithril_mining_pick: 0,
+  recipe_ironbark_axe: 0,
+  recipe_silverleaf_sickle: 0,
   recipe_eastbrook_arming_sword: 0,
   recipe_eastbrook_chain_vest: 0,
   recipe_eastbrook_wool_trousers: 0,
