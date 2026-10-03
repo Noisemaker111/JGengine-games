@@ -1,0 +1,32 @@
+[
+  {
+    "roomId": "interlock",
+    "style": "corridor-circuit",
+    "cells": 119,
+    "trials": 5,
+    "singleCell": {
+      "calls": 121,
+      "medianMs": 16.17
+    },
+    "wholeRoomBatch": {
+      "calls": 3,
+      "medianMs": 1.07
+    },
+    "document": "identical"
+  },
+  {
+    "roomId": "crosswire",
+    "style": "branching-courtyard",
+    "cells": 231,
+    "trials": 5,
+    "singleCell": {
+      "calls": 233,
+      "medianMs": 56.89
+    },
+    "wholeRoomBatch": {
+      "calls": 3,
+      "medianMs": 1.27
+    },
+    "document": "identical"
+  }
+]
