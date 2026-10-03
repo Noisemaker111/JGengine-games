@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { BoxGeometry, ExtrudeGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, Raycaster, Vector3 } from "three";
+import { BoxGeometry, Color, ExtrudeGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, Raycaster, Vector3 } from "three";
 import { casingGeometryParameters, SALVAGE_PLACARD } from "./art";
 import { INDUSTRIAL } from "./industrialMaterials";
 import { serviceWeaponPose, WEAPON_MUZZLE } from "./weaponArt";
@@ -13,8 +13,20 @@ test("industrial coatings and exposed metals have finite, distinct physical resp
     if ("emissiveIntensity" in material) { expect(Number.isFinite(material.emissiveIntensity)).toBe(true); expect(material.emissiveIntensity).toBeLessThanOrEqual(1); }
   }
   for (const surface of ["paint", "printed", "rubber", "glass", "floor"] as const) expect(INDUSTRIAL[surface].metalness).toBe(0);
-  expect(INDUSTRIAL.steel.metalness).toBeGreaterThan(0.8);
+  expect(INDUSTRIAL.steel.metalness).toBeGreaterThan(0.6);
   expect(INDUSTRIAL.brass.color).not.toBe(INDUSTRIAL.steel.color);
+});
+test("vault working surfaces retain diffuse detail between local fixtures", () => {
+  const diffuseLuminance = (color: string, metalness: number) => {
+    const linear = new Color(color);
+    return (linear.r * 0.2126 + linear.g * 0.7152 + linear.b * 0.0722) * (1 - metalness);
+  };
+  // Bright labels cannot compensate for a floor or a tray that absorbs almost
+  // all diffuse fill. Measure linear response, not the encoded hex brightness.
+  for (const surface of ["floor", "paint", "steel", "brass"] as const) {
+    const material = INDUSTRIAL[surface];
+    expect(diffuseLuminance(material.color, material.metalness)).toBeGreaterThan(0.08);
+  }
 });
 test("original casing extrusion has finite normals and occupies its specified envelope", () => {
   const { shape, options, offset } = casingGeometryParameters([0.58, 0.4, 0.3]);

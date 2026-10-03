@@ -3,6 +3,7 @@ import type { Triple } from "./art";
 
 export const ROOM_LIGHT_BUDGET = 7; // The eighth local light is the existing steam hazard.
 export const ROOM_LIGHT_REACH = 12;
+export const ROOM_LIGHT_INTENSITY = { home: 17, vault: 27 } as const;
 const WALL_THICKNESS = 0.22, SLAB_THICKNESS = 0.14, LAMP_SPACING = 8;
 export interface RoomSurface { id: string; at: Triple; size: Triple; kind: "floor" | "ceiling" | "wall"; axis?: "x" | "z" }
 export interface RoomLamp { id: string; fixture: Triple; light: Triple; width: number; place: Place }

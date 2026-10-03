@@ -13,7 +13,7 @@ import { PALETTE as C, signTexture, IndustrialBox, SALVAGE_PLACARD, type Triple 
 import { surfaceMaterial, type IndustrialSurface } from "./game/industrialMaterials";
 import { FitterModel } from "./game/fitterArt";
 import { ServiceWeapon, serviceWeaponPose } from "./game/weaponArt";
-import { activeRoomLamps, deriveRoomPresentation, ROOM_LIGHT_BUDGET, ROOM_LIGHT_REACH, type RoomSurface } from "./game/roomPresentation";
+import { activeRoomLamps, deriveRoomPresentation, ROOM_LIGHT_BUDGET, ROOM_LIGHT_REACH, ROOM_LIGHT_INTENSITY, type RoomSurface } from "./game/roomPresentation";
 import { captureProbe, initialize, keybinds, seatPlayer, setAim, tick, viewStore } from "./game/controls";
 import { ITEMS } from "./game/state";
 import { GameUI } from "./game/ui/GameUI";
@@ -81,7 +81,7 @@ function RoomLights() {
     for (let i = 0; i < ROOM_LIGHT_BUDGET; i++) {
       const light = refs.current[i], candidate = closest[i];
       if (!light) continue;
-      light.intensity = candidate ? 17 : 0;
+      light.intensity = candidate ? ROOM_LIGHT_INTENSITY[place] : 0;
       if (candidate) light.position.set(...candidate.light);
     }
   });

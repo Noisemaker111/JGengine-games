@@ -1,7 +1,7 @@
 import type { ThreeElements } from "@react-three/fiber";
 
 export const PALETTE = {
-  wall: "#38504f", panel: "#263837", floor: "#18282c", steel: "#82918b", brass: "#cca46c",
+  wall: "#4c6460", panel: "#344744", floor: "#18282c", steel: "#82918b", brass: "#cca46c",
   cyan: "#84e8d0", amber: "#eab379", danger: "#ee7361", ink: "#b69be0", black: "#0b171b",
 };
 
@@ -12,10 +12,12 @@ export type IndustrialMaterialProps = Required<Pick<StandardMaterialProps, "colo
 
 /** Surface recipes, not shared GPU objects: R3F owns each mounted material's disposal. */
 export const INDUSTRIAL = {
-  steel: { color: PALETTE.steel, roughness: 0.38, metalness: 0.85 },
-  brass: { color: PALETTE.brass, roughness: 0.42, metalness: 0.82 },
+  // Worn coatings retain a diffuse response under the vault's local fixtures.
+  // Pure reflective metal disappears between fixtures without a reflection map.
+  steel: { color: PALETTE.steel, roughness: 0.46, metalness: 0.68 },
+  brass: { color: PALETTE.brass, roughness: 0.46, metalness: 0.7 },
   paint: { color: PALETTE.wall, roughness: 0.76, metalness: 0 },
-  floor: { color: "#35464a", roughness: 0.88, metalness: 0 },
+  floor: { color: "#4b5c61", roughness: 0.88, metalness: 0 },
   rubber: { color: "#202a2c", roughness: 0.94, metalness: 0 },
   glass: { color: "#193a40", roughness: 0.16, metalness: 0, transparent: true, opacity: 0.72, depthWrite: false },
   printed: { color: "#b9b4a1", roughness: 0.68, metalness: 0 },
