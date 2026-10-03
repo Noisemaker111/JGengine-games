@@ -88,6 +88,11 @@ describe("hero seat admission and reconnect", () => {
     expect(ctx.player.possession.listOwned("third-player")).not.toContain("anchor");
     expect(controlledHero(ctx, "partner")).toBe("anchor");
     expect(ctx.player.possession.listOwned("solo-probe")).not.toContain("anchor");
+    const positions = ["lumen", "anchor"].map(id => ctx.scene.entity.get(id)!.position);
+    ctx.game.commands.run("duet.step", { userId: "third-player", dir: "east" });
+    ctx.game.commands.run("ability", { userId: "third-player", dir: "east" });
+    ctx.game.commands.run("duet.callout", { userId: "third-player", id: "go" });
+    expect(["lumen", "anchor"].map(id => ctx.scene.entity.get(id)!.position)).toEqual(positions);
     expect(duetStore.read(ctx)).toEqual(before);
   });
 
