@@ -98,3 +98,7 @@ html, body, #root { height: 100%; margin: 0; background: #080e19; }
   .rc-hero > .rc-eyebrow, .rc-hero > .rc-subtitle, .rc-hero > .rc-role-hint { display: none; }
   .rc-hero > strong { grid-column: 1 / -1; font-size: 18px; }
 }
+
+.rc-world-label { pointer-events: none; white-space: nowrap; color: #ffd693; font: 600 9px/1.2 "Segoe UI", sans-serif; text-shadow: 0 1px 3px #06111d, 0 0 3px #06111d; }
+.rc-world-label span { background: #10212ec9; padding: 2px 4px; border-radius: 3px; }
+.rc-world-label-light { color: #a8ebff; }

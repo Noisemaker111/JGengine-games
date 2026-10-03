@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { SceneEntity } from "@jgengine/core/scene/entityStore";
@@ -80,12 +81,14 @@ export function renderDuetObject(object: SceneObject): ReactNode {
       <Crystal color={color} y={0.86} scale={0.1} />
     </group>;
     case "plate": return <group>
+      <Html center position={[0, 0.44, 0]} zIndexRange={[1, 0]} className="rc-world-label"><span>{object.instanceId.replace("plate:", "")}</span></Html>
       <mesh position-y={0.05} receiveShadow><cylinderGeometry args={[0.4, 0.43, 0.1, 8]} />
         <meshStandardMaterial color={BRASS} metalness={0.65} roughness={0.4} /></mesh>
       <Ring radius={0.3} y={0.12} color={color} />
       <Block at={[0, 0.12, 0]} size={[0.23, 0.025, 0.23]} color={AMBER} glow />
     </group>;
     case "receiver": return <group>
+      <Html center position={[0, 0.94, 0]} zIndexRange={[1, 0]} className="rc-world-label rc-world-label-light"><span>{object.instanceId.replace("recv:", "")}</span></Html>
       <Block at={[0, 0.09, 0]} size={[0.52, 0.18, 0.52]} color={BRASS} />
       <Block at={[0, 0.29, 0]} size={[0.15, 0.36, 0.15]} />
       <mesh position-y={0.58} rotation-y={Math.PI / 2}><torusGeometry args={[0.23, 0.06, 8, 24]} />
