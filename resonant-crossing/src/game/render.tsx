@@ -6,7 +6,7 @@ import type { SceneEntity } from "@jgengine/core/scene/entityStore";
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
 import { useStore } from "@jgengine/react/store";
 import { HEROES } from "./entities/players/catalog";
-import { ROOMS, roomBounds, getAuthoredDocument } from "./rooms/catalog";
+import { ROOMS, roomBounds, getAuthoredDocument, type RoomBounds } from "./rooms/catalog";
 import { duetStore } from "./stores";
 import { DIR_VECTORS, type V2 } from "./types";
 
@@ -184,6 +184,40 @@ function AmbientStars() {
   </group>;
 }
 
+export function fitRoomCamera(camera: THREE.PerspectiveCamera, bounds: RoomBounds, viewport: {
+  width: number; height: number; top: number; bottom: number; gutter: number;
+}): { left: number; right: number; top: number; bottom: number } | null {
+  const corners: THREE.Vector3[] = [];
+  for (const x of [bounds.minX - 0.7, bounds.maxX + 0.7])
+    for (const z of [bounds.minZ - 0.7, bounds.maxZ + 0.7])
+      for (const y of [-0.7, 1.4]) corners.push(new THREE.Vector3(x, y, z));
+  const projected = () => {
+    const pixels = corners.map(point => {
+      const p = point.clone().project(camera);
+      return { x: (p.x + 1) * viewport.width / 2, y: (1 - p.y) * viewport.height / 2 };
+    });
+    return { left: Math.min(...pixels.map(p => p.x)), right: Math.max(...pixels.map(p => p.x)),
+      top: Math.min(...pixels.map(p => p.y)), bottom: Math.max(...pixels.map(p => p.y)) };
+  };
+  camera.clearViewOffset();
+  camera.zoom = 1;
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld(true);
+  if (viewport.width <= viewport.gutter * 2 || viewport.height <= 0 ||
+      corners.some(point => point.clone().applyMatrix4(camera.matrixWorldInverse).z >= -camera.near)) return null;
+  const base = projected();
+  if (!Object.values(base).every(Number.isFinite) || base.right <= base.left || base.bottom <= base.top) return null;
+  camera.zoom = Math.min(1, (viewport.width - viewport.gutter * 2) / (base.right - base.left),
+    Math.max(64, viewport.bottom - viewport.top) / (base.bottom - base.top));
+  camera.updateProjectionMatrix();
+  const fitted = projected();
+  camera.setViewOffset(viewport.width, viewport.height,
+    (fitted.left + fitted.right - viewport.width) / 2,
+    (fitted.top + fitted.bottom - viewport.top - viewport.bottom) / 2,
+    viewport.width, viewport.height);
+  return projected();
+}
+
 export function DuetEnvironment() {
   const index = useStore(duetStore, s => s.roomIndex);
   const pressed = useStore(duetStore, s => s.pressedPlates);
@@ -193,20 +227,50 @@ export function DuetEnvironment() {
   const bounds = roomBounds(room);
   const camera = useThree(s => s.camera);
   const size = useThree(s => s.size);
+  const canvas = useThree(s => s.gl.domElement);
+  const status = useStore(duetStore, s => s.status);
+  const active = useStore(duetStore, s => s.active);
   useEffect(() => {
-    if (camera instanceof THREE.PerspectiveCamera) {
-      const viewWidth = (size.width / size.height) * 24 * Math.tan(camera.fov * Math.PI / 360);
-      camera.zoom = Math.min(1, viewWidth / (bounds.width + 2));
-      camera.updateProjectionMatrix();
-    }
-  }, [camera, size.width, size.height, bounds.width]);
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    let frame = 0;
+    let retries = 0;
+    const fit = () => {
+      const ui = document.querySelector<HTMLElement>(".rc-ui");
+      if (!ui) return;
+      const canvasRect = canvas.getBoundingClientRect();
+      const gap = size.width <= 600 ? 8 : 10;
+      const header = ui.querySelector<HTMLElement>(".rc-header");
+      const signals = ui.querySelector<HTMLElement>(".rc-signals");
+      const circuit = ui.querySelector<HTMLElement>(".rc-circuit");
+      const footer = ui.querySelector<HTMLElement>(".rc-footer");
+      const bottomOf = (element: HTMLElement | null, fallback: number) => element && element.getBoundingClientRect().height
+        ? element.getBoundingClientRect().bottom - canvasRect.top : fallback;
+      const headerBottom = bottomOf(header, 0);
+      ui.style.setProperty("--rc-signals-top", `${headerBottom + gap}px`);
+      const signalBottom = bottomOf(signals, headerBottom);
+      ui.style.setProperty("--rc-circuit-top", `${signalBottom + gap}px`);
+      const circuitBottom = bottomOf(circuit, signalBottom);
+      ui.style.setProperty("--rc-toast-top", `${circuitBottom + gap}px`);
+      const feedback = Number.parseFloat(getComputedStyle(ui).getPropertyValue("--rc-feedback-inset")) || 48;
+      const top = circuitBottom + feedback;
+      const bottom = footer ? footer.getBoundingClientRect().top - canvasRect.top - 12 : size.height - 18;
+      const result = fitRoomCamera(camera, bounds, { width: size.width, height: size.height, top,
+        bottom: Math.max(top + 64, bottom), gutter: size.width <= 600 ? 10 : 24 });
+      if (!result && retries++ < 10) frame = requestAnimationFrame(fit);
+    };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit); };
+    const observer = new ResizeObserver(schedule);
+    document.querySelectorAll(".rc-header,.rc-signals,.rc-circuit,.rc-footer").forEach(element => observer.observe(element));
+    schedule();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+  }, [camera, canvas, size.width, size.height, room, status, active, completed.length]);
   const floor = useMemo(() => room.floor.map(cell => ({ ...cell, y: -0.06,
     color: (cell.x + cell.z) % 2 === 0 ? "#536773" : "#465b68" })), [room]);
   const corners = useMemo(() => room.floor.map(cell => ({ x: cell.x - 0.38, y: 0.01, z: cell.z - 0.38 })), [room]);
   const walls = useMemo(() => [0.12, 0.32, 0.4, 0.46].map(y => room.walls.map(cell => ({ ...cell, y }))), [room]);
-  const document = getAuthoredDocument();
-  const routes = document.paths.filter(path => path.meta?.roomId === room.id);
-  const zones = document.volumes.filter(zone => zone.meta?.roomId === room.id);
+  const authored = getAuthoredDocument();
+  const routes = authored.paths.filter(path => path.meta?.roomId === room.id);
+  const zones = authored.volumes.filter(zone => zone.meta?.roomId === room.id);
   return <group>
     <Block at={[bounds.centerX, -0.32, bounds.centerZ]} size={[bounds.width + 0.12, 0.55, bounds.depth + 0.12]} color={DARK} />
     <Block at={[bounds.centerX, -0.61, bounds.centerZ]} size={[bounds.width - 0.25, 0.12, bounds.depth - 0.25]} color={BRASS} />

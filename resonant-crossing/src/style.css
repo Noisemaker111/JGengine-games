@@ -102,3 +102,32 @@ html, body, #root { height: 100%; margin: 0; background: #080e19; }
 .rc-world-label { pointer-events: none; white-space: nowrap; color: #ffd693; font: 600 9px/1.2 "Segoe UI", sans-serif; text-shadow: 0 1px 3px #06111d, 0 0 3px #06111d; }
 .rc-world-label span { background: #10212ec9; padding: 2px 4px; border-radius: 3px; }
 .rc-world-label-light { color: #a8ebff; }
+
+.rc-ui { --rc-feedback-inset: 48px; }
+.rc-signals { top: var(--rc-signals-top, 132px); }
+.rc-circuit { top: var(--rc-circuit-top, 176px); }
+.rc-ui .rc-toast, .rc-ui:has(.rc-circuit) .rc-toast { top: var(--rc-toast-top, 222px); }
+@media (max-width: 600px) {
+  .rc-ui { --rc-feedback-inset: 60px; }
+  .rc-signals { width: calc(100% - 16px); gap: 4px 12px; }
+  .rc-hero > .rc-aim { grid-column: 1 / -1; }
+  .rc-hero .rc-aim button { min-width: 44px; }
+}
+@media (max-height: 580px) and (min-width: 601px) {
+  .rc-ui { --rc-feedback-inset: 42px; }
+  .rc-header p { display: none; }
+  .rc-header { padding: 7px 12px; }
+  .rc-hero { width: calc(100% - 190px); grid-template-columns: minmax(90px, .75fr) minmax(176px, 1.5fr) minmax(96px, 1fr); column-gap: 6px; }
+  .rc-hero > strong { grid-column: 1; grid-row: 1; }
+  .rc-hero > .rc-hint-button { grid-column: 2 / -1; grid-row: 1; min-height: 20px; }
+  .rc-hero > .rc-primary { grid-column: 1; grid-row: 2; }
+  .rc-hero > .rc-aim { grid-column: 2; grid-row: 2; }
+  .rc-hero > .rc-actions:not(.rc-aim):not(.rc-callouts) { grid-column: 3; grid-row: 2; }
+  .rc-hero:not(:has(.rc-aim)) > .rc-actions:not(.rc-callouts) { grid-column: 2 / -1; }
+  .rc-hero > .rc-callouts { grid-column: 2 / -1; grid-row: 3; }
+  .rc-hero > .rc-hint[role="status"] { grid-column: 1; grid-row: 3; align-self: center; font-size: 9px; }
+  .rc-hero > .rc-hint:not(.rc-role-hint):not([role="status"]) { grid-column: 1 / -1; grid-row: 4; }
+  .rc-hero .rc-actions button { padding: 4px 2px; font-size: 10px; }
+  .rc-hero .rc-aim button { min-width: 40px; }
+  .rc-ui .rc-toast { font-size: 11px; padding: 5px 12px; }
+}
