@@ -82,14 +82,14 @@ function Dialog({ title, eyebrow, children }: { title: string; eyebrow: string; 
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
-    ref.current?.querySelector<HTMLElement>("button:not(:disabled), input")?.focus();
+    ref.current?.querySelector<HTMLElement>("button:not(:disabled), input, a[href]")?.focus();
     return () => previous?.focus();
   }, []);
   return <StartScreen className="road-overlay"><section ref={ref} className="road-dialog" role="dialog" aria-modal="true" aria-label={title} onKeyDown={event => {
     // Keep native dialog navigation and activation out of shell pointer-lock shortcuts.
     if (event.key === "Tab" || event.key === " " || event.key === "Enter") event.stopPropagation();
     if (event.key !== "Tab") return;
-    const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input") ?? []);
+    const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input, a[href]") ?? []);
     const first = controls[0], last = controls.at(-1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
