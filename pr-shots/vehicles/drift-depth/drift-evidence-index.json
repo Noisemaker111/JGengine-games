@@ -1,0 +1,46 @@
+{
+  "sourceHeads": {
+    "harbor": "c14d61c2b78a98acd51b84052963282a3e6674d2",
+    "drift": "8705e86a9dd81838956717382f56e1c4c6d23a02",
+    "sdk": "1598f0ccc888f6691c5acc64665694c44a8b7ddb"
+  },
+  "provenance": "Native keyboard, mouse and trusted CDP touch input. React context read-only observer. Gamepad is a simulated navigator.getGamepads device, not physical hardware. Software GL. Low reduced integration render viewports; Medium640x400/shadows-off world captures; desktop1280x800 and phone390x844 results. No world pose, store, clocks or time scale writes.",
+  "completeNative": {
+    "drift-native.json": "No-hop failure, restart, four timed native hops, EV8/8escape53.5s, exact record reload.",
+    "drift-kept-route.json": "Actual truck installed before keep choice, retained throughEV, first spring hop trusted touch, subsequent keyboard hops, native braking and8/8escape44.7s. Staged capture stops mean times are not a controlled comparison.",
+    "drift-touch.json": "Trusted phone GO, brake, pause freeze, restart and fresh movement.",
+    "drift-gamepad.json": "Simulated analog throttle/steer/brake plus start/choice/pause/resume/restart.",
+    "drift-final-cue-save.json": "Exact retainedtruck Parkcheckpoint survivesfullreload. Continue restores exact3Dpose, keepEngine=true, installedparts and5clearedgates. Native Continue-to-P adds0.1simseconds; no unchanged clock claim."
+  },
+  "inspectedImages": {
+    "drift-kept-medium-exit-approach.png": "Native z442.470: new full gantry identity and clear opening.",
+    "drift-kept-medium-near-exit.png": "Native z466.928: buggy and road unobstructed at old failure stage; overhead beam now above near-camera frame.",
+    "drift-kept-desktop-result.png": "Full1280x800 result; stats, actual retainedtruck build, savedrecord and both actions fit.",
+    "drift-kept-phone-result.png": "390x844 result; stats/build/save/actions fit.",
+    "drift-touch-layout.png": "390x844 controls; native touch clip sampled by root and worker.",
+    "drift-foundry-after-default-driving.png": "Default opening rendering/composition only, not hardware performance.",
+    "drift-final-medium-cue.png": "FinalCSS nativez317.141. Bothcyanup-arrowheads fit and are unobscured. Centeredgatecue/rightbuildcard keep roadside sightlinesclear.",
+    "drift-final-medium-restored-cue.png": "Same Medium cue and retainedtruck after nativePark/fullreload/Continue."
+  },
+  "excludedOrPartial": {
+    "drift-native-lifecycle.json": "Aborted later route; only named acceleration/brake/pause/park/reload/reset checkpoints valid. Not a complete routePASS.",
+    "drift-medium-gantry-approach.png": "Rejected old near-exit frame with occlusion and missing buggy. Before-defect evidence only.",
+    "drift-native-jump-approach.png": "Low quality blurred/outside-FOV capture; does not prove glyph legibility.",
+    "drift-kept-medium-later-cue.png": "Superseded: rightglyphhiddenbyoldHUD. FinalCSScapture provesunobscuredpairedglyphs."
+  },
+  "limits": [
+    "No physical controller or real-hardware FPS proof",
+    "Default render calls remain above600budget",
+    "Reduced native viewport does not establish smoothness or driving fun"
+  ],
+  "verification": {
+    "tests": 193,
+    "failures": 0,
+    "assertions": 6680,
+    "files": 34,
+    "types": "bothPASS",
+    "productionBuilds": "bothPASS",
+    "sdkChecks": "all6SUCCESS",
+    "gameChecks": "no configured CI checks"
+  }
+}
