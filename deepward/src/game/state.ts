@@ -14,25 +14,27 @@ export const CACHE = { w: 4, h: 3 };
 export const TANK_SECONDS = 110;
 export const SIDEARM = { damage: 20, range: 24, interval: 0.32, label: "Kessler / issue sidearm" };
 export const RIFLE = { damage: 30, range: 30, interval: 0.5, label: "Kessler / service rifle" };
-export interface Result { kind: "extracted" | "lost"; dive: number; count: number; reason: string }
+export interface Result { kind: "extracted" | "lost"; dive: number; count: number | null; reason: string }
 export interface Home {
-  version: 1; revision: number; nextDive: number; life: number;
+  version: 2; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
   activeDive: number | null; stash: Item[]; extractions: number; deaths: number; last: Result | null;
 }
 export interface Dive {
-  id: number; elapsed: number; oxygen: number; health: number; cache: PackedItem[];
+  id: number; elapsed: number; tankSeconds: number; oxygen: number; health: number; cache: PackedItem[];
   collected: string[]; hand: "sidearm" | "service-rifle"; magazine: number; reserve: number;
   reload: number; shotCooldown: number; flash: number; hurt: number;
   print: { at: Point; health: number; mode: "route" | "calling" | "winding"; attack: number; cooldown: number; drop: Point | null };
   channel: { id: string; remaining: number; anchor: Point } | null;
 }
-export function newHome(): Home { return { version: 1, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null }; }
+export function newHome(): Home { return { version: 2, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null }; }
 export function depart(home: Home): Home {
+  if (home.reprintPending) throw new Error("Acknowledge the reprint before departing");
   if (home.activeDive !== null) throw new Error("A dive is already outstanding");
   return { ...home, revision: home.revision + 1, activeDive: home.nextDive, nextDive: home.nextDive + 1 };
 }
-export function newDive(id: number): Dive {
-  return { id, elapsed: 0, oxygen: TANK_SECONDS, health: 100, cache: [], collected: [], hand: "sidearm", magazine: 6, reserve: 18, reload: 0, shotCooldown: 0, flash: 0, hurt: 0,
+export function newDive(id: number, home: Pick<Home, "refits"> = { refits: [] }): Dive {
+  const tankSeconds = home.refits.includes("tank") ? 145 : TANK_SECONDS;
+  return { id, elapsed: 0, tankSeconds, oxygen: tankSeconds, health: 100, cache: [], collected: [], hand: "sidearm", magazine: 6, reserve: home.refits.includes("reserve") ? 30 : 18, reload: 0, shotCooldown: 0, flash: 0, hurt: 0,
     print: { at: PRINT_SPAWN, health: 80, mode: "route", attack: 0, cooldown: 0, drop: null }, channel: null };
 }
 export function footprint(item: Pick<PackedItem, "kind" | "rotated">): { w: number; h: number } {
@@ -64,13 +66,15 @@ export function takeLoot(dive: Dive, source: string, kind: ItemKind): Dive | nul
 export function settle(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Result["kind"], reason: string): Home {
   if (home.activeDive !== dive.id) throw new Error("Dive already settled or superseded");
   const hauled: Item[] = kind === "extracted" ? dive.cache.map(({ uid, kind, level }) => ({ uid, kind, level })) : [];
-  return { ...home, revision: home.revision + 1, activeDive: null,
+  return { ...home, revision: home.revision + 1, activeDive: null, reprintPending: kind === "lost",
     stash: [...home.stash, ...hauled], extractions: home.extractions + (kind === "extracted" ? 1 : 0),
     deaths: home.deaths + (kind === "lost" ? 1 : 0), life: home.life + (kind === "lost" ? 1 : 0),
     last: { kind, dive: dive.id, count: dive.cache.length, reason } };
 }
 export function recoverInterrupted(home: Home): Home {
-  return home.activeDive === null ? home : settle(home, { id: home.activeDive, cache: [] }, "lost", "Radio lost during a dive. The Life ended; its carried haul stayed in Bellwether.");
+  if (home.activeDive === null) return home;
+  const lost = settle(home, { id: home.activeDive, cache: [] }, "lost", "Radio lost during a dive. The Life ended; its carried haul stayed in Bellwether.");
+  return { ...lost, last: { ...lost.last!, count: null } }; // Carried instances were never persisted mid-dive.
 }
 export function reloadWeapon(dive: Dive): Dive {
   return dive.magazine === 6 || dive.reserve === 0 || dive.reload > 0 ? dive : { ...dive, reload: 1.3, channel: null };
@@ -86,4 +90,9 @@ export function ageDive(dive: Dive, dt: number, steam: boolean): Dive {
     magazine: dive.magazine + rounds, reserve: dive.reserve - rounds, reload: Math.max(0, dive.reload - dt),
     shotCooldown: Math.max(0, dive.shotCooldown - dt), flash: Math.max(0, dive.flash - dt),
     hurt: health < dive.health ? 0.35 : Math.max(0, dive.hurt - dt) };
+}
+
+export function acknowledgeReprint(home: Home): Home {
+  if (!home.reprintPending || home.activeDive !== null) throw new Error("No reprint awaiting acknowledgement");
+  return { ...home, revision: home.revision + 1, reprintPending: false };
 }

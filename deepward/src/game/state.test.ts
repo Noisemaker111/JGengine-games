@@ -18,6 +18,7 @@ describe("Bellwether extraction invariants", () => {
     const recovered = recoverInterrupted(depart(newHome()));
     expect(recovered.activeDive).toBeNull();
     expect(recovered.deaths).toBe(1);
+    expect(recovered.last!.count).toBeNull();
     expect(recoverInterrupted(recovered)).toBe(recovered);
   });
   test("packing consumes footprints and rejects overlapping or out-of-bounds placement", () => {

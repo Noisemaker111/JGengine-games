@@ -4,7 +4,8 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { distance, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
-import { ageDive, depart, fits, ITEMS, newDive, newHome, pack, recoverInterrupted, reloadWeapon, RIFLE, settle, SIDEARM, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
+import { acknowledgeReprint, ageDive, depart, fits, ITEMS, newDive, newHome, pack, recoverInterrupted, reloadWeapon, RIFLE, settle, SIDEARM, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
+import { installRefit, REFITS, type RefitId } from "./progression";
 import { openSave, type SaveSession } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
@@ -15,7 +16,7 @@ export const keybinds: ActionCodesMap = {
   deepwardInteract: ["KeyE"], deepwardFire: ["mouse0"], deepwardReload: ["KeyR"], deepwardCache: ["Tab"],
 };
 export interface View {
-  home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked";
+  home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked" | "reprinting";
   panel: "stash" | "cache" | null; paused: boolean; hint: string; error: string;
   pending: { kind: Result["kind"]; reason: string } | null;
   trace: { from: Point; to: Point; remaining: number } | null;
@@ -60,7 +61,7 @@ function syncPrint(ctx: GameContext, dive: Dive | null): void {
 }
 function syncPlayer(ctx: GameContext, dive: Dive | null): void {
   ctx.scene.entity.stats.set(ctx.player.userId, "health", { current: dive?.health ?? 100 });
-  ctx.scene.entity.stats.set(ctx.player.userId, "oxygen", { current: dive?.oxygen ?? 110 });
+  ctx.scene.entity.stats.set(ctx.player.userId, "oxygen", { current: dive?.oxygen ?? 110, max: dive?.tankSeconds ?? 110 });
   ctx.scene.entity.stats.set(ctx.player.userId, "ammo", { current: dive?.magazine ?? 6 });
 }
 export function nearby(ctx: GameContext): { label: string; id: string; kind?: ItemKind; at: Point } | null {
@@ -87,7 +88,7 @@ function begin(ctx: GameContext): void {
   try {
     const home = depart(v.home);
     save.commit(home); // A failed departure never enters the vault.
-    const dive = newDive(home.activeDive!);
+    const dive = newDive(home.activeDive!, home);
     viewStore.write(ctx, { ...v, home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, hint: "Bellwether / last shift. The rail behind you is the only way home." });
     teleport(ctx, VAULT_SPAWN);
     clearLoot(ctx);
@@ -106,6 +107,10 @@ function finish(ctx: GameContext, kind: Result["kind"], reason: string): void {
     if (save === null) throw new Error("Persistent storage unavailable");
     const home = settle(v.home, v.dive, kind, reason);
     save.commit(home);
+    if (kind === "lost") {
+      viewStore.write(ctx, { ...v, home, mode: "reprinting", pending: null, paused: false, panel: null, error: "", trace: null, hint: "Signal ended. The carried haul is lost; Marrow is preparing the next Life." });
+      return; // Preserve the failed expedition view until the player acknowledges its consequence.
+    }
     clearLoot(ctx);
     syncPrint(ctx, null);
     teleport(ctx, HOME_SPAWN);
@@ -173,6 +178,26 @@ function toggleCache(ctx: GameContext): void {
 }
 export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define("deepward.depart", { apply: begin });
+  ctx.game.commands.define<{ id: RefitId }>("deepward.refit", { apply(state, input) {
+    const v = viewStore.read(state), save = runtime(state).save;
+    if (v.mode !== "home" || v.panel !== "stash" || save === null) return;
+    try {
+      const home = installRefit(v.home, input.id);
+      save.commit(home);
+      viewStore.write(state, { ...v, home, error: "", hint: `${REFITS[input.id].name} installed. ${REFITS[input.id].effect}. Spent salvage is gone from the stash.` });
+    } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
+  } });
+  ctx.game.commands.define("deepward.acknowledgeReprint", { apply(state) {
+    const v = viewStore.read(state), save = runtime(state).save;
+    if (v.mode !== "reprinting" || save === null) return;
+    try {
+      const home = acknowledgeReprint(v.home);
+      save.commit(home);
+      clearLoot(state); syncPrint(state, null); teleport(state, HOME_SPAWN); syncPlayer(state, null);
+      viewStore.write(state, { ...v, home, dive: null, mode: "home", error: "", hint: "Halloway: the printer has you. Banked stash and installed refits survived. Choose the next departure." });
+      run(state);
+    } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
+  } });
   // Published shell dispatches each press/repeat to the bound action's command name.
   // UI commands share the apply functions. Only fire also consumes held input,
   // through its existing cooldown; discrete actions stay on the shell's press path.
@@ -231,14 +256,14 @@ export function initialize(ctx: GameContext): void {
     runtime(ctx).save = save;
     const recovered = recoverInterrupted(save.home);
     if (recovered !== save.home) save.commit(recovered);
-    viewStore.update(ctx, v => ({ ...v, home: save.home, hint: recovered.last?.reason ?? v.hint }));
+    viewStore.update(ctx, v => ({ ...v, home: save.home, mode: save.home.reprintPending ? "reprinting" : "home", hint: recovered.last?.reason ?? v.hint }));
   } catch (error) { viewStore.update(ctx, v => ({ ...v, mode: "blocked", error: message(error) })); }
 }
 export function seatPlayer(ctx: GameContext): void {
   ctx.scene.entity.spawn("diver", { id: ctx.player.userId, position: HOME_SPAWN, rotationY: Math.PI, role: "player" });
   syncPlayer(ctx, null);
   run(ctx);
-  if (viewStore.read(ctx).mode === "blocked") freeze(ctx);
+  if (viewStore.read(ctx).mode === "blocked" || viewStore.read(ctx).mode === "reprinting") freeze(ctx);
 }
 /** Called only by a storage change event, never by a polling loop. */
 export function storageChanged(ctx: GameContext): void {
@@ -306,4 +331,15 @@ export function tick(ctx: GameContext, dt: number): void {
   // Array bindings deliver brief presses but have no shell repeat policy. Age
   // cooldown first, then share fire's gates for held input and the press command.
   else if (ctx.input.isDown("deepwardFire")) fire(ctx);
+}
+
+/** Read-only metrics for the published driver's standalone capture bridge. */
+export function captureProbe(ctx: GameContext): Record<string, number> {
+  const v = viewStore.read(ctx), at = playerAt(ctx);
+  return { x: at?.[0] ?? 0, z: at?.[2] ?? 0, inDive: v.mode === "dive" ? 1 : 0,
+    reprinting: v.mode === "reprinting" ? 1 : 0, oxygen: v.dive?.oxygen ?? 0,
+    tankSeconds: v.dive?.tankSeconds ?? 0, reserve: v.dive?.reserve ?? 0,
+    carried: v.dive?.cache.length ?? 0, stash: v.home.stash.length,
+    tankRefit: v.home.refits.includes("tank") ? 1 : 0, reserveRefit: v.home.refits.includes("reserve") ? 1 : 0,
+    deaths: v.home.deaths, returns: v.home.extractions };
 }

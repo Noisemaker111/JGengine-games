@@ -14,7 +14,7 @@ import { surfaceMaterial, type IndustrialSurface } from "./game/industrialMateri
 import { FitterModel } from "./game/fitterArt";
 import { ServiceWeapon, serviceWeaponPose } from "./game/weaponArt";
 import { activeRoomLamps, deriveRoomPresentation, ROOM_LIGHT_BUDGET, ROOM_LIGHT_REACH, type RoomSurface } from "./game/roomPresentation";
-import { initialize, keybinds, seatPlayer, setAim, tick, viewStore } from "./game/controls";
+import { captureProbe, initialize, keybinds, seatPlayer, setAim, tick, viewStore } from "./game/controls";
 import { ITEMS } from "./game/state";
 import { GameUI } from "./game/ui/GameUI";
 
@@ -228,5 +228,6 @@ export const game = defineGame({
   lighting: { ambient: { color: "#b2c5c3", intensity: 0.55 }, hemisphere: { skyColor: "#a8d4cf", groundColor: "#57422e", intensity: 0.45 } },
   backdrop: { background: C.black, fog: { color: C.black, near: 24, far: 75 } },
   postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.2, radius: 0.4, threshold: 1.1 } },
+  capture: { probe: captureProbe },
   orientation: "landscape",
 });

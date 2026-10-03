@@ -4,7 +4,8 @@ import { useStore } from "@jgengine/react/store";
 import { useGameStore } from "@jgengine/react/hooks";
 import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
-import { CACHE, footprint, ITEMS, RIFLE, SIDEARM, TANK_SECONDS } from "../state";
+import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
+import { REFITS, refitMissing, type RefitId } from "../progression";
 import { SAVE_KEY } from "../save";
 
 function grab(): void {
@@ -70,15 +71,15 @@ export function GameUI() {
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
     <header className="dw-top">
-      <div><span className="dw-eyebrow">One of the last lit vaults</span><h1>DEEPWARD<span> / {view.mode === "home" ? "MARROW" : "BELLWETHER"}</span></h1>
-        <p>{roomAt(at, view.mode === "home" ? "home" : "vault")} · Life {view.home.life}</p></div>
-      <button onClick={() => command("pause")} className="dw-small">Pause / Esc</button>
+      <div><span className="dw-eyebrow">One of the last lit vaults</span><h1>DEEPWARD<span> / {dive === null ? "MARROW" : "BELLWETHER"}</span></h1>
+        <p>{roomAt(at, dive === null ? "home" : "vault")} · Life {view.home.life}</p></div>
+      <button disabled={view.mode !== "home" && view.mode !== "dive"} onClick={() => command("pause")} className="dw-small">Pause / Esc</button>
     </header>
     {dive !== null && <>
       <section className="dw-air" aria-label="Oxygen tank">
-        <span className="dw-eyebrow">Equipment / issue tank</span>
+        <span className="dw-eyebrow">Equipment / {dive.tankSeconds > 110 ? "sealed tank" : "issue tank"}</span>
         <div><strong>{Math.ceil(dive.oxygen)}<small>s</small></strong><span>{dive.oxygen === 0 ? "NO AIR / HEALTH BLEED" : low ? "RETRACE TO THE RAIL" : "AIR REMAINING"}</span></div>
-        <progress max={TANK_SECONDS} value={dive.oxygen} />
+        <progress max={dive.tankSeconds} value={dive.oxygen} />
         <p>Return rail · {Math.round(distance(at, EXIT))} m · the way you came in</p>
       </section>
       <div className="dw-reticle" aria-hidden="true">{dive.flash > 0 ? "+" : "·"}</div>
@@ -111,6 +112,14 @@ export function GameUI() {
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.uid}>
         <span className="dw-swatch" style={{ background: ITEMS[item.kind].color }} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small></div>
       </article>)}</div>}
+      <h3>Refit the next departure</h3><p>Both refits need a copper spool. Spending it here means another rail journey for the other refit. Installed refits survive every Life.</p>
+      {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article key={id}>
+        <h4>{refit.name} {installed ? " / installed" : ""}</h4><p>{refit.effect}</p>
+        <p>Cost: {refit.recipe.inputs.map(i => `${i.count} ${ITEMS[i.itemId as keyof typeof ITEMS].name}`).join(" + ")}</p>
+        <button disabled={installed || missing.length > 0} onClick={() => command("refit", { id })}>{installed ? `${refit.name} installed` : `Install ${refit.name}`}</button>
+        {missing.length > 0 && !installed && <p>Still needed: {missing.map(i => `${i.count} ${ITEMS[i.itemId as keyof typeof ITEMS].name}`).join(" + ")}</p>}
+      </article>; })}
+      <p role="status">{view.hint}</p>{view.error && <p role="alert">{view.error}</p>}
       <div className="dw-actions"><button onClick={close}>Back to Marrow</button><button onClick={() => window.location.reload()}>Reload saved stash</button></div>
     </section></div>}
     {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><section className="dw-sheet" aria-label="Carried cache">
@@ -126,7 +135,15 @@ export function GameUI() {
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><button aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</button><button aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</button></div>}
       <button onClick={() => { command("cache"); grab(); }}>Close cache / Tab</button>
     </section></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><section className="dw-sheet dw-pause"><span className="dw-eyebrow">Simulation paused</span><h2>Hold your breath.</h2><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button></section></div>}
+    {view.paused && view.panel === null && <div className="dw-modal"><section className="dw-sheet dw-pause"><span className="dw-eyebrow">Simulation paused</span><h2>Hold your breath.</h2><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
+    {view.mode === "reprinting" && <div className="dw-modal"><section className="dw-sheet dw-pause" aria-label="Life ended" role="alert">
+      <span className="dw-eyebrow">Signal lost / Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
+      <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
+      <p>Halloway has printed Life {view.home.life}. This loss is already saved; reloading cannot restore the expedition.</p>
+      {view.error && <p role="alert">{view.error}</p>}
+      <button onClick={() => { command("acknowledgeReprint"); if (viewStore.read(ctx).mode === "home") grab(); }}>Accept reprint / return to Marrow</button>
+      <button onClick={() => window.location.reload()}>Reload saved Marrow</button>
+    </section></div>}
     {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><section className="dw-sheet dw-pause" role="alert">
       <span className="dw-eyebrow">Marrow / save boundary</span><h2>{view.mode === "saving" ? "Return pending" : "Marrow is unavailable"}</h2><p>{view.error}</p>
       <p>{view.mode === "saving" ? "The simulation is stopped. This return has not been acknowledged; retry or reload the saved record." : "The saved record has been preserved. No new dive can begin."}</p>

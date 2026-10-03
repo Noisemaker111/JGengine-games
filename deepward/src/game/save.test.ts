@@ -55,7 +55,7 @@ describe("durable Marrow boundary", () => {
     const first = openSave(storage), stale = openSave(storage);
     first.commit(depart(first.home));
     expect(() => stale.commit(depart(stale.home))).toThrow("another window");
-    for (const raw of ["{", JSON.stringify({ ...newHome(), version: 2 }), JSON.stringify({ ...newHome(), stash: [{ uid: "1:wire", kind: "wire", level: 1 }] })]) {
+    for (const raw of ["{", JSON.stringify({ ...newHome(), version: 3 }), JSON.stringify({ ...newHome(), stash: [{ uid: "1:wire", kind: "wire", level: 1 }] })]) {
       storage.setItem(SAVE_KEY, raw);
       expect(() => openSave(storage)).toThrow();
       expect(storage.getItem(SAVE_KEY)).toBe(raw);
