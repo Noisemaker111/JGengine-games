@@ -10,7 +10,7 @@ export const waves = defineSystem({
   id: "waves",
   tick: { type: "frame", stage: "ai" },
   update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickWaves(ctx, dt);
+    if (!session.gameOver && !session.victory && !session.paused) tickWaves(ctx, dt);
   },
 });
 
@@ -18,7 +18,7 @@ export const construction = defineSystem({
   id: "construction",
   tick: { type: "frame", stage: "ai", after: "waves" },
   update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickConstruction(ctx, dt);
+    if (!session.gameOver && !session.victory && !session.paused) tickConstruction(ctx, dt);
   },
 });
 
@@ -26,7 +26,7 @@ export const towers = defineSystem({
   id: "towers",
   tick: { type: "frame", stage: "combat", after: "waves" },
   update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickTowers(ctx, dt);
+    if (!session.gameOver && !session.victory && !session.paused) tickTowers(ctx, dt);
   },
 });
 

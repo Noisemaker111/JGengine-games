@@ -1,32 +1,39 @@
-import { useGameStore } from "@jgengine/react/hooks";
-import { DeathScreenView } from "@/components/ui/death-screen-view";
-import { ResultsScreen } from "@/components/ui/results-screen";
-
-import { GOLD_CURRENCY } from "../../entities/base/catalog";
-import { TOTAL_WAVES } from "../../waves/manifest";
+import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { session } from "../../session";
-
+import { TOTAL_WAVES } from "../../waves/manifest";
 export function EndScreens() {
-  const gameOver = useGameStore(() => session.gameOver);
-  const victory = useGameStore(() => session.victory);
-  const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
-
-  if (gameOver) {
-    return <DeathScreenView title="The Keep Has Fallen" subtitle="The raiders broke through every watchtower." />;
-  }
-
-  if (victory) {
-    return (
-      <ResultsScreen
-        outcome="victory"
-        title="The Keep Holds"
-        lines={[
-          { label: "Waves Survived", value: TOTAL_WAVES, accent: true },
-          { label: "Gold Remaining", value: gold },
-        ]}
-      />
-    );
-  }
-
-  return null;
+  const { commands } = useGame();
+  const savedMessage = useGameStore(() => session.savedMessage);
+  const over = useGameStore(() => session.gameOver),
+    won = useGameStore(() => session.victory);
+  if (!over && !won) return null;
+  return (
+    <div className="bb-terminal">
+      <section
+        className="bb-frame"
+        role="dialog"
+        aria-modal="true"
+        aria-label={won ? "Keep defended" : "Keep fallen"}
+      >
+        <h1>{won ? "The Keep Holds" : "The Keep Has Fallen"}</h1>
+        <p>
+          {won
+            ? `All ${TOTAL_WAVES} raids repelled. Your towers earned their beacon.`
+            : "Recover with a saved defense, or rebuild your crossfire. Cannons counter armor; reserve pays for a rally."}
+        </p>
+        <div className="bb-actions">
+          <button
+            className="bb-primary"
+            onClick={() => commands.run("restartRun", {})}
+          >
+            Build a new defense
+          </button>
+          <button onClick={() => commands.run("loadRun", {})}>
+            Restore saved defense
+          </button>
+        </div>
+        <p role="status">{savedMessage}</p>
+      </section>
+    </div>
+  );
 }
