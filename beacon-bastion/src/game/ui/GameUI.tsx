@@ -15,7 +15,7 @@ function GameUIInner() {
         <Hud />
       </HudPanel>
       <HudPanel id="settings" anchor="top-right" inset={{ x: 18, y: 18 }}>
-        <SettingsTrigger className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-md border border-[var(--jg-edge-bright)] bg-[var(--jg-surface)]/80 text-base text-[var(--jg-text-dim)] shadow-[0_1px_2px_rgba(0,0,0,0.6)] transition hover:bg-[var(--jg-surface-deep)] hover:text-[var(--jg-accent)]" />
+        <SettingsTrigger />
       </HudPanel>
       <HudPanel id="build-bar" anchor="bottom" inset={{ x: 0, y: 18 }}>
         <BuildBar />
