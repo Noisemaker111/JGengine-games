@@ -5,7 +5,7 @@ import { game } from "../game.config";
 import { loop } from "../loop";
 import { duetStore } from "./stores";
 import { ROOMS } from "./rooms/catalog";
-import { seatPlayer } from "./runtime";
+import { controlledHero, resetRoom, seatPlayer, swapHero } from "./runtime";
 import { parseCheckpoint } from "./persistence";
 
 function boot() {
@@ -36,6 +36,7 @@ describe("observable run boundaries", () => {
     expect(gamePhase(ctx)).toBe("playing");
     // Drive the actual exit condition on every room, including the final advance.
     for (const room of ROOMS) {
+      duetStore.update(ctx, state => ({ ...state, latch: { ...state.latch, completedRelays: room.relays?.map(relay => relay.id) ?? [] } }));
       for (const id of ["lumen", "anchor"] as const) ctx.scene.entity.setPose(id, { position: [room.exit[id].x, 0, room.exit[id].z], rotationY: 0, dt: 0 });
       loop.onTick(ctx, 0.01);
       loop.onTick(ctx, 2);
@@ -72,5 +73,58 @@ describe("observable run boundaries", () => {
     ctx.game.commands.run("reset", {});
     expect(duetStore.read(ctx).activeSpikes).toEqual(["s_X"]);
     expect(duetStore.read(ctx).pressedPlates).toEqual([]);
+  });
+});
+
+
+describe("hero seat admission and reconnect", () => {
+  test("third player cannot steal Anchor or change puzzle state", () => {
+    const ctx = boot();
+    ctx.game.commands.run("duet.start", { roomIndex: 2 });
+    expect(seatPlayer(ctx, "partner")).toBe(true);
+    const before = duetStore.read(ctx);
+    expect(seatPlayer(ctx, "third-player")).toBe(false);
+    expect(controlledHero(ctx, "third-player")).toBeNull();
+    expect(ctx.player.possession.listOwned("third-player")).not.toContain("anchor");
+    expect(controlledHero(ctx, "partner")).toBe("anchor");
+    expect(ctx.player.possession.listOwned("solo-probe")).not.toContain("anchor");
+    expect(duetStore.read(ctx)).toEqual(before);
+  });
+
+  test("second player restores a solo player who had been controlling Anchor", () => {
+    const ctx = boot();
+    expect(swapHero(ctx, "solo-probe")).toBe(true);
+    expect(controlledHero(ctx, "solo-probe")).toBe("anchor");
+    expect(seatPlayer(ctx, "partner")).toBe(true);
+    expect(controlledHero(ctx, "solo-probe")).toBe("lumen");
+    expect(controlledHero(ctx, "partner")).toBe("anchor");
+    expect(swapHero(ctx, "solo-probe")).toBe(false);
+  });
+
+  test("solo reconnect and room reset retain the selected hero", () => {
+    const ctx = boot();
+    ctx.game.commands.run("duet.start", { roomIndex: 2 });
+    expect(swapHero(ctx, "solo-probe")).toBe(true);
+    const before = duetStore.read(ctx);
+    expect(seatPlayer(ctx, "solo-probe")).toBe(true);
+    expect(controlledHero(ctx, "solo-probe")).toBe("anchor");
+    expect(duetStore.read(ctx)).toEqual(before);
+    resetRoom(ctx);
+    expect(controlledHero(ctx, "solo-probe")).toBe("anchor");
+    expect(duetStore.read(ctx).active).toBe("anchor");
+    expect(duetStore.read(ctx).roomIndex).toBe(2);
+  });
+
+  test("known partner reconnect preserves planted devices and does not take the other seat", () => {
+    const ctx = boot();
+    ctx.game.commands.run("duet.start", { roomIndex: 2 });
+    ctx.game.commands.run("ability", { dir: "east" });
+    expect(seatPlayer(ctx, "partner")).toBe(true);
+    const before = duetStore.read(ctx);
+    expect(seatPlayer(ctx, "partner")).toBe(true);
+    expect(duetStore.read(ctx)).toEqual(before);
+    expect(controlledHero(ctx, "partner")).toBe("anchor");
+    expect(controlledHero(ctx, "solo-probe")).toBe("lumen");
+    expect(controlledHero(ctx, "unseated")).toBeNull();
   });
 });
