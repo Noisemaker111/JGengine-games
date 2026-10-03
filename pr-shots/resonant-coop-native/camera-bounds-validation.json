@@ -1,0 +1,89 @@
+{
+  "cases": [
+    {
+      "room": "interlock",
+      "viewport": [
+        1600,
+        900
+      ],
+      "zoom": 0.45,
+      "bounds": {
+        "left": 381.20386009505853,
+        "right": 1218.7961399049414,
+        "top": 259.99999999999994,
+        "bottom": 563.9999999999999
+      }
+    },
+    {
+      "room": "interlock",
+      "viewport": [
+        800,
+        450
+      ],
+      "zoom": 0.43,
+      "bounds": {
+        "left": 200.2452622163931,
+        "right": 599.7547377836069,
+        "top": 165,
+        "bottom": 310
+      }
+    },
+    {
+      "room": "interlock",
+      "viewport": [
+        390,
+        844
+      ],
+      "zoom": 0.212,
+      "bounds": {
+        "left": 10.000000000000007,
+        "right": 380,
+        "top": 337.35515953804475,
+        "bottom": 471.64484046195525
+      }
+    },
+    {
+      "room": "crosswire",
+      "viewport": [
+        1600,
+        900
+      ],
+      "zoom": 0.291,
+      "bounds": {
+        "left": 444.2720347415287,
+        "right": 1155.7279652584714,
+        "top": 260.00000000000006,
+        "bottom": 564
+      }
+    },
+    {
+      "room": "crosswire",
+      "viewport": [
+        800,
+        450
+      ],
+      "zoom": 0.278,
+      "bounds": {
+        "left": 230.32712183395284,
+        "right": 569.6728781660472,
+        "top": 165.00000000000003,
+        "bottom": 310
+      }
+    },
+    {
+      "room": "crosswire",
+      "viewport": [
+        390,
+        844
+      ],
+      "zoom": 0.161,
+      "bounds": {
+        "left": 10.000000000000007,
+        "right": 380,
+        "top": 325.45083112296766,
+        "bottom": 483.5491688770324
+      }
+    }
+  ],
+  "initialCamera": "safely deferred"
+}
