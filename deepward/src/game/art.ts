@@ -12,7 +12,9 @@ export function signTexture(title: string, subtitle: string, color = PALETTE.cya
   c.fillStyle = PALETTE.black; c.fillRect(0, 0, 768, 256);
   c.strokeStyle = color; c.lineWidth = 5; c.strokeRect(12, 12, 744, 232);
   c.fillStyle = color; c.fillRect(32, 40, 10, 170);
-  c.font = "bold 54px monospace"; c.fillText(title, 65, 103);
+  c.font = "bold 54px monospace";
+  if (c.measureText(title).width > 655) c.font = `bold ${Math.floor(54 * 655 / c.measureText(title).width)}px monospace`;
+  c.fillText(title, 65, 103);
   c.fillStyle = "#d5d9c9"; c.font = "27px monospace"; c.fillText(subtitle, 65, 169);
   c.fillStyle = color; c.font = "19px monospace"; c.fillText("BW / MAINTENANCE DIVISION", 65, 214);
   const texture = new CanvasTexture(canvas); texture.colorSpace = SRGBColorSpace;

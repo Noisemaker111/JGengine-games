@@ -6,6 +6,7 @@ import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
+import { ItemMark, shiftThemeStyle } from "./ItemMark";
 import { SAVE_KEY } from "../save";
 
 function grab(): void {
@@ -67,11 +68,11 @@ export function GameUI() {
   const chosen = dive?.cache.find(i => i.uid === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: Math.floor(i / CACHE.w) }));
   const close = () => { command("close"); grab(); };
-  return <div className={`dw-ui ${low ? "dw-low" : ""}`} onKeyDown={event => {
+  return <div style={shiftThemeStyle} className={`dw-ui ${low ? "dw-low" : ""}`} onKeyDown={event => {
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
     <header className="dw-top">
-      <div><span className="dw-eyebrow">One of the last lit vaults</span><h1>DEEPWARD<span> / {dive === null ? "MARROW" : "BELLWETHER"}</span></h1>
+      <div><span className="dw-eyebrow">Halloway municipal print service / 06</span><h1>DEEPWARD<span> / {dive === null ? "MARROW" : "BELLWETHER"}</span></h1>
         <p>{roomAt(at, dive === null ? "home" : "vault")} · Life {view.home.life}</p></div>
       <button disabled={view.mode !== "home" && view.mode !== "dive"} onClick={() => command("pause")} className="dw-small">Pause / Esc</button>
     </header>
@@ -93,27 +94,28 @@ export function GameUI() {
       </section>
     </>}
     {view.mode === "home" && view.panel === null && <aside className="dw-home">
-      <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Last shift at Bellwether</h2>
-      <p>The staff kept printing after the lights went out. Take their supplies. Come back before your tank is empty.</p>
+      <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Rail departure / 06</h2>
+      <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
       <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
-      <p className="dw-note">Garage ahead · stash on your left. Returning stores the haul immediately. Death or reload during a dive loses what you carry.</p>
+      <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death or dive reload loses carried items.</p>
       {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
     </aside>}
     <footer className="dw-bottom">
       <div className="dw-radio"><span>MARROW / RADIO</span><p role="status">{view.hint}</p></div>
       {dive?.channel !== null && dive?.channel !== undefined ? <div className="dw-prompt"><strong>Searching / keep still</strong><progress max={1.4} value={1.4 - dive.channel.remaining} /><small>E to cancel · movement or damage interrupts</small></div>
         : target !== null && view.panel === null && !view.paused ? <button className="dw-prompt" onClick={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }}>{target.label}</button> : null}
-      <p className="dw-keys">Click the vault to look · WASD / arrows move · Shift sprint · E interact · LMB fire · R reload · Tab cache · Esc pause</p>
+
       {view.error && view.mode !== "saving" && view.mode !== "blocked" && <p role="alert" className="dw-error">{view.error}</p>}
     </footer>
-    {view.panel === "stash" && <div className="dw-modal"><section className="dw-sheet" aria-label="Marrow stash">
+    {view.panel === "stash" && <div className="dw-modal"><section data-hud-window className="dw-sheet" aria-label="Marrow stash">
+      <button className="dw-sheet-close" onClick={close}>Close bench ×</button>
       <span className="dw-eyebrow">Permanent / saved on return</span><h2>Marrow's stash</h2>
       <p>These exact item instances survived the rail journey. They remain here through deaths and reloads.</p>
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.uid}>
-        <span className="dw-swatch" style={{ background: ITEMS[item.kind].color }} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small></div>
+        <ItemMark kind={item.kind} size={38} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small></div>
       </article>)}</div>}
       <h3>Refit the next departure</h3><p>Both refits need a copper spool. Spending it here means another rail journey for the other refit. Installed refits survive every Life.</p>
-      {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article key={id}>
+      {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article className="dw-refit" key={id}>
         <h4>{refit.name} {installed ? " / installed" : ""}</h4><p>{refit.effect}</p>
         <p>Cost: {refit.recipe.inputs.map(i => `${i.count} ${ITEMS[i.itemId as keyof typeof ITEMS].name}`).join(" + ")}</p>
         <button disabled={installed || missing.length > 0} onClick={() => command("refit", { id })}>{installed ? `${refit.name} installed` : `Install ${refit.name}`}</button>
@@ -122,11 +124,12 @@ export function GameUI() {
       <p role="status">{view.hint}</p>{view.error && <p role="alert">{view.error}</p>}
       <div className="dw-actions"><button onClick={close}>Back to Marrow</button><button onClick={() => window.location.reload()}>Reload saved stash</button></div>
     </section></div>}
-    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><section className="dw-sheet" aria-label="Carried cache">
+    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><section data-hud-window className="dw-sheet" aria-label="Carried cache">
+      <button className="dw-sheet-close" onClick={close}>Close cache ×</button>
       <span className="dw-eyebrow">Carried cache / 4 × 3 / equipment capacity</span><h2>What fits comes home.</h2><p className="dw-error">The tank and prints keep moving while you pack.</p>
       <div className="dw-cache-grid">
         {cells.map(c => <button className="dw-cache-cell" key={`${c.x}:${c.y}`} style={{ gridColumn: c.x + 1, gridRow: c.y + 1 }} aria-label={`Move selected item to column ${c.x + 1}, row ${c.y + 1}`} onClick={() => { if (chosen) command("pack", { uid: chosen.uid, x: c.x, y: c.y }); }} />)}
-        {dive.cache.map(i => { const f = footprint(i), item = ITEMS[i.kind]; return <button key={i.uid} className={`dw-cache-item ${selected === i.uid ? "selected" : ""}`} style={{ gridColumn: `${i.x + 1} / span ${f.w}`, gridRow: `${i.y + 1} / span ${f.h}`, borderColor: item.color }} onClick={() => setSelected(i.uid)}><span style={{ color: item.color }}>{item.name}</span><small>{item.rarity} · Lv 1</small></button>; })}
+        {dive.cache.map(i => { const f = footprint(i), item = ITEMS[i.kind]; return <button key={i.uid} className={`dw-cache-item ${selected === i.uid ? "selected" : ""}`} style={{ gridColumn: `${i.x + 1} / span ${f.w}`, gridRow: `${i.y + 1} / span ${f.h}`, borderColor: item.color }} onClick={() => setSelected(i.uid)}><ItemMark kind={i.kind} size={28} /><span style={{ color: item.color }}>{item.name}</span><small>{item.rarity} · Lv 1</small></button>; })}
       </div>
       {chosen ? <div className="dw-pack-controls"><strong>{ITEMS[chosen.kind].name}</strong><p>Select an empty square as its upper-left corner.</p>
         <div className="dw-actions">{([[-1, 0, "←"], [0, -1, "↑"], [0, 1, "↓"], [1, 0, "→"]] as const).map(([dx, dy, label]) => <button key={label} aria-label={`Move ${label}`} onClick={() => command("pack", { uid: chosen.uid, x: chosen.x + dx, y: chosen.y + dy })}>{label}</button>)}
@@ -135,16 +138,16 @@ export function GameUI() {
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><button aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</button><button aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</button></div>}
       <button onClick={() => { command("cache"); grab(); }}>Close cache / Tab</button>
     </section></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><section className="dw-sheet dw-pause"><span className="dw-eyebrow">Simulation paused</span><h2>Hold your breath.</h2><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
-    {view.mode === "reprinting" && <div className="dw-modal"><section className="dw-sheet dw-pause" aria-label="Life ended" role="alert">
-      <span className="dw-eyebrow">Signal lost / Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
+    {view.paused && view.panel === null && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
+    {view.mode === "reprinting" && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alert">
+      <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
       <p>Halloway has printed Life {view.home.life}. This loss is already saved; reloading cannot restore the expedition.</p>
       {view.error && <p role="alert">{view.error}</p>}
       <button onClick={() => { command("acknowledgeReprint"); if (viewStore.read(ctx).mode === "home") grab(); }}>Accept reprint / return to Marrow</button>
       <button onClick={() => window.location.reload()}>Reload saved Marrow</button>
     </section></div>}
-    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><section className="dw-sheet dw-pause" role="alert">
+    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause" role="alert">
       <span className="dw-eyebrow">Marrow / save boundary</span><h2>{view.mode === "saving" ? "Return pending" : "Marrow is unavailable"}</h2><p>{view.error}</p>
       <p>{view.mode === "saving" ? "The simulation is stopped. This return has not been acknowledged; retry or reload the saved record." : "The saved record has been preserved. No new dive can begin."}</p>
       {view.mode === "saving" && <button onClick={() => command("retrySave")}>Retry saving this return</button>}

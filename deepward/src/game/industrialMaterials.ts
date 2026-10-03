@@ -1,7 +1,7 @@
 import type { ThreeElements } from "@react-three/fiber";
 
 export const PALETTE = {
-  wall: "#4c6460", panel: "#344744", floor: "#18282c", steel: "#82918b", brass: "#cca46c",
+  wall: "#89918c", panel: "#344344", floor: "#34444b", steel: "#82918b", brass: "#cca46c",
   cyan: "#84e8d0", amber: "#eab379", danger: "#ee7361", ink: "#b69be0", black: "#0b171b",
 };
 

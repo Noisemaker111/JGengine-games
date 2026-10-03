@@ -35,3 +35,16 @@ describe("official authored Deepward scene", () => {
     expect(DECOR.some(marker => marker.id === "decor-home-printer")).toBe(true);
   });
 });
+
+test("station structures leave the rail and each salvage approach clear", () => {
+  const structures = editorLayers.volumes.filter(v => v.kind === "deepward-structure");
+  expect(structures.length).toBeGreaterThan(90);
+  for (const place of ["home", "vault"] as const) {
+    const legs = structures.filter(v => v.label === "canopy-leg" && v.meta?.place === place);
+    expect(legs).toHaveLength(2);
+    for (const leg of legs) expect(walkable(leg.center.x,leg.center.z,place)).toBe(false);
+    const rail = place === "home" ? GARAGE : EXIT;
+    for(let offset=-1;offset<=1;offset+=0.25)expect(walkable(rail[0]+offset,rail[2],place)).toBe(true);
+  }
+  for(const target of SALVAGE)expect(walkable(target.at[0],target.at[2]+1,"vault")).toBe(true);
+});

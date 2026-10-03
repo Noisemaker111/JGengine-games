@@ -66,6 +66,8 @@ export const SALVAGE = editorLayers.markers.filter(entry => entry.kind === "deep
   return { id, kind: kind as SalvageKind, at: point(entry), label: entry.label ?? entry.id };
 });
 if (new Set(SALVAGE.map(entry => entry.id)).size !== SALVAGE.length) throw new Error("Deepward loot source IDs must be unique");
+/** Bearing columns and cabinets are solid only where the editor says so. */
+export const STATION_SOLIDS = editorLayers.volumes.filter(entry => entry.kind === "deepward-structure" && entry.meta?.solid === true).map(entry => ({ ...footprint(entry), place: entry.meta?.place }));
 export const PROPS = editorLayers.volumes.filter(entry => entry.kind === "deepward-machine").map(footprint);
 
 export function distance(a: Point, b: Point): number { return Math.hypot(a[0] - b[0], a[2] - b[2]); }
@@ -77,6 +79,7 @@ export function floorAt(x: number, z: number, place: Place): boolean {
 }
 export function walkable(x: number, z: number, place: Place, radius = 0.28): boolean {
   if (![[radius, radius], [-radius, radius], [radius, -radius], [-radius, -radius]].every(([dx, dz]) => floorAt(x + dx!, z + dz!, place))) return false;
+  if (STATION_SOLIDS.some(r => r.place === place && inside(x, z, { ...r, w: r.w + radius * 2, d: r.d + radius * 2 }))) return false;
   return place === "home" || !PROPS.some(r => inside(x, z, { ...r, w: r.w + radius * 2, d: r.d + radius * 2 }));
 }
 /** Segment checks cover interior walls and machinery, also used for firing and looting. */

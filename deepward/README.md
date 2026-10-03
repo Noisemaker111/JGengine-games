@@ -41,8 +41,22 @@ published engine commands but remain unverified in native browser play.
 Validation status is tracked in
 [slice #35](https://github.com/Noisemaker111/JGengine-games/issues/35).
 
-The salvage receiving-room view can become almost black despite working
-movement and UI. Room visibility needs further work. Combat, steam damage,
+The station presentation uses original editor-authored rail canopies, pressure
+vessels, print press ribs, receiving gantry and service panels. Only the current
+station architecture renders, with static surfaces and equipment batched. Original detailed GLB machinery is placed from the same
+editor document and includes embedded authored material maps; see the per-model
+manifest and reproducible tooling in `scripts/`. The original skinned Fitter
+uses the SDK animation driver for idle/walk and the accepted strike countdown
+for windup. Grip-origin service weapons retain the simulation-owned pose and
+muzzle anchors. Original tileable wall/floor maps accompany the imported art.
+Generic static instancing and PBR-map handling in the current renderer are a
+temporary integration awaiting the shared published SDK seam.
+Native art captures establish the actual home portal/trolley/surface detail,
+bench close control, empty cache sheet and sidearm. Pump/press closeups and
+Fitter windup remain unverified natively; software rendering limited the
+accepted movement to the return spine. A pause-button/pointer-lock race blocked
+the latest reload step; browser lifecycle ownership is being moved upstream.
+The compact shift HUD leaves the central rail route visible. Combat, steam damage,
 rifle packing and mobile controls remain unverified; the current application
 expects desktop landscape input. At 400 × 225, the HUD obscures much of the
 world; those small captures do not establish overall scene or HUD quality. This slice does not implement the whole
