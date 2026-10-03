@@ -58,17 +58,17 @@ export function GameUI() {
     );
   }
   return (
-    <><SessionUI /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
+    <><SessionUI /><HudCanvas layout={layout} className="z-50 font-sans hh-hud">
       <HudPanel id="wanted" anchor={compact ? "top-right" : "top"} compact="keep" interactive={false}>
         <WantedStars />
       </HudPanel>
-      <HudPanel id="race" anchor={compact ? "top-left" : "top"} order={2} compact="keep" interactive={false}>
+      <HudPanel id="race" anchor={compact ? "top-left" : "top"} order={3} compact="keep" interactive={false}>
         <RaceHud />
       </HudPanel>
       <HudPanel id="settings" anchor="top-right" order={-1} compact="keep">
         <SettingsTrigger />
       </HudPanel>
-      <HudPanel id="minimap" anchor={compact ? "top-right" : "bottom-left"} order={compact ? 1 : undefined} compact={landscape ? "chip" : "keep"} chip="Coast map" interactive={false}>
+      <HudPanel id="minimap" anchor={landscape ? "top-right" : "bottom-left"} order={landscape ? 1 : undefined} compact={landscape ? "chip" : "keep"} chip="Coast map" interactive={false}>
         <CityMinimap />
       </HudPanel>
       <HudPanel id="status" anchor="top-left" compact="keep" interactive={false}>
@@ -80,7 +80,7 @@ export function GameUI() {
       <HudPanel id="courier" anchor={compact ? "top-left" : "top"} order={1} compact={landscape ? "chip" : "keep"} chip="Dispatch / parcels">
         <CourierHud />
       </HudPanel>
-      <HudPanel id="hotbar" anchor={compact ? "bottom-right" : "bottom"} order={compact ? 1 : undefined} compact="keep">
+      <HudPanel id="hotbar" anchor={compact ? "top-left" : "bottom"} order={compact ? 2 : undefined} compact="keep">
         <div className="flex flex-col items-center gap-2">
           <PromptHint />
           <Hotbar />
