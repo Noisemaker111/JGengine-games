@@ -8,3 +8,35 @@ html, body, #root {
   margin: 0;
   background: #101f24;
 }
+
+.wayfarer-road .card-build { display: block; padding-top: 6px; margin-top: 6px; border-top: 1px solid #695f453b; font-size: 9px; font-weight: 600; color: #4c6255; }
+.wayfarer-road .crossing-resources { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; padding-top: 10px; font-size: 11px; color: #edd49f; }
+.wayfarer-road .threat-outcome { display: block; color: #e8d1a9; font-size: 11px; margin-top: 6px; }
+.wayfarer-road .travel-ledger { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; padding: 12px 0; border-block: 1px solid #b6c09a50; color: #c3d0ba; font-size: 12px; }
+.wayfarer-road .travel-ledger b { color: #f0d49d; font: 21px Georgia,serif; }
+.wayfarer-road .road-forks, .wayfarer-road .road-event-choices { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.wayfarer-road .road-fork { display: flex; flex-direction: column; gap: 12px; text-align: left; border-left: 3px solid #e8bf75; border-radius: 2px; padding: 18px; min-height: 130px; }
+.wayfarer-road .road-fork strong { font: 23px Georgia,serif; color: #f9dfab; }
+.wayfarer-road .road-fork > span:not(.eyebrow) { font-size: 12px; line-height: 1.6; color: #d9decc; }
+.wayfarer-road .fork-action { margin-top: auto; font-size: 12px; color: #e8bf75; }
+.wayfarer-road .road-offers { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; text-align: left; }
+.wayfarer-road .road-offer { min-width: 140px; max-width: 100%; flex: 1 1 140px; }
+.wayfarer-road .road-offer h2 { font: 20px Georgia,serif; color: #f9dfab; }
+.wayfarer-road .road-offer .road-card { width: 100%; height: 100%; }
+.wayfarer-road .road-offer p { margin-bottom: 12px; }
+.wayfarer-road .pack-actions { display: grid; gap: 6px; max-height: 180px; overflow: auto; padding: 4px; }
+.wayfarer-road .pack-actions button { font-size: 12px; text-align: left; }
+.wayfarer-road .road-upgrades, .wayfarer-road .travel-journal { text-align: left; color: #d9decc; font-size: 12px; }
+.wayfarer-road .travel-journal ol { padding-left: 18px; line-height: 1.8; }
+.wayfarer-road summary { cursor: pointer; padding: 12px 0; }
+.wayfarer-road .road-dialog { border-radius: 4px; border-top: 3px solid #c6b986; }
+@media (max-width:580px) { .wayfarer-road .crossing-resources { gap: 9px; font-size: 10px; } .wayfarer-road .road-forks, .wayfarer-road .road-event-choices { grid-template-columns: 1fr; } .wayfarer-road .road-fork { min-height: 100px; padding: 12px; gap: 7px; } .wayfarer-road .road-fork strong { font-size: 20px; } }
+@media (pointer:coarse) { .wayfarer-road kbd { display:none; } .wayfarer-road button { min-height:44px; } }
+.wayfarer-road .pack-actions small { display:block; font-weight:400; color:#c3d0ba; margin-top:4px; }
+.wayfarer-road .road-dialog .road-card small { color:#583c28; font-weight:700; }
+.wayfarer-road .crossing-report { margin:0; padding-left:18px; text-align:left; color:#d9decc; line-height:1.8; font-size:12px; }
+@media(max-width:580px) { .wayfarer-road kbd { display:none; } }
+.wayfarer-road .upgrade-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:300px; gap:7px; }
+.wayfarer-road .upgrade-grid button { padding:9px; line-height:1.4; }
+.wayfarer-road .copy-count { display:block; color:#dec996; font-size:10px; margin-top:3px; }
+@media(max-width:580px) { .wayfarer-road .upgrade-grid { max-height:280px; } .wayfarer-road .upgrade-grid button { font-size:11px; padding:8px; } }

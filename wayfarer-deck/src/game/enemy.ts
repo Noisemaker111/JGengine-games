@@ -81,6 +81,7 @@ export const ENCOUNTERS: readonly EnemyDef[] = [
       { kind: "attack", base: 10, hits: 2 },
       { kind: "defend", base: 12 },
       { kind: "attack", base: 16 },
+      { kind: "buff", base: 2 },
     ],
   },
   {
@@ -93,6 +94,7 @@ export const ENCOUNTERS: readonly EnemyDef[] = [
       { kind: "attack", base: 11, hits: 2 },
       { kind: "debuff", base: 2, status: "weak" },
       { kind: "attack", base: 24 },
+      { kind: "buff", base: 3 },
     ],
   },
 ];

@@ -8,7 +8,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { createTurnLoop, type TurnLoop, type TurnLoopSnapshot } from "@jgengine/core/turn/turnLoop";
 
-import { buildStartingDeck, cardOf, type CardData } from "./cards";
+import { CARD_CATALOG, buildStartingDeck, cardOf, cardTypeOf, upgradeCardType, type CardData } from "./cards";
 import {
   ENEMY_CATALOG_ID,
   ENCOUNTERS,
@@ -135,12 +135,6 @@ function decayStatus(ctx: GameContext, id: string): void {
 const WEAK_MULTIPLIER = 0.75;
 const VULNERABLE_MULTIPLIER = 1.5;
 
-/**
- * Weak reduces the attacker's outgoing hit before Vulnerable amplifies it.
- * Installed ahead of Vulnerable so the flooring order matches Slay-the-Spire:
- * floor(base * 0.75) THEN floor(that * 1.5). Passes through untouched when the
- * attacker carries no Weak stacks.
- */
 function weakInterceptor(attackerWeak: number): DamageInterceptor {
   return {
     id: "wayfarer.weak",
@@ -155,11 +149,6 @@ function weakInterceptor(attackerWeak: number): DamageInterceptor {
   };
 }
 
-/**
- * Vulnerable amplifies the incoming hit against the defender, applied AFTER Weak
- * so the two floors compose in the historical order. Passes through untouched
- * when the defender carries no Vulnerable stacks.
- */
 function vulnerableInterceptor(defenderVulnerable: number): DamageInterceptor {
   return {
     id: "wayfarer.vulnerable",
@@ -210,6 +199,9 @@ export interface CombatStore {
   playCard(ctx: GameContext, cardId: string): void;
   endTurn(ctx: GameContext): void;
   addReward(ctx: GameContext, cardType: string): void;
+  refresh(ctx: GameContext): void;
+  removeCard(ctx: GameContext, cardId: string): boolean;
+  upgradeCard(ctx: GameContext, cardId: string): boolean;
   onEntityDied(ctx: GameContext, instanceId: string): void;
 }
 
@@ -309,8 +301,14 @@ export function createCombatStore(): CombatStore {
     if (effects.energy !== undefined) {
       current.turn.gain(TURN_HERO, ENERGY_POOL, effects.energy);
     }
+    if (effects.cleanse) {
+      ctx.scene.entity.stats.set(hero, "weak", { current: 0 });
+      ctx.scene.entity.stats.set(hero, "vulnerable", { current: 0 });
+    }
     if (effects.damage !== undefined) {
-      const base = effects.damage + strengthOf(ctx, hero);
+      const blockBonus = effects.blockDamage ? statValue(ctx, hero, "block").current : 0;
+      const base = effects.damage + strengthOf(ctx, hero) + blockBonus;
+      if (effects.consumeBlock) ctx.scene.entity.stats.set(hero, "block", { current: 0 });
       const amount = scaleDamage(base, weakOf(ctx, hero), vulnerableOf(ctx, ENEMY_ID), hero, ENEMY_ID);
       const hits = effects.hits ?? 1;
       for (let hit = 0; hit < hits; hit += 1) {
@@ -337,11 +335,11 @@ export function createCombatStore(): CombatStore {
     if (intent.kind === "attack") {
       const amount = scaleDamage(intent.value, weakOf(ctx, ENEMY_ID), vulnerableOf(ctx, hero), ENEMY_ID, hero);
       const hits = intent.hits ?? 1;
+      log(current, hits > 1 ? `${enemyName} strikes ${hits}x for ${amount} each.` : `${enemyName} attacks for ${amount}.`);
       for (let hit = 0; hit < hits; hit += 1) {
         if ((ctx.scene.entity.stats.get(hero, "health")?.current ?? 0) <= 0) break;
         ctx.scene.entity.effect({ from: ENEMY_ID, to: hero, effect: "strike", via: { amount } });
       }
-      log(current, hits > 1 ? `${enemyName} strikes ${hits}x for ${amount} each.` : `${enemyName} attacks for ${amount}.`);
     } else if (intent.kind === "defend") {
       ctx.scene.entity.stats.delta(ENEMY_ID, "block", intent.value);
       log(current, `${enemyName} guards for ${intent.value} Block.`);
@@ -449,8 +447,8 @@ export function createCombatStore(): CombatStore {
       current.turn.spend(TURN_HERO, ENERGY_POOL, card.cost);
       if (card.effects.exhaust) current.pile.exhaust([cardId], "exhaust");
       else current.pile.discard([cardId]);
-      applyCard(ctx, current, card);
       log(current, `You play ${card.name}.`);
+      applyCard(ctx, current, card);
       sync(ctx);
     },
     endTurn(ctx) {
@@ -477,7 +475,7 @@ export function createCombatStore(): CombatStore {
       sync(ctx);
     },
     addReward(ctx, cardType) {
-      if (state === null) return;
+      if (state === null || state.phase !== "won" || !Object.hasOwn(CARD_CATALOG, cardType)) return;
       const current = state;
       current.rewardSerial += 1;
       const cardId = `${cardType}#reward${current.rewardSerial}`;
@@ -485,6 +483,28 @@ export function createCombatStore(): CombatStore {
       current.pile.reset({ zones: { ...zones, discard: [cardId, ...zones.discard] } });
       log(current, `${cardOf(cardId).name} joins your deck.`);
       sync(ctx);
+    },
+    refresh(ctx) { sync(ctx); },
+    removeCard(ctx, cardId) {
+      if (state === null || state.phase !== "won") return false;
+      const zones = state.pile.state().zones;
+      if (Object.values(zones).flat().length <= 8 || state.pile.zoneOf(cardId) === null) return false;
+      state.pile.reset({ zones: Object.fromEntries(Object.entries(zones).map(([zone, cards]) => [zone, cards.filter(id => id !== cardId)])) });
+      log(state, `${cardOf(cardId).name} leaves your pack.`);
+      sync(ctx);
+      return true;
+    },
+    upgradeCard(ctx, cardId) {
+      if (state === null || state.phase !== "won" || state.pile.zoneOf(cardId) === null) return false;
+      const type = upgradeCardType(cardTypeOf(cardId));
+      if (type === null) return false;
+      const suffix = cardId.slice(cardTypeOf(cardId).length);
+      const nextId = `${type}${suffix}`;
+      const zones = state.pile.state().zones;
+      state.pile.reset({ zones: Object.fromEntries(Object.entries(zones).map(([zone, cards]) => [zone, cards.map(id => id === cardId ? nextId : id)])) });
+      log(state, `${cardOf(nextId).name} is trained for the road.`);
+      sync(ctx);
+      return true;
     },
     onEntityDied(ctx, instanceId) {
       if (state === null) return;
