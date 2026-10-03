@@ -5,3 +5,39 @@ body,
   margin: 0;
   background: #0c0e12;
 }
+
+.field-notebook { width: min(340px, calc(100vw - 32px)); max-height: calc(100dvh - 112px); overflow-y: auto; padding: 18px; color: #efe8ce; background: #202c24ed; border: 1px solid #8c9b6a; box-shadow: 0 4px 18px #0005; }
+.field-kicker { margin: 0 0 6px; font-size: 10px; letter-spacing: .14em; color: #b9c68c; }
+.field-notebook h1 { margin: 0 0 8px; font: 24px Georgia, serif; }
+.field-instruction { margin: 0 0 14px; font-size: 13px; line-height: 1.45; }
+.field-sites { display: grid; gap: 8px; }
+.field-site { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+.field-site > span:last-child { white-space: nowrap; color: #b9c68c; }
+.field-done { color: #b5d49a; }
+.field-risk, .field-controls { margin: 12px 0 0; font-size: 11px; line-height: 1.45; color: #c8ccb5; }
+.field-ledger { margin-top: 14px; border-top: 1px solid #8c9b6a66; padding-top: 10px; display: flex; justify-content: space-between; font-size: 12px; }
+.field-interact { margin-top: 12px; width: 100%; padding: 8px; border: 1px solid #b9c68c; background: #d9deb7; color: #202c24; font-size: 12px; cursor: pointer; }
+.field-interact:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.field-feedback { margin: 12px 0 0; font-size: 12px; color: #d5e5a8; line-height: 1.5; }
+.field-rescued { color: #ffd396; border-left: 3px solid #d9985b; padding-left: 8px; }
+.field-credits { margin-top: 10px; color: #c8ccb5; font-size: 10px; }
+.field-credits summary { cursor: pointer; }
+.field-credits a { text-decoration: underline; }
+.field-pause { margin-top: 8px; background: none; border: 0; padding: 0; text-decoration: underline; color: #c8ccb5; font-size: 11px; cursor: pointer; }
+.field-menu { max-height: 80vh; overflow-y: auto; }
+.field-settings fieldset { margin: 12px 0; border: 1px solid #8c9b6a66; padding: 10px; }
+.field-settings legend { font-size: 13px; }
+.field-setting { display: flex; flex-direction: column; gap: 6px; font-size: 12px; margin: 10px 0; }
+.field-setting select { color: #202c24; background: #d9deb7; padding: 4px; }
+.field-setting-choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.field-setting-choices button { border: 1px solid #8c9b6a; padding: 6px 10px; color: #efe8ce; background: #202c24; cursor: pointer; }
+.field-setting-choices button[aria-pressed="true"] { color: #202c24; background: #d9deb7; }
+.field-setting-choices button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.field-back { position: sticky; top: 0; z-index: 1; margin-top: 0; }
+@media (max-width: 600px) {
+  .field-notebook { width: min(280px, calc(100vw - 24px)); padding: 12px; }
+  .field-notebook h1 { font-size: 20px; }
+  .field-site { font-size: 12px; gap: 6px; }
+  .field-instruction { font-size: 14px; }
+  .field-risk, .field-controls { font-size: 12px; }
+}

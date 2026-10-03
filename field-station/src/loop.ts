@@ -5,6 +5,7 @@ import { createControlGroupManager, HOME_BOOKMARK, type ControlGroupManager } fr
 import { player } from "./game/entities/players/catalog";
 import { tickHealth } from "./game/health";
 import { tickAuthoredTriggers } from "./game/triggers";
+import { freezeSurveyPlayer, initSurvey, survey, tickSurvey } from "./game/survey";
 
 type PlayerMeta = { kind: "player" };
 
@@ -25,7 +26,7 @@ function ensureControlGroups(ctx: GameContext): ControlGroupManager {
 }
 
 function onInit(ctx: GameContext): void {
-  void ctx;
+  initSurvey(ctx);
 }
 
 function onNewPlayer(ctx: GameContext): void {
@@ -36,6 +37,7 @@ function onNewPlayer(ctx: GameContext): void {
     role: "player",
     meta: { kind: "player" } satisfies PlayerMeta,
   });
+  freezeSurveyPlayer(ctx);
   // Seed the showcase's control groups: the player's own avatar sits in group 1
   // and in the non-numbered "home" bookmark, so a recall demonstrates both idioms.
   const groups = ensureControlGroups(ctx);
@@ -45,6 +47,8 @@ function onNewPlayer(ctx: GameContext): void {
 }
 
 function onTick(ctx: GameContext, dt: number): void {
+  if (ctx.input.justPressed("pauseSurvey")) ctx.game.commands.run("survey.pause", null);
+  if (survey.read(ctx).phase !== "playing") return;
   const entity = ctx.scene.entity.get(ctx.player.userId);
   if (entity === null) return;
   void entityMetaOf(entity, isPlayerMeta);
@@ -53,6 +57,7 @@ function onTick(ctx: GameContext, dt: number): void {
   if (ctx.input.justPressed("recallHome")) groups.recallHome();
   tickAuthoredTriggers(ctx);
   tickHealth(ctx, dt);
+  tickSurvey(ctx, dt);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };

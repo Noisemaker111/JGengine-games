@@ -5,6 +5,7 @@ import type { GameContext } from "@jgengine/shell/gameKit";
 import { editorLayers } from "../editorLayers";
 import { player } from "./entities/players/catalog";
 import { announce, clearHazard, currentHazard } from "./triggers";
+import { rescueSurvey } from "./survey";
 
 const FLOAT_TEXT_INTERVAL_SECONDS = 1;
 
@@ -41,6 +42,7 @@ export function tickHealth(ctx: GameContext, dt: number): void {
     const [x, y, z] = entity.position;
     if (volume === undefined || !pointInVolume(volume, { x, y, z })) {
       clearHazard();
+      resetDamageFeedback();
       hazard = null;
       announce("Clear of the hazard — health regenerating", "good");
     }
@@ -52,6 +54,7 @@ export function tickHealth(ctx: GameContext, dt: number): void {
     regenPerSecond: player.regenPerSecond,
     dt,
   });
+  if (hazard === null) resetDamageFeedback();
   if (delta === 0 || (delta > 0 && health.current >= health.max)) return;
   ctx.scene.entity.stats.delta(id, "health", delta);
   if (delta > 0) return;
@@ -69,5 +72,6 @@ export function tickHealth(ctx: GameContext, dt: number): void {
   ctx.scene.entity.stats.set(id, "health", { current: after.max });
   clearHazard();
   resetDamageFeedback();
+  rescueSurvey(ctx);
   announce("Downed — back at spawn with full health", "warn");
 }
