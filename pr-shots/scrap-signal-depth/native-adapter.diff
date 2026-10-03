@@ -54,6 +54,15 @@
      else if (value === "--wait") args.steps.push({ kind: "wait", ms: Number(argv[++index] ?? 500) });
      else if (value === "--key") {
        const spec = argv[++index] ?? "KeyW:1000";
+@@ -333,7 +339,7 @@
+ 
+ async function measureClickPoint(session: CdpSession, text: string): Promise<{ x: number; y: number; offscreen: boolean } | null> {
+   const point = await session.evaluate<{ x: number; y: number; offscreen: boolean } | null>(
+-    `(${captureClickPoint.toString()})(document, ${JSON.stringify(text)})`,
++    `(${captureClickPoint.toString().replaceAll("button, [role=button]", "button, summary, [role=button]")})(document, ${JSON.stringify(text)})`,
+   );
+   return point ?? null;
+ }
 @@ -415,8 +421,13 @@
   */
  async function sendKeys(session: CdpSession, chord: string, type: "keyDown" | "keyUp"): Promise<void> {
@@ -147,13 +156,21 @@
        if (aim !== undefined) {
          const applied = await session.evaluate<string | null>(`document.documentElement.dataset.jgLook ?? null`);
          if (typeof applied !== "string" || applied.length === 0) {
-@@ -812,11 +826,20 @@
+@@ -801,6 +815,7 @@
+           await click(session, step.text);
+           // Let the UI react on the virtual clock so the click's effect is in frame.
+           if (recorder !== null) await recorder.advance(300);
++          else await session.evaluate(RAF_EXPR, {awaitPromise:true});
+         } else if (step.kind === "key") {
+           if (recorder !== null) {
+             // Lockstep hold: the virtual clock guarantees the sim steps under the
+@@ -812,11 +827,20 @@
            } else {
              await holdKey(session, step.code, step.holdMs);
            }
 +        } else if (step.kind === "mouse") {
 +          const point = await session.evaluate<{x:number;y:number}>(`(() => {const r=document.querySelector("canvas").getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};})()`);
-+          const lockDeadline = Date.now()+2000;
++          const lockDeadline = Date.now()+15000;
 +          while (!(await session.evaluate<boolean>("document.pointerLockElement === document.querySelector(\"canvas\")"))) { if (Date.now()>lockDeadline) throw new Error("Native camera move requires an ordinary canvas click to acquire pointer lock"); await new Promise(r=>setTimeout(r,50)); }
 +          await session.send("Input.dispatchMouseEvent", {type:"mouseMoved",x:point!.x+step.dx,y:point!.y+step.dy});
          } else if (step.kind === "wait") {
@@ -169,7 +186,7 @@
            await installFrameCounter(session);
          } else if (step.kind === "rpc") await rpc(session, step.json);
          else if (step.kind === "probe") {
-@@ -941,6 +964,7 @@
+@@ -941,6 +965,7 @@
        }
      } finally {
        stopConsoleForward();

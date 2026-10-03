@@ -1,0 +1,198 @@
+$ bun test src
+bun test v1.4.2 (744846f84)
+
+src/editorLayers.test.ts:
+(pass) scrap-signal editorLayers > loads scene-owned sites and projects derived AI ranges [3.26ms]
+
+src/game/keybinds.test.ts:
+(pass) published input tracking accepts either Shift key and held trigger/aim alternatives [0.67ms]
+
+src/game/progression.test.ts:
+(pass) salvage equipment > published saves can still resolve their original procedural starter [0.03ms]
+(pass) salvage equipment > starter teaches direct hits and contract weapons offer different counters and resource costs [0.06ms]
+(pass) salvage equipment > legendary slow weapons retain reload and firing windows [2.93ms]
+(pass) salvage equipment > restored gun ids advance allocation so later loot cannot overwrite the saved gun [0.17ms]
+(pass) salvage equipment > faster recovery costs capacity and rekit round trips cannot inflate the shield [0.32ms]
+(pass) salvage progression > five dry kills produce salvage and a real drop resets the guarantee [0.19ms]
+(pass) salvage progression > saved choices survive JSON and unknown old choices migrate safely [0.03ms]
+(pass) salvage progression > early salvage supplies usable calibers, while tough enemies introduce scarce ammo [3.00ms]
+
+src/game/combatFeel.test.ts:
+(pass) aiming and crouch make survey shots precise; movement and sustained fire open the cone [0.21ms]
+(pass) published cadence blocks rapid spam; switching never bypasses a gun's own cooldown [0.31ms]
+(pass) semi-auto requires release while automatic guns keep firing; sprint forbids firing [0.28ms]
+(pass) a native resistant hit commits its matchup before death and cannot resurrect a target [29.30ms]
+(pass) native lethal hits keep kill feedback after despawn; shield break is separately confirmed [1.35ms]
+(pass) native shotgun pellet reports each commit one pellet worth of matchup damage [0.59ms]
+
+src/game/phase.test.ts:
+(pass) menu-seeded published tracker sees overridden bindings while phases still gate play [0.84ms]
+
+src/game/combatProbe.test.ts:
+(pass) native probe serializes finite metrics before and after a confirmed hit [1.24ms]
+
+src/game/magazines.test.ts:
+(pass) magazine adoption onto createMagazine > a fresh magazine is loaded to the effective mag size [0.11ms]
+(pass) magazine adoption onto createMagazine > consumeRound spends ammoPerShot and refuses once empty [0.06ms]
+(pass) magazine adoption onto createMagazine > reload draws from the shared ammo-type reserve after reloadMs of ticks [2.57ms]
+(pass) magazine adoption onto createMagazine > reload takes only what the reserve can supply (partial refill) [0.09ms]
+(pass) magazine adoption onto createMagazine > startReload is gated: full mag, empty reserve, and mid-reload all refuse [0.10ms]
+(pass) magazine adoption onto createMagazine > mag capacity tracks live magSize talent bonus (rebuild on drift) [0.42ms]
+(pass) Scrap Signal tactical reloads and saves > cancel preserves partial magazine and shared reserve, including weapon stow [0.19ms]
+(pass) Scrap Signal tactical reloads and saves > save/load resumes reload progress without duplicating a shared reserve [0.25ms]
+
+src/game/save.test.ts:
+(pass) scrap-signal whole-world save > legacy character, talents, quests, and catalogs restore without changing the old save [4.72ms]
+(pass) scrap-signal whole-world save > pick + spend -> reload -> resume restores the character and talent build [0.59ms]
+(pass) scrap-signal whole-world save > an empty slot resumes to no build (character select) [0.23ms]
+
+src/game/handroll.test.ts:
+(pass) gun generation > rolls valid registered guns across many seeds [4.77ms]
+(pass) gun generation > rolled guns carry generation provenance for family, rarity, and manufacturer [0.14ms]
+(pass) gun generation > legendary guns carry real legendary names and tighter spread [0.05ms]
+(pass) gun generation > blackwood guns never spawn elemental [2.02ms]
+(pass) gun generation > damage scales with level [0.06ms]
+(pass) gun generation > rarity roll respects luck ordering [1.15ms]
+(pass) elemental matrix > shock doubles against shields [0.05ms]
+(pass) elemental matrix > corrosive beats armor, incendiary beats flesh [0.03ms]
+(pass) elemental matrix > flux debuff amplifies non-flux damage via the generic received-modifier seam [0.07ms]
+(pass) xp curve > levels climb monotonically [0.06ms]
+(pass) xp curve > resolveLevelProgress carries overflow xp [0.08ms]
+
+src/game/characters.test.ts:
+(pass) characters > three reactor hunters, each with three unique branch themes [0.16ms]
+(pass) characters > capstones gate behind 10 points in branch [0.17ms]
+(pass) characters > bonus reads zero with no character picked [0.01ms]
+(pass) characters > nyx's elemental theme resolves elemental bonuses [0.05ms]
+(pass) characters > every character id resolves [0.02ms]
+
+src/game/shields.test.ts:
+(pass) tickShields > quickcycle gives up burst capacity but recovers before a siege capacitor [3.68ms]
+(pass) tickShields > holds regen for the delay after a hit, then refills [0.89ms]
+(pass) tickShields > refills all the way to max and stops there [2.23ms]
+(pass) tickShields > a hit that lands on health also stalls shield regen [0.64ms]
+(pass) tickShields > records when the player was last hurt, for the damage vignette [0.50ms]
+(pass) tickShields > regenerates non-player entities independently of the player [1.68ms]
+(pass) tickShields > entities with no shield pool are skipped [0.29ms]
+(pass) tickShields — parity with the hand-rolled snapshot regen > tracks the legacy implementation across hits, grace periods and full refills [6.48ms]
+
+src/game/assets.test.ts:
+(pass) render materials request only maps provisioned by their published asset packs [0.22ms]
+
+src/game/commands.test.ts:
+(pass) scrap-signal chests > an ammo chest pays out once and is empty afterwards [1.20ms]
+(pass) scrap-signal chests > a red chest pays out once [0.68ms]
+
+src/game/feel.test.ts:
+(pass) feel signals > no cue has fired on the first frame of a run [0.08ms]
+(pass) feel signals > a real shot lights the flash for its window and then stops [0.04ms]
+(pass) feel signals > hit and hurt signals survive a reset as 'never', not as 'now' [0.03ms]
+(pass) feel signals > a health drop between ticks marks a hurt; the first reading and heals do not [0.03ms]
+(pass) pellet batches retain confirmed kills and shield breaks [0.02ms]
+(pass) shield feedback observes damage and break independently from health [0.07ms]
+
+src/game/fieldRecovery.test.ts:
+(pass) first completion chooses one permanent counter weapon, including full-hotbar recovery [1.37ms]
+(pass) field rekit preserves missing shield fraction and cannot be done in combat or away from the rack [0.59ms]
+(pass) checkpoint carries rolled gun data and downed recovery deadline into a new context [0.72ms]
+
+src/game/relay.test.ts:
+[jgengine:rng] worldItem fell back to Math.random — this run cannot replay, lockstep, roll back, or be pinned by a test. Pass `ctx.rng` (the per-world seeded stream), or `seededRng(seed)` outside a game context.
+(pass) contract requires console proximity and live controls; enemies block uploads and pause preserves its window [1.37ms]
+(pass) three real combat ambushes pay once; whole-world reload retains earned reward and live encounter membership [2.42ms]
+(pass) expired carrier clears only encounter enemies and offers another attempt [0.47ms]
+
+src/game/audio/drive.test.ts:
+(pass) scrap-signal ambience > every catalog id the driver plays exists in the sound catalog [1.07ms]
+(pass) scrap-signal ambience > the wind and industry beds start once and are driven live [0.50ms]
+(pass) scrap-signal ambience > zones sound different — the Blight drops the wind and raises the machinery [0.48ms]
+(pass) scrap-signal ambience > walking lays down footsteps and standing still does not [0.55ms]
+(pass) scrap-signal ambience > music escalates when a pack closes in and settles again once it is dead [0.34ms]
+(pass) scrap-signal ambience > a boss escalates past a regular pack [0.24ms]
+(pass) scrap-signal ambience > taking damage and losing a shield are audible [0.28ms]
+
+src/game/world/air.test.ts:
+(pass) zone air > every zone describes its own air [0.05ms]
+(pass) zone air > an unknown or absent zone still resolves [0.02ms]
+(pass) zone air > zones read as different places, not one tuned setting [0.02ms]
+(pass) zone air > the gust curve stays in a sane band and actually varies [0.04ms]
+
+src/game/world/level.test.ts:
+(pass) authored document > every placed prop is a document marker with a resolvable catalog id [0.28ms]
+(pass) authored document > routes and spurs are authored paths, not generated in code [0.04ms]
+(pass) authored document > piece ids are unique [0.11ms]
+(pass) authored document > landmarks keep their exact authored positions [0.07ms]
+(pass) roads > routes chain every zone into the campaign path [0.05ms]
+(pass) roads > every route is a graded path-terrain profile with retaining walls [1.18ms]
+(pass) roads > roads are walkable: on-road slope is gentler than raw terrain amplitude [2.28ms]
+(pass) roads > roadside props are authored and resolve to catalog entries [0.17ms]
+(pass) guided openness > off-road ridges rise above climb limit so routes herd the player [0.47ms]
+(pass) guided openness > every side POI has a walkable spur off a campaign zone [1.08ms]
+(pass) guided openness > side POIs are dressed with a reward chest [0.14ms]
+(pass) set pieces > camp walls leave a gate opening toward the road [0.20ms]
+(pass) set pieces > landmarks anchor key zones [0.11ms]
+(pass) set pieces > named NPCs stand in the hub [0.04ms]
+(pass) Dead Air tactical arena > wave entries are authored outside the console and stay out of the static prop plan [0.23ms]
+(pass) Dead Air tactical arena > reload shelter and crouch cover have matching physical model bodies [0.16ms]
+(pass) Dead Air tactical arena > the resupply and reload loops offer different sides of the objective [0.16ms]
+(pass) Dead Air tactical arena > native shot queries stop at tall shelter while standing fire clears low cover [0.35ms]
+(pass) Dead Air tactical arena > all ambush bodies clear the real world props and building footprints with a forward path step [34.82ms]
+
+src/game/world/scrap-signal.world.test.ts:
+(pass) scrap-signal world > renders a populated scene [0.01ms]
+(pass) scrap-signal world > routes and spurs render as draped road geometry, not just color [0.07ms]
+(pass) scrap-signal world > rendered roads and level props both read from the one authored document [0.17ms]
+(pass) scrap-signal world > the authored scene owns the opening player and guide composition [0.24ms]
+(pass) scrap-signal world > the opening frame is aimed at authored content, not empty desert [0.22ms]
+(pass) scrap-signal world > scrub covers the middle distance, not only the ground the player stands on [0.16ms]
+(pass) scrap-signal world > every settlement zone contributes a structure group [0.03ms]
+(pass) scrap-signal world > every settlement carries its authored kit override or the zone style default [0.11ms]
+(pass) scrap-signal world > terrain resolves finite heights with real relief across the expanse [0.07ms]
+(pass) scrap-signal world > every zone center is flattened for its settlement [0.12ms]
+(pass) zones > player spawn sits inside the level-1 starting zone [0.02ms]
+(pass) zones > zone levels climb along the campaign route [0.02ms]
+(pass) zones > zoneLevelAt falls back to the nearest zone outside all radii [0.01ms]
+(pass) zones > every zone cluster and boss references a real spot inside world bounds [0.02ms]
+(pass) campaign chain > main chain quests all exist [0.02ms]
+(pass) campaign chain > each main quest links to the next via rewards.quests [0.03ms]
+(pass) campaign chain > every chained quest id resolves to a registered quest [0.02ms]
+(pass) settlement building kits > every bound model is a file the game actually serves [0.30ms]
+(pass) settlement building kits > clothesline is dropped rather than left to fall back to a block [0.03ms]
+(pass) settlement building kits > reactor panels cut rendered triangles without changing building placements or the starting ruins [4.32ms]
+(pass) settlement building kits > every object and entity model the game mounts is a file it actually serves [0.26ms]
+(pass) settlement building kits > every weapon attachment resolves a node on its loaded rig [252.41ms]
+
+src/game/entities/enemies/ai.test.ts:
+(pass) Scrap Signal committed enemy attacks > rushers commit real grounded movement and their claw windup can be dodged [4.47ms]
+(pass) Scrap Signal committed enemy attacks > staying in the locked claw marker takes one hit and no contact damage during recovery [1.23ms]
+(pass) Scrap Signal committed enemy attacks > rifle skirmishers retreat when rushed and preserve their old aim through windup [0.81ms]
+(pass) Scrap Signal committed enemy attacks > a suppressor fires three committed rounds, then exposes a long cooldown [1.80ms]
+(pass) Scrap Signal committed enemy attacks > breaking a suppressor shield cancels its windup and exposes a counter window [0.55ms]
+(pass) Scrap Signal committed enemy attacks > cover blocks new shots at elevated terrain heights, and committed melee cannot hit through it [0.66ms]
+(pass) Scrap Signal committed enemy attacks > obstacle steering commits beside cover without passing through its body [8.91ms]
+(pass) Scrap Signal committed enemy attacks > telegraph target and attack recovery survive whole-world checkpoint/reload [1.51ms]
+(pass) Scrap Signal committed enemy attacks > a downed player cancels the windup and a dead enemy cannot resolve it [0.92ms]
+(pass) Scrap Signal committed enemy attacks > a heavy charge locks a lane, misses a sidestep, and stalls after its lunge [1.91ms]
+(pass) Scrap Signal committed enemy attacks > siege blasts are committed to a ground marker and damage only the player [0.66ms]
+(pass) Scrap Signal committed enemy attacks > enemies search the last sighted position behind cover and abandon an expired memory [1.14ms]
+(pass) Scrap Signal committed enemy attacks > distant enemies are dormant before any stat, terrain, or collider query [0.48ms]
+(pass) Scrap Signal committed enemy attacks > dense nearby groups have a bounded fair work budget and 20 Hz combat cadence [16.75ms]
+(pass) Scrap Signal committed enemy attacks > boss aura cadence continues on frames where the tactical scheduler skips thinking [1.53ms]
+(pass) Scrap Signal committed enemy attacks > the first contract has different rush, rifle, and suppression counter rules [0.05ms]
+
+src/game/entities/enemies/aiRouting.test.ts:
+(pass) the authored north rusher reaches both relay and observed native player around the scene's real solids [128.43ms]
+(pass) a saved detour preserves its side, target, and exact next steps after checkpoint/reload [49.89ms]
+(pass) a remembered threat across the authored roadside barrel commits a detour and reaches claw range [34.91ms]
+
+src/game/entities/enemies/hazardAura.test.ts:
+(pass) boss overload aura adoption > damages the player only while inside a boss aura, on cadence [2.32ms]
+(pass) boss overload aura adoption > aura follows the moving boss [0.10ms]
+(pass) boss overload aura adoption > a dead boss's aura is cleaned up and stops dealing damage [0.12ms]
+(pass) boss overload aura adoption > a downed player (null) holds the field without taking damage [0.05ms]
+(pass) boss overload aura adoption > damage scales with the boss's zone level [0.18ms]
+
+ 144 pass
+ 0 fail
+ 10260 expect() calls
+Ran 144 tests across 23 files. [1055.00ms]

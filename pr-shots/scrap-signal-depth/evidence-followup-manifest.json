@@ -1,99 +1,807 @@
 {
-  "gameRemote": "d7edc977025659aa26dc79a501cd69270b403a47",
-  "gameTree": "4d00fdbff94486db2c03121e2b204d88aa6f6c0b",
-  "clawCaptureSource": "b608ec2",
-  "tests": "144 pass, 10260 assertions; types/build pass",
-  "native": "Real keyboard/mouse inputs through canonical runner scratch adapter; read-only probes; software GL; 400x225 stills/400x224 clips; no hardware FPS claim. Windup/recovery body poses inspected; near-foot marker occluded. Exact probe attack phase proves counter window. No injected gameplay writes.",
+  "game": {
+    "pullRequest": "https://github.com/Noisemaker111/JGengine-games/pull/41",
+    "remoteCommit": "9a1c4e3c3b4abbcb5001a54dcef46924e0334e44",
+    "localCommit": "d04f15b9fd2113323e72d17fee4b58bf1ed6f4d1",
+    "tree": "1cce69e321fd852a81db141fad2acaf0d0154f11",
+    "runtimeBundle": "index-U3APqb_V.js",
+    "scope": "55 changed files, scrap-signal/** only; shared dependencies, lockfile and Deepward untouched"
+  },
+  "validation": {
+    "tests": 159,
+    "assertions": 11891,
+    "types": "PASS",
+    "productionBuild": "PASS, 9.15s",
+    "diffCheck": "PASS",
+    "cleanProvisioning": "2e22800 clean worktree: original direct providers, 8 pinned credited packs /401 files; unchanged availability tests; corrupt-file/archive rejection and exact repair. Final source did not change these files."
+  },
+  "nativeMethod": "Canonical SDK drive-dev.ts scratch adapter, exact disclosed diff. Native trusted keyboard/mouse/HTML clicks, ordinary Save/Resume/Return. Read-only probe/debug snapshots only; no gameplay state injection. Portable RAF readiness and two-frame click settling prevent stale compositor captures. Software GL; no hardware FPS claim.",
+  "stages": [
+    {
+      "stage": "baseline",
+      "source": "194fa2c4480813c2d254a7f395c5f9c54b077288",
+      "proof": "Inspected 960x540 menu/play. Ordinary baseline movement/reload attempts and missing AO errors; no completed baseline combat claim."
+    },
+    {
+      "stage": "handling/hit/kill/fight-save",
+      "proof": "R reload/cancel, V aim, C brace, movement. Actual rusher 55→41→27→13→despawn; hostiles2→1/cash50→54. Ordinary saved active fight restored 3/78, 1050ms reload, exact clock12276.9 and pose; top-up10/71. Final-fight reticle800x450 inspected. Earlier shots hit cover; failed later north-counter-finish attempt is not a kill proof."
+    },
+    {
+      "stage": "corrected-claw-counter",
+      "source": "b608ec2",
+      "proof": "Corrected north approach7.8m, native phase1 locked claw target; D350 sidestep3.42m, phase4 recovery, health90/shield60 unchanged. Raised blade and recovery frames inspected400x225. Near-foot marker occluded: no marker visibility claim."
+    },
+    {
+      "stage": "sprint/routing",
+      "source": "27bba85 plus canonical Shift input fix",
+      "proof": "Native Shift+W+F sprint1/travel7.57m, ammunition unchanged10/74; released sprint0. Real walking collision queries resolve formerly blocked tree/barrel approach. Checkpoint/25step continuation context verified."
+    },
+    {
+      "stage": "shield-grace-save",
+      "source": "4257cc7",
+      "proof": "Native after-refresh plus550ms retains shield0; no old immediate-refill bypass. Full rendered latest-warm400 capture accepted. Black shield-grace4257 capture discarded as visual evidence."
+    },
+    {
+      "stage": "native lethal blocker reproduced",
+      "source": "4257cc7",
+      "proof": "Published entity.died despawn removed player before reserve tick, leaving relay defend and no player bars. Autosave retained broken state; pre-fatal checkpoint was not preserved. Diagnostic lethal-observed captures archived; no passing recovery claim for this run."
+    },
+    {
+      "stage": "Quickcycle equipment selection",
+      "source": "2536f51 build; final d04 fresh load for combat",
+      "proof": "Native rack expands and selects Quickcycle. Capacity60→42, profile1; literal ordinary Checkpoint saved. Fresh finald04 load retains health90/shield42/profile1/mag9/reserve80/cash50. World focus clicks later consume two rounds: authoritative pre-fatal ammo7/80."
+    },
+    {
+      "stage": "fixed native failure/reconstruction",
+      "source": "d04f15b / index-U3APqb_V.js",
+      "proof": "Natural claw damage health72/shield0 then literal Carrier lost. Actual retained player health1/shield0/downed1, phaseended3/relaylost4/hostiles0, cash50, ammo7/80. Actual Return health90/shield42/profile1, downed0/relayidle0, station(-502,594), cash47 (one floor50*7%=3 fee), ammo7/80 retained. Ordinary Save literal visible. Return clip800x450; camera sky during failure/recovery from actual native look to reduce passive software-render cost."
+    },
+    {
+      "stage": "final recovered fresh load",
+      "source": "d04f15b / index-U3APqb_V.js",
+      "proof": "Owned tab closed then fresh load restores station(-502,594), health90/shield42/profile1,7/80,$47,downed0/relayidle0/hostiles0. Read-only probe before gameplay focus click; arena-facing400 and800 world captures inspected. Ordinary simulation advances150ms after restored save. Final debug snapshot205drawcalls/913757triangles, no fallbacks/texture errors, steady onTick0.1–0.4ms; outside-sim softwareGL stalls disclosed, no hardware FPS claim."
+    }
+  ],
+  "limitations": [
+    "Full native three-wave completion and first Breacher/Surveyor choice not yet verified; context tests cover progression and all enemy roles.",
+    "Reactor close-up native inspection pending; authored geometry reduction and same placements verified in context.",
+    "Legacy actorless saves without pending payload preserve possessions/mission progress but cannot recover deleted XP/reserve ammo; conservative rebuild disclosed. Fresh current-save loss/recovery is native verified."
+  ],
+  "upstream": {
+    "shooting": {
+      "pr": "https://github.com/Noisemaker111/jgengine/pull/1921",
+      "head": "cd4a9678cc37ff73104007ed30f05536fd3a342a",
+      "ci": "all six green, run37106897122",
+      "hold": "coordinator re-review pending after caller-mutation fix"
+    },
+    "presentation": {
+      "pr": "https://github.com/Noisemaker111/jgengine/pull/1926",
+      "head": "c7817fcf13cd45b60b9a88e92d282e6d63ef4e89",
+      "ci": "all six green, run37103952399"
+    },
+    "adopters": "Actual Scrap combat/Viewmodel patch candidates apply cleanly to final d04; actual-function assertions/strict types passed at4257. No shipping new API adoption. Requires HQ exact verified published release containing PRs. All PRs open/unmerged; no publication."
+  },
   "files": [
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.png",
+      "archive": "scrap-signal-after-shot-reload-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-after-shot-reload-half.png",
+      "bytes": 669534,
+      "sha256": "c1e814f8d615862e285dc9d243598181368b6fd4c54e036126929754e9396114",
+      "gitBlob": "0f589e866fe165b2988418c69b40d7494fae1498",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-reload-final-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-reload-final-half.png",
+      "bytes": 673195,
+      "sha256": "70040ad2344e80576278d322b055210a6bd6f6cfa2bbe813d736a6c0e1e956ea",
+      "gitBlob": "cf3f28baab62956aa5a16ac24e56605f60ba66fb",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-movement-final-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-movement-final-half.png",
+      "bytes": 674580,
+      "sha256": "50a2cfaf0d61f31151611034cf673e718a0cd5e6dd50daa8d25a14030716b35e",
+      "gitBlob": "ff6c9995528dedd7a323a8e45cdcdd6d58c91b48",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-after-shot-reload-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-after-shot-reload-half.shot.json",
+      "bytes": 5782,
+      "sha256": "d1d2c6949d5ae690f324caa7ae15beaa1c5b0e5e32c98d4443f5f007f62e6052",
+      "gitBlob": "1b6f0f3f322d6e83f5a9494430748941a7d367ab",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-reload-final-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-reload-final-half.shot.json",
+      "bytes": 5647,
+      "sha256": "6a7afb40b9b1bbd35318b5f2f9a6636a22351066f897c39eb590d5d61adabbce",
+      "gitBlob": "49cb6e29113573babfebd33ef1f9cac62192e184",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-movement-final-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-movement-final-half.shot.json",
+      "bytes": 5644,
+      "sha256": "6aaae74070e3e941b5d74d6eedf0145c88a5104c63c3cff632ef9ecd7340091c",
+      "gitBlob": "f4b2b2fa67b9a6778000926a338f59a01873882c",
+      "verified": true
+    },
+    {
+      "archive": "final-controls.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-controls.log",
+      "bytes": 12046,
+      "sha256": "ba854767112472a52ffcf877a7df503611bfdc798268b46f7e4a0d66481b875f",
+      "gitBlob": "85c49cc0f50f0ddcae71306c04e8bde13e2d8480",
+      "verified": true
+    },
+    {
+      "archive": "ai-budget.jsonl",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-budget.jsonl",
+      "bytes": 791,
+      "sha256": "3ef817654f7303ca21b31669b0ced80a14ed9a41111f1f9ce973464be5b75887",
+      "gitBlob": "5b4cf82cd6411ba4512ef3ac0f7e2fee964246ec",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-final-fight-reticle-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-final-fight-reticle-half.png",
+      "bytes": 600719,
+      "sha256": "bd6d3f167f0c1c24e5d6ef458bafc4ecf9b5f90762a519b24109ea49d4555fdb",
+      "gitBlob": "41699adc763d390ff9385c7f53075a4b2b6308e6",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-counter-finish-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-counter-finish-half.png",
+      "bytes": 175734,
+      "sha256": "ce4067d4a2d363c538b468f7861ec591133ff390107d64696eb6cb041b6297d0",
+      "gitBlob": "05809e97608d19545183ea3c8251a2dc296cd8f5",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-rusher-finish-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-rusher-finish-half.mp4",
+      "bytes": 43080,
+      "sha256": "f089b72e70adfa50b02e7fc7fa3cfa425acf68b93a26fd909c5c2c89eeaa616a",
+      "gitBlob": "f76df8dec0e2b657b4197f1bd983d5da1c07e86d",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-flank-rusher-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-flank-rusher-half.mp4",
+      "bytes": 34459,
+      "sha256": "fad024370d34ccdc0dd2dcabb38e67721c68c766feadbd6e160bb79bec74163d",
+      "gitBlob": "5c54faa31ba79ae33f6f0fc43f4770ca8cb5615a",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-final-fight-reticle-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-final-fight-reticle-half.shot.json",
+      "bytes": 5404,
+      "sha256": "68f37bdf13682518d307a564930733da1d3889a630bcce439d95459e40954734",
+      "gitBlob": "7494263efb0877e73d70553fe31cbe7663f7d104",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-counter-finish-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-counter-finish-half.shot.json",
+      "bytes": 5592,
+      "sha256": "7f9c3a949a25b9be10fd78bc373ea6d843d646849c86cf0ef262761fcf43211e",
+      "gitBlob": "aa961bcdfaf3decb77a74f5dfa6edbb66cc62c05",
+      "verified": true
+    },
+    {
+      "archive": "first-contact.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/first-contact.log",
+      "bytes": 3550,
+      "sha256": "09fb149b9ae572aea575c0d65fcee5a36a5acae9b0592fb271ede3a066ee4cf1",
+      "gitBlob": "3e6b9f4c04a3f94cf49274925e54ceaa1d8337e5",
+      "verified": true
+    },
+    {
+      "archive": "flank-rusher.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/flank-rusher.log",
+      "bytes": 2478,
+      "sha256": "4b55069ee6389cd5132e6af1f5da497d367e1f996d26ae16293e11288b00d1c9",
+      "gitBlob": "b77ad8a24896dd16f15bc9ca064f6e15b6596006",
+      "verified": true
+    },
+    {
+      "archive": "rusher-counter.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/rusher-counter.log",
+      "bytes": 2481,
+      "sha256": "bfd84f59ff37c814572ad8004094af1a71bef6d7175bee7a2b50b184505de455",
+      "gitBlob": "dd5d8a08e90e176c6be1332f24d2629a74e0d2f4",
+      "verified": true
+    },
+    {
+      "archive": "claw-dodge.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/claw-dodge.log",
+      "bytes": 2479,
+      "sha256": "2351880b228cdb95efa9636de075dab95c677836a8bae9d27b7d2c775e611163",
+      "gitBlob": "a7368eeaf7761029f1e8ae8d73a15a7cc3bfc6cb",
+      "verified": true
+    },
+    {
+      "archive": "rusher-finish.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/rusher-finish.log",
+      "bytes": 4262,
+      "sha256": "deeddb2beda451f1b892887459e5aa72aaa82c3cf51db894f2e81e92ff6e33c2",
+      "gitBlob": "dbe2e79dd54e0794ccf9563d5e1d46f2e4d3330a",
+      "verified": true
+    },
+    {
+      "archive": "final-fight-restore.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-fight-restore.log",
+      "bytes": 7410,
+      "sha256": "46104c86225638a54a037abed8ea29cad62cbb011bb73b8edcb5890fa7ebf099",
+      "gitBlob": "90e97a9a1866d0caea60577557d02bc2f2f8c149",
+      "verified": true
+    },
+    {
+      "archive": "final-game-tests.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-game-tests.log",
+      "bytes": 14752,
+      "sha256": "d8fdda72b768c55b2f6a421c10a1816928a97ffdaaff03616c7387655fa94d81",
+      "gitBlob": "146f2790953c3dbbe89f5f977d45cf62a90d5a27",
+      "verified": true
+    },
+    {
+      "archive": "building-budget-after.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/building-budget-after.json",
+      "bytes": 16066,
+      "sha256": "4b089cbca785b72d1a93c0b5f2eb4b36045fc09cffe7b9a3e6a8c43a09e00640",
+      "gitBlob": "3b2f7fde9d8da1761a4e0afa70524cf4b2f81960",
+      "verified": true
+    },
+    {
       "archive": "scrap-signal-claw-windup-actual-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.png",
+      "bytes": 176000,
       "sha256": "8de3ba2879e0007febb77ed9becd852ae3e32619d7ae8daf2e97cae27ea75315",
-      "bytes": 176000
+      "gitBlob": "f5fc88292da79ca1113c3cd6ed7dfcd3e4ac5252",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.png",
       "archive": "scrap-signal-claw-recovery-actual-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.png",
+      "bytes": 170403,
       "sha256": "ccd66147b282f2f30d090ab6a79e45d0103ce1c4e8d9a7efa89bcd725678147c",
-      "bytes": 170403
+      "gitBlob": "f76526721e73023fe9d989be3db4b7d920b71d6b",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.shot.json",
       "archive": "scrap-signal-claw-windup-actual-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-windup-actual-half.shot.json",
+      "bytes": 5343,
       "sha256": "e4fc618c31618973c671a618ab990d75687d21bdfdc18a8747475b9fe76cc685",
-      "bytes": 5343
+      "gitBlob": "935ee87e03f60f651f003b2cf3ee4627cc98635e",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.shot.json",
       "archive": "scrap-signal-claw-recovery-actual-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-claw-recovery-actual-half.shot.json",
+      "bytes": 5377,
       "sha256": "036bd2c2f440b68b0a6b988938f7558db5d57afd86385e651663810c27cc7ef1",
-      "bytes": 5377
+      "gitBlob": "e6a67e841a3e33c8109126fa89aec0092ac0f238",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-corrected-claw-counter-half.mp4",
       "archive": "scrap-signal-corrected-claw-counter-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-corrected-claw-counter-half.mp4",
+      "bytes": 67847,
       "sha256": "08535c506b02d6714de4b970bcba3df902b1d3d440b4837a02e3718de3a53e74",
-      "bytes": 67847
+      "gitBlob": "44d2fe06ee9ed5e076533ecec6a69444ebee1417",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-counter.log",
       "archive": "corrected-claw-counter.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-counter.log",
+      "bytes": 3763,
       "sha256": "f68517b3f67f121dce27ec07bc42eb3faff6218aac4ba3dc20e8612dbab4c30f",
-      "bytes": 3763
+      "gitBlob": "77d53d2b1954912dfd5a684a2b63d4f0cad41bf0",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-approach.log",
       "archive": "corrected-claw-approach.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-claw-approach.log",
+      "bytes": 3473,
       "sha256": "c46979670a876c87ceb03bdaebd81bae9f6569cbcfb95bfba10580cffe0f17b7",
-      "bytes": 3473
+      "gitBlob": "7fb171dbf6db2ed3ab10e16fffee3b4d933dc4ac",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-relay-start.log",
       "archive": "corrected-relay-start.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/corrected-relay-start.log",
+      "bytes": 3094,
       "sha256": "1344588980342cfa152e664850f9a32c0faf6dda2d6abf80c41eb169e5f5a457",
-      "bytes": 3094
+      "gitBlob": "35e9cb22ce3f57b3411e9a0820558e3e406a206b",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-budget.jsonl",
       "archive": "ai-routing-budget.jsonl",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-budget.jsonl",
+      "bytes": 535,
       "sha256": "58fb984f42ac237c62704f0d835a568eaf13e2ca239b4422ea7ecb44a5e56711",
-      "bytes": 535
+      "gitBlob": "b645782d77236d661032b0068f2dbf7ece6d7ca2",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-chase.jsonl",
       "archive": "ai-routing-chase.jsonl",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/ai-routing-chase.jsonl",
+      "bytes": 397,
       "sha256": "58b785f0b29526b7ac01d5faf2efed0eb3dac120270e6abb1465af308b149b32",
-      "bytes": 397
+      "gitBlob": "d9812abfa32f0846d48762d1d3031b4a4a23f8c7",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-tests.log",
-      "archive": "final-tests.log",
-      "sha256": "5c68ad4f5c96318fd297e961963ed9148528082959f46c9b727db05cc3e517ea",
-      "bytes": 15393
-    },
-    {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-types.log",
-      "archive": "final-types.log",
-      "sha256": "793b3289aad460c12104600252941dc521578230c52a1216a8d6668b76629cc3",
-      "bytes": 33
-    },
-    {
-      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-adapter.diff",
-      "archive": "native-adapter.diff",
-      "sha256": "7fb205bc6f90d5ffb683ec2d773c1c51189ceec88887e7b64736b6004308a8eb",
-      "bytes": 10043
-    },
-    {
-      "local": "/workspace/games/.scratch/scrap-signal-map/rpc-evidence.jsonl",
       "archive": "editor-rpc-evidence.jsonl",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/editor-rpc-evidence.jsonl",
+      "bytes": 11520,
       "sha256": "45ff1d29df0b52af6d2b36080967c8b2bdf585a26d968089985306804035708c",
-      "bytes": 11520
+      "gitBlob": "07a041e6c2bc657713a5e49306b8c8c926c9101a",
+      "verified": true
     },
     {
-      "local": "/workspace/games/.scratch/scrap-signal-map/spawn-colliders-after.jsonl",
       "archive": "editor-spawn-colliders-after.jsonl",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/editor-spawn-colliders-after.jsonl",
+      "bytes": 1662,
       "sha256": "ae78834b2d983ae5fdb2b4d5f48882d6f2deea8b7b6559c4fb58dee1cd2e45cb",
-      "bytes": 1662
+      "gitBlob": "29182b62cc640b487f13b6818f42872679b46beb",
+      "verified": true
+    },
+    {
+      "archive": "baseline-play.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/baseline-play.png",
+      "bytes": 748634,
+      "sha256": "1488fd31b4c25cb60864e16689a2712a69aea927d997d7ab01d49935e6f4d8ba",
+      "gitBlob": "c9ebf68648893d88e998d26255236077b447cb06",
+      "verified": true
+    },
+    {
+      "archive": "baseline-menu.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/baseline-menu.png",
+      "bytes": 139541,
+      "sha256": "4a75b18ecfcedb926c8ed24925f563a414dbaa3e5d6a24420e52a8e156a52a0b",
+      "gitBlob": "6254f4a854ac47a69e5b87b36449c66f807f7653",
+      "verified": true
+    },
+    {
+      "archive": "final27-restore.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final27-restore.log",
+      "bytes": 2103,
+      "sha256": "6300b2df372f2ff1d47cc61b5972eca66d52a328b3dc6a08237c358f8466fe4c",
+      "gitBlob": "4cc4eb0a09f877f4f8559d22ffbc6ab09dc2f07d",
+      "verified": true
+    },
+    {
+      "archive": "final-sprint-gate.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-sprint-gate.log",
+      "bytes": 6832,
+      "sha256": "040910535408d8f846ab273f364885c8fed2049b14e19caf4be5d53751f13b9a",
+      "gitBlob": "d28180e7de65a3573ec1c9e54b528faadc5edfd6",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-final-sprint-gate-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-final-sprint-gate-half.mp4",
+      "bytes": 69008,
+      "sha256": "440a736b3ff4c1100165971468ed7efac1d29a6afd067f0b8c9297f8dc937ae0",
+      "gitBlob": "9dd928f88dc5f7c5172310a2f7504268a3a4e835",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-sprint-trigger-blocked-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-sprint-trigger-blocked-half.png",
+      "bytes": 171393,
+      "sha256": "755a67fef92ff30725b053e44735e4ef00bee0856533d9d8b6480c9ab4b807a8",
+      "gitBlob": "c8a7c87018d66fb88079c580b667356a49cb1f00",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-sprint-trigger-blocked-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-sprint-trigger-blocked-half.shot.json",
+      "bytes": 5442,
+      "sha256": "e0f491f6aa7dccfdbbea6278f6e3e37a5218da14d7523c69984d854c98d8aae2",
+      "gitBlob": "b9a869b491faac6659f5716bd446205d11b52859",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-sprint-released-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-sprint-released-half.shot.json",
+      "bytes": 5430,
+      "sha256": "4c01653f0856737501be5c55c63a64601958fe4414a08025f414bff2f702f265",
+      "gitBlob": "f7e0942fe1c2f5c728a3c6ac3f6308be4e007af2",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-final27-restored-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-final27-restored-half.png",
+      "bytes": 627787,
+      "sha256": "52a289a3ac9dbf7019504d518711e171ca3b4ef2e238e2c8c791b89b96dda5e6",
+      "gitBlob": "a8a6f0d3fa2fa7c5ee4c0326b7ad3b54a228c478",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-final27-restored-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-final27-restored-half.shot.json",
+      "bytes": 5353,
+      "sha256": "cd66adcb85c4e17423998ea56788d27e4183058a6886780ea54274a4129ffd02",
+      "gitBlob": "4bd352777245a99528a1fb726edc8e5eb7c8d1be",
+      "verified": true
+    },
+    {
+      "archive": "provision-clean-provision.log",
+      "local": "/workspace/games/.scratch/scrap-signal-provision/clean-provision.log",
+      "bytes": 1516,
+      "sha256": "66a8426a796154a3fa1026220bff9beca0c2cda5dd81f8cdb01aab17e3d50df5",
+      "gitBlob": "8370d18f139f98703d8a0e8b507a4d31266d063c",
+      "verified": true
+    },
+    {
+      "archive": "provision-clean-tests.log",
+      "local": "/workspace/games/.scratch/scrap-signal-provision/clean-tests.log",
+      "bytes": 15419,
+      "sha256": "93b9ae7e83a60efdcd03772178571e7ec5e70fe7b20936ac2a22b9ab2de3e1e1",
+      "gitBlob": "954eea58cc4711a8404894667e9db594430ca5c7",
+      "verified": true
+    },
+    {
+      "archive": "provision-clean-types.log",
+      "local": "/workspace/games/.scratch/scrap-signal-provision/clean-types.log",
+      "bytes": 33,
+      "sha256": "793b3289aad460c12104600252941dc521578230c52a1216a8d6668b76629cc3",
+      "gitBlob": "a9588c4a3a39fc74d05db34c35e6a15d5a7e23d2",
+      "verified": true
+    },
+    {
+      "archive": "provision-integrity-checks.json",
+      "local": "/workspace/games/.scratch/scrap-signal-provision/integrity-checks.json",
+      "bytes": 353,
+      "sha256": "b590d342fc0c68633afe192311b43a8247d5c7733fa73fe88e17daa8b1785e5f",
+      "gitBlob": "d18ba963d16f78c89caa2bc2c05d2eb32120a259",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-latest-warm-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-latest-warm-half.png",
+      "bytes": 171241,
+      "sha256": "6c744a32311cd9e0426a5e8c982e3b4144d24a54a8678b0ed010b2a71c8a4498",
+      "gitBlob": "d0e3ab8cabdd664a995378845ba16aded08e212a",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-latest-warm-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-latest-warm-half.shot.json",
+      "bytes": 5196,
+      "sha256": "be7f6a593897739e5dcacc0a1fe4329c36de32cd7d5e69302d6385752db255e4",
+      "gitBlob": "c3f344853ef43e83e681aa049a6de13c721b3c9a",
+      "verified": true
+    },
+    {
+      "archive": "latest-warm.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/latest-warm.log",
+      "bytes": 2100,
+      "sha256": "0f9dd96c77e49c06b4eff2b6bb56d6527c7f486fd877bf1e6dba7d4b34ce8a10",
+      "gitBlob": "9570780ddfb805e62850bba3a37557d3045329db",
+      "verified": true
+    },
+    {
+      "archive": "final4257-restore.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final4257-restore.log",
+      "bytes": 3574,
+      "sha256": "0d9c6d160b5ae471afeda9504e607cd83f6882d65d9ec510d98c0df0a23ff45f",
+      "gitBlob": "735ab707723fd37e3680b23b2a22ca7560d7af99",
+      "verified": true
+    },
+    {
+      "archive": "failure-wait1.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/failure-wait1.log",
+      "bytes": 1997,
+      "sha256": "61a8832e74fcf273fe6f6969aad76dfb5e4ff8c82b09df67f23e285139d6d9e2",
+      "gitBlob": "971829652da1b5927d9480daf2865c686c41e3c8",
+      "verified": true
+    },
+    {
+      "archive": "failure-wait2.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/failure-wait2.log",
+      "bytes": 2000,
+      "sha256": "d5a53b7cb16a2a10c3c2b9efd09bef3005cd913e69cd0e894285ba71ffd87516",
+      "gitBlob": "4b74118eb3ac98e3caafd34a1ad366a8fb22624b",
+      "verified": true
+    },
+    {
+      "archive": "failure-wait3.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/failure-wait3.log",
+      "bytes": 1999,
+      "sha256": "1e16ef5bead1eb065a5d160438469158341e5bbc2a33cda86dfa269701edf1bd",
+      "gitBlob": "09a3288a009b11632ee55693a45593997ac4b764",
+      "verified": true
+    },
+    {
+      "archive": "failure-downed.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/failure-downed.log",
+      "bytes": 1683,
+      "sha256": "8054ede7e3d5bcfe473b66de73b2d4914c6b04441d6f5bd7fc246c3dd1977c76",
+      "gitBlob": "6f32b1256d5c2960bd11c5e7230fdae1871bfda1",
+      "verified": true
+    },
+    {
+      "archive": "lethal-observed.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/lethal-observed.log",
+      "bytes": 5071,
+      "sha256": "2eb5723a484424e673edff91720b035bfd51ce54b39631c51937acc3b85f351c",
+      "gitBlob": "54b1f6dc38c347c2413473d9349ccb74692325df",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-lethal-observed-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-lethal-observed-half.png",
+      "bytes": 523904,
+      "sha256": "d76783a62c2edb73c1d3fd121d55b72a8c2b90ad28241cfdb749c55194a76df4",
+      "gitBlob": "9e639e869ac3d29edcccf2381df6c0c405b7062c",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-lethal-observed-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-lethal-observed-half.shot.json",
+      "bytes": 5255,
+      "sha256": "8c69319fa1277897871586b014c1a270fe4a8788d4916903978a4f81f54ee294",
+      "gitBlob": "70ee1fa4d384e176b3cd22b1e04124894fcab870",
+      "verified": true
+    },
+    {
+      "archive": "native-shield-rack.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-shield-rack.log",
+      "bytes": 1738,
+      "sha256": "9e37737bb25280105cb1ed6e70e88448015d4b22b32ba621fd02b0bf19433206",
+      "gitBlob": "f9bc6d228bd1218b6f93f5cc6276763b28bddb0d",
+      "verified": true
+    },
+    {
+      "archive": "native-quickcycle-selected.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-quickcycle-selected.log",
+      "bytes": 2707,
+      "sha256": "b85d69f814e9652d74f3455cd64d2eeb7a0798ba03e9b0da7147ea60aa5b76c5",
+      "gitBlob": "40b141623b3588b301d03345c38acf2f094d465a",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-shield-rack-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-shield-rack-half.png",
+      "bytes": 185856,
+      "sha256": "fd5025f00118634d2686e876dd05b550d10b3a7675b78b6f6bdd4af959344d04",
+      "gitBlob": "5ec36c53b813af6847d7ffa04d39c5b04e124b3a",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-shield-rack-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-shield-rack-half.shot.json",
+      "bytes": 5008,
+      "sha256": "aafc1ec5a3994b0a79d52fd8122e0e52c00a5b3cbc2435f37ddf88324df1fd28",
+      "gitBlob": "83c9ada98e150b840516acd3dd2e2153d8d2c226",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-quickcycle-selected-saved-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-quickcycle-selected-saved-half.png",
+      "bytes": 187737,
+      "sha256": "22d73609edab3aba5acc8e0271ba448fbb98a1413f258f188331619d7a2d8790",
+      "gitBlob": "c3b6eec7a1f214ece1d5e7ef7e1166edd1924a5b",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-quickcycle-selected-saved-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-quickcycle-selected-saved-half.shot.json",
+      "bytes": 5063,
+      "sha256": "a8d4717c770b42579599012a1ed011c2fec83baa3b667159ab3af594bf8d49c8",
+      "gitBlob": "106d62c0ccbc747ead4e33a14133b9df653e8720",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-quickcycle-selected-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-quickcycle-selected-half.mp4",
+      "bytes": 25997,
+      "sha256": "d9c15ff304146eecb5b66b4055bbd7cb7beedcb2e64905b60090409e3edabb91",
+      "gitBlob": "fd1155bd94a472ad0910fa346b69ffa6377b2f6f",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovery-low-shadow-settled.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovery-low-shadow-settled.png",
+      "bytes": 142102,
+      "sha256": "1757d962468ca1b95826fed4528b4c574d3c3eedfdd8589352389cf9c1d22196",
+      "gitBlob": "a3f257c8e88df955d67f9849fd68c9ba973d0007",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovery-low-shadow-settled.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovery-low-shadow-settled.shot.json",
+      "bytes": 4944,
+      "sha256": "00782ba362b2c7315e67c8b6566a788ef9bf60c9389d2c0f54927d3309c6bb5c",
+      "gitBlob": "0eae9448caa606b9908a3604896cadf9022d6eca",
+      "verified": true
+    },
+    {
+      "archive": "recovery-low-shadow-settled.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/recovery-low-shadow-settled.log",
+      "bytes": 637,
+      "sha256": "c261fb9890732a9373d5fa59b8b38ff7a38050863e746fc1e88093bd4229f14f",
+      "gitBlob": "79c9bb558d14454e21ae2162aa53bd66d5261c66",
+      "verified": true
+    },
+    {
+      "archive": "final-tests.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-tests.log",
+      "bytes": 17013,
+      "sha256": "0a65882fcd32c41b18f2b4b20d0705cff993abaa4c95c16da996d5e25fb78cee",
+      "gitBlob": "97ca05a2af49a7ff80ba16703ce0af875214738c",
+      "verified": true
+    },
+    {
+      "archive": "final-types.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-types.log",
+      "bytes": 33,
+      "sha256": "793b3289aad460c12104600252941dc521578230c52a1216a8d6668b76629cc3",
+      "gitBlob": "a9588c4a3a39fc74d05db34c35e6a15d5a7e23d2",
+      "verified": true
+    },
+    {
+      "archive": "final-build.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/final-build.log",
+      "bytes": 735,
+      "sha256": "773d641531615352fdbdcc307c57e97f44e3f463bb6800477265b2654103d70c",
+      "gitBlob": "fb8fef7fad35cdbed39a07a81e4794df59cb3e5e",
+      "verified": true
+    },
+    {
+      "archive": "native-adapter.diff",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-adapter.diff",
+      "bytes": 10999,
+      "sha256": "e21c2730b08a347a4e278d769031257ea798e5fcabecce9b1f11d6b1b40b9272",
+      "gitBlob": "e27a7a61ea3635d8fd93e87c2fa4bf6fac6fe609",
+      "verified": true
+    },
+    {
+      "archive": "fixed-recovery-fight.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/fixed-recovery-fight.log",
+      "bytes": 6689,
+      "sha256": "9a9ee4a6e70cd502596474c9b376d86d3cb67e828c9295c239b4b7575af730ce",
+      "gitBlob": "fdbf7552db22bfab9a1a0098018b1d7156de9dae",
+      "verified": true
+    },
+    {
+      "archive": "fixed-sky-fight2.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/fixed-sky-fight2.log",
+      "bytes": 6836,
+      "sha256": "b8a5cd94cd1615c52385abf9b01c67528a48e955fafbb858b94708a892806b33",
+      "gitBlob": "09a91a204087f4488bd9162c4392023f5a4fdd31",
+      "verified": true
+    },
+    {
+      "archive": "native-carrier-lost.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-carrier-lost.log",
+      "bytes": 1595,
+      "sha256": "a7e397fadec1214c22e7c441cb0bae0615a5a1effec10db893d6084690582303",
+      "gitBlob": "94e28e493da2c869d11d839355d3a27b37bb2816",
+      "verified": true
+    },
+    {
+      "archive": "native-return-recovery.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/native-return-recovery.log",
+      "bytes": 2841,
+      "sha256": "2f9de2e3066749eb6cc617c05ba927d5e13b4c5262ce04f8899b55d823a987c0",
+      "gitBlob": "38ef187721774b3a2fdd9bc45415a0211b9bcc51",
+      "verified": true
+    },
+    {
+      "archive": "recovered-fresh-load.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/recovered-fresh-load.log",
+      "bytes": 1596,
+      "sha256": "69ad81cdbd97ba63de60708dc6b16962c4b195eb2c3024fcebdd99cb5238e1f8",
+      "gitBlob": "172bba48a7801708feedc8d0cb6f9d7dbc861ddb",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-carrier-lost-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-carrier-lost-half.png",
+      "bytes": 111473,
+      "sha256": "d64b659be7ace5f6e4e1c7fac5aec8cdbe7371bc8095ec04c5083ecee4dc735b",
+      "gitBlob": "13ec55b1dc8e78920208914e75b9da759047099f",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-carrier-lost-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-carrier-lost-half.shot.json",
+      "bytes": 4929,
+      "sha256": "f3e9bef1afa729be15094e6b3d6144ce35f41dd44f6124ae5e07ea5f0f9f98a5",
+      "gitBlob": "421f66b5ed50dbaa640df2ebbdca6b08b1f88aa3",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-reconstructed-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-reconstructed-half.png",
+      "bytes": 522588,
+      "sha256": "ebc5a35af4aff6f88165ee5c1cb4aa7b9946e14626d308d840b3a45628bc9ae4",
+      "gitBlob": "77e2bf1faf69a1a23e0221bef7010abf3942569d",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-reconstructed-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-reconstructed-half.shot.json",
+      "bytes": 5123,
+      "sha256": "1c7d41470ea41a8ccaab5505cff26086e5668eefad56285b6747aa694a32dadf",
+      "gitBlob": "1a349c05826dbee8f0db32236cc8fee3132cab25",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-reconstructed-saved-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-reconstructed-saved-half.png",
+      "bytes": 125786,
+      "sha256": "b06e624f8cd59a4003e81275ba24d7694a1e942e284b4c185109eaf75aa008f9",
+      "gitBlob": "042f379f831e1f5a9059a8dbf167ae27773dbdf6",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-reconstructed-saved-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-reconstructed-saved-half.shot.json",
+      "bytes": 5106,
+      "sha256": "aa19339222a4723987d3cdd8c6ee20d7740827a115988bab573ac5a46a8ae4cb",
+      "gitBlob": "d145e16d179f6dabf1effac564573716fb069c1d",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-native-return-recovery-half.mp4",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-native-return-recovery-half.mp4",
+      "bytes": 52395,
+      "sha256": "d5b5170f19bfafc309c033e6dd457f4b526d8b9651fbfbe3cfeeb75f2630e29a",
+      "gitBlob": "89e4a1c0e326d10f431b774bc703c514650a8200",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovered-fresh-small-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovered-fresh-small-half.png",
+      "bytes": 164977,
+      "sha256": "f2484861a152bffe206d7682ae3efa37e4ba0cf9589a07e63aa53941d0fdeff4",
+      "gitBlob": "4108838e46f986384d67bb265797f8c9f17f08cd",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovered-fresh-small-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovered-fresh-small-half.shot.json",
+      "bytes": 5214,
+      "sha256": "4153f6742ffaa52b95889aa03d68b5bee2eb4abe40f5af96cba7ca5e2c36086c",
+      "gitBlob": "4436533f5e18e8543db20c8ea03a9b256159e490",
+      "verified": true
+    },
+    {
+      "archive": "recovered-final-rendered.log",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/recovered-final-rendered.log",
+      "bytes": 5087,
+      "sha256": "6fa7e3cb1fa8f20ec94e92a24e7d02f155b01ee115851872405abff77c828b38",
+      "gitBlob": "6edb12a4c3789461ebb018af97d839acd113fd6d",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovered-final-rendered-half.png",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovered-final-rendered-half.png",
+      "bytes": 650743,
+      "sha256": "199b2e3b37383dd850348f2589775350eab869858b6a11e27e77bb64235e2905",
+      "gitBlob": "2e42a6d3dea803531b30dfbe7b936e7f1ac46092",
+      "verified": true
+    },
+    {
+      "archive": "scrap-signal-recovered-final-rendered-half.shot.json",
+      "local": "/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovered-final-rendered-half.shot.json",
+      "bytes": 5257,
+      "sha256": "afdfffe7bce759e7bae4d6f5e7c2271ea8b86448e1f1b1051105d19d65e6c67f",
+      "gitBlob": "6bd32988b65e7bcd1dbf8d1dcee7432cdad1eb7a",
+      "verified": true
     }
-  ]
+  ],
+  "historicalLogs": "final-game-tests.log and provision-clean-tests.log are historical stage logs. final-tests.log is authoritative final159-test log."
 }

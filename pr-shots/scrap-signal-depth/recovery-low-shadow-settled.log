@@ -1,0 +1,5 @@
+drive: page warning: [jgengine:touch] derived 14 on-screen buttons (jump, sprint, crouch, interact, fire, aim, reload, throwGrenade, useHealthVial, selectSlot1, selectSlot2, selectSlot3, selectSlot4, openSkills) — more than a thumb can reach. Curate touch.buttons, hide actions with touch.hidden, or split contexts with touch.modes.
+drive: frame(screencast)
+/workspace/games/.scratch/scrap-signal-evidence/scrap-signal-recovery-low-shadow-settled.png
+drive: kept warm — chrome debug port 9295, dev server on http://127.0.0.1:5177/?capture=1
+drive: next drive → bun run drive scrap-signal --mode play --connect 9295 --size half ...

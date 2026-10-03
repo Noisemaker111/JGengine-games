@@ -1,0 +1,11 @@
+{
+  "commit": "2e22800",
+  "freshPublicStartedAbsent": true,
+  "noCacheProviderProvision": 0,
+  "cleanVerify": 0,
+  "corruptServedFileRejected": 1,
+  "changedArchiveRejected": 1,
+  "servedBytesUnchangedAfterArchiveRejection": true,
+  "repairExactOriginalHash": "1826035a35de0898b341646fe3e85c9fceb6535a4b7d7704c0640fdaeb68c635",
+  "repairedVerify": 0
+}
