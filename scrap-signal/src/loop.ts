@@ -42,6 +42,7 @@ import {
   reactorOpenStore,
   selectedSlotStore,
   progressionStore,
+  pendingChassisStore,
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
@@ -105,7 +106,22 @@ function grantCores(ctx: GameContext, event: EntityDiedEvent): void {
 function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   relayEnemyDied(ctx, event);
   const userId = ctx.player.userId;
-  if (event.instanceId === userId) return;
+  if (event.instanceId === userId) {
+    const chassis = ctx.scene.entity.get(userId);
+    if (chassis !== null) {
+      const stats = Object.fromEntries(Object.keys(player.stats).flatMap((statId) => {
+        const stat = ctx.scene.entity.stats.get(userId, statId);
+        return stat === null ? [] : [[statId, { ...stat }]];
+      }));
+      pendingChassisStore.write(ctx, {
+        catalogId: chassis.name, position: [...chassis.position],
+        rotationX: chassis.rotationX, rotationY: chassis.rotationY, rotationZ: chassis.rotationZ,
+        role: chassis.role, stats,
+      });
+      enterDowned(ctx, ctx.time.now() * 1000);
+    }
+    return;
+  }
   const enemy = enemyById(event.catalogId);
   if (enemy === undefined) return;
   const deathAt = deathAnchor(ctx, event);
@@ -197,6 +213,22 @@ function tickReserve(ctx: GameContext, nowMs: number): void {
     ctx.scene.entity.update(userId, { movement: { walkSpeed: DOWNED_WALK_SPEED } });
   }
   if (reserveExpired(ctx, nowMs)) respawnAtNewU(ctx);
+}
+
+function restorePendingChassis(ctx: GameContext): void {
+  const pending = pendingChassisStore.read(ctx);
+  if (pending === null) return;
+  const userId = ctx.player.userId;
+  if (ctx.scene.entity.get(userId) === null) {
+    // Public spawn also clears the native death latch; the game chooses the downed resurrection policy.
+    ctx.scene.entity.spawn(pending.catalogId, {
+      id: userId, position: pending.position, role: pending.role,
+      rotationX: pending.rotationX, rotationY: pending.rotationY, rotationZ: pending.rotationZ,
+      movement: { walkSpeed: DOWNED_WALK_SPEED },
+    });
+    for (const [statId, stat] of Object.entries(pending.stats)) ctx.scene.entity.stats.set(userId, statId, stat);
+  }
+  pendingChassisStore.write(ctx, null);
 }
 
 function tickZoneAndStations(ctx: GameContext, nowMs: number): void {
@@ -304,12 +336,15 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
 function onTick(ctx: GameContext, dt: number): void {
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
+  restorePendingChassis(ctx);
   if (activeCharacter() === null || gamePhase(ctx) !== "playing" || dt <= 0) return;
   tickWeaponHandling(ctx, dt);
   tickAudio(ctx, nowMs);
   tickEnemies(ctx, dt);
+  restorePendingChassis(ctx);
   tickShields(ctx, nowMs, dt, 1, progressionStore.read(ctx).shieldProfile);
   tickDots(ctx, nowMs);
+  restorePendingChassis(ctx);
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
   tickRelay(ctx, dt);

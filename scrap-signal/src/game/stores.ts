@@ -4,6 +4,8 @@ import type { BlackMarketCounts } from "./commands";
 import type { ReservePhase } from "./handroll";
 import type { GunDef } from "./handroll/guns";
 import type { ProgressionState } from "./progression";
+import type { StatValueMap } from "@jgengine/core/scene/entityStats";
+import type { EntityPosition, EntityRole } from "@jgengine/core/scene/entityStore";
 
 export const selectedSlotStore = defineStore<number>("selectedSlot", 0);
 
@@ -48,6 +50,18 @@ export interface ShieldRecoveryState {
 }
 
 export const shieldRecoveryStore = defineStore<Record<string, ShieldRecoveryState>>("scrap.shieldRecovery", () => ({}));
+
+export interface PendingChassis {
+  catalogId: string;
+  position: EntityPosition;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+  role: EntityRole;
+  stats: StatValueMap;
+}
+
+export const pendingChassisStore = defineStore<PendingChassis | null>("scrap.pendingChassis", null);
 
 export const reactorOpenStore = defineStore<{ atMs: number } | null>("reactorOpen", null);
 
