@@ -6,7 +6,7 @@ import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 
-import { FISH_TABLE, FISHING_SPOTS, RECIPES, RECIPE_SKILL } from "./catalog";
+import { CRAFT_TRAINING_WINDOW, FISH_TABLE, FISHING_SPOTS, RECIPES, RECIPE_SKILL } from "./catalog";
 import { INTERACT_RANGE } from "../math/combat";
 import { inventories, traits } from "../inventories";
 import { professionsOf } from "../professions/gathering";
@@ -79,11 +79,12 @@ export function craftRecipe(ctx: GameContext, userId: string, recipeId: string):
     say(`Requires crafting ${skillReq}`);
     return;
   }
-  // Input-check + input-consume + output-grant resolve through core `craft()`.
-  // The handroll never gated on stations, so satisfy any station the recipe names
-  // (recipes carry no `stationRange`/`requires`, so no-station/locked never fire).
-  const context: CraftContext =
-    recipe.station !== undefined ? { stations: [{ catalogId: recipe.station, position: [0, 0] }] } : {};
+  // Core craft validates and consumes inputs and grants outputs atomically.
+  // Preserve the existing station fallback for recipes without a station range.
+  const context: CraftContext = {
+    ...(recipe.station === undefined ? {} : { stations: [{ catalogId: recipe.station, position: [0, 0] as const }] }),
+    unlocked: id => ctx.game.unlocks?.has(userId, id) ?? false,
+  };
   const inventory = ctx.player.inventory;
   const result = craft(inventory.state("bags"), BAGS_LAYOUT, traits, recipe, context);
   if (result.status === "rejected") {
@@ -96,7 +97,7 @@ export function craftRecipe(ctx: GameContext, userId: string, recipeId: string):
     return;
   }
   inventory.replaceState("bags", result.state);
-  if (skills.crafting < Math.min(300, skillReq + 40)) {
+  if (skills.crafting < Math.min(300, skillReq + CRAFT_TRAINING_WINDOW)) {
     professionsStore.write(ctx, userId, { ...skills, crafting: skills.crafting + 1 });
   }
   say("Crafted!");

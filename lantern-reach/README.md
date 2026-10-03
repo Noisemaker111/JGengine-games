@@ -47,6 +47,19 @@ For an offline copy of the downloaded files, use
 from this checkout. Hash checks are identical. A missing model produces an
 obstructive magenta loader placeholder, so provisioning is part of startup.
 
+The forge offers basic engineering recipes for the three starter tools. A Mithril
+Mining Pick spends three bone fragments and one linen scrap; an Ironbark Axe
+spends three linen scraps and one bone fragment; a Silverleaf Sickle spends three
+spider legs and one linen scrap. These materials can be gathered in Eastbrook,
+and spending them on tools competes with other recipes. Upgrades consume their
+starter tool as well as the next region's materials.
+
+Eastbrook gathering trains each profession to 50, which opens Mirefen. Mirefen
+trains to 150, which opens Highwatch. Basic recipes train crafting to 75; higher
+recipe bands continue training toward the next unlock. Earned skills and crafted
+inventory use the existing save format. Quest-gated recipes check the player's
+unlock before consuming any inputs.
+
 Controls: WASD movement, E nearby interaction, 1–9 abilities, T auto-attack,
 Tab targets, L quest journal, B bags. Click **Skip Intro** or press Escape to
 leave the opening camera sequence. Settings are available from the gear button.
