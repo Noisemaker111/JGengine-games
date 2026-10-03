@@ -49,8 +49,8 @@
       "http://127.0.0.1:4618/assets/index-ak2xXu6F.js"
     ],
     "limits": [
-      "No native express failure/refund yet",
-      "Integration viewport advances about one game second per20-25wallseconds; no real hardware performance or driving feel claim"
+      "No native express deadline failure yet",
+      "Integration viewport advances slowly under software GL; no real hardware performance or driving feel claim"
     ]
   },
   "verification": {
@@ -61,6 +61,54 @@
       "harbor-heat/src/game/race.test.ts",
       "harbor-heat/src/game/handroll.test.ts",
       "drift-foundry/src/game/route/gates.test.ts"
+    ]
+  },
+  "devices": {
+    "bundle": "index-JOS6y2bc.js",
+    "phone": {
+      "trace": "harbor-touch-trace.json",
+      "viewport": [
+        390,
+        844
+      ],
+      "provenance": "Trusted Chromium CDP native touch input; hasTouch/isMobile profile; software GL; read-only world/context observation",
+      "passed": [
+        "Joystick moved player from [-190,40] to [-174.753,46.296]",
+        "Opposite joystick approached Pico",
+        "Use entered veh_11",
+        "Joystick throttle19km/h, joystick brake19\u219210km/h",
+        "Pause froze vehicle pose across wait, native resume",
+        "Exit released vehicle and restored on-foot touch verbs"
+      ],
+      "images": [
+        "harbor-touch-car-entry.png",
+        "harbor-touch-paused.png",
+        "harbor-touch-exited.png"
+      ]
+    },
+    "simulatedStandardPad": {
+      "trace": "harbor-pad-trace.json",
+      "provenance": "Simulated navigator.getGamepads hardware axes/buttons; native mouse menus. Not physical controller evidence. No direct game state/command/economy writes.",
+      "passed": [
+        "Left stick moved player; X accepted standard parcel; native menu returned standard without cash loss",
+        "Calibrated camera-relative left stick approached Pico; X entered veh_11",
+        "Analog RT0.35 with LS steering reached12km/h",
+        "LT0.8 reduced12\u21921km/h",
+        "Native express acceptance charged100bond:250\u2192150,100% cargo",
+        "Intact return refunded100:150\u2192250,0reward,0completed,0failed",
+        "B exited car, drivingId null; on-foot pose restored"
+      ],
+      "images": [
+        "harbor-pad-car-entry.png",
+        "harbor-pad-express-bond.png",
+        "harbor-pad-express-refunded.png",
+        "harbor-pad-exited.png"
+      ]
+    },
+    "limitations": [
+      "Phone HUD/courier/hotbar are visibly tiny under published automatic HudCanvas zoom; touch controls and pause modal fit",
+      "No physical controller or real hardware performance/feel claim",
+      "No native express deadline failure yet"
     ]
   }
 }
