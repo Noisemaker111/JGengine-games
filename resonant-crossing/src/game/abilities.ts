@@ -79,6 +79,11 @@ export function registerCommands(ctx: GameContext): void {
       state.scene.entity.setPose(hero, { position: [target.x, 0, target.z], rotationY: Math.atan2(vector.x, vector.z), dt: 0 });
     },
   });
+  for (const dir of DIR_ORDER) ctx.game.commands.define(`duet.${dir}`, {
+    apply(state, input) {
+      state.game.commands.run("duet.step", { dir, userId: commandUser(state, input) });
+    },
+  });
   ctx.game.commands.define("swap", {
     apply(state, input) {
       if (duetStore.read(state).status !== "playing") return;

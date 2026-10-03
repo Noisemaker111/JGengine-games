@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
+import { resolvePlayerMovementTuning, stepPlayerMovement } from "@jgengine/core/movement/playerMovement";
+import { dispatchBoundAction } from "@jgengine/shell/boundActionDispatch";
+import { shellDrivesPlayerPose } from "@jgengine/shell/shellMovement";
 import { game } from "../../game.config";
 import { loop } from "../../loop";
 import { duetStore } from "../stores";
@@ -17,6 +20,23 @@ function boot(roomIndex = 0) {
 }
 
 describe("puzzle command and recovery boundaries", () => {
+  test("native key dispatch uses discrete steps and idle frames preserve authored integer cell centers", () => {
+    const ctx = boot();
+    const tuning = resolvePlayerMovementTuning(game);
+    expect(shellDrivesPlayerPose(game.game.input)).toBe(false);
+    ctx.game.commands.run("swap", {});
+    const before = heroCells(ctx).anchor;
+    dispatchBoundAction(ctx, "duet.north", 0, 0, { yaw: 0, pitch: 0 });
+    const expected = addCell(before, DIR_VECTORS.north);
+    expect(heroCells(ctx).anchor).toEqual(expected);
+    for (let i = 0; i < 90; i++) {
+      if (shellDrivesPlayerPose(game.game.input)) stepPlayerMovement(ctx, ctx.player.userId, { held: [] }, 1 / 60, tuning);
+      loop.onTick(ctx, 1 / 60);
+    }
+    expect(ctx.scene.entity.get("anchor")!.position).toEqual([expected.x, 0, expected.z]);
+    dispatchBoundAction(ctx, "duet.east", 0, 0, { yaw: 0, pitch: 0 });
+    expect(heroCells(ctx).anchor).toEqual(addCell(expected, DIR_VECTORS.east));
+  });
   test("invalid inputs and an unseated caller cannot move, plant or call out", () => {
     const ctx = boot();
     const pose = ctx.scene.entity.get("lumen")!.position;
@@ -102,7 +122,8 @@ describe("authored solutions through the real command loop", () => {
       expect(steps, `${hero} must reach ${cellKey(target)}`).toBeDefined();
       for (const dir of steps!) {
         const before = heroCells(ctx)[hero];
-        ctx.game.commands.run("duet.step", { dir });
+        dispatchBoundAction(ctx, `duet.${dir}`, 0, 0, { yaw: 0, pitch: 0 });
+        if (shellDrivesPlayerPose(game.game.input)) stepPlayerMovement(ctx, ctx.player.userId, { held: [] }, 0.01, resolvePlayerMovementTuning(game));
         loop.onTick(ctx, 0.01);
         expect(heroCells(ctx)[hero]).toEqual(addCell(before, DIR_VECTORS[dir]));
       }

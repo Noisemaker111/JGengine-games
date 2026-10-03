@@ -19,7 +19,7 @@ export function GameUI() {
   const state = useStore(duetStore, s => s);
   const { commands } = useGame();
   const active = useGameStore(ctx => controlledHero(ctx, ctx.player.userId));
-  const canSwap = useGameStore(ctx => ctx.player.possession.listOwned(ctx.player.userId).length > 1);
+  const canSwap = useGameStore(ctx => ctx.player.possession.listOwned(ctx.player.userId).filter(id => id === "lumen" || id === "anchor").length > 1);
   const [checkpoint, setCheckpoint] = useState(readCheckpoint);
   const [preferences, setPreferences] = useState(readPreferences);
   const [settings, setSettings] = useState(false);
@@ -74,7 +74,7 @@ export function GameUI() {
     <header className="rc-header rc-panel">
       <div><span className="rc-eyebrow">Observatory of the Duet · {state.roomIndex + 1}/{ROOM_COUNT}</span>
         <h1>{room.name}</h1><p>{room.objective}</p></div>
-      <button className="rc-quiet" disabled={state.status !== "playing"} onClick={() => run("pause")} aria-label="Pause and settings">Ⅱ <span>Pause</span></button>
+      <button className="rc-quiet" disabled={state.status !== "playing" || active === null} onClick={() => run("pause")} aria-label="Pause and settings">Ⅱ <span>Pause</span></button>
     </header>
     <div className="rc-signals rc-panel" aria-label="Circuit status">
       {room.plates.length > 0 && <span data-lit={state.pressedPlates.length === room.plates.length}>◆ Weight {state.pressedPlates.length}/{room.plates.length}</span>}
@@ -90,7 +90,7 @@ export function GameUI() {
     {state.toast && <div className="rc-toast" role="status">{state.toast}</div>}
     {state.status === "solved" && <div className="rc-clear" role="status"><span>Harmony restored</span><strong>Chamber complete</strong></div>}
     {state.status === "playing" && <footer className="rc-footer">
-      <div className="rc-hero rc-panel" style={{ borderColor: hero.color }}>
+      {active === null ? <div className="rc-hero rc-panel" role="status"><span className="rc-eyebrow">Watching the duet</span><strong>Both hero seats are occupied</strong><p className="rc-hint">Lumen and Anchor control this circuit. Follow their signals and callouts.</p></div> : <div className="rc-hero rc-panel" style={{ borderColor: hero.color }}>
         <span className="rc-eyebrow">Controlling</span><strong style={{ color: hero.color }}>{hero.name}</strong>
         <span className="rc-subtitle">{hero.title}</span>
         {room.roleHints?.[active ?? state.active] && <p className="rc-hint rc-role-hint">{room.roleHints[active ?? state.active]}</p>}
@@ -102,13 +102,13 @@ export function GameUI() {
         {hint && <p className="rc-hint">{room.hint ?? HINTS[state.roomIndex]}</p>}
         <div className="rc-actions rc-callouts" aria-label="Team callouts">{(Object.keys(CALLOUTS) as CalloutId[]).map(id => <button key={id} disabled={active === null} aria-label={CALLOUTS[id]} onClick={() => run("duet.callout", { id })}>{id === "go" ? "Go!" : id[0]!.toUpperCase() + id.slice(1)}</button>)}</div>
         {state.callout && <p className="rc-hint" role="status">{HEROES[state.callout.hero].name}: {CALLOUTS[state.callout.id]}</p>}
-      </div>
+      </div>}
       <div className="rc-pad rc-panel" aria-label="Precision movement">
         <span className="rc-eyebrow">Move · WASD / arrows</span>
-        <div><button className="rc-up" aria-label="Move north" onClick={() => run("duet.step", { dir: "north" })}>↑</button>
-          <button className="rc-left" aria-label="Move west" onClick={() => run("duet.step", { dir: "west" })}>←</button>
-          <button className="rc-down" aria-label="Move south" onClick={() => run("duet.step", { dir: "south" })}>↓</button>
-          <button className="rc-right" aria-label="Move east" onClick={() => run("duet.step", { dir: "east" })}>→</button></div>
+        <div><button className="rc-up" disabled={active === null} aria-label="Move north" onClick={() => run("duet.step", { dir: "north" })}>↑</button>
+          <button className="rc-left" disabled={active === null} aria-label="Move west" onClick={() => run("duet.step", { dir: "west" })}>←</button>
+          <button className="rc-down" disabled={active === null} aria-label="Move south" onClick={() => run("duet.step", { dir: "south" })}>↓</button>
+          <button className="rc-right" disabled={active === null} aria-label="Move east" onClick={() => run("duet.step", { dir: "east" })}>→</button></div>
       </div>
     </footer>}
     {modal && <div className="rc-overlay"><div className="rc-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label={settings ? "Settings" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Paused" : "Duet complete"}
@@ -130,10 +130,11 @@ export function GameUI() {
       </div> : <>
         <p>{state.status === "ready" ? "Light bends. Weight holds. Guide Lumen and Anchor through a clockwork observatory floating among the stars." : state.status === "paused" ? "Your circuit is held exactly where you left it." : "Lumen and Anchor restored the observatory together. Every crossing needed both."}</p>
         {state.status === "ready" && <div className="rc-intro"><p><b className="rc-cyan">✦ Lumen</b> plants one prism; aiming again relocates it.</p><p><b className="rc-amber">◆ Anchor</b> leaves one weight; dropping again moves it.</p><p>Later circuits need light and weight together. Secure each relay before moving devices. Use Ready, Hold and Go to coordinate; live spikes return you to safe ground.</p><p>Move with WASD, arrows or the direction buttons. Q swaps heroes in solo play, E uses a device. Reach both matching exit rings.</p></div>}
-        {state.status === "ready" && checkpoint && !checkpoint.complete && <button className="rc-primary" onClick={() => begin(checkpoint.roomIndex)}>Continue · {ROOMS[checkpoint.roomIndex]!.name}</button>}
+        {state.status === "ready" && checkpoint && !checkpoint.complete && <button className="rc-primary" disabled={active === null} onClick={() => begin(checkpoint.roomIndex)}>Continue · {ROOMS[checkpoint.roomIndex]!.name}</button>}
         <button className={state.status === "ready" && checkpoint && !checkpoint.complete ? "rc-quiet" : "rc-primary"}
-          onClick={() => state.status === "paused" ? run("pause") : begin()}>{state.status === "paused" ? "Resume expedition" : state.status === "complete" ? "Play again" : "Begin expedition"}</button>
-        {state.status === "paused" && <button className="rc-quiet" onClick={() => run("reset")}>Restart this chamber</button>}
+          disabled={active === null} onClick={() => state.status === "paused" ? run("pause") : begin()}>{state.status === "paused" ? "Resume expedition" : state.status === "complete" ? "Play again" : "Begin expedition"}</button>
+        {active === null && <p role="status">Both hero seats are occupied. You can watch this expedition.</p>}
+        {state.status === "paused" && <button className="rc-quiet" disabled={active === null} onClick={() => run("reset")}>Restart this chamber</button>}
         <button className="rc-quiet" onClick={() => setSettings(true)}>Settings</button>
       </>}
       {!saveAvailable && <p role="status">Browser storage is unavailable. You can still play this session.</p>}
