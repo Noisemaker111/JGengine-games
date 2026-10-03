@@ -7,6 +7,7 @@ import { editorLayers } from "./editorLayers";
 
 import { assets, entitySprites } from "./game/assets";
 import { audio } from "./game/audio/catalog";
+import { EnvironmentModels, swallowModel } from "./game/environmentModels";
 import { entityModels } from "./game/models";
 import { objectModels } from "./game/scenery";
 import { content } from "./game/content";
@@ -72,6 +73,10 @@ export const game = defineGame({
   features: { quest: true, trade: true, chat: true, unlocks: true },
   multiplayer: ws({ authority: "server" }),
   assets,
+  projectileTravel: { maxActive: 32, maxRetained: 64, maxTargets: 1024 },
+  sceneFlockModels: { reach_swallow: swallowModel },
+  scenePathKinds: ["road"],
+  WorldOverlay: EnvironmentModels,
   editorLayers,
   scenePlacement: true,
   world,

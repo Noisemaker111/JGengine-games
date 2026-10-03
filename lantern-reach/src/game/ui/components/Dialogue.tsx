@@ -59,12 +59,12 @@ export function DialoguePanel() {
         lineClassName="text-sm leading-snug text-stone-200 [&>span:first-child]:mr-1.5 [&>span:first-child]:font-semibold [&>span:first-child]:text-amber-300"
         choicesClassName="flex flex-col gap-1 pt-1"
         choiceClassName="rounded border border-stone-700 bg-stone-900/80 px-3 py-1.5 text-left text-sm text-amber-100 hover:border-amber-500 hover:bg-stone-800"
-        onChoice={(choice) => {
+        onChoice={async (choice) => {
           if (choice.invoke === null) {
             commands.run("dialogue.close", {});
             return;
           }
-          const result = commands.run(choice.invoke.command, choice.invoke.args ?? {});
+          const result = await commands.run(choice.invoke.command, choice.invoke.args ?? {});
           setNotice(result.status === "rejected" ? result.reason : null);
         }}
       />

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 import { groundFieldFor } from "@jgengine/core/world/terrain";
+import { createAuthoredSimulation } from "@jgengine/core/world/authoredSimulation";
 
 import { editorLayers } from "../editorLayers";
 import { world } from "../world";
@@ -49,8 +50,13 @@ describe("lantern-reach world", () => {
     }
   });
 
-  test("legacy biome effects and outlying construction blend rings remain", () => {
-    expect(world.weather?.map((effect) => effect.kind)).toEqual(["rain", "snow"]);
+  test("authored rain and snow cover their biome bands while outlying construction blend rings remain", () => {
+    const climate = createAuthoredSimulation({ document: editorLayers, timeSeconds: () => 0 });
+    expect(climate.sample(0, -300).rain).toBeGreaterThan(0);
+    expect(climate.sample(0, 0).rain).toBeGreaterThan(climate.sample(0, -300).rain);
+    expect(climate.sample(0, 330).snow).toBeGreaterThan(0);
+    expect(climate.sample(0, -300).snow).toBe(0);
+    climate.dispose();
     expect(world.vegetation?.[0]?.kind).toBe("grass");
     for (const zone of ZONES) {
       expect(world.terrain?.flatten).toContainEqual({ center: [zone.graveyard.x, zone.graveyard.z], radius: 8, falloff: 6 });

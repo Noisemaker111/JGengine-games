@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "markers": [
+    {
+      "id": "player_spawn",
+      "kind": "player_spawn",
+      "position": {
+        "x": 0,
+        "y": 0.8,
+        "z": 0
+      },
+      "label": "Start here"
+    },
+    {
+      "id": "start_pad",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Start pad",
+      "catalogId": "course_pad"
+    },
+    {
+      "id": "first_step",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -5.5
+      },
+      "label": "First short jump",
+      "catalogId": "course_step"
+    },
+    {
+      "id": "second_step",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -9.5
+      },
+      "label": "Second short jump",
+      "catalogId": "course_step"
+    },
+    {
+      "id": "bank_pad",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -15
+      },
+      "label": "Yellow checkpoint",
+      "catalogId": "course_checkpoint"
+    },
+    {
+      "id": "narrow_step",
+      "kind": "prop",
+      "position": {
+        "x": 2,
+        "y": 0,
+        "z": -20.5
+      },
+      "label": "Right hand jump",
+      "catalogId": "course_step"
+    },
+    {
+      "id": "last_step",
+      "kind": "prop",
+      "position": {
+        "x": -1,
+        "y": 0,
+        "z": -24.5
+      },
+      "label": "Left hand jump",
+      "catalogId": "course_step"
+    },
+    {
+      "id": "finish_pad",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -30
+      },
+      "label": "Purple finish",
+      "catalogId": "course_finish"
+    },
+    {
+      "id": "bank_bumper",
+      "kind": "prop",
+      "position": {
+        "x": -2,
+        "y": 0,
+        "z": -15
+      },
+      "label": "Checkpoint bumper",
+      "catalogId": "course_bumper"
+    }
+  ],
+  "volumes": [
+    {
+      "id": "landing_mat",
+      "kind": "soil",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0.01,
+        "z": -15
+      },
+      "halfExtents": {
+        "x": 50,
+        "y": 0.01,
+        "z": 50
+      },
+      "label": "Lilac landing field",
+      "meta": {
+        "baseColor": "#afa9d8",
+        "crackIntensity": 0,
+        "mossCoverage": 0
+      }
+    }
+  ],
+  "paths": [],
+  "annotations": [],
+  "prefabs": [],
+  "collections": [],
+  "catalogs": [],
+  "environment": {
+    "preset": "day",
+    "horizonColor": "#e1ddf7",
+    "zenithColor": "#72b8dc",
+    "sunAzimuth": 135,
+    "sunElevation": 44,
+    "fog": {
+      "color": "#e1ddf7",
+      "near": 70,
+      "far": 150
+    }
+  }
+}
