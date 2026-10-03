@@ -2,7 +2,24 @@
 
 A coastal city adventure in Mainsail: courier parcels, street crews, four race circuits, ground vehicles and aircraft. It consumes published `@jgengine/*` packages.
 
-Run `bun run dev`, `bun run check-types` and `bun run test` from this directory. `bun run vite build` produces the standalone build. Provision the seven licensed asset sources declared in `src/game/assets.ts` with the published assets CLI before launching a fresh checkout; the original models are bundled from `src/art/`.
+For a fresh checkout, install dependencies from the repository root, then download the seven licensed sources declared in `src/game/assets.ts` with the installed published assets CLI:
+
+```sh
+bun install --frozen-lockfile
+cd harbor-heat
+bun run --bun assets pull kaykit-city-builder --dir public
+bun run --bun assets pull kaykit-space-base --dir public
+bun run --bun assets pull kaykit-adventurers --dir public
+bun run --bun assets pull quaternius-stylized-nature --dir public
+bun run --bun assets pull kaykit-furniture --dir public
+bun run --bun assets pull kaykit-dungeon --dir public
+bun run --bun assets pull ambientcg-ground025 --dir public
+bun run dev
+```
+
+The CLI creates `public/models/<source>/` and `public/materials/<source>/`; these downloaded directories are ignored. No engine checkout or SDK alias is required. Published `@jgengine/assets` 0.18.1 first downloads from the [JGengine packs release mirror](https://github.com/Noisemaker111/jgengine/releases/tag/packs), then falls back to the catalog's provider URLs. The original models are bundled from `src/art/`.
+
+Run `bun run check-types` and `bun run test` from this directory. `bun run vite build` produces the standalone build.
 
 The teal dispatch booth is beside the starting boardwalk. Press **E / Use** or click **Take standard parcel** to start a free timed delivery on foot or in a vehicle. Follow the numbered parcel tower on the minimap, stop within the handoff radius, then press **E / Use**. Boardwalk breakfast, Plaza night shift and Sunset spare parts rotate after successful runs. Standard delivery pays cash, a remaining-time bonus and 15 cred; missing its deadline costs no cash.
 
