@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "validate-content": "bun scripts/validate-content.ts",
     "dev": "vite",
     "check-types": "tsgo --noEmit -p tsconfig.json",
     "test": "bun test src"

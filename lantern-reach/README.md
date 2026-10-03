@@ -84,3 +84,5 @@ the crypt and the five outlying dungeon compounds retain their original terrain
 flatten radii and falloffs. The published editor document cannot yet express
 weather/vegetation bands or individual clearing blend rings, so those features
 remain explicit in `world.ts`; the settlement architecture is editor authored.
+
+Run `bun run validate-content` after catalog edits. Diagnostics contain content ids, JSON Pointer paths and repair suggestions; errors return a failing exit status. Lantern declares possible mob drops, vendor stock, quest rewards, repeatable gathering and crafting training. Supply validation assumes enemies and vendors are accessible and checks whether inputs can ever be obtained; it does not simulate prices, quantities, map access or exclusive story outcomes. Those rules remain game-owned. Validation runs during authoring and tests, never per frame.

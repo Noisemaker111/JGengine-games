@@ -1,5 +1,7 @@
 import { defineKeyedStore } from "@jgengine/core/store/defineKeyedStore";
 
+import { STARTING_PROFESSION_SKILL } from "../professions/catalog";
+
 import type { ValeCupView } from "../minigames/valeCup";
 import type { YumiView } from "../minigames/yumi";
 import type { EquipSlot, ProfessionId } from "../model";
@@ -28,7 +30,7 @@ export const restedStore = defineKeyedStore<number>((userId) => `rested:${userId
 export const bankStore = defineKeyedStore<boolean>((userId) => `bank:${userId}`, false);
 export const professionsStore = defineKeyedStore<Record<ProfessionId, number>>(
   (userId) => `profs:${userId}`,
-  () => ({ mining: 1, logging: 1, herbalism: 1, fishing: 1, crafting: 1 }),
+  () => ({ mining: STARTING_PROFESSION_SKILL, logging: STARTING_PROFESSION_SKILL, herbalism: STARTING_PROFESSION_SKILL, fishing: STARTING_PROFESSION_SKILL, crafting: STARTING_PROFESSION_SKILL }),
 );
 export const nameStore = defineKeyedStore<string | null>((userId) => `name:${userId}`, null);
 export const cinematicStore = defineKeyedStore<boolean>((userId) => `cinematic:${userId}`, false);
