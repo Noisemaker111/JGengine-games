@@ -58,7 +58,7 @@ export function GameUI() {
     );
   }
   return (
-    <><SessionUI /><HudCanvas layout={layout} className="z-50 font-sans hh-hud">
+    <><SessionUI /><HudCanvas layout={layout} className="z-[45] font-sans hh-hud">
       <HudPanel id="wanted" anchor={compact ? "top-right" : "top"} compact="keep" interactive={false}>
         <WantedStars />
       </HudPanel>
