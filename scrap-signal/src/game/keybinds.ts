@@ -6,7 +6,7 @@ export const keybinds: ActionCodesMap = {
   moveLeft: ["KeyA"],
   moveRight: ["KeyD"],
   jump: ["Space"],
-  sprint: ["ShiftLeft"],
+  sprint: ["Shift"],
   crouch: { hold: ["KeyC"] },
   interact: ["KeyE"],
   // Keyboard alternatives remain usable on published shell 0.18.1, whose

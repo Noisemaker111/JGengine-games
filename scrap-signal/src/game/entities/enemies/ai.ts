@@ -41,6 +41,8 @@ export interface EnemyMind {
   nextSenseMs?: number;
   nextThinkMs?: number;
   lastThinkMs?: number;
+  steeringSide?: number;
+  detour?: { target: EntityPosition; goal: EntityPosition; untilMs: number };
 }
 export const enemyTacticsStore = defineStore<Record<string, EnemyMind>>("scrap.enemyTactics", () => ({}));
 
@@ -98,26 +100,45 @@ function routeClear(ctx: GameContext, from: EntityPosition, to: EntityPosition, 
   return Math.abs(ground - from[1]) <= 0.8;
 }
 
-function move(ctx: GameContext, id: string, target: EntityPosition, speed: number, stopDistance: number, dt: number, allowSteer = true): void {
+function walkClear(ctx: GameContext, id: string, from: EntityPosition, to: EntityPosition, speed: number, stopDistance: number, dt: number): boolean {
+  if (!routeClear(ctx, from, to, speed * dt)) return false;
+  const length = distance2d(from, to);
+  const step = Math.min(speed * dt, Math.max(0, length - stopDistance));
+  if (step < 0.001) return true;
+  const predicted = ctx.scene.entity.moveToward(id, to, { speed, stopDistance, dt });
+  if (predicted === null) return false;
+  const progress = ((predicted[0] - from[0]) * (to[0] - from[0]) + (predicted[2] - from[2]) * (to[2] - from[2])) / length;
+  return progress >= step * 0.65;
+}
+
+function move(ctx: GameContext, id: string, target: EntityPosition, speed: number, stopDistance: number, dt: number, allowSteer = true, mind?: EnemyMind): void {
   const entity = ctx.scene.entity.get(id);
   if (entity === null || distance2d(entity.position, target) <= stopDistance) return;
   const from = entity.position;
-  let destination = target;
-  if (!routeClear(ctx, from, target, speed * dt)) {
+  const nowMs = ctx.time.now() * 1000;
+  if (mind?.detour !== undefined && (distance2d(from, mind.detour.target) <= 0.25 || distance2d(target, mind.detour.goal) > 5 || nowMs >= mind.detour.untilMs)) delete mind.detour;
+  let destination = allowSteer && mind?.detour !== undefined ? mind.detour.target : target;
+  let arrival = destination === target ? stopDistance : 0.2;
+  if (!walkClear(ctx, id, from, destination, speed, arrival, dt)) {
     if (!allowSteer) return;
     const dx = target[0] - from[0];
     const dz = target[2] - from[2];
     const length = Math.hypot(dx, dz) || 1;
-    const side = idHash(id) % 2 === 0 ? 1 : -1;
+    const side = mind?.steeringSide ?? (idHash(id) % 2 === 0 ? 1 : -1);
     const candidates: EntityPosition[] = [
-      [from[0] - dz / length * 2 * side, from[1], from[2] + dx / length * 2 * side],
-      [from[0] + dz / length * 2 * side, from[1], from[2] - dx / length * 2 * side],
+      [from[0] - dz / length * 3 * side, from[1], from[2] + dx / length * 3 * side],
+      [from[0] + dz / length * 3 * side, from[1], from[2] - dx / length * 3 * side],
     ];
-    const alternative = candidates.find((point) => routeClear(ctx, from, point, speed * dt));
-    if (alternative === undefined) return;
-    destination = alternative;
+    const choice = candidates.findIndex((point) => walkClear(ctx, id, from, point, speed, 0.2, dt));
+    if (choice < 0) return;
+    destination = candidates[choice]!;
+    arrival = 0.2;
+    if (mind !== undefined) {
+      mind.steeringSide = choice === 0 ? side : -side;
+      mind.detour = { target: destination, goal: [...target], untilMs: nowMs + 3000 };
+    }
   }
-  ctx.scene.entity.moveTowardCommit(id, destination, { speed, stopDistance, dt, face: true });
+  ctx.scene.entity.moveTowardCommit(id, destination, { speed, stopDistance: arrival, dt, face: true });
   const moved = ctx.scene.entity.get(id);
   if (moved !== null) {
     workOf(ctx).work.groundQueries += 1;
@@ -192,18 +213,18 @@ function fireShot(ctx: GameContext, def: EnemyDef, id: string, from: EntityPosit
   });
 }
 
-function reposition(ctx: GameContext, def: EnemyDef, id: string, from: EntityPosition, player: EntityPosition, dt: number, tactics: EnemyTactics): void {
+function reposition(ctx: GameContext, def: EnemyDef, id: string, from: EntityPosition, player: EntityPosition, dt: number, tactics: EnemyTactics, mind: EnemyMind): void {
   const distance = distance2d(from, player);
   const reach = def.attack.kind === "melee" ? def.attack.reach : def.attack.preferRange;
   if (def.attack.kind === "melee") {
     const side = idHash(id) % 2 === 0 ? 1 : -1;
     const target: EntityPosition = distance > reach * 2 ? [player[0] + side * 1.1, player[1], player[2]] : player;
-    move(ctx, id, target, def.walkSpeed, reach * 0.72, dt);
+    move(ctx, id, target, def.walkSpeed, reach * 0.72, dt, true, mind);
   } else if (tactics.role === "skirmish" && distance < reach * 0.55) {
     const length = Math.max(0.01, distance);
-    move(ctx, id, [from[0] + (from[0] - player[0]) / length * 3, from[1], from[2] + (from[2] - player[2]) / length * 3], def.walkSpeed, 0.1, dt);
+    move(ctx, id, [from[0] + (from[0] - player[0]) / length * 3, from[1], from[2] + (from[2] - player[2]) / length * 3], def.walkSpeed, 0.1, dt, true, mind);
   } else if (distance > reach || !enemyLineOfSight(ctx, from, player, def.attack.eyeHeight)) {
-    move(ctx, id, player, def.walkSpeed, reach * 0.75, dt);
+    move(ctx, id, player, def.walkSpeed, reach * 0.75, dt, true, mind);
   }
 }
 
@@ -289,10 +310,10 @@ export function tickEnemies(ctx: GameContext, dt: number): void {
       delete mind.novaTarget;
       mind.phase = "ready";
       mind.untilMs = nowMs + 250;
-      if (leashed) move(ctx, entity.id, mind.home, def.walkSpeed, 1.5, aiDt);
+      if (leashed) move(ctx, entity.id, mind.home, def.walkSpeed, 1.5, aiDt, true, mind);
       else {
         const angle = idHash(`${entity.id}:${Math.floor(nowMs / 5000)}`) / 100;
-        move(ctx, entity.id, [mind.home[0] + Math.cos(angle) * 4, mind.home[1], mind.home[2] + Math.sin(angle) * 4], def.walkSpeed * 0.4, 0.6, aiDt);
+        move(ctx, entity.id, [mind.home[0] + Math.cos(angle) * 4, mind.home[1], mind.home[2] + Math.sin(angle) * 4], def.walkSpeed * 0.4, 0.6, aiDt, true, mind);
       }
       continue;
     }
@@ -345,9 +366,10 @@ export function tickEnemies(ctx: GameContext, dt: number): void {
       if (mind.shots <= 0) recover(ctx, entity.id, mind, nowMs, tactics.recoveryMs);
       continue;
     }
-    reposition(ctx, def, entity.id, entity.position, knownPosition, aiDt, tactics);
+    reposition(ctx, def, entity.id, entity.position, knownPosition, aiDt, tactics, mind);
     const startRange = def.attack.kind === "melee" ? tactics.role === "charge" ? 7 : def.attack.reach : def.attack.preferRange * 1.25;
     if (nowMs < mind.untilMs || distance > startRange || !visible) continue;
+    delete mind.detour;
     mind.phase = "windup";
     mind.untilMs = nowMs + tactics.windupMs;
     mind.target = [...player.position];
