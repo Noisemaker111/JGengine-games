@@ -3,7 +3,7 @@ import { handlingView, shotSpreadDeg } from "../../combatFeel";
 import { equippedGun } from "../../feel";
 import { gunById } from "../../handroll";
 import { LevelUpFlash } from "@jgengine/react/components";
-import { useEntityStat, useGameStore, usePlayer } from "@jgengine/react/hooks";
+import { useEntityStat, useGameStore, usePlayer, useOptionalGamePhase } from "@jgengine/react/hooks";
 import { lastHit, lastHurtAtMs, playerShieldSignal } from "../../feel";
 
 function useNowMs(): number {
@@ -12,6 +12,7 @@ function useNowMs(): number {
 
 export function HitMarker() {
   const ctx = useGameContext();
+  const phase = useOptionalGamePhase();
   const nowMs = useNowMs();
   const hit = lastHit();
   const age = nowMs - hit.atMs;
@@ -22,11 +23,14 @@ export function HitMarker() {
   const gap = 5 + Math.min(29, spread * 4);
   const color = hit.kill ? "#e23c2e" : hit.shieldBreak ? "#70e8ff" : hit.crit ? "#ffb400" : hit.shield ? "#3bb5e8" : "#f5f0e6";
   const size = hit.crit || hit.kill ? 30 : 22;
+  if (phase !== "playing") return null;
   return (
     <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" aria-hidden="true">
-      <svg width="120" height="120" viewBox="0 0 120 120" className="absolute" style={{ opacity: handling.sprinting ? 0.25 : 0.9, transform: `translateY(${-handling.climbDeg * 4}px)`, filter: "drop-shadow(0 1px 1px #211810)" }}>
-        <path d={`M${60 - gap - 7} 60 h7 M${60 + gap} 60 h7 M60 ${60 - gap - 7} v7 M60 ${60 + gap} v7`} fill="none" stroke={handling.crouching && handling.aiming ? "#ffd26e" : "#e8e0d1"} strokeWidth="1.8" />
-        <rect x="58.6" y="58.6" width="2.8" height="2.8" fill="#f5f0e6" />
+      <svg width="180" height="180" viewBox="0 0 120 120" data-scrap-reticle="true" className="absolute" style={{ opacity: handling.sprinting ? 0.25 : 0.9, transform: `translateY(${-handling.climbDeg * 4}px)`, filter: "drop-shadow(0 1px 1px #211810)" }}>
+        <path d={`M${60 - gap - 7} 60 h7 M${60 + gap} 60 h7 M60 ${60 - gap - 7} v7 M60 ${60 + gap} v7`} fill="none" stroke="#241b12" strokeWidth="6" />
+        <path d={`M${60 - gap - 7} 60 h7 M${60 + gap} 60 h7 M60 ${60 - gap - 7} v7 M60 ${60 + gap} v7`} fill="none" stroke={handling.crouching && handling.aiming ? "#ffd26e" : "#e8e0d1"} strokeWidth="3.2" />
+        <rect x="56.5" y="56.5" width="7" height="7" fill="#241b12" />
+        <rect x="57.5" y="57.5" width="5" height="5" fill="#f5f0e6" />
       </svg>
       {visible ? <>
         <svg width={size} height={size} viewBox="0 0 24 24" className="scrap-hitmarker">

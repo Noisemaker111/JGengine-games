@@ -5,7 +5,8 @@ import { selectedGunId } from "./commands";
 import { gunById, magLoaded, isReloading, reservePhase, effectiveMagSize, effectiveReloadMs, reloadFraction } from "./handroll";
 import { handlingView } from "./combatFeel";
 import { enemyById } from "./entities/enemies/catalog";
-import { enemyAiWork } from "./entities/enemies/ai";
+import { enemyAiWork, enemyTacticsStore } from "./entities/enemies/ai";
+import { lastHit } from "./feel";
 import { relayStore } from "./relay";
 import { progressionStore, gunCatalogStore } from "./stores";
 
@@ -17,6 +18,9 @@ export function combatProbe(ctx: GameContext): Record<string, number> {
   const entity = ctx.scene.entity.get(player);
   const handling = handlingView(ctx);
   const ai = enemyAiWork(ctx);
+  const minds = enemyTacticsStore.read(ctx);
+  const hit = lastHit();
+  const attackPhase = (phase: string) => ["ready", "windup", "burst", "charge", "recover"].indexOf(phase);
   const phase = ["menu", "playing", "paused", "ended"].indexOf(gamePhase(ctx));
   const result: Record<string, number> = {
     ...audioProbe(ctx),
@@ -29,6 +33,10 @@ export function combatProbe(ctx: GameContext): Record<string, number> {
     sprinting: Number(handling.sprinting),
     bloom: handling.bloom,
     climbDeg: handling.climbDeg,
+    hitAgeMs: Number.isFinite(hit.atMs) ? ctx.time.now() * 1000 - hit.atMs : -1,
+    hitKill: Number(hit.kill),
+    hitCritical: Number(hit.crit),
+    hitShieldBreak: Number(hit.shieldBreak === true),
     health: ctx.scene.entity.stats.get(player, "health")?.current ?? 0,
     shield: ctx.scene.entity.stats.get(player, "shield")?.current ?? 0,
     shieldMax: ctx.scene.entity.stats.get(player, "shield")?.max ?? 0,
@@ -66,6 +74,13 @@ export function combatProbe(ctx: GameContext): Record<string, number> {
       result.enemyZ = enemy.position[2];
       result.enemyHealth = ctx.scene.entity.stats.get(enemy.id, "health")?.current ?? 0;
       result.enemyDistance = distance;
+      const mind = minds[enemy.id];
+      if (mind !== undefined) {
+        result.enemyAttackPhase = attackPhase(mind.phase);
+        result.enemyUntilMs = mind.untilMs;
+        result.enemyTargetX = mind.target[0];
+        result.enemyTargetZ = mind.target[2];
+      }
     }
   }
   for (const id of relay.enemies) {
@@ -74,6 +89,13 @@ export function combatProbe(ctx: GameContext): Record<string, number> {
     result[`${id}.x`] = enemy.position[0];
     result[`${id}.z`] = enemy.position[2];
     result[`${id}.health`] = ctx.scene.entity.stats.get(id, "health")?.current ?? 0;
+    const mind = minds[id];
+    if (mind !== undefined) {
+      result[`${id}.phase`] = attackPhase(mind.phase);
+      result[`${id}.untilMs`] = mind.untilMs;
+      result[`${id}.targetX`] = mind.target[0];
+      result[`${id}.targetZ`] = mind.target[2];
+    }
   }
   return result;
 }
