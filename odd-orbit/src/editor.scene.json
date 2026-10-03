@@ -27,7 +27,8 @@
       "meta": {
         "object": "hab_wall",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_wall_window:-6:-9",
@@ -41,7 +42,8 @@
       "meta": {
         "object": "hab_wall_window",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_wall:-3:-9",
@@ -55,7 +57,8 @@
       "meta": {
         "object": "hab_wall",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_gate:0:-9",
@@ -83,7 +86,8 @@
       "meta": {
         "object": "hab_wall",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_wall_window:6:-9",
@@ -97,7 +101,8 @@
       "meta": {
         "object": "hab_wall_window",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_wall:9:-9",
@@ -111,7 +116,8 @@
       "meta": {
         "object": "hab_wall",
         "group": "hab"
-      }
+      },
+      "rotationY": 1.5707963267948966
     },
     {
       "id": "hab:hab_wall_window:-12:-6",
@@ -121,7 +127,7 @@
         "y": 0,
         "z": -6
       },
-      "rotationY": 1.5707963267948966,
+      "rotationY": 3.141592653589793,
       "label": "hab_wall_window",
       "meta": {
         "object": "hab_wall_window",
@@ -136,7 +142,7 @@
         "y": 0,
         "z": -3
       },
-      "rotationY": 1.5707963267948966,
+      "rotationY": 3.141592653589793,
       "label": "hab_wall",
       "meta": {
         "object": "hab_wall",
@@ -151,7 +157,7 @@
         "y": 0,
         "z": 0
       },
-      "rotationY": 1.5707963267948966,
+      "rotationY": 3.141592653589793,
       "label": "hab_wall_window",
       "meta": {
         "object": "hab_wall_window",
@@ -166,7 +172,7 @@
         "y": 0,
         "z": 3
       },
-      "rotationY": 1.5707963267948966,
+      "rotationY": 3.141592653589793,
       "label": "hab_wall",
       "meta": {
         "object": "hab_wall",
@@ -181,7 +187,7 @@
         "y": 0,
         "z": 6
       },
-      "rotationY": 1.5707963267948966,
+      "rotationY": 3.141592653589793,
       "label": "hab_wall_window",
       "meta": {
         "object": "hab_wall_window",
@@ -459,5 +465,6 @@
   "paths": [],
   "annotations": [],
   "prefabs": [],
-  "collections": []
+  "collections": [],
+  "catalogs": []
 }

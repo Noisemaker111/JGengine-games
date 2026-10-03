@@ -73,12 +73,13 @@ describe("simulation loop", () => {
       player: { userId: "director", isNew: true },
     });
     onInit(ctx);
+    ctx.game.commands.run("orbit.new", {});
     return ctx;
   }
 
   test("ticking keeps needs bounded and does not crash", () => {
     const ctx = boot();
-    for (let i = 0; i < 120; i++) onTick(ctx, 0.5);
+    for (let i = 0; i < 120; i++) onTick(ctx, ctx.time.advance(0.5));
     const household = householdStore.read(ctx);
     for (const id of household.order) {
       const needs = household.members[id]!.needs;
@@ -89,7 +90,7 @@ describe("simulation loop", () => {
     }
   });
 
-  test("a working member earns credits", () => {
+  test("a completed directed shift earns its bounded daily pay", () => {
     const ctx = boot();
     const before = householdStore.read(ctx);
     const id = before.order[0]!;
@@ -98,7 +99,9 @@ describe("simulation loop", () => {
     member.assignedByPlayer = true;
     householdStore.write(ctx, { ...before, members: { ...before.members } });
     const creditsBefore = householdStore.read(ctx).credits;
-    onTick(ctx, 1);
-    expect(householdStore.read(ctx).credits).toBeGreaterThan(creditsBefore);
+    for (let i = 0; i < 40; i++) onTick(ctx, ctx.time.advance(0.5));
+    expect(householdStore.read(ctx).credits - creditsBefore).toBe(100);
+    expect(member.workToday).toBe(20);
+    expect(member.completedShifts).toBe(1);
   });
 });
