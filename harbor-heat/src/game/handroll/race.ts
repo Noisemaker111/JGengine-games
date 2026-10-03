@@ -1,10 +1,30 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { advancePathFollow, createPathFollow, type PathFollowConfig, type PathFollowState } from "@jgengine/core/nav/pathFollow";
-import { createRaceState, firstPastPost, raceTrack, type RaceState } from "@jgengine/core/game/race";
+import { createRaceState, firstPastPost, raceOutcomeOf, raceTrack, type RaceState } from "@jgengine/core/game/race";
 import { RACE_ROUTES, type RaceRoute } from "../world/districts";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
 import { RIVAL_RACER_ID, raceStore, type RaceSnapshot } from "./shared";
+
+export interface HarborRival {
+  name: string;
+  vehicleId: string;
+  speed: number;
+  brief: string;
+}
+
+const RIVALS: Readonly<Record<string, HarborRival>> = {
+  "race-loop": { name: "Rafa", vehicleId: "car_muscle", speed: 15.5, brief: "Rafa holds a steady pace through the long loop. Keep your car to the finish." },
+  "race-harbor": { name: "Mina", vehicleId: "car_compact", speed: 13, brief: "Mina knows every dock turn. A clean line beats her Pico." },
+  "race-heights": { name: "Sol", vehicleId: "car_sport", speed: 17, brief: "Sol's Cicada is the quickest challenge. Bring speed to Palm Heights." },
+  "race-coast": { name: "Tavo", vehicleId: "car_suv", speed: 11.5, brief: "Tavo's Vagabond runs a relaxed coastal pace. Learn the gates here." },
+};
+
+export function rivalForRoute(routeId: string): HarborRival {
+  return RIVALS[routeId] ?? RIVALS["race-loop"]!;
+}
+
+export const RACE_START_RADIUS = 9;
 
 /**
  * The race slice: authored street-race circuits and their scripted rival racer. Every `route` path in
@@ -40,6 +60,7 @@ export function createRace(driving: Driving): Race {
   let raceStartedAt = 0;
   let rivalState: PathFollowState | null = null;
   let rivalConfig: PathFollowConfig | null = null;
+  let raceVehicleId: string | null = null;
 
   function publishRace(ctx: GameContext, snapshot: RaceSnapshot): void {
     raceStore.write(ctx, snapshot);
@@ -47,8 +68,7 @@ export function createRace(driving: Driving): Race {
 
   function endRace(ctx: GameContext, won: boolean): void {
     if (activeRoute === null) return;
-    const standings = race?.standings() ?? [];
-    const player = standings.find((s) => s.racerId === ctx.player.userId);
+    const player = race?.progressOf(ctx.player.userId);
     publishRace(ctx, {
       routeId: activeRoute.id,
       label: activeRoute.label,
@@ -65,10 +85,16 @@ export function createRace(driving: Driving): Race {
     activeRoute = null;
     rivalState = null;
     rivalConfig = null;
+    raceVehicleId = null;
   }
 
   function tickRace(ctx: GameContext, dt: number): void {
     if (race === null || activeRoute === null || rivalConfig === null || rivalState === null) return;
+    if (driving.drivingVehicleId() !== raceVehicleId || raceVehicleId === null || ctx.scene.entity.get(raceVehicleId) === null) {
+      ctx.game.feed.push("harbor.log", { text: "Race forfeited — keep your entered car to the finish." });
+      endRace(ctx, false);
+      return;
+    }
     rivalState = advancePathFollow(rivalConfig, rivalState, dt);
     const [rx, , rz] = rivalState.position;
     ctx.scene.entity.setPose(RIVAL_RACER_ID, {
@@ -84,19 +110,17 @@ export function createRace(driving: Driving): Race {
     });
     const finished = events.find((event) => event.type === "race.finished");
     if (finished !== undefined) {
-      const standings = race.standings();
-      endRace(ctx, standings[0]?.racerId === ctx.player.userId);
+      endRace(ctx, raceOutcomeOf(finished.ranking, ctx.player.userId) === "win");
       return;
     }
-    const player = race.standings().find((s) => s.racerId === ctx.player.userId);
-    const rivalProgress = race.standings().find((s) => s.racerId === RIVAL_RACER_ID)?.progress ?? 0;
+    const player = race.progressOf(ctx.player.userId);
     publishRace(ctx, {
       routeId: activeRoute.id,
       label: activeRoute.label,
       active: true,
       checkpoint: player?.progress ?? 0,
       total: activeRoute.checkpoints.length,
-      position: (player?.progress ?? 0) >= rivalProgress ? 1 : 2,
+      position: player?.position ?? 2,
       timeSec: ctx.time.now() - raceStartedAt,
       finished: false,
       won: false,
@@ -114,6 +138,12 @@ export function createRace(driving: Driving): Race {
       const route = nearestRoute(playerPos);
       if (route === null || route.checkpoints.length === 0) return false;
       const checkpoints = route.checkpoints;
+      const start = checkpoints[checkpoints.length - 1]!;
+      if (Math.hypot(playerPos[0] - start[0], playerPos[2] - start[1]) > RACE_START_RADIUS) {
+        ctx.scene.entity.floatText({ instanceId: drivenId, text: "DRIVE TO A RACE START LINE", kind: "warn" });
+        return false;
+      }
+      const rival = rivalForRoute(route.id);
       const track = raceTrack({
         checkpoints: checkpoints.map(([x, z], i) => ({
           id: `cp_${i}`,
@@ -124,21 +154,23 @@ export function createRace(driving: Driving): Race {
       });
       race = createRaceState({ track, win: firstPastPost(1) });
       activeRoute = route;
+      raceVehicleId = drivenId;
       raceStartedAt = ctx.time.now();
       race.addRacer(ctx.player.userId, raceStartedAt);
       race.addRacer(RIVAL_RACER_ID, raceStartedAt);
-      const start = checkpoints[checkpoints.length - 1]!;
-      ctx.scene.entity.spawn("car_muscle", {
+      ctx.scene.entity.spawn(rival.vehicleId, {
         id: RIVAL_RACER_ID,
         position: [start[0], ctx.world.groundHeightAt(start[0], start[1]), start[1]],
+        rotationY: Math.atan2(checkpoints[0]![0] - start[0], checkpoints[0]![1] - start[1]),
         role: "prop",
       });
       rivalConfig = {
-        waypoints: [...checkpoints, checkpoints[0]!].map(([x, z]) => [x, 0, z] as const),
-        speed: 15.5,
+        waypoints: [start, ...checkpoints].map(([x, z]) => [x, 0, z] as const),
+        speed: rival.speed,
         loop: false,
       };
       rivalState = createPathFollow(rivalConfig);
+      ctx.game.feed.push("harbor.log", { text: `${route.label} — ${rival.brief}` });
       publishRace(ctx, {
         routeId: route.id,
         label: route.label,

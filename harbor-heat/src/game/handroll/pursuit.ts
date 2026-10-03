@@ -5,6 +5,7 @@ import { advancePursuit, armPursuit, createPursuitState, type PursuitState } fro
 import { DIFFICULTY_TIERS, type DifficultyProfile } from "@jgengine/core/ai/difficulty";
 import { createDriverState, driveStep, type DriverState, type DriverTuning } from "@jgengine/core/ai/driver";
 import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
+import { entityMetaOf, type SceneEntity } from "@jgengine/core/scene/entityStore";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
@@ -18,6 +19,14 @@ const CRUISER_SKILL: readonly DifficultyProfile[] = [
 ];
 const cruiserSkill = (stars: number): DifficultyProfile =>
   CRUISER_SKILL[Math.max(0, Math.min(CRUISER_SKILL.length - 1, stars - PURSUIT_STARS))]!;
+
+function cruiserMeta(entity: SceneEntity): Record<string, unknown> | null {
+  return entityMetaOf(entity, (value): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value));
+}
+
+function commandeered(entity: SceneEntity): boolean {
+  return cruiserMeta(entity)?.harborCommandeered === true;
+}
 
 const CRUISER_TUNING: DriverTuning = (() => {
   const def = vehicleById("car_cop");
@@ -68,11 +77,38 @@ export function createPursuit(driving: Driving): Pursuit {
     wantedStore.write(ctx, { heat: heatState.heat, stars: heatState.level, peakStars } satisfies WantedSnapshot);
   }
 
+  function releaseCommandeeredCruiser(ctx: GameContext): void {
+    const drivenId = driving.drivingVehicleId();
+    if (drivenId === null || !drivenId.startsWith("cruiser_")) return;
+    const cruiser = ctx.scene.entity.get(drivenId);
+    if (cruiser === null || commandeered(cruiser)) return;
+    ctx.scene.entity.update(drivenId, { meta: { ...cruiserMeta(cruiser), harborCommandeered: true } });
+    driving.cruiserVehicles.delete(drivenId);
+    cruiserDrivers.delete(drivenId);
+  }
+
+  function standDown(ctx: GameContext): void {
+    releaseCommandeeredCruiser(ctx);
+    for (const entity of ctx.scene.entity.list()) {
+      if (entity.name === "cop_patrol" || entity.name === "cop_swat") ctx.scene.entity.despawn(entity.id);
+      else if (entity.id.startsWith("cruiser_") && !commandeered(entity)) {
+        ctx.scene.entity.despawn(entity.id);
+        driving.dropCarSim(entity.id);
+      }
+    }
+    copPursuit.clear();
+    cruiserDrivers.clear();
+    copTimer = 0;
+    cruiserTimer = 0;
+  }
+
   function tickWanted(ctx: GameContext, dt: number): void {
     const playerPos = driving.playerWorldPos(ctx);
     if (playerPos === null) return;
-    const cops = ctx.scene.entity.list().filter((e) => e.name === "cop_patrol" || e.name === "cop_swat");
-    const anyCopClose = cops.some((cop) => Math.hypot(cop.position[0] - playerPos[0], cop.position[2] - playerPos[2]) < 60);
+    releaseCommandeeredCruiser(ctx);
+    const pursuers = ctx.scene.entity.list().filter((e) => e.name === "cop_patrol" || e.name === "cop_swat" || (e.id.startsWith("cruiser_") && !commandeered(e)));
+    const cops = pursuers.filter((e) => !e.id.startsWith("cruiser_"));
+    const anyCopClose = pursuers.some((cop) => Math.hypot(cop.position[0] - playerPos[0], cop.position[2] - playerPos[2]) < 60);
 
     const step = advanceHeat(HEAT_CONFIG, heatState, dt, pendingGains, {
       nearWitness: anyCopClose,
@@ -85,14 +121,7 @@ export function createPursuit(driving: Driving): Pursuit {
     publishWanted(ctx);
 
     if (step.standDown) {
-      for (const cop of cops) {
-        ctx.scene.entity.despawn(cop.id);
-        copPursuit.delete(cop.id);
-      }
-      for (const cruiser of ctx.scene.entity.list().filter((e) => e.id.startsWith("cruiser_"))) {
-        ctx.scene.entity.despawn(cruiser.id);
-        driving.dropCarSim(cruiser.id);
-      }
+      standDown(ctx);
       return;
     }
 
@@ -159,7 +188,8 @@ export function createPursuit(driving: Driving): Pursuit {
     const level = heatState.level;
     const target = driving.playerWorldPos(ctx);
     if (target === null) return;
-    const cruisers = ctx.scene.entity.list().filter((e) => e.id.startsWith("cruiser_"));
+    releaseCommandeeredCruiser(ctx);
+    const cruisers = ctx.scene.entity.list().filter((e) => e.id.startsWith("cruiser_") && !commandeered(e));
 
     if (level >= PURSUIT_STARS) {
       cruiserTimer -= dt;
@@ -253,6 +283,8 @@ export function createPursuit(driving: Driving): Pursuit {
       heatState = createHeatState(HEAT_CONFIG);
       peakStars = 0;
       pendingGains = [];
+      standDown(ctx);
+      tickPedPanic(ctx);
       publishWanted(ctx);
     },
     wanted: () => ({ heat: heatState.heat, stars: heatState.level, peakStars }),

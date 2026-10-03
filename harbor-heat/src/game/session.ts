@@ -2,6 +2,8 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { actionContextStack } from "@jgengine/core/game/controlGate";
+import { keybinds } from "./keybinds";
 
 export const sessionStore = defineStore("harbor.session", () => ({ paused: false, settings: false, notice: "" }));
 // This gate describes this boot, never the restored world's persisted started flag.
@@ -15,4 +17,6 @@ export function syncSession(ctx: GameContext, started: boolean): void {
   else ctx.time.play();
   const phase = !started ? "menu" : paused ? "paused" : "playing";
   if (gamePhase(ctx) !== phase) setGamePhase(ctx, phase);
+  // Published 0.18.1 freezes its tracker at boot. Retain bindings while the menu gate rejects input.
+  if (paused) actionContextStack(ctx).push({ id: "menu", codes: keybinds, passthrough: false });
 }

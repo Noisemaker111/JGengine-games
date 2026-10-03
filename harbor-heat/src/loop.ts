@@ -37,7 +37,7 @@ import {
   HHPD_POS,
 } from "./game/world/districts";
 import { setupWorld } from "./game/world/setup";
-import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
+import { courierStore, finishCourier, normalizeCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
 const AGGRO_RADIUS = 18;
@@ -322,7 +322,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   ctx.game.feed.push("harbor.log", { text: `Busted. HHPD released you for $${fine}.` });
-  finishCourier(ctx, false);
+  finishCourier(ctx, false, "recovery");
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
   syncPhase(ctx);
 }
@@ -353,7 +353,7 @@ function tickWasted(ctx: GameContext): void {
   ctx.game.feed.push("harbor.log", {
     text: fee > 0 ? `Wasted. The clinic took $${fee}.` : "Wasted. The clinic took pity.",
   });
-  finishCourier(ctx, false);
+  finishCourier(ctx, false, "recovery");
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
   syncPhase(ctx);
 }
@@ -376,6 +376,7 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   raceStore.clear(ctx);
   drivingStore.clear(ctx);
   sessionStore.clear(ctx);
+  normalizeCourier(ctx);
   const courier = courierStore.read(ctx);
   if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
   setupCourierLandmarks(ctx);
