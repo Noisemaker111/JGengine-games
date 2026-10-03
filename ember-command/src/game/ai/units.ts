@@ -2,10 +2,11 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import { advancePursuit, armPursuit } from "@jgengine/core/ai/pursuit";
 
+import { hudStore } from "../hudStore";
 import { combatantDef, isHostile } from "../catalog";
 import { ARRIVE_RADIUS, DEPOT_RANGE, HARVEST_RANGE, HARVEST_SECONDS } from "../tuning";
 import { matchRunning, playerDepot, session, type UnitRuntime } from "../session";
-import { resolveDamage } from "../upgrades";
+import { resolveDamage, matchupDamage, movementSpeed } from "../upgrades";
 import { heroAttackBonus } from "../hero";
 
 /** Extra reach against a building's broad footprint so attackers stop at the wall, not the centre. */
@@ -29,20 +30,21 @@ function faceToward(ctx: GameContext, id: string, from: EntityPosition, tx: numb
 }
 
 function stepTo(ctx: GameContext, dt: number, u: UnitRuntime, speed: number, x: number, z: number): void {
-  ctx.scene.entity.moveTowardCommit(u.id, [x, 0, z], { speed, dt, face: true });
+  ctx.scene.entity.moveTowardCommit(u.id, [x, 0, z], { speed: movementSpeed(speed, u.faction), dt, face: true });
 }
 
 /** Nearest living hostile (unit or building) within `radius`, by faction — bounded by roster size. */
 function acquireNearest(ctx: GameContext, u: UnitRuntime, self: EntityPosition, radius: number): string | null {
   let bestId: string | null = null;
-  let bestDist = radius;
+  let bestDist = Infinity;
   for (const other of session.units.values()) {
     if (!isHostile(u.faction, other.faction)) continue;
     const ent = ctx.scene.entity.get(other.id);
     if (ent === null) continue;
     const d = distXZ(self, ent.position);
-    if (d <= bestDist) {
-      bestDist = d;
+    const priority = u.faction === "enemy" ? (u.catalogId === "reaver" && other.kind === "building" ? 0.45 : u.catalogId === "grunt" && combatantDef(other.catalogId)?.worker ? 0.55 : 1) : 1;
+    if (d <= radius && d * priority <= bestDist) {
+      bestDist = d * priority;
       bestId = other.id;
     }
   }
@@ -88,7 +90,8 @@ function tickGather(ctx: GameContext, dt: number, u: UnitRuntime, self: EntityPo
       cmd.carried = got;
       cmd.phase = "toDepot";
     } else {
-      u.command = { kind: "idle" }; // node depleted, nothing to haul
+      u.command = { kind: "idle" };
+      hudStore.set({ notice: "Resource exhausted. Escort idle workers to another seam or the western supply route." });
     }
     return;
   }
@@ -156,7 +159,7 @@ function tickUnit(ctx: GameContext, dt: number, u: UnitRuntime): void {
       faceToward(ctx, u.id, self.position, ent.position[0], ent.position[2]);
       if (action === "attack") {
         const base = def.damage + heroAttackBonus(ctx, u.catalogId);
-        const amount = resolveDamage(base, u.faction, target.faction);
+        const amount = resolveDamage(matchupDamage(base, u.catalogId, target.catalogId), u.faction, target.faction);
         ctx.scene.entity.effect({ from: u.id, to: target.id, effect: "damage", via: { amount } });
         armPursuit(u, def.attackCooldown);
       }

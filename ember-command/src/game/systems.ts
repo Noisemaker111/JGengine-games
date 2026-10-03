@@ -1,10 +1,11 @@
 import { defineSystem, type SystemDefinition } from "@jgengine/core/game/defineSystem";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { pauseJob, resumeJob } from "@jgengine/core/work/jobQueue";
 import { activeJobs, jobProgress, queuedJobs, tick as tickQueue } from "@jgengine/core/gameplay";
 
 import { tickUnits } from "./ai/units";
 import { tickTowers } from "./ai/towers";
-import { nextWaveEta, tickEnemyWaves } from "./ai/director";
+import { nextWaveEta, tickEnemyWaves, wavePlan } from "./ai/director";
 import { heroLevel, tickHero, thunderClapReady } from "./hero";
 import { BUILDINGS, combatantDef } from "./catalog";
 import { BUILD_CONFIG, type BuildSpec } from "./building";
@@ -12,7 +13,7 @@ import { hudStore } from "./hudStore";
 import { TRAINING_CONFIG } from "./production";
 import { GOLD, INCOME_TRICKLE, LUMBER } from "./tuning";
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type UnitRuntime } from "./session";
-import { grantResearch, RESEARCH_CONFIG, upgradeHave, upgradeRank } from "./upgrades";
+import { grantResearch, RESEARCH_CONFIG, upgradeHave, upgradeRank, doctrine } from "./upgrades";
 
 function keepStat(ctx: GameContext, faction: "player" | "enemy"): { current: number; max: number } {
   const keep = livingUnits(faction, "building").find((u) => u.catalogId === `keep_${faction}`);
@@ -81,6 +82,12 @@ const productionSystem: SystemDefinition = defineSystem({
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
     if (!matchRunning()) return;
+    const barracks = livingUnits("player", "building").some((u) => u.catalogId === "barracks");
+    for (const job of session.production.jobs) {
+      if (job.spec.unitId === "peasant") continue;
+      if (!barracks && job.status !== "paused") session.production = pauseJob(session.production, job.id);
+      else if (barracks && job.status === "paused") session.production = resumeJob(session.production, job.id);
+    }
     const result = tickQueue(session.production, TRAINING_CONFIG, dt);
     session.production = result.state;
     for (const event of result.events) {
@@ -130,6 +137,7 @@ const researchSystem: SystemDefinition = defineSystem({
   tick: { type: "frame", stage: "combat" },
   update(ctx, dt) {
     if (!matchRunning()) return;
+    if (!livingUnits("player", "building").some((u) => u.catalogId === "barracks")) return;
     const result = tickQueue(session.research.queue, RESEARCH_CONFIG, dt);
     session.research.queue = result.state;
     for (const event of result.events) {
@@ -171,15 +179,17 @@ function armyRoster(ctx: GameContext): { id: string; kind: string; hp: number; m
 }
 
 /** Snapshot live economy + counts for the HUD a few times a second. */
-const hudSystem: SystemDefinition = defineSystem({
-  id: "ember-command.hud",
-  tick: { type: "interval", every: 0.2 },
-  update(ctx) {
+export function publishHud(ctx: GameContext): void {
     const enemyKeep = keepStat(ctx, "enemy");
     const playerKeep = keepStat(ctx, "player");
     const active = activeJobs(session.production);
     hudStore.set({
       elapsed: Math.floor(session.elapsed),
+      doctrine: doctrine(),
+      nextWavePlan: wavePlan(),
+      depotCount: livingUnits("player", "building").filter((u) => u.catalogId === "keep_player" || u.catalogId === "barracks").length,
+      recovery: !session.units.has("hero"),
+      recoveryIn: Math.ceil(session.heroState.recoveryIn),
       foodReserved: reservedSupply(),
       rallyArmed: session.rallyArmed,
       gold: Math.floor(ctx.game.economy.balance(ctx.player.userId, GOLD)),
@@ -195,7 +205,7 @@ const hudSystem: SystemDefinition = defineSystem({
       attackMoveArmed: session.attackMoveArmed,
       wavesSent: session.enemyWave.sent,
       nextWaveIn: Math.max(0, Math.ceil(nextWaveEta())),
-      producing: active.length + queuedJobs(session.production).length,
+      producing: session.production.jobs.length,
       trainProgress: active.length > 0 ? jobProgress(active[0]!) : 0,
       hasBarracks: livingUnits("player", "building").some((u) => u.catalogId === "barracks"),
       buildArmed: session.buildArmed,
@@ -210,6 +220,28 @@ const hudSystem: SystemDefinition = defineSystem({
       abilityCd: Math.max(0, Math.ceil(session.heroState.abilityCooldown)),
       army: armyRoster(ctx),
     });
+}
+
+const hudSystem = defineSystem({ id: "ember-command.hud", tick: { type: "interval", every: 0.2 }, update: publishHud });
+
+const recoverySystem = defineSystem({
+  id: "ember-command.recovery",
+  tick: { type: "interval", every: 1 },
+  update(ctx) {
+    if (!matchRunning()) return;
+    session.heroState.recoveryIn = Math.max(0, session.heroState.recoveryIn - 1);
+    for (const u of livingUnits("player")) {
+      const ent = ctx.scene.entity.get(u.id);
+      const hp = ctx.scene.entity.stats.get(u.id, "health");
+      if (!ent || !hp || hp.current >= hp.max) continue;
+      const threatened = livingUnits("enemy", "unit").some((e) => { const p = ctx.scene.entity.get(e.id)?.position; return p && Math.hypot(p[0] - ent.position[0], p[2] - ent.position[2]) < 10; });
+      if (threatened) continue;
+      const depots = livingUnits("player", "building").filter((d) => d.catalogId === "keep_player" || d.catalogId === "barracks");
+      if (!depots.some((d) => d.guardPoint && Math.hypot(d.guardPoint.x - ent.position[0], d.guardPoint.z - ent.position[2]) < 9)) continue;
+      if (ctx.game.economy.balance(ctx.player.userId, LUMBER) < 1) continue;
+      ctx.game.economy.charge(ctx.player.userId, LUMBER, 1);
+      ctx.scene.entity.stats.delta(u.id, "health", 6);
+    }
   },
 });
 
@@ -222,5 +254,6 @@ export const systems: readonly SystemDefinition[] = [
   researchSystem,
   towerSystem,
   incomeSystem,
+  recoverySystem,
   hudSystem,
 ];

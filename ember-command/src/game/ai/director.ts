@@ -44,7 +44,7 @@ function spawnWave(ctx: GameContext, camp: SceneEntity, wave: number): void {
   const px = -fz; // perpendicular, for lateral spread
   const pz = fx;
 
-  const comp = waveComposition(wave);
+  const comp = waveComposition(wave).slice(0, Math.max(0, ENEMY_WAVE_MAX_FIELDED - livingUnits("enemy", "unit").length));
   for (let i = 0; i < comp.length; i += 1) {
     const catalogId = comp[i]!;
     session.trainSeq += 1;
@@ -104,4 +104,9 @@ export function tickEnemyWaves(ctx: GameContext, dt: number): void {
     wave.sent += 1;
     spawnWave(ctx, campEnt, wave.sent);
   }
+}
+
+export function wavePlan(wave = session.enemyWave.sent + 1): string {
+  const composition = waveComposition(wave);
+  return composition.includes("reaver") ? "Siege: Reavers deal 2× to buildings. Screen Riflemen with Footmen." : "Raid: Marauders hunt workers. Guard your haul routes with Footmen.";
 }

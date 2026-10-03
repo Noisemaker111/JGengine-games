@@ -96,3 +96,19 @@ body,
   .ec-objectives { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .ec-front { animation: none; } }
+
+/* Field desk hierarchy: threat first, logistics and recovery beneath. */
+.ec-plan{display:grid;gap:5px;margin-top:10px;border-top:1px solid #58777866;padding-top:8px;font:11px/1.4 system-ui,sans-serif;color:#c5d6d1}
+.ec-plan>strong{color:#efc879}.ec-plan>span{display:block}.ec-plan details{font-size:10px}.ec-plan summary{cursor:pointer;color:#9dcad7}.ec-plan p{margin:5px 0}.ec-plan button{min-height:34px;border:1px solid #d8b664;border-radius:4px;background:#384947;color:#ffe1a1;padding:5px}.ec-plan button:disabled{opacity:.6;cursor:not-allowed}
+.ec-stock{translate:none}
+@media(max-width:650px){.ec-plan{font-size:9px;gap:3px}.ec-plan details{display:none}}
+
+.ec-slot-label{line-height:10px;pointer-events:none}@media(max-width:650px){.ec-slot-label{font-size:7px;bottom:8px}.ec-slot>svg{margin-top:-8px!important;width:23px!important;height:23px!important}}
+
+.ec-curtain{z-index:40}
+
+.ec-army{overflow:hidden}.ec-hero-panel{min-width:0}.ec-console{align-items:end}
+
+.ec-report-raised{bottom:290px}@media(max-width:650px){.ec-report-raised{bottom:250px}}
+
+@media(max-width:650px){.ec-pause span{display:inline;font-size:11px}.ec-pause{font-size:0;padding:10px}.ec-stock{right:72px}}

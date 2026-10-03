@@ -350,6 +350,46 @@
       },
       "label": "Logging camp",
       "catalogId": "woods"
+    },
+    {
+      "id": "goldmine_western_pass",
+      "kind": "prop",
+      "position": {
+        "x": -18,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Western pass gold",
+      "meta": {
+        "catalogId": "goldmine"
+      }
+    },
+    {
+      "id": "woods_western_pass",
+      "kind": "prop",
+      "position": {
+        "x": -24,
+        "y": 0,
+        "z": 8
+      },
+      "label": "Forward timber",
+      "meta": {
+        "catalogId": "woods"
+      }
+    },
+    {
+      "id": "grunt_pass_guard",
+      "kind": "unit",
+      "position": {
+        "x": -18,
+        "y": 0,
+        "z": -8
+      },
+      "label": "Pass sentry",
+      "meta": {
+        "catalogId": "grunt",
+        "stance": "guard"
+      }
     }
   ],
   "volumes": [
@@ -746,6 +786,33 @@
             "weight": 1
           }
         ]
+      }
+    },
+    {
+      "id": "western-supply-route",
+      "kind": "route",
+      "points": [
+        {
+          "x": -4,
+          "y": 0,
+          "z": 24
+        },
+        {
+          "x": -14,
+          "y": 0,
+          "z": 14
+        },
+        {
+          "x": -18,
+          "y": 0,
+          "z": 4
+        }
+      ],
+      "width": 2.5,
+      "color": "#97764b",
+      "label": "Western supply route",
+      "meta": {
+        "clearance": 1.5
       }
     }
   ],
