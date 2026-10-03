@@ -21,10 +21,8 @@ await writeFile(pathJoin(tools, "package.json"), JSON.stringify({ private: true,
 if (!await Bun.file(pathJoin(tools, "node_modules/@gltf-transform/core/dist/index.modern.js")).exists()) {
   await writeFile(pathJoin(tools, "package-lock.json"), await readFile(new URL("settlement-tools.package-lock.json", import.meta.url)));
   const install = Bun.spawn(["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org"], { cwd: tools, stdout: "inherit", stderr: "inherit" });
-  const timeout = setTimeout(() => install.kill(), 45_000);
   const status = await install.exited;
-  clearTimeout(timeout);
-  if (status !== 0) throw new Error("Offline authoring tool installation failed or exceeded 45 seconds");
+  if (status !== 0) throw new Error("Offline authoring tool installation failed");
 }
 const { NodeIO, Document } = await import(pathToFileURL(pathJoin(tools, "node_modules/@gltf-transform/core/dist/index.modern.js")).href);
 const { mergeDocuments, dedup, join, flatten, weld, getBounds, unpartition } = await import(pathToFileURL(pathJoin(tools, "node_modules/@gltf-transform/functions/dist/functions.modern.js")).href);
