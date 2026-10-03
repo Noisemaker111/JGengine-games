@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-03T06:35:40.580Z",
+  "action": "approved viewport reduction only; no simulation, clock or world writes",
+  "result": {
+    "id": 1,
+    "result": {
+      "result": {
+        "type": "object",
+        "value": [
+          {
+            "before": {
+              "width": 160,
+              "height": 100
+            },
+            "after": {
+              "width": 1,
+              "height": 1
+            },
+            "hud": "0\nKM/H\nSALVAGE SPECIAL\n1/8 BARRIERS\n31%\nNEXT SALVAGE · EV Conversion · 25m"
+          }
+        ]
+      }
+    }
+  }
+}
