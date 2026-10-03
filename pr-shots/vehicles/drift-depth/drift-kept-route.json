@@ -1,0 +1,2088 @@
+{
+  "profile": "Native keyboard route at32x20 Low; native touch hop at390x844; Medium640x400 approach and exit captures, shadows off; software GL; no performance/feel claim",
+  "checks": [
+    {
+      "name": "kept-truck-start",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0,
+            4
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 0,
+          "pose": {
+            "position": [
+              0,
+              0,
+              4
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.00851063829787234,
+          "compactorZ": -35,
+          "compactorGap": 39,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-0",
+            "body": "KEEP MOTOR — NEXT ENGINE STATIONS WILL BE PASSED",
+            "expiresAt": 3.2
+          },
+          "ticker": [
+            {
+              "id": 1,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 0,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n0.0 SEC\nCOMPACTOR 39m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 106m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nKEEP ENGINE\nX\n0\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n0%\nNEXT SALVAGE · Salvage V6 · 14m\nKEEP MOTOR — NEXT ENGINE STATIONS WILL BE PASSED\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 640,
+        "height": 400
+      },
+      "time": 1791011188364
+    },
+    {
+      "name": "drift-kept-medium-first-approach",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0.3626498449628354,
+            93.9826158872023
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 9.095999999999995,
+          "pose": {
+            "position": [
+              0,
+              0.3626498449628354,
+              93.9826158872023
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.19996301252596235,
+          "compactorZ": 15.937599999999968,
+          "compactorGap": 78.04501588720234,
+          "compactorSurge": null,
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "steel_rims",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Steel Rims",
+              "radioLine": "STEEL RIMS BOLTED — ROLLING TRUE",
+              "blurb": "Plain scrap-yard rims. Nothing special, nothing wrong with them.",
+              "stats": {
+                "topSpeed": 0,
+                "engineAccel": 0,
+                "turnRate": 0.2,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 15,
+            "engineAccel": 16,
+            "turnRate": 1,
+            "jumpPower": 0,
+            "hasPlow": true,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-8",
+            "body": "PLOW BLADE BOLTED — CLEAR A LANE!",
+            "expiresAt": 10.342200000000169
+          },
+          "ticker": [
+            {
+              "id": 5,
+              "text": "SALVAGE V6 FLEW OFF THE BACK"
+            },
+            {
+              "id": 6,
+              "text": "FAN VANES BOLTED — SLICING THE AIR"
+            },
+            {
+              "id": 7,
+              "text": "HOOD PLATE FLEW OFF THE BACK"
+            },
+            {
+              "id": 8,
+              "text": "STEEL RIMS BOLTED — ROLLING TRUE"
+            },
+            {
+              "id": 9,
+              "text": "PLOW BLADE BOLTED — CLEAR A LANE!"
+            },
+            {
+              "id": 10,
+              "text": "FAN BLADE VANES FLEW OFF THE BACK"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n9.1 SEC\nCOMPACTOR 78m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 17m\nBRACE THE PLOW FOR MORE PUSH — STEERING GETS HEAVIER\nCRUSHED-CAR WALL\nYOUR BUILD · 3/4\nKEEP ENGINE\nX\n0\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n19%\nNEXT SALVAGE · Monster Treads · 10m\nPLOW BLADE BOLTED — CLEAR A LANE!\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 640,
+        "height": 400
+      },
+      "time": 1791011400218
+    },
+    {
+      "name": "truck-jump-cue-0",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0.30814018082730266,
+            144.9651170741074
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0.06973278921781456,
+            15.163810300439309
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 1,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow"
+          ],
+          "phase": "running",
+          "runTime": 14.64960000000063,
+          "pose": {
+            "position": [
+              0,
+              0.30814018082730266,
+              144.9651170741074
+            ],
+            "heading": 0,
+            "speedKmh": 54.58971708158151,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.30843641930661153,
+          "compactorZ": 47.03776000000353,
+          "compactorGap": 97.92735707410388,
+          "compactorSurge": null,
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 14.5,
+            "engineAccel": 15.5,
+            "turnRate": 0.9,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-10",
+            "body": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+            "expiresAt": 16.34960000000061
+          },
+          "ticker": [
+            {
+              "id": 10,
+              "text": "FAN BLADE VANES FLEW OFF THE BACK"
+            },
+            {
+              "id": 11,
+              "text": "MONSTER TREADS BOLTED — GRIP FOR DAYS"
+            },
+            {
+              "id": 12,
+              "text": "STEEL RIMS FLEW OFF THE BACK"
+            },
+            {
+              "id": 13,
+              "text": "PLOWED THE CAR WALL — SHE'S UGLY BUT SHE'S FAST"
+            },
+            {
+              "id": 14,
+              "text": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP"
+            },
+            {
+              "id": 15,
+              "text": "MONSTER TREADS FLEW OFF THE BACK"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n14.6 SEC\nCOMPACTOR 98m BEHIND\nPAUSE\n⚙\nNEXT JUMP STACK / 6m\nJUMP NOW — KEEP THE THROTTLE ON\nTIRE-STACK RAMP\nYOUR BUILD · 3/4\nKEEP ENGINE\nX\n55\nKM/H\nSALVAGE SPECIAL\n1/8 BARRIERS\n30%\nNEXT SALVAGE · EV Conversion · 30m\nCOIL SPRINGS BOLTED — SEND IT OVER THE TOP\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 32,
+        "height": 20
+      },
+      "time": 1791011536846
+    },
+    {
+      "name": "native-touch-springs-hop",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            2.2386220722392323,
+            150
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            7.8000000000000025,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow"
+          ],
+          "phase": "running",
+          "runTime": 15.26910000000064,
+          "pose": {
+            "position": [
+              0,
+              2.2386220722392323,
+              150
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": true,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "flats",
+            "label": "APPLIANCE FLATS",
+            "radioName": "ROW SIX",
+            "start": 150,
+            "end": 300,
+            "wallColor": "#8d99a6",
+            "propIds": [
+              "prop_appliance_stack",
+              "prop_scrap_heap",
+              "prop_dumpster",
+              "prop_stripped_car"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#5b636b",
+              "corner": "#434a51",
+              "roof": "#2f3439",
+              "window": "#8fd8e8",
+              "storefront": "#2a3136",
+              "shutter": "#6b757e",
+              "awning": "#2f6f7a",
+              "storeSign": "#3fe0d4",
+              "roofProp": "#9fb3c8",
+              "guardrail": "#b9c4cc",
+              "airConditioner": "#8d99a6",
+              "clothesline": "#cfd8dc"
+            },
+            "ground": {
+              "low": "#37383a",
+              "high": "#665f52",
+              "waterline": "#37383a"
+            },
+            "fog": {
+              "color": "#6b5c48",
+              "near": 55,
+              "far": 290
+            },
+            "sky": {
+              "horizonColor": "#d99154",
+              "zenithColor": "#4a4239"
+            }
+          },
+          "progress": 0.3191489361702128,
+          "compactorZ": 50.50696000000357,
+          "compactorGap": 99.49303999999643,
+          "compactorSurge": null,
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 14.5,
+            "engineAccel": 15.5,
+            "turnRate": 0.9,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-10",
+            "body": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+            "expiresAt": 16.34960000000061
+          },
+          "ticker": [
+            {
+              "id": 10,
+              "text": "FAN BLADE VANES FLEW OFF THE BACK"
+            },
+            {
+              "id": 11,
+              "text": "MONSTER TREADS BOLTED — GRIP FOR DAYS"
+            },
+            {
+              "id": 12,
+              "text": "STEEL RIMS FLEW OFF THE BACK"
+            },
+            {
+              "id": 13,
+              "text": "PLOWED THE CAR WALL — SHE'S UGLY BUT SHE'S FAST"
+            },
+            {
+              "id": 14,
+              "text": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP"
+            },
+            {
+              "id": 15,
+              "text": "MONSTER TREADS FLEW OFF THE BACK"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / APPLIANCE FLATS\n15.3 SEC\nCOMPACTOR 99m BEHIND\nPAUSE\n⚙\nNEXT JUMP STACK / 0m\nHOLD YOUR LINE OVER THE STACK\nTIRE-STACK RAMP\nYOUR BUILD · 3/4\nKEEP ENGINE\nX\n0\nKM/H\nAIRBORNE\n1/8 BARRIERS\n31%\nNEXT SALVAGE · EV Conversion · 25m\nCOIL SPRINGS BOLTED — SEND IT OVER THE TOP\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "time": 1791011548889
+    },
+    {
+      "name": "truck-jump-cue-1",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0.35560825567825444,
+            245.0525441268553
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0.12435248656384457,
+            14.665406142005963
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 1,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow",
+            "gate_canyon_jump",
+            "gate_flats_plow_1"
+          ],
+          "phase": "running",
+          "runTime": 22.599500000000184,
+          "pose": {
+            "position": [
+              0,
+              0.35560825567825444,
+              245.0525441268553
+            ],
+            "heading": 0,
+            "speedKmh": 52.79546211122147,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "flats",
+            "label": "APPLIANCE FLATS",
+            "radioName": "ROW SIX",
+            "start": 150,
+            "end": 300,
+            "wallColor": "#8d99a6",
+            "propIds": [
+              "prop_appliance_stack",
+              "prop_scrap_heap",
+              "prop_dumpster",
+              "prop_stripped_car"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#5b636b",
+              "corner": "#434a51",
+              "roof": "#2f3439",
+              "window": "#8fd8e8",
+              "storefront": "#2a3136",
+              "shutter": "#6b757e",
+              "awning": "#2f6f7a",
+              "storeSign": "#3fe0d4",
+              "roofProp": "#9fb3c8",
+              "guardrail": "#b9c4cc",
+              "airConditioner": "#8d99a6",
+              "clothesline": "#cfd8dc"
+            },
+            "ground": {
+              "low": "#37383a",
+              "high": "#665f52",
+              "waterline": "#37383a"
+            },
+            "fog": {
+              "color": "#6b5c48",
+              "near": 55,
+              "far": 290
+            },
+            "sky": {
+              "horizonColor": "#d99154",
+              "zenithColor": "#4a4239"
+            }
+          },
+          "progress": 0.5213883917592667,
+          "compactorZ": 91.55720000000102,
+          "compactorGap": 153.4953441268543,
+          "compactorSurge": null,
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": {
+              "id": "scrap_frame",
+              "category": "frame",
+              "slotLabel": "FRAME",
+              "label": "Scrap Frame",
+              "radioLine": "SCRAP FRAME BOLTED — STILL HOLDING TOGETHER",
+              "blurb": "Whatever rails were lying around, welded straight-ish.",
+              "stats": {
+                "topSpeed": 0,
+                "engineAccel": 0,
+                "turnRate": 0.2,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            }
+          },
+          "tuning": {
+            "topSpeed": 14.5,
+            "engineAccel": 15.5,
+            "turnRate": 1.1,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-11",
+            "body": "SCRAP FRAME BOLTED — STILL HOLDING TOGETHER",
+            "expiresAt": 25.59950000000018
+          },
+          "ticker": [
+            {
+              "id": 14,
+              "text": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP"
+            },
+            {
+              "id": 15,
+              "text": "MONSTER TREADS FLEW OFF THE BACK"
+            },
+            {
+              "id": 16,
+              "text": "CLEARED THE TIRE STACK — NICE AIR"
+            },
+            {
+              "id": 17,
+              "text": "EV CONVERSION PASSED — KEEPING THE CURRENT MOTOR"
+            },
+            {
+              "id": 18,
+              "text": "FRIDGE BLOCKADE DOWN — KEEP ROLLING"
+            },
+            {
+              "id": 19,
+              "text": "SCRAP FRAME BOLTED — STILL HOLDING TOGETHER"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs",
+            "pickup_ev_conversion",
+            "pickup_scrap_frame"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / APPLIANCE FLATS\n22.6 SEC\nCOMPACTOR 153m BEHIND\nPAUSE\n⚙\nNEXT JUMP STACK / 5m\nJUMP NOW — KEEP THE THROTTLE ON\nWASHER-PILE RAMP\nYOUR BUILD · 4/4\nKEEP ENGINE\nX\n53\nKM/H\nSALVAGE SPECIAL\n3/8 BARRIERS\n52%\nNEXT SALVAGE · Roll Cage · 75m\nSCRAP FRAME BOLTED — STILL HOLDING TOGETHER\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 32,
+        "height": 20
+      },
+      "time": 1791011695892
+    },
+    {
+      "name": "truck-jump-cue-2",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.007861116799893625,
+            345.2977653059394
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            -0.04218819684707664,
+            14.224351633463357
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 1,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow",
+            "gate_canyon_jump",
+            "gate_flats_plow_1",
+            "gate_flats_jump",
+            "gate_flats_plow_2"
+          ],
+          "phase": "running",
+          "runTime": 30.05050000000029,
+          "pose": {
+            "position": [
+              0,
+              -0.007861116799893625,
+              345.2977653059394
+            ],
+            "heading": 0,
+            "speedKmh": 51.207665880468085,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "gantry",
+            "label": "CRANE GANTRY RUN",
+            "radioName": "THE GANTRY",
+            "start": 300,
+            "end": 470,
+            "wallColor": "#f0c419",
+            "propIds": [
+              "prop_container_stack",
+              "prop_crane_leg",
+              "prop_scrap_heap",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#4a453c",
+              "corner": "#37332c",
+              "roof": "#26231e",
+              "window": "#ffe08a",
+              "storefront": "#1d1b17",
+              "shutter": "#f0c419",
+              "awning": "#1d1b17",
+              "storeSign": "#ffd21e",
+              "roofProp": "#f0c419",
+              "guardrail": "#f0c419",
+              "airConditioner": "#7d766a",
+              "clothesline": "#f0c419"
+            },
+            "ground": {
+              "low": "#3a3325",
+              "high": "#6f5c3d",
+              "waterline": "#3a3325"
+            },
+            "fog": {
+              "color": "#8a6222",
+              "near": 50,
+              "far": 280
+            },
+            "sky": {
+              "horizonColor": "#ffae44",
+              "zenithColor": "#6b4c1e"
+            }
+          },
+          "progress": 0.7346760963956157,
+          "compactorZ": 153.13025000000306,
+          "compactorGap": 192.16751530593632,
+          "compactorSurge": {
+            "id": "surge_1",
+            "label": "COMPACTOR'S EATIN' ROW SIX — MOVE IT",
+            "startT": 26,
+            "endT": 38,
+            "speed": 10.5
+          },
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": {
+              "id": "roll_cage",
+              "category": "frame",
+              "slotLabel": "FRAME",
+              "label": "Roll Cage",
+              "radioLine": "ROLL CAGE BOLTED — TIGHTENED RIGHT UP",
+              "blurb": "A braced tube cage. Stiffens the chassis, sharpens the turn-in.",
+              "stats": {
+                "topSpeed": -0.3,
+                "engineAccel": 0,
+                "turnRate": 0.5,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 1
+              }
+            }
+          },
+          "tuning": {
+            "topSpeed": 14.2,
+            "engineAccel": 15.5,
+            "turnRate": 1.4,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 1
+          },
+          "toast": {
+            "id": "toast-12",
+            "body": "ROLL CAGE BOLTED — TIGHTENED RIGHT UP",
+            "expiresAt": 30.71270000000044
+          },
+          "ticker": [
+            {
+              "id": 19,
+              "text": "SCRAP FRAME BOLTED — STILL HOLDING TOGETHER"
+            },
+            {
+              "id": 20,
+              "text": "OVER THE WASHER PILE — LOOKED GOOD FROM HERE"
+            },
+            {
+              "id": 21,
+              "text": "COMPACTOR'S EATIN' ROW SIX — MOVE IT"
+            },
+            {
+              "id": 22,
+              "text": "STOVE STACK SCATTERED — DON'T LOOK BACK"
+            },
+            {
+              "id": 23,
+              "text": "ROLL CAGE BOLTED — TIGHTENED RIGHT UP"
+            },
+            {
+              "id": 24,
+              "text": "SCRAP FRAME FLEW OFF THE BACK"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": true,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs",
+            "pickup_ev_conversion",
+            "pickup_scrap_frame",
+            "pickup_roll_cage"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CRANE GANTRY RUN\n30.1 SEC\nCOMPACTOR 192m BEHIND\nPAUSE\n⚙\nNEXT JUMP STACK / 5m\nJUMP NOW — KEEP THE THROTTLE ON\nCONTAINER GAP\nYOUR BUILD · 4/4\nKEEP ENGINE\nX\n51\nKM/H\nARMOR ARMED\n5/8 BARRIERS\n73%\nNEXT SALVAGE · Armor Plating · 65m\nROLL CAGE BOLTED — TIGHTENED RIGHT UP\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 32,
+        "height": 20
+      },
+      "time": 1791011858743
+    },
+    {
+      "name": "truck-jump-cue-3",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            1.1239345898519173,
+            435.8841045815906
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            -0.7905092449190843,
+            13.212607901343745
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 1,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow",
+            "gate_canyon_jump",
+            "gate_flats_plow_1",
+            "gate_flats_jump",
+            "gate_flats_plow_2",
+            "gate_gantry_jump_1",
+            "gate_gantry_plow"
+          ],
+          "phase": "running",
+          "runTime": 36.45050000000006,
+          "pose": {
+            "position": [
+              0,
+              1.1239345898519173,
+              435.8841045815906
+            ],
+            "heading": 0,
+            "speedKmh": 47.56538844483748,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "gantry",
+            "label": "CRANE GANTRY RUN",
+            "radioName": "THE GANTRY",
+            "start": 300,
+            "end": 470,
+            "wallColor": "#f0c419",
+            "propIds": [
+              "prop_container_stack",
+              "prop_crane_leg",
+              "prop_scrap_heap",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#4a453c",
+              "corner": "#37332c",
+              "roof": "#26231e",
+              "window": "#ffe08a",
+              "storefront": "#1d1b17",
+              "shutter": "#f0c419",
+              "awning": "#1d1b17",
+              "storeSign": "#ffd21e",
+              "roofProp": "#f0c419",
+              "guardrail": "#f0c419",
+              "airConditioner": "#7d766a",
+              "clothesline": "#f0c419"
+            },
+            "ground": {
+              "low": "#3a3325",
+              "high": "#6f5c3d",
+              "waterline": "#3a3325"
+            },
+            "fog": {
+              "color": "#8a6222",
+              "near": 50,
+              "far": 280
+            },
+            "sky": {
+              "horizonColor": "#ffae44",
+              "zenithColor": "#6b4c1e"
+            }
+          },
+          "progress": 0.9274129884714694,
+          "compactorZ": 220.33025000000066,
+          "compactorGap": 215.55385458158992,
+          "compactorSurge": {
+            "id": "surge_1",
+            "label": "COMPACTOR'S EATIN' ROW SIX — MOVE IT",
+            "startT": 26,
+            "endT": 38,
+            "speed": 10.5
+          },
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": {
+              "id": "armor_plating",
+              "category": "frame",
+              "slotLabel": "FRAME",
+              "label": "Armor Plating",
+              "radioLine": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR",
+              "blurb": "Bolted-on container steel. Heavy, but it'll eat a crusher clip for you.",
+              "stats": {
+                "topSpeed": -1.5,
+                "engineAccel": -1,
+                "turnRate": -0.4,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 1
+              }
+            }
+          },
+          "tuning": {
+            "topSpeed": 13,
+            "engineAccel": 14.5,
+            "turnRate": 0.6,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 1
+          },
+          "toast": {
+            "id": "toast-13",
+            "body": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR",
+            "expiresAt": 37.50050000000019
+          },
+          "ticker": [
+            {
+              "id": 23,
+              "text": "ROLL CAGE BOLTED — TIGHTENED RIGHT UP"
+            },
+            {
+              "id": 24,
+              "text": "SCRAP FRAME FLEW OFF THE BACK"
+            },
+            {
+              "id": 25,
+              "text": "CONTAINER GAP CLEARED — BIG AIR"
+            },
+            {
+              "id": 26,
+              "text": "PLOWED THE CRANE DEBRIS — ALMOST HOME"
+            },
+            {
+              "id": 27,
+              "text": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR"
+            },
+            {
+              "id": 28,
+              "text": "ROLL CAGE FLEW OFF THE BACK"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": true,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs",
+            "pickup_ev_conversion",
+            "pickup_scrap_frame",
+            "pickup_roll_cage",
+            "pickup_armor_plating"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CRANE GANTRY RUN\n36.5 SEC\nCOMPACTOR 216m BEHIND\nPAUSE\n⚙\nNEXT JUMP STACK / 5m\nJUMP NOW — KEEP THE THROTTLE ON\nFINAL GANTRY LEAP\nYOUR BUILD · 4/4\nKEEP ENGINE\nX\n48\nKM/H\nARMOR ARMED\n7/8 BARRIERS\n92%\nALL SALVAGE PASSED · EXIT AHEAD\nARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 32,
+        "height": 20
+      },
+      "time": 1791011988882
+    },
+    {
+      "name": "drift-kept-medium-exit-approach",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0.7213955549834185,
+            442.4702361000473
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow",
+            "gate_canyon_jump",
+            "gate_flats_plow_1",
+            "gate_flats_jump",
+            "gate_flats_plow_2",
+            "gate_gantry_jump_1",
+            "gate_gantry_plow",
+            "gate_gantry_jump_2"
+          ],
+          "phase": "running",
+          "runTime": 37.8342999999998,
+          "pose": {
+            "position": [
+              0,
+              0.7213955549834185,
+              442.4702361000473
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "gantry",
+            "label": "CRANE GANTRY RUN",
+            "radioName": "THE GANTRY",
+            "start": 300,
+            "end": 470,
+            "wallColor": "#f0c419",
+            "propIds": [
+              "prop_container_stack",
+              "prop_crane_leg",
+              "prop_scrap_heap",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#4a453c",
+              "corner": "#37332c",
+              "roof": "#26231e",
+              "window": "#ffe08a",
+              "storefront": "#1d1b17",
+              "shutter": "#f0c419",
+              "awning": "#1d1b17",
+              "storeSign": "#ffd21e",
+              "roofProp": "#f0c419",
+              "guardrail": "#f0c419",
+              "airConditioner": "#7d766a",
+              "clothesline": "#f0c419"
+            },
+            "ground": {
+              "low": "#3a3325",
+              "high": "#6f5c3d",
+              "waterline": "#3a3325"
+            },
+            "fog": {
+              "color": "#8a6222",
+              "near": 50,
+              "far": 280
+            },
+            "sky": {
+              "horizonColor": "#ffae44",
+              "zenithColor": "#6b4c1e"
+            }
+          },
+          "progress": 0.9414260342554198,
+          "compactorZ": 234.8601499999979,
+          "compactorGap": 207.61008610004941,
+          "compactorSurge": {
+            "id": "surge_1",
+            "label": "COMPACTOR'S EATIN' ROW SIX — MOVE IT",
+            "startT": 26,
+            "endT": 38,
+            "speed": 10.5
+          },
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": {
+              "id": "armor_plating",
+              "category": "frame",
+              "slotLabel": "FRAME",
+              "label": "Armor Plating",
+              "radioLine": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR",
+              "blurb": "Bolted-on container steel. Heavy, but it'll eat a crusher clip for you.",
+              "stats": {
+                "topSpeed": -1.5,
+                "engineAccel": -1,
+                "turnRate": -0.4,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 1
+              }
+            }
+          },
+          "tuning": {
+            "topSpeed": 13,
+            "engineAccel": 14.5,
+            "turnRate": 0.6,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 1
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 24,
+              "text": "SCRAP FRAME FLEW OFF THE BACK"
+            },
+            {
+              "id": 25,
+              "text": "CONTAINER GAP CLEARED — BIG AIR"
+            },
+            {
+              "id": 26,
+              "text": "PLOWED THE CRANE DEBRIS — ALMOST HOME"
+            },
+            {
+              "id": 27,
+              "text": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR"
+            },
+            {
+              "id": 28,
+              "text": "ROLL CAGE FLEW OFF THE BACK"
+            },
+            {
+              "id": 29,
+              "text": "FINAL GANTRY LEAP — SEE YOU AT THE GATE"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": true,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs",
+            "pickup_ev_conversion",
+            "pickup_scrap_frame",
+            "pickup_roll_cage",
+            "pickup_armor_plating"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CRANE GANTRY RUN\n37.9 SEC\nCOMPACTOR 207m BEHIND\nPAUSE\n⚙\nEXIT GATE / 28m\nBRING IT HOME\n470m escape line\nYOUR BUILD · 4/4\nKEEP ENGINE\nX\n0\nKM/H\nARMOR ARMED\n8/8 BARRIERS\n94%\nALL SALVAGE PASSED · EXIT AHEAD\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": {
+        "width": 640,
+        "height": 400
+      },
+      "time": 1791012015406
+    },
+    {
+      "name": "kept-truck-outcome",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.4517007028006834,
+            470.0154748991439
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0.0834791920213851,
+            8.605294838324653
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 1,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": true,
+          "paused": false,
+          "records": {
+            "attempts": 1,
+            "escapes": 1,
+            "bestTime": 44.704,
+            "farthest": 470
+          },
+          "recordsSaved": true,
+          "personalBest": "first",
+          "parkedRun": null,
+          "clearedGateIds": [
+            "gate_canyon_plow",
+            "gate_canyon_jump",
+            "gate_flats_plow_1",
+            "gate_flats_jump",
+            "gate_flats_plow_2",
+            "gate_gantry_jump_1",
+            "gate_gantry_plow",
+            "gate_gantry_jump_2"
+          ],
+          "phase": "won",
+          "runTime": 44.703599999999234,
+          "pose": {
+            "position": [
+              0,
+              -0.4517007028006834,
+              470.0154748991439
+            ],
+            "heading": 0,
+            "speedKmh": 30.97906141796875,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "gantry",
+            "label": "CRANE GANTRY RUN",
+            "radioName": "THE GANTRY",
+            "start": 300,
+            "end": 470,
+            "wallColor": "#f0c419",
+            "propIds": [
+              "prop_container_stack",
+              "prop_crane_leg",
+              "prop_scrap_heap",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "industrial",
+            "palette": {
+              "wall": "#4a453c",
+              "corner": "#37332c",
+              "roof": "#26231e",
+              "window": "#ffe08a",
+              "storefront": "#1d1b17",
+              "shutter": "#f0c419",
+              "awning": "#1d1b17",
+              "storeSign": "#ffd21e",
+              "roofProp": "#f0c419",
+              "guardrail": "#f0c419",
+              "airConditioner": "#7d766a",
+              "clothesline": "#f0c419"
+            },
+            "ground": {
+              "low": "#3a3325",
+              "high": "#6f5c3d",
+              "waterline": "#3a3325"
+            },
+            "fog": {
+              "color": "#8a6222",
+              "near": 50,
+              "far": 280
+            },
+            "sky": {
+              "horizonColor": "#ffae44",
+              "zenithColor": "#6b4c1e"
+            }
+          },
+          "progress": 1,
+          "compactorZ": 274.1401599999957,
+          "compactorGap": 195.87531489914818,
+          "compactorSurge": null,
+          "installed": {
+            "engine": {
+              "id": "truck_engine",
+              "category": "engine",
+              "slotLabel": "ENGINE",
+              "label": "Truck Engine",
+              "radioLine": "TRUCK ENGINE BOLTED — HOLD HER STRAIGHT!",
+              "blurb": "Diesel brute out of a wrecked flatbed. Huge top end, fishtails hard.",
+              "stats": {
+                "topSpeed": 9.5,
+                "engineAccel": 7,
+                "turnRate": -0.7,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "front": {
+              "id": "plow_blade",
+              "category": "front",
+              "slotLabel": "FRONT",
+              "label": "Plow Blade",
+              "radioLine": "PLOW BLADE BOLTED — CLEAR A LANE!",
+              "blurb": "A bent dozer blade welded to the nose. Punches through light fences.",
+              "stats": {
+                "topSpeed": -1,
+                "engineAccel": 0,
+                "turnRate": -0.2,
+                "jumpPower": 0,
+                "plow": 1,
+                "armor": 0
+              }
+            },
+            "wheels": {
+              "id": "coil_springs",
+              "category": "wheels",
+              "slotLabel": "WHEELS",
+              "label": "Coil Springs",
+              "radioLine": "COIL SPRINGS BOLTED — SEND IT OVER THE TOP",
+              "blurb": "Stacked garage-door springs on the axles. Real air, real distance.",
+              "stats": {
+                "topSpeed": -0.5,
+                "engineAccel": -0.5,
+                "turnRate": 0.1,
+                "jumpPower": 9,
+                "plow": 0,
+                "armor": 0
+              }
+            },
+            "frame": {
+              "id": "armor_plating",
+              "category": "frame",
+              "slotLabel": "FRAME",
+              "label": "Armor Plating",
+              "radioLine": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR",
+              "blurb": "Bolted-on container steel. Heavy, but it'll eat a crusher clip for you.",
+              "stats": {
+                "topSpeed": -1.5,
+                "engineAccel": -1,
+                "turnRate": -0.4,
+                "jumpPower": 0,
+                "plow": 0,
+                "armor": 1
+              }
+            }
+          },
+          "tuning": {
+            "topSpeed": 13,
+            "engineAccel": 14.5,
+            "turnRate": 0.6,
+            "jumpPower": 9,
+            "hasPlow": true,
+            "armorCharges": 1
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 24,
+              "text": "SCRAP FRAME FLEW OFF THE BACK"
+            },
+            {
+              "id": 25,
+              "text": "CONTAINER GAP CLEARED — BIG AIR"
+            },
+            {
+              "id": 26,
+              "text": "PLOWED THE CRANE DEBRIS — ALMOST HOME"
+            },
+            {
+              "id": 27,
+              "text": "ARMOR PLATING BOLTED — GOOD LUCK, COMPACTOR"
+            },
+            {
+              "id": 28,
+              "text": "ROLL CAGE FLEW OFF THE BACK"
+            },
+            {
+              "id": 29,
+              "text": "FINAL GANTRY LEAP — SEE YOU AT THE GATE"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 36.376304795268084,
+          "armorSaveArmed": true,
+          "armorSavesUsed": 0,
+          "outcome": {
+            "kind": "won",
+            "time": 44.703599999999234,
+            "partsOnExit": 4,
+            "nearMisses": 0,
+            "closestGap": 36.376304795268084,
+            "armorSaves": 0,
+            "zoneLabel": "CRANE GANTRY RUN"
+          },
+          "collectedIds": [
+            "pickup_salvage_v6",
+            "pickup_hood_plate",
+            "pickup_truck_engine",
+            "pickup_fan_blade_vanes",
+            "pickup_steel_rims",
+            "pickup_plow_blade",
+            "pickup_monster_treads",
+            "pickup_coil_springs",
+            "pickup_ev_conversion",
+            "pickup_scrap_frame",
+            "pickup_roll_cage",
+            "pickup_armor_plating"
+          ]
+        },
+        "vehicles": []
+      },
+      "text": "PIT RADIO / SIGNAL RECEIVED\nOUT OF\nTHE YARD\n\nThe salvage special lives to race another shift.\n\n44.7s\nRUN TIME\n470m\nDISTANCE\n8/8\nBARRIERS CLEARED\n0\nARMOR SAVES\nTruck Engine\nPlow Blade\nCoil Springs\nArmor Plating\n\nFIRST ESCAPE ON RECORD\n\nRECORD SAVED · 1 escapes · best 44.7s\n\nRUN IT AGAIN\nR\nBACK TO PIT",
+      "viewport": {
+        "width": 32,
+        "height": 20
+      },
+      "time": 1791012143861
+    }
+  ],
+  "errors": [],
+  "status": "complete"
+}

@@ -1,0 +1,2238 @@
+{
+  "mode": "touch",
+  "profile": "Low via native Settings, shadows disabled, software GL",
+  "checks": [
+    {
+      "name": "start",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            0,
+            4
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 0,
+          "pose": {
+            "position": [
+              0,
+              0,
+              4
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.00851063829787234,
+          "compactorZ": -35,
+          "compactorGap": 39,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 1,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 0,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n0.0 SEC\nCOMPACTOR 39m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 106m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n0\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n0%\nNEXT SALVAGE · Salvage V6 · 14m\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        }
+      ]
+    },
+    {
+      "name": "throttle",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.6931486052520871,
+            4.335683077491745
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0.04175581966651132,
+            1.9807492377076663
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 0.9253999999999072,
+          "pose": {
+            "position": [
+              0,
+              -0.6931486052520871,
+              4.335683077491745
+            ],
+            "heading": 0,
+            "speedKmh": 7.130697255747599,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.009224857611684564,
+          "compactorZ": -29.81776000000052,
+          "compactorGap": 34.15344307749226,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 1,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 34.15344307749226,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n1.0 SEC\nCOMPACTOR 34m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 106m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n9\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n0%\nNEXT SALVAGE · Salvage V6 · 14m\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "GO"
+        }
+      ]
+    },
+    {
+      "name": "brake",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.6534783861962356,
+            5.989717694040257
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            -0.00037178224248313185,
+            -0.014062656885389657
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 1.775399999999908,
+          "pose": {
+            "position": [
+              0,
+              -0.6534783861962356,
+              5.989717694040257
+            ],
+            "heading": 0,
+            "speedKmh": 0.050625564787402766,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.012744080200085653,
+          "compactorZ": -25.057760000000517,
+          "compactorGap": 31.047477694040772,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 1,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 31.047477694040772,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n1.8 SEC\nCOMPACTOR 31m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 105m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n1\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n1%\nNEXT SALVAGE · Salvage V6 · 12m\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "BRAKE"
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.6568602463199364,
+            5.86095894160284
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": true,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": {
+            "version": 1,
+            "position": [
+              0,
+              -0.6568602463199364,
+              5.86095894160284
+            ],
+            "heading": 0,
+            "runTime": 3.675399999999902,
+            "partIds": [],
+            "collectedIds": [],
+            "gateIds": [],
+            "armorSaveArmed": false,
+            "armorSavesUsed": 0,
+            "nearMissCount": 0,
+            "closestGap": 20.278718941603387,
+            "wasNear": false,
+            "announcedSurge": null,
+            "keepEngine": false
+          },
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 3.675399999999902,
+          "pose": {
+            "position": [
+              0,
+              -0.6568602463199364,
+              5.86095894160284
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.012470125407665617,
+          "compactorZ": -14.417760000000548,
+          "compactorGap": 20.278718941603387,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": {
+            "id": "toast-0",
+            "body": "PARKED RUN SAVED — CONTINUE FROM THE PIT",
+            "expiresAt": 6.875399999999902
+          },
+          "ticker": [
+            {
+              "id": 1,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 20.278718941603387,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n3.7 SEC\nCOMPACTOR 20m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 105m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n0\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n1%\nNEXT SALVAGE · Salvage V6 · 12m\nPARKED RUN SAVED — CONTINUE FROM THE PIT\n◀\n▶\nBRAKE\nJUMP\nGO\nPIT STOP / CLOCK FROZEN\nTAKE A\nBREATHER\n\nYour buggy and the compactor are waiting.\n\nRESUME\nP\nSETTINGS\nRESTART RUN\nBACK TO PIT",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Pause run"
+        }
+      ]
+    },
+    {
+      "name": "restart",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.6568602463199364,
+            5.86095894160284
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 0,
+          "pose": {
+            "position": [
+              0,
+              0,
+              4
+            ],
+            "heading": 0,
+            "speedKmh": 0,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.00851063829787234,
+          "compactorZ": -35,
+          "compactorGap": 39,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 2,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 0,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n0.0 SEC\nCOMPACTOR 39m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 106m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n0\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n0%\nNEXT SALVAGE · Salvage V6 · 14m\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "RESTART RUN"
+        }
+      ]
+    },
+    {
+      "name": "fresh-key-after-restart",
+      "live": {
+        "player": {
+          "id": "dev-player",
+          "name": "kart_player",
+          "position": [
+            0,
+            -0.6981459674886585,
+            4.0956674835988975
+          ],
+          "rotationY": 0,
+          "rotationX": 0,
+          "rotationZ": 0,
+          "velocity": [
+            0,
+            0.011092037784452558,
+            0.5457634879157958
+          ],
+          "role": "player",
+          "movement": {},
+          "behaviors": []
+        },
+        "drivingId": null,
+        "vehicle": null,
+        "actions": {
+          "throttle": 0,
+          "brake": 0,
+          "steerLeft": 0,
+          "steerRight": 0,
+          "moveForward": 0,
+          "moveBack": 0,
+          "moveLeft": 0,
+          "moveRight": 0
+        },
+        "run": {
+          "keepEngine": false,
+          "paused": false,
+          "records": {
+            "attempts": 0,
+            "escapes": 0,
+            "bestTime": null,
+            "farthest": 0
+          },
+          "recordsSaved": true,
+          "personalBest": "unchanged",
+          "parkedRun": null,
+          "clearedGateIds": [],
+          "phase": "running",
+          "runTime": 0.22469999999972062,
+          "pose": {
+            "position": [
+              0,
+              -0.6981459674886585,
+              4.0956674835988975
+            ],
+            "heading": 0,
+            "speedKmh": 1.9647485564968648,
+            "airborne": false,
+            "blockedByGate": false
+          },
+          "zone": {
+            "id": "canyons",
+            "label": "CAR-STACK CANYONS",
+            "radioName": "ROW ONE",
+            "start": 0,
+            "end": 150,
+            "wallColor": "#b7410e",
+            "propIds": [
+              "prop_wreck_pile",
+              "prop_tire_wall",
+              "prop_stripped_car",
+              "prop_dumpster"
+            ],
+            "buildingStyle": "ruin",
+            "palette": {
+              "wall": "#5e3323",
+              "corner": "#48291b",
+              "roof": "#3a2117",
+              "window": "#ffb066",
+              "storefront": "#241610",
+              "shutter": "#7a3a1e",
+              "awning": "#b7410e",
+              "storeSign": "#ff7a2b",
+              "roofProp": "#c2410c",
+              "guardrail": "#8a5a3a",
+              "airConditioner": "#6b5140",
+              "clothesline": "#d98a3d"
+            },
+            "ground": {
+              "low": "#3a2d21",
+              "high": "#6e5136",
+              "waterline": "#3a2d21"
+            },
+            "fog": {
+              "color": "#7a4423",
+              "near": 55,
+              "far": 300
+            },
+            "sky": {
+              "horizonColor": "#e8802e",
+              "zenithColor": "#5e3620"
+            }
+          },
+          "progress": 0.008714186135316803,
+          "compactorZ": -33.741680000001566,
+          "compactorGap": 37.83734748360046,
+          "compactorSurge": null,
+          "installed": {
+            "engine": null,
+            "front": null,
+            "wheels": null,
+            "frame": null
+          },
+          "tuning": {
+            "topSpeed": 6.5,
+            "engineAccel": 9,
+            "turnRate": 1.7,
+            "jumpPower": 0,
+            "hasPlow": false,
+            "armorCharges": 0
+          },
+          "toast": null,
+          "ticker": [
+            {
+              "id": 2,
+              "text": "BOLT IT ON, GO GO"
+            }
+          ],
+          "nearMissCount": 0,
+          "closestGap": 37.83734748360046,
+          "armorSaveArmed": false,
+          "armorSavesUsed": 0,
+          "outcome": null,
+          "collectedIds": []
+        },
+        "vehicles": []
+      },
+      "text": "ROW SIX / CAR-STACK CANYONS\n0.3 SEC\nCOMPACTOR 38m BEHIND\nPAUSE\n⚙\nNEXT PLOW WALL / 106m\nCOLLECT THE PLOW BEFORE THE WALL\nCRUSHED-CAR WALL\nYOUR BUILD · 0/4\nACCEPT ENGINE SWAPS\nX\n1\nKM/H\nSALVAGE SPECIAL\n0/8 BARRIERS\n0%\nNEXT SALVAGE · Salvage V6 · 14m\n◀\n▶\nBRAKE\nJUMP\nGO",
+      "viewport": [
+        390,
+        844
+      ],
+      "canvas": [
+        195,
+        422
+      ],
+      "scrollWidth": 390,
+      "touch": "flex",
+      "inputTrace": [
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Settings"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Graphics"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Low"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": ""
+        },
+        {
+          "kind": "keydown",
+          "code": "Escape",
+          "trusted": true,
+          "target": "Shadows"
+        },
+        {
+          "kind": "keyup",
+          "code": "Escape",
+          "trusted": true,
+          "target": "\n    \n      <main>\n        <h1"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "START ENGINE Enter"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "GO"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "BRAKE"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "JUMP"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "Pause run"
+        },
+        {
+          "kind": "pointerdown",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "touchstart",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "pointerup",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "touchend",
+          "trusted": true,
+          "target": "RESTART RUN"
+        },
+        {
+          "kind": "keydown",
+          "code": "KeyW",
+          "trusted": true,
+          "target": "ROW SIX / CAR-STACK CANYONS0.0"
+        },
+        {
+          "kind": "keyup",
+          "code": "KeyW",
+          "trusted": true,
+          "target": "ROW SIX / CAR-STACK CANYONS0.2"
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "path": "00000.jpg",
+      "timestamp": 1791010805.663216
+    },
+    {
+      "path": "00001.jpg",
+      "timestamp": 1791010805.721439
+    },
+    {
+      "path": "00002.jpg",
+      "timestamp": 1791010806.522519
+    },
+    {
+      "path": "00003.jpg",
+      "timestamp": 1791010807.15394
+    },
+    {
+      "path": "00004.jpg",
+      "timestamp": 1791010807.940174
+    },
+    {
+      "path": "00005.jpg",
+      "timestamp": 1791010808.707937
+    },
+    {
+      "path": "00006.jpg",
+      "timestamp": 1791010809.438146
+    },
+    {
+      "path": "00007.jpg",
+      "timestamp": 1791010810.247072
+    },
+    {
+      "path": "00008.jpg",
+      "timestamp": 1791010811.057077
+    },
+    {
+      "path": "00009.jpg",
+      "timestamp": 1791010811.911195
+    },
+    {
+      "path": "00010.jpg",
+      "timestamp": 1791010812.733429
+    },
+    {
+      "path": "00011.jpg",
+      "timestamp": 1791010813.578024
+    },
+    {
+      "path": "00012.jpg",
+      "timestamp": 1791010814.554514
+    },
+    {
+      "path": "00013.jpg",
+      "timestamp": 1791010815.336628
+    },
+    {
+      "path": "00014.jpg",
+      "timestamp": 1791010816.050779
+    },
+    {
+      "path": "00015.jpg",
+      "timestamp": 1791010816.80915
+    },
+    {
+      "path": "00016.jpg",
+      "timestamp": 1791010817.516147
+    },
+    {
+      "path": "00017.jpg",
+      "timestamp": 1791010818.256075
+    },
+    {
+      "path": "00018.jpg",
+      "timestamp": 1791010818.910498
+    },
+    {
+      "path": "00019.jpg",
+      "timestamp": 1791010819.696414
+    },
+    {
+      "path": "00020.jpg",
+      "timestamp": 1791010820.424979
+    },
+    {
+      "path": "00021.jpg",
+      "timestamp": 1791010821.291131
+    },
+    {
+      "path": "00022.jpg",
+      "timestamp": 1791010822.230638
+    },
+    {
+      "path": "00023.jpg",
+      "timestamp": 1791010823.022202
+    },
+    {
+      "path": "00024.jpg",
+      "timestamp": 1791010823.63292
+    },
+    {
+      "path": "00025.jpg",
+      "timestamp": 1791010824.335339
+    },
+    {
+      "path": "00026.jpg",
+      "timestamp": 1791010825.15508
+    },
+    {
+      "path": "00027.jpg",
+      "timestamp": 1791010826.012039
+    },
+    {
+      "path": "00028.jpg",
+      "timestamp": 1791010826.873402
+    },
+    {
+      "path": "00029.jpg",
+      "timestamp": 1791010827.670718
+    },
+    {
+      "path": "00030.jpg",
+      "timestamp": 1791010828.454892
+    },
+    {
+      "path": "00031.jpg",
+      "timestamp": 1791010829.271127
+    },
+    {
+      "path": "00032.jpg",
+      "timestamp": 1791010830.075802
+    },
+    {
+      "path": "00033.jpg",
+      "timestamp": 1791010830.847317
+    },
+    {
+      "path": "00034.jpg",
+      "timestamp": 1791010831.623652
+    },
+    {
+      "path": "00035.jpg",
+      "timestamp": 1791010832.440656
+    },
+    {
+      "path": "00036.jpg",
+      "timestamp": 1791010833.260509
+    },
+    {
+      "path": "00037.jpg",
+      "timestamp": 1791010834.016881
+    },
+    {
+      "path": "00038.jpg",
+      "timestamp": 1791010834.781896
+    },
+    {
+      "path": "00039.jpg",
+      "timestamp": 1791010835.771026
+    },
+    {
+      "path": "00040.jpg",
+      "timestamp": 1791010836.572807
+    },
+    {
+      "path": "00041.jpg",
+      "timestamp": 1791010837.409775
+    },
+    {
+      "path": "00042.jpg",
+      "timestamp": 1791010838.23774
+    },
+    {
+      "path": "00043.jpg",
+      "timestamp": 1791010839.070267
+    },
+    {
+      "path": "00044.jpg",
+      "timestamp": 1791010839.879098
+    },
+    {
+      "path": "00045.jpg",
+      "timestamp": 1791010840.677965
+    },
+    {
+      "path": "00046.jpg",
+      "timestamp": 1791010841.503615
+    },
+    {
+      "path": "00047.jpg",
+      "timestamp": 1791010842.259079
+    },
+    {
+      "path": "00048.jpg",
+      "timestamp": 1791010843.26753
+    },
+    {
+      "path": "00049.jpg",
+      "timestamp": 1791010844.121986
+    },
+    {
+      "path": "00050.jpg",
+      "timestamp": 1791010844.930545
+    },
+    {
+      "path": "00051.jpg",
+      "timestamp": 1791010845.773206
+    },
+    {
+      "path": "00052.jpg",
+      "timestamp": 1791010846.557328
+    },
+    {
+      "path": "00053.jpg",
+      "timestamp": 1791010847.355404
+    },
+    {
+      "path": "00054.jpg",
+      "timestamp": 1791010848.472801
+    },
+    {
+      "path": "00055.jpg",
+      "timestamp": 1791010849.561748
+    },
+    {
+      "path": "00056.jpg",
+      "timestamp": 1791010850.630261
+    },
+    {
+      "path": "00057.jpg",
+      "timestamp": 1791010851.876962
+    },
+    {
+      "path": "00058.jpg",
+      "timestamp": 1791010853.169092
+    },
+    {
+      "path": "00059.jpg",
+      "timestamp": 1791010854.117554
+    },
+    {
+      "path": "00060.jpg",
+      "timestamp": 1791010855.227962
+    },
+    {
+      "path": "00061.jpg",
+      "timestamp": 1791010856.237344
+    },
+    {
+      "path": "00062.jpg",
+      "timestamp": 1791010857.18642
+    },
+    {
+      "path": "00063.jpg",
+      "timestamp": 1791010858.282477
+    },
+    {
+      "path": "00064.jpg",
+      "timestamp": 1791010859.683276
+    },
+    {
+      "path": "00065.jpg",
+      "timestamp": 1791010860.982882
+    },
+    {
+      "path": "00066.jpg",
+      "timestamp": 1791010862.134613
+    },
+    {
+      "path": "00067.jpg",
+      "timestamp": 1791010863.249905
+    },
+    {
+      "path": "00068.jpg",
+      "timestamp": 1791010864.341083
+    },
+    {
+      "path": "00069.jpg",
+      "timestamp": 1791010865.334395
+    },
+    {
+      "path": "00070.jpg",
+      "timestamp": 1791010866.226678
+    },
+    {
+      "path": "00071.jpg",
+      "timestamp": 1791010867.973007
+    },
+    {
+      "path": "00072.jpg",
+      "timestamp": 1791010868.986803
+    },
+    {
+      "path": "00073.jpg",
+      "timestamp": 1791010870.19819
+    },
+    {
+      "path": "00074.jpg",
+      "timestamp": 1791010870.520416
+    },
+    {
+      "path": "00075.jpg",
+      "timestamp": 1791010870.770021
+    },
+    {
+      "path": "00076.jpg",
+      "timestamp": 1791010871.379065
+    },
+    {
+      "path": "00077.jpg",
+      "timestamp": 1791010871.94726
+    },
+    {
+      "path": "00078.jpg",
+      "timestamp": 1791010872.538684
+    },
+    {
+      "path": "00079.jpg",
+      "timestamp": 1791010873.193482
+    },
+    {
+      "path": "00080.jpg",
+      "timestamp": 1791010873.878228
+    },
+    {
+      "path": "00081.jpg",
+      "timestamp": 1791010874.841299
+    },
+    {
+      "path": "00082.jpg",
+      "timestamp": 1791010875.436387
+    },
+    {
+      "path": "00083.jpg",
+      "timestamp": 1791010876.548634
+    },
+    {
+      "path": "00084.jpg",
+      "timestamp": 1791010876.936493
+    },
+    {
+      "path": "00085.jpg",
+      "timestamp": 1791010877.775949
+    },
+    {
+      "path": "00086.jpg",
+      "timestamp": 1791010878.620591
+    }
+  ],
+  "errors": [],
+  "pauseFrozen": true,
+  "status": "passed"
+}
