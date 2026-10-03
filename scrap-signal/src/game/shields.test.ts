@@ -1,11 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { createGameContext } from "@jgengine/core/runtime/gameContext";
+import { defineGameDefinition } from "@jgengine/core/game/defineGame";
+import { memorySaveBackend, type SaveBackend } from "@jgengine/core/game/saveStore";
+import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 import { resetCharacterState } from "./characters";
 import { SHIELD_REGEN_DELAY_MS, playerLastHurtAtMs, tickShields } from "./handroll";
+import { SHIELD_PROFILES } from "./progression";
+import { shieldRecoveryStore } from "./stores";
 
 /**
- * Minimal entity-stats-backed context: `tickShields` only reads `player.userId`,
- * `scene.entity.list()` and `scene.entity.stats`.
+ * Minimal entity-stat and saved-store ports for deterministic recharge checks.
  */
 function makeCtx(entities: Record<string, { shield: number; shieldMax: number; health?: number }>): {
   ctx: GameContext;
@@ -24,6 +29,7 @@ function makeCtx(entities: Record<string, { shield: number; shieldMax: number; h
   }
   const ctx = {
     player: { userId: "p1" },
+    game: { store: new Map() },
     scene: {
       entity: {
         list: () => [...stats.keys()].map((id) => ({ id })),
@@ -55,6 +61,96 @@ afterEach(() => {
 const DT = 1 / 60;
 /** Advance wall-clock and simulated time together — the game ticks them from one source. */
 const STEP_MS = DT * 1000;
+
+function checkpointContext(backend: SaveBackend): GameContext {
+  return createGameContext({
+    definition: defineGameDefinition({ name: "scrap-shield-save", assets: createAssetCatalog(), multiplayer: "off", persist: true }),
+    content: {}, player: { userId: "p1", isNew: true },
+    save: { backend, key: "scrap-shield-save", mode: "manual" },
+  });
+}
+
+describe("shield checkpoint recovery", () => {
+  for (const profile of SHIELD_PROFILES) test(`a fresh context retains ${profile.id} recharge delay`, async () => {
+    const backend = memorySaveBackend();
+    const host = checkpointContext(backend);
+    host.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
+    host.scene.entity.stats.set("p1", "health", { current: 100, max: 100 });
+    host.scene.entity.stats.set("p1", "shield", { current: 84, max: 84 });
+    tickShields(host, 0, DT, 1, profile.id);
+    host.scene.entity.stats.delta("p1", "shield", -30);
+    tickShields(host, STEP_MS, DT, 1, profile.id);
+    for (let i = 0; i < 90; i += 1) tickShields(host, (i + 2) * STEP_MS, DT, 1, profile.id);
+    await host.game.save!.checkpoint();
+
+    const reboot = checkpointContext(backend);
+    expect(await reboot.game.save!.load()).toBe(true);
+    tickShields(host, 92 * STEP_MS, DT, 1, profile.id);
+    tickShields(reboot, 20000, DT, 1, profile.id);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBe(54);
+    for (let i = 0; i < 500; i += 1) {
+      tickShields(host, (i + 93) * STEP_MS, DT, 1, profile.id);
+      tickShields(reboot, 20000 + (i + 1) * STEP_MS, DT, 1, profile.id);
+      expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBeCloseTo(host.scene.entity.stats.get("p1", "shield")!.current, 5);
+    }
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBeGreaterThan(54);
+  });
+
+  test("unobserved shield and health hits survive checkpoints and loading into the same context", async () => {
+    const backend = memorySaveBackend();
+    const host = checkpointContext(backend);
+    host.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
+    host.scene.entity.stats.set("p1", "health", { current: 100, max: 100 });
+    host.scene.entity.stats.set("p1", "shield", { current: 60, max: 60 });
+    tickShields(host, 0, DT);
+    host.scene.entity.stats.delta("p1", "shield", -30);
+    host.scene.entity.stats.delta("p1", "health", -20);
+    await host.game.save!.checkpoint();
+    const reboot = checkpointContext(backend);
+    expect(await reboot.game.save!.load()).toBe(true);
+    tickShields(reboot, 1e6, DT);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBe(30);
+    expect(shieldRecoveryStore.read(reboot).p1?.quietMs).toBe(0);
+    await reboot.game.save!.checkpoint();
+    for (let i = 0; i < 400; i += 1) tickShields(reboot, i * STEP_MS, DT);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBeGreaterThan(30);
+    expect(await reboot.game.save!.load()).toBe(true);
+    tickShields(reboot, 2e6, DT);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBe(30);
+  });
+
+  test("pause and capacitor rekit preserve quiet time without creating a hit or free charge", () => {
+    const { ctx, damage, shieldOf } = makeCtx({ p1: { shield: 60, shieldMax: 60 } });
+    tickShields(ctx, 0, DT);
+    damage("p1", "shield", 30);
+    tickShields(ctx, STEP_MS, DT);
+    for (let i = 0; i < 180; i += 1) tickShields(ctx, i * STEP_MS, DT);
+    const beforePause = shieldRecoveryStore.read(ctx).p1!;
+    tickShields(ctx, 1e6, 0);
+    expect(shieldRecoveryStore.read(ctx).p1).toBe(beforePause);
+    const stat = ctx.scene.entity.stats.get("p1", "shield")!;
+    stat.max = 42;
+    stat.current = 21;
+    tickShields(ctx, 2e6, DT, 1, "skirmish");
+    expect(shieldOf("p1")).toBeGreaterThan(21);
+    expect(shieldRecoveryStore.read(ctx).p1?.quietMs).toBeGreaterThan(3000);
+  });
+
+  test("older saves without recovery data keep their pool and begin one conservative quiet window", async () => {
+    const backend = memorySaveBackend();
+    const old = checkpointContext(backend);
+    old.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
+    old.scene.entity.stats.set("p1", "health", { current: 100, max: 100 });
+    old.scene.entity.stats.set("p1", "shield", { current: 20, max: 60 });
+    await old.game.save!.checkpoint();
+    const reboot = checkpointContext(backend);
+    expect(await reboot.game.save!.load()).toBe(true);
+    tickShields(reboot, 1e6, DT);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBe(20);
+    for (let i = 0; i < 310; i += 1) tickShields(reboot, i * STEP_MS, DT);
+    expect(reboot.scene.entity.stats.get("p1", "shield")?.current).toBeGreaterThan(20);
+  });
+});
 
 describe("tickShields", () => {
   test("quickcycle gives up burst capacity but recovers before a siege capacitor", () => {

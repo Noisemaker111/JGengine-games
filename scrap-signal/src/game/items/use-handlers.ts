@@ -1,6 +1,7 @@
 import type { ItemUseHandler } from "@jgengine/core/item/use";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import type { EffectResult } from "@jgengine/core/combat/effects";
+import type { SettleResult } from "@jgengine/core/combat/projectiles";
+import { resolveAreaTargets, type EffectResult } from "@jgengine/core/combat/effects";
 import { canTrigger, handledAim, handlingView, noteHandledShot, spendShotCadence } from "../combatFeel";
 import { seededRng } from "@jgengine/core/random/rng";
 import { cameraShake } from "@jgengine/shell/camera";
@@ -51,6 +52,7 @@ function applyHitModifiers(
   gunId: string,
   nowMs: number,
   result: EffectResult,
+  baseDamage?: number,
 ): void {
   const gun = gunById(gunId);
   if (gun === undefined) return;
@@ -66,18 +68,16 @@ function applyHitModifiers(
   const surface = targetDef?.surface ?? "flesh";
   const shield = ctx.scene.entity.stats.get(targetId, "shield");
   const shielded = shieldHit || (shield !== null && shield.current > 0);
-  const direct = gun.weapon.projectile === undefined && gun.weapon.explosion === undefined;
 
   let mult = elementalDamageMult(ctx, gun.element, surface, shielded, targetId, nowMs) * gunDamageMult();
   const crit = combatRng() < gun.weapon.critChance + bonus("critChance");
   if (crit) mult *= gun.weapon.critMult + bonus("critDamage");
 
-  // Direct ray queries use zero magnitude, then commit the matchup once. This prevents
-  // resistant hits from first killing a target and trying to undo that death with healing.
-  const extra = Math.round(gun.weapon.damage * (direct ? mult : mult - 1));
+  // Native shot queries use zero magnitude; commit the scaled matchup once, before death.
+  const extra = Math.round((baseDamage ?? gun.weapon.damage) * mult);
   let killed = result.lethal;
   if (extra !== 0) {
-    const extras = ctx.scene.entity.effect({ from, to: targetId, effect: "damage", via: { amount: extra } });
+    const extras = ctx.scene.entity.effect({ from, to: targetId, effect: "damage", via: { item: gun.id, amount: extra } });
     killed ||= extras.some((hit) => hit.lethal);
     shieldHit ||= extras.some((hit) => hit.applied.some((delta) => delta.statId === "shield" && delta.delta < 0));
   }
@@ -88,6 +88,27 @@ function applyHitModifiers(
   noteHit(nowMs, crit, killed, shieldHit, shieldHit && (ctx.scene.entity.stats.get(targetId, "shield")?.current ?? 0) <= 0);
   playHit(ctx, targetEntity.position, crit);
   applyElementalProc(ctx, combatRng, gun, from, targetId, nowMs);
+}
+
+/** Native settlement owns splash membership and LoS; the published area helper owns falloff. */
+function splashScales(ctx: GameContext, settled: Extract<SettleResult, { status: "settled" }>, radius: number): Map<string, number> {
+  const ids = settled.hits.map((hit) => hit.instanceId);
+  const targets = resolveAreaTargets({
+    inRadius: () => ids,
+    positionOf: (id) => ctx.scene.entity.get(id)?.position,
+    hasLineOfSight: () => true,
+  }, { at: settled.at, radius, falloff: "linear", los: false });
+  return new Map(targets.map((target) => [target.instanceId, target.scale]));
+}
+
+function finishGunShot(ctx: GameContext, from: string, gunId: string, settled: SettleResult, nowMs: number): void {
+  if (settled.status !== "settled") return;
+  const gun = gunById(gunId);
+  if (gun === undefined) return;
+  const scales = gun.weapon.explosion ? splashScales(ctx, settled, gun.weapon.explosion.radius) : null;
+  for (const hit of settled.hits) {
+    applyHitModifiers(ctx, from, hit.instanceId, gunId, nowMs, hit, gun.weapon.damage * (scales?.get(hit.instanceId) ?? 1));
+  }
 }
 
 const fireGun: ItemUseHandler<GameContext> = {
@@ -124,7 +145,7 @@ const fireGun: ItemUseHandler<GameContext> = {
     noteHandledShot(ctx, gun);
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: gun.id, ...(gun.weapon.projectile === undefined && gun.weapon.explosion === undefined ? { amount: 0 } : {}) },
+      via: { item: gun.id, amount: 0 },
       aim,
       effect: "damage",
     });
@@ -134,17 +155,13 @@ const fireGun: ItemUseHandler<GameContext> = {
         const settled = ctx.scene.entity.settleProjectile(shotId);
         if (settled.status !== "settled") return;
         cameraShake(0.45);
-        for (const hit of settled.hits) applyHitModifiers(ctx, input.from, hit.instanceId, gun.id, ctx.time.now() * 1000, hit);
+        finishGunShot(ctx, input.from, gun.id, settled, ctx.time.now() * 1000);
       });
       return { state: ctx };
     }
 
     const settled = ctx.scene.entity.settleProjectile(shotId);
-    if (settled.status === "settled") {
-      for (const hit of settled.hits) {
-        applyHitModifiers(ctx, input.from, hit.instanceId, gun.id, nowMs, hit);
-      }
-    }
+    finishGunShot(ctx, input.from, gun.id, settled, nowMs);
     return { state: ctx };
   },
 };
@@ -165,7 +182,7 @@ const throwGrenade: ItemUseHandler<GameContext> = {
     const aim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: "frag_grenade" },
+      via: { item: "frag_grenade", amount: 0 },
       aim,
       effect: "damage",
     });
@@ -173,11 +190,12 @@ const throwGrenade: ItemUseHandler<GameContext> = {
       const settled = ctx.scene.entity.settleProjectile(shotId);
       if (settled.status !== "settled") return;
       cameraShake(0.5);
-      // settleProjectile commits the native splash once; the talent contributes only its bonus.
+      const scales = splashScales(ctx, settled, GRENADE.radius);
       for (const hit of settled.hits) {
-        const extra = Math.round(GRENADE.damage * bonus("grenadeDamage"));
-        const added = extra > 0 ? ctx.scene.entity.effect({ from: input.from, to: hit.instanceId, effect: "damage", via: { amount: extra } }) : [];
-        noteHit(ctx.time.now() * 1000, false, hit.lethal || added.some((entry) => entry.lethal), hit.applied.some((delta) => delta.statId === "shield"));
+        const amount = Math.round(GRENADE.damage * (1 + bonus("grenadeDamage")) * (scales.get(hit.instanceId) ?? 0));
+        const committed = amount > 0 ? ctx.scene.entity.effect({ from: input.from, to: hit.instanceId, effect: "damage", via: { item: "frag_grenade", amount } }) : [];
+        const shieldHit = committed.some((entry) => entry.applied.some((delta) => delta.statId === "shield" && delta.delta < 0));
+        noteHit(ctx.time.now() * 1000, false, committed.some((entry) => entry.lethal), shieldHit, shieldHit && (ctx.scene.entity.stats.get(hit.instanceId, "shield")?.current ?? 0) <= 0);
       }
     });
     return { state: ctx };

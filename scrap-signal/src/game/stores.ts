@@ -40,6 +40,15 @@ export const progressionStore = defineStore<ProgressionState>("scrap.progression
 
 export const gunCatalogStore = defineStore<Record<string, GunDef>>("scrap.gunCatalog", () => ({}));
 
+export interface ShieldRecoveryState {
+  quietMs: number;
+  shield: number;
+  health: number;
+  max: number;
+}
+
+export const shieldRecoveryStore = defineStore<Record<string, ShieldRecoveryState>>("scrap.shieldRecovery", () => ({}));
+
 export const reactorOpenStore = defineStore<{ atMs: number } | null>("reactorOpen", null);
 
 export const ruskDownStore = defineStore<boolean>("ruskDown", false);

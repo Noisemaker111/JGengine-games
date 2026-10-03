@@ -107,3 +107,62 @@ test("native shotgun pellet reports each commit one pellet worth of matchup dama
   expect(ctx.scene.entity.stats.get("target", "health")?.current).toBe(58);
   expect(magLoaded(ctx, weapon)).toBe(4);
 });
+
+import { pickCharacter, talentTree } from "./characters";
+import { GRENADE, resetWeaponState } from "./items/use-handlers";
+
+function nativeSplash(options: { damage?: number; radius?: number; critChance?: number; element?: GunDef["element"]; health?: number } = {}) {
+  const damage = options.damage ?? 20;
+  const radius = options.radius ?? 5;
+  const health = options.health ?? 200;
+  const weapon = registerGun({ ...gun, id: "test_splash", family: "launcher", ammo: "rocket", auto: false, magSize: 3, reloadMs: 1000, ammoPerShot: 1, element: options.element ?? "none", elementChance: 0, elementDps: 0,
+    weapon: { ...gun.weapon, damage, critChance: options.critChance ?? 0, critMult: 2, spread: 0, explosion: { radius }, projectile: { speed: 10, fuseTime: 1 } } });
+  const ctx = createGameContext({
+    definition: defineGameDefinition({ name: "splash-regression", assets: createAssetCatalog(), multiplayer: "off" }),
+    player: { userId: "p1", isNew: true },
+    content: {
+      entityById: () => ({ stats: { health: { max: health }, shield: { max: 0 }, grenades: { current: 2, max: 6 }, ammo_rocket: { max: 30, current: 10 } }, receive: { damage: { order: ["shield", "health"] } } }),
+      itemById: (id) => id === weapon.id ? { weapon: { ...weapon.weapon } } : id === "frag_grenade" ? { weapon: { damage: GRENADE.damage, explosion: { radius: GRENADE.radius }, projectile: { speed: GRENADE.speed, fuseTime: GRENADE.fuseTime } } } : null,
+    },
+  });
+  ctx.scene.entity.spawn("p1", { id: "p1", position: [0, 0, -20] });
+  ctx.scene.entity.spawn("ripper", { id: "center", position: [0, 0, 0] });
+  ctx.scene.entity.spawn("ripper", { id: "edge", position: [radius * 0.8, 0, 0] });
+  const aim = { origin: [0, 0, 0] as const, direction: [0, 0, 1] as const };
+  return { ctx, weapon, aim, damageAt: (id: string) => health - (ctx.scene.entity.stats.get(id, "health")?.current ?? 0) };
+}
+
+test("native splash falloff is preserved before and after a critical multiplier", () => {
+  const native = nativeSplash();
+  const shot = native.ctx.scene.entity.fireProjectile({ from: "p1", via: { item: native.weapon.id }, aim: native.aim, effect: "damage" });
+  const report = native.ctx.scene.entity.settleProjectile(shot);
+  expect(report.status).toBe("settled");
+  expect(native.damageAt("center")).toBeCloseTo(20);
+  expect(native.damageAt("edge")).toBeCloseTo(4);
+  const game = nativeSplash({ critChance: 1 });
+  itemUseHandlers.fireGun!.apply(game.ctx, { from: "p1", itemId: game.weapon.id, inventoryId: "hotbar", aim: game.aim });
+  game.ctx.time.advance(1);
+  expect(game.damageAt("center")).toBeCloseTo(40);
+  expect(game.damageAt("edge")).toBeCloseTo(8);
+  expect(magLoaded(game.ctx, game.weapon)).toBe(2);
+});
+
+test("native elemental blast resistance commits before death", () => {
+  const game = nativeSplash({ element: "incendiary", health: 16 });
+  itemUseHandlers.fireGun!.apply(game.ctx, { from: "p1", itemId: game.weapon.id, inventoryId: "hotbar", aim: game.aim });
+  game.ctx.time.advance(1);
+  expect(game.ctx.scene.entity.get("center")).not.toBeNull();
+  expect(game.ctx.scene.entity.stats.get("center", "health")?.current).toBe(1);
+});
+
+test("grenade talent damage shares the native center and edge falloff", () => {
+  pickCharacter("cipher");
+  talentTree()!.hydrate({ points: 0, ranks: { cipher_scatter_protocol: 1 } });
+  resetWeaponState();
+  const game = nativeSplash({ radius: GRENADE.radius });
+  itemUseHandlers.throwGrenade!.apply(game.ctx, { from: "p1", itemId: "frag_grenade", inventoryId: "backpack", aim: game.aim });
+  game.ctx.time.advance(GRENADE.fuseTime);
+  expect(game.damageAt("center")).toBeCloseTo(66);
+  expect(game.damageAt("edge")).toBeCloseTo(13);
+  expect(game.ctx.scene.entity.stats.get("p1", "grenades")?.current).toBe(1);
+});
