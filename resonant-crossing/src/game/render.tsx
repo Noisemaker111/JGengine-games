@@ -15,6 +15,7 @@ const STONE = "#324a59";
 const DARK = "#172735";
 const CYAN = HEROES.lumen.color;
 const AMBER = HEROES.anchor.color;
+const EMPTY_RELAYS: readonly string[] = [];
 
 function Block({ at = [0, 0, 0], size, color = STONE, glow = false }: {
   at?: [number, number, number]; size: [number, number, number]; color?: string; glow?: boolean;
@@ -71,7 +72,7 @@ export function renderHero(entity: SceneEntity): ReactNode {
 export function renderDuetObject(object: SceneObject): ReactNode {
   const color = object.visual?.color ?? BRASS;
   switch (object.catalogId) {
-    case "wall": return null;
+    case "wall": return <></>;
     case "gate": return <group>
       {[-0.38, 0.38].map(x => <Block key={x} at={[x, 0.43, 0]} size={[0.12, 0.86, 0.22]} color={BRASS} />)}
       <Block at={[0, 0.85, 0]} size={[0.9, 0.12, 0.25]} color={BRASS} />
@@ -184,7 +185,7 @@ export function DuetEnvironment() {
   const index = useStore(duetStore, s => s.roomIndex);
   const pressed = useStore(duetStore, s => s.pressedPlates);
   const powered = useStore(duetStore, s => s.poweredReceivers);
-  const completed = useStore(duetStore, s => s.latch.completedRelays ?? []);
+  const completed = useStore(duetStore, s => s.latch.completedRelays ?? EMPTY_RELAYS);
   const room = ROOMS[index] ?? ROOMS[0]!;
   const bounds = roomBounds(room);
   const camera = useThree(s => s.camera);
