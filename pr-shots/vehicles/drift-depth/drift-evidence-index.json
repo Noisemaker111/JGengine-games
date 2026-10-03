@@ -41,6 +41,30 @@
     "types": "bothPASS",
     "productionBuilds": "bothPASS",
     "sdkChecks": "all6SUCCESS",
-    "gameChecks": "no configured CI checks"
+    "gameChecks": "no configured CI checks",
+    "testsByGame": {
+      "harbor": 99,
+      "drift": 94
+    },
+    "totalsProvenance": "Final game validation reported by root: 193 tests, 6680 assertions; both typechecks and production builds passed."
+  },
+  "sourceHeadsProvenance": "Historical recorded source heads retained unchanged. These are capture-era metadata, not a claim that all browser artifacts were produced from the final remote commit.",
+  "finalGameRemote": {
+    "commit": "bc4d84cd74fcb74349b4e7bcd63b23ce0e0991bb",
+    "tree": "d2c9da5dd7527ec4d9b8b6dfc5db07c115a298bc",
+    "provenance": "Final game remote and tree reported by root; browser capture provenance remains in each raw artifact and the captureBuilds field."
+  },
+  "captureBuilds": {
+    "drift-kept-route.json": "index-D9hagWxE.js",
+    "drift-final-cue-save.json": "index-Db_7P51m.js",
+    "note": "Build hashes identify the loaded production snapshots. Earlier captures retain their original raw metadata; they are not recast as captures of the final remote."
+  },
+  "documentationProvisioning": {
+    "status": "passed",
+    "provenance": "Environment agent verified the documented asset provisioning with a fresh installed published CLI; not a new browser run."
+  },
+  "harborNaturalRace": {
+    "status": "incomplete",
+    "provenance": "AI owns the ongoing native run and Harbor evidence index. Root reports an observed shared moving-traffic depenetration momentum defect, with the registered SDK fix being handled separately. This is not evidence of a powertrain failure or a completed native race."
   }
 }
