@@ -41,6 +41,7 @@ Prefer these over guessing: tune numbers in debug mode, fix HUD layout in canvas
 - Prove world content with `summarizeEnvironment` in `bun test` (`src/game/world.world.test.ts`), not screenshot loops.
 - Tailwind v4: `@source` in `src/index.css` must cover `@jgengine/react` and `@jgengine/shell` (engine source under packages/), or the HUD is silently unstyled.
 - Spawn player with `id === ctx.player.userId` in `onNewPlayer`; `onTick` `dt` is game time.
+- Repeating a gather order to the same node and resource preserves that worker's travel, harvest timer and carried load; changing the target or resource remains a new order. Depletion and yields stay owned by the published core `ResourceNodeField` API.
 
 ## Visual quality bar
 

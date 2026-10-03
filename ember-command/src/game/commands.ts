@@ -165,7 +165,11 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
     const workers = units.filter((u) => combatantDef(u.catalogId)?.worker === true);
     const rest = units.filter((u) => combatantDef(u.catalogId)?.worker !== true);
     hudStore.set({ notice: `Gathering ${node.resource}: ${workers.length} workers assigned.` });
-    for (const u of workers) u.command = { kind: "gather", nodeId: node.id, resource: node.resource, phase: "toNode", carried: 0, timer: 0 };
+    for (const u of workers) {
+      // Repeating this order keeps harvest progress and the load already removed from the node.
+      if (u.command.kind === "gather" && u.command.nodeId === node.id && u.command.resource === node.resource) continue;
+      u.command = { kind: "gather", nodeId: node.id, resource: node.resource, phase: "toNode", carried: 0, timer: 0 };
+    }
     if (rest.length > 0) assignMoveFormation(ctx, rest, x, z, armed);
     return ctx;
   }
