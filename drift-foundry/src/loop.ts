@@ -14,11 +14,13 @@ import { placeExitGate, placeGateBarricades, placePickupMarkers, placeZoneDressi
 
 export const lifecycle: LifecycleConfig<RunSession> = {
   store: runSessionStore,
-  start(session) {
+  start(session, ctx) {
+    driveInputStore.peek(ctx)?.reset();
     session.start();
     return session;
   },
-  restart(session) {
+  restart(session, ctx) {
+    driveInputStore.peek(ctx)?.reset();
     session.restart();
     return session;
   },
@@ -66,7 +68,6 @@ export function onTick(ctx: GameContext, dt: number): void {
     placeGateBarricades(ctx);
     placePickupMarkers(ctx);
     worldRuntimeStore.write(ctx, createWorldRuntime(rows));
-    input.reset();
   }
   const currentWorld = worldRuntimeStore.peek(ctx)!;
 
