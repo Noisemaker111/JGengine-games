@@ -17,3 +17,5 @@ bun run --cwd cloud-course build
 ```
 
 The portable `scripts/drive.mjs` and `scripts/shoot.mjs` use the repository's trusted-event capture procedure. Use the full desktop viewport for the editor's docked Content Browser.
+
+The production creator menu is mounted by `CourseApp` in `src/main.tsx`, which supplies the game's `onCreate` menu action, controlled creator mode and injected storage to `GameHost`. A central Games launcher must mount this game-owned host or forward the same configuration; mounting the bare exported playable alone does not expose its creator menu. The central catalog and lock upgrade belongs to the release owner.

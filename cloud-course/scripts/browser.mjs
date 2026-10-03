@@ -37,7 +37,7 @@ export const driveInputPointExpr = function driveInputPointExpr(text, input = !1
     const candidates = nodes.flatMap(node => {
       const labelled = (node.getAttribute('aria-labelledby') || '').split(/\\s+/)
         .map(id => document.getElementById(id)?.textContent || '').join(' ').trim();
-      const accessible = node.getAttribute('aria-label') || labelled ||
+      const accessible = labelled || node.getAttribute('aria-label') ||
         Array.from(node.labels || []).map(label => label.textContent || '').join(' ').trim();
       const names = input ? [accessible] : [(node.textContent || '').trim(), accessible];
       return names.map(name => name.toLowerCase()).filter(name => name && (input ? name === needle : name.includes(needle)))
@@ -86,27 +86,26 @@ export function clickPointExpr(text) {
 const SETTLE_EPSILON_PX = 0.5;
 const SETTLE_SAMPLES = 3;
 const SETTLE_INTERVAL_MS = 100;
-const SETTLE_TIMEOUT_MS = 15_000;
+const SETTLE_TIMEOUT_MS = 45_000;
+const SETTLE_MAX_SAMPLES = 10;
 
 export async function findClickPoint(session, text, options = {}) {
   const deadline = (options.now || Date.now)() + (options.timeoutMs || SETTLE_TIMEOUT_MS);
   let last = null;
   let stableRuns = 0;
-  while ((options.now || Date.now)() < deadline) {
+  for (let samples = 0; samples < SETTLE_MAX_SAMPLES && (options.now || Date.now)() < deadline; samples += 1) {
     const point = (await session.evaluate(driveInputPointExpr(text, options.input), { timeoutMs: Math.max(1, deadline - (options.now || Date.now)()) })) ?? null;
-    if (
-      point !== null &&
-      last !== null &&
-      Math.abs(point.x - last.x) <= SETTLE_EPSILON_PX &&
-      Math.abs(point.y - last.y) <= SETTLE_EPSILON_PX
-    ) {
+    if ((options.now || Date.now)() >= deadline) break;
+    const moved = point !== null && last !== null &&
+      (Math.abs(point.x - last.x) > SETTLE_EPSILON_PX || Math.abs(point.y - last.y) > SETTLE_EPSILON_PX);
+    if (point !== null && last !== null && !moved) {
       stableRuns += 1;
       if (stableRuns >= SETTLE_SAMPLES - 1) return point;
     } else {
       stableRuns = 0;
     }
     last = point;
-    await (options.sleep || sleep)(SETTLE_INTERVAL_MS);
+    await (options.sleep || sleep)(Math.min(deadline - (options.now || Date.now)(), point === null || moved ? 1_000 : SETTLE_INTERVAL_MS));
   }
   if (last === null) throw new Error('no actionable element matching "' + text + '"');
   throw new Error('element matching "' + text + '" did not settle');

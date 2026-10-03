@@ -99,6 +99,11 @@ test("a named edited course reopens durably and repeated play snapshots cannot w
   expect((await reopened.load(saved.id))!.document.markers.find(marker => marker.id === "first_step")!.position.x).toBe(1);
   expect(await reopened.list()).toEqual([{ version: 1, id: "my-course", name: "My first course", revision: 1 }]);
   expect(importCreatorDocument(exportCreatorDocument(session.getState().document, creatorPolicy), creatorPolicy)).toEqual(session.getState().document);
+  const unsafe = cloneEditorDocument(session.getState().document);
+  unsafe.volumes[0]!.center.y = 1e308;
+  expect(() => validateCreatorDocument(unsafe, creatorPolicy)).toThrow("20 m of ground");
+  await expect(saves.save({ ...saved, document: unsafe }, saved.revision)).rejects.toThrow("20 m of ground");
+  expect(await reopened.load(saved.id)).toEqual(saved);
 });
 
 test("course catalog and budget reject unavailable assets and loss of a playable start or finish", () => {

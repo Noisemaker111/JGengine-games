@@ -895,7 +895,7 @@
       },
       "sourcePrefabId": "building:Wilkes provision house",
       "draws": 11,
-      "sourcePrefabSha256": "4564b5de2960613f0bf8c80218bae9f600ceedf794c23ff9655d9f48101ac455"
+      "sourcePrefabSha256": "6ced923da1fcf3cfe04fee51d6ec933a84dd2afbe013fa005aa60ac7cfaee265"
     },
     {
       "path": "settlements/settlement-1.glb",
@@ -918,7 +918,7 @@
       },
       "sourcePrefabId": "building:Lin apothecary",
       "draws": 11,
-      "sourcePrefabSha256": "f4abff6d95565e25f5d4ab297278e1660fb1612728f533e34988cc86781a674a"
+      "sourcePrefabSha256": "af2257ec32a7718ef1cd82b18bc51f6a1d22e4dbc15d20d4f0eed209d68f1d2d"
     },
     {
       "path": "settlements/settlement-2.glb",
@@ -941,7 +941,7 @@
       },
       "sourcePrefabId": "building:Eastbrook watch hall",
       "draws": 9,
-      "sourcePrefabSha256": "8e85bc5de33da57d7328645df40d0a76571beb00739bcc7fd1bae8473b5727ad"
+      "sourcePrefabSha256": "4735a078bde766d2b780c7ea0e7ba1d3bb654edb34a287a8db6a44022e642887"
     },
     {
       "path": "settlements/settlement-3.glb",
@@ -964,7 +964,7 @@
       },
       "sourcePrefabId": "building:Aldric lantern chapel",
       "draws": 10,
-      "sourcePrefabSha256": "6bcf1f39cdb3337840d688737d57b9d0f8da88f0b4ca275d98c1d562bb644785"
+      "sourcePrefabSha256": "a8074c70a34b015708831a6cde627e96f4e2ccceb84bb9a6b1293104a3946a87"
     },
     {
       "path": "settlements/settlement-4.glb",
@@ -987,7 +987,7 @@
       },
       "sourcePrefabId": "building:Odell workshop",
       "draws": 9,
-      "sourcePrefabSha256": "af513a16c4b70a0085775c488e8c80430fe5b88d44d975d35f2946c61d4ee1a3"
+      "sourcePrefabSha256": "5106cede314c0404fb580b568642805a41940a0f02fb50afdf1fe5b56d6b7511"
     },
     {
       "path": "settlements/settlement-5.glb",
@@ -1010,7 +1010,7 @@
       },
       "sourcePrefabId": "building:Reach wayside inn",
       "draws": 11,
-      "sourcePrefabSha256": "8647b0929865e7d32d876c1220d8da366230a95c9d0b422d088b8c9811bc77c3"
+      "sourcePrefabSha256": "12f5c1989cb35f1940ff26495caa14934363405949337d1d240dbbbab26badb9"
     },
     {
       "path": "settlements/settlement-6.glb",
@@ -1033,7 +1033,7 @@
       },
       "sourcePrefabId": "building:Fenbridge dock house",
       "draws": 11,
-      "sourcePrefabSha256": "c7da0df796b5bb728b39a0f29721aaa316d4ae1392fc27578624d2aecfc3622c"
+      "sourcePrefabSha256": "61f34d44257bed65f5e97d22bcfb3681970d01c88031700ced30a81ecf0beed5"
     },
     {
       "path": "settlements/settlement-7.glb",
@@ -1056,7 +1056,7 @@
       },
       "sourcePrefabId": "building:Fenbridge ward tower",
       "draws": 10,
-      "sourcePrefabSha256": "f8075a0de426bbfafe5d12419157e6c14cc4aab5fb840a5c89a73fbf7ed23128"
+      "sourcePrefabSha256": "8ec81e5c3608578f758b4acdd3d2e19c43aa8397ff3b768e3c937bf99cc6f632"
     },
     {
       "path": "settlements/settlement-8.glb",
@@ -1079,7 +1079,7 @@
       },
       "sourcePrefabId": "building:Highwatch lodge",
       "draws": 9,
-      "sourcePrefabSha256": "af45e3d05ad61bc4f83ed4011217351d885356cd7e1d6114eb20150a45ea77f6"
+      "sourcePrefabSha256": "c54b4413cd46561a623ff072a923252c9836e57a99d19bb5a59ec38c3d4b5aa9"
     },
     {
       "path": "settlements/settlement-9.glb",
@@ -1102,7 +1102,7 @@
       },
       "sourcePrefabId": "building:Highwatch beacon tower",
       "draws": 10,
-      "sourcePrefabSha256": "68228a7ca4a70ffe7ac5fcdf0ed2e97cdb26fa88783ce0520a4f2c8d2619e73e"
+      "sourcePrefabSha256": "4a7506d8624bd28085d7120ad3844a29c165080ba596b7de20acc80acbf9f69c"
     },
     {
       "path": "settlements/settlement-10.glb",
@@ -1125,7 +1125,7 @@
       },
       "sourcePrefabId": "building:Hollow Crypt gatehouse",
       "draws": 9,
-      "sourcePrefabSha256": "b11f5f93057d35f41dd9e9526d0e31e53ce6c131cddd4c73be74f0717d0ca41c"
+      "sourcePrefabSha256": "261654cffad08409148d44d2303e2390258cf7b84ea2e62a2d7ab4244c4fa60d"
     },
     {
       "path": "scenery/Floor_UnevenBrick.glb",
@@ -1195,7 +1195,7 @@
       "sourcePrefabId": "street:market-cobbles",
       "bytes": 16272,
       "sha256": "6487ad0774ffdefe57910cf497914bcb064561268c312450d233e2bb3af5d737",
-      "sourcePrefabSha256": "144149fd4661fc0046a92a505e705548fddb09bf26030e3762de2cb3e5226628",
+      "sourcePrefabSha256": "e9b4ed9a585ebda5185205a5a41246e56b1ddbc399da1ef304a4cece4423b89b",
       "draws": 1,
       "dims": {
         "footprint": {

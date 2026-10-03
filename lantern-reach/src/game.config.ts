@@ -75,6 +75,7 @@ export const game = defineGame({
   assets,
   projectileTravel: { maxActive: 32, maxRetained: 64, maxTargets: 1024 },
   sceneFlockModels: { reach_swallow: swallowModel },
+  scenePathKinds: ["road"],
   WorldOverlay: EnvironmentModels,
   editorLayers,
   scenePlacement: true,
