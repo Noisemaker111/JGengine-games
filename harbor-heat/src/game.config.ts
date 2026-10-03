@@ -176,6 +176,8 @@ export const game = defineGame({
       height: 3,
       lookHeight: 1.15,
       springDamping: 7.5,
+      // Keep walking input relative to a stable camera, rather than recentering on strafe facing.
+      yawResponse: 0,
       fov: { base: 60, speedForMax: 0 },
     },
     shake: { maxOffset: 0.24, maxRoll: 0.045, decayPerSecond: 2.8, exponent: 2, frequency: 21 },

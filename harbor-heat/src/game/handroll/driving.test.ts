@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { activeTouchControlsMode } from "@jgengine/core/input/touchControlsMode";
 import { createGameContext, type GameContext } from "@jgengine/core/runtime/gameContext";
+import { resolvePlayerMovementTuning, stepPlayerMovement } from "@jgengine/core/movement/playerMovement";
+import { resolveChase, smoothYaw } from "@jgengine/shell/camera/rigMath";
 import { game } from "../../game.config";
 import { content } from "../content";
 import { vehicleById } from "../entities/vehicles/catalog";
@@ -29,6 +31,32 @@ function expectReleased(ctx: GameContext, driving: Driving): void {
 }
 
 describe("vehicle possession recovery", () => {
+  test("on-foot chase framing keeps held strafe and backpedal straight while driving restores facing follow", () => {
+    for (const action of ["moveForward", "moveRight", "moveBack"]) {
+      const { ctx, driving } = boot();
+      ctx.scene.entity.setPose(HERO, { position: [0, 0, 0], rotationY: 0 });
+      const tuning = resolvePlayerMovementTuning({ movement: { ...game.movement, collideObjects: false } });
+      const camera = resolveChase(game.camera?.chase);
+      let cameraYaw = 0;
+      let distance = 0;
+      for (let frame = 0; frame < 300; frame++) {
+        const previous = ctx.scene.entity.get(HERO)!.position;
+        stepPlayerMovement(ctx, HERO, { held: [action], pointer: null }, DT, tuning, cameraYaw);
+        const player = ctx.scene.entity.get(HERO)!;
+        distance += Math.hypot(player.position[0] - previous[0], player.position[2] - previous[2]);
+        cameraYaw = smoothYaw(cameraYaw, player.rotationY, camera.yawResponse, DT);
+      }
+      const player = ctx.scene.entity.get(HERO)!;
+      expect(distance).toBeGreaterThan(10);
+      expect(Math.hypot(player.position[0], player.position[2])).toBeGreaterThan(distance * 0.99);
+      ctx.scene.entity.spawn("car_compact", { id: "camera-car", position: player.position, role: "prop" });
+      driving.enterVehicle(ctx, "camera-car");
+      expect(ctx.camera.chaseTuning()?.yawResponse).toBeGreaterThan(0);
+      driving.exitVehicle(ctx);
+      expect(ctx.camera.chaseTuning()).toBeNull();
+    }
+  });
+
   test("a car relocated after exit is re-entered at its current pose without old momentum", () => {
     const { ctx, driving } = boot();
     ctx.scene.entity.spawn("car_muscle", { id: "car", position: [-180, 0, 40], role: "prop" });

@@ -45,6 +45,7 @@ const OBSTACLE_GATHER = 30;
  * horizon; enter/exit/explode swap this patch in and out via `ctx.camera.setChaseTuning`.
  */
 const DRIVE_CAMERA_TUNING: ChaseCameraTuning = {
+  yawResponse: 5.5,
   // speedForMax tracks the retuned fleet tops (~34–52 m/s) so FOV still sells mid-speed punch.
   fov: { base: 60, max: 88, speedForMax: 48 },
   velocityYaw: { blend: 0.65, minSpeed: 12, response: 5.5 },
