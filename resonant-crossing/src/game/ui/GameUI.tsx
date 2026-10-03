@@ -93,14 +93,14 @@ export function GameUI() {
       <div className="rc-hero rc-panel" style={{ borderColor: hero.color }}>
         <span className="rc-eyebrow">Controlling</span><strong style={{ color: hero.color }}>{hero.name}</strong>
         <span className="rc-subtitle">{hero.title}</span>
-        {room.roleHints?.[active ?? state.active] && <p className="rc-hint">{room.roleHints[active ?? state.active]}</p>}
+        {room.roleHints?.[active ?? state.active] && <p className="rc-hint rc-role-hint">{room.roleHints[active ?? state.active]}</p>}
         <button className="rc-primary" disabled={active === null} onClick={() => run("ability")}>{hero.ability} <kbd>E</kbd></button>
-        {active === "lumen" && <div className="rc-actions" aria-label="Aim prism">{DIR_ORDER.map(dir => <button key={dir} aria-label={`Aim prism ${dir}`} onClick={() => run("ability", { dir })}>{({north:"↑",east:"→",south:"↓",west:"←"})[dir]}</button>)}</div>}
+        {active === "lumen" && <div className="rc-actions rc-aim" aria-label="Aim prism">{DIR_ORDER.map(dir => <button key={dir} aria-label={`Aim prism ${dir}`} onClick={() => run("ability", { dir })}>{({north:"↑",east:"→",south:"↓",west:"←"})[dir]}</button>)}</div>}
         <div className="rc-actions"><button disabled={!canSwap} onClick={() => run("swap")}>{canSwap ? "Swap hero" : "Your hero seat"} <kbd>Q</kbd></button>
           <button onClick={() => run("reset")}>Reset <kbd>R</kbd></button></div>
         {preferences.showHints && <button className="rc-hint-button" aria-expanded={hint} onClick={() => setHint(!hint)}> {hint ? "Hide clue" : "Need a clue?"}</button>}
         {hint && <p className="rc-hint">{room.hint ?? HINTS[state.roomIndex]}</p>}
-        <div className="rc-actions" aria-label="Team callouts">{(Object.keys(CALLOUTS) as CalloutId[]).map(id => <button key={id} disabled={active === null} aria-label={CALLOUTS[id]} onClick={() => run("duet.callout", { id })}>{id === "go" ? "Go!" : id[0]!.toUpperCase() + id.slice(1)}</button>)}</div>
+        <div className="rc-actions rc-callouts" aria-label="Team callouts">{(Object.keys(CALLOUTS) as CalloutId[]).map(id => <button key={id} disabled={active === null} aria-label={CALLOUTS[id]} onClick={() => run("duet.callout", { id })}>{id === "go" ? "Go!" : id[0]!.toUpperCase() + id.slice(1)}</button>)}</div>
         {state.callout && <p className="rc-hint" role="status">{HEROES[state.callout.hero].name}: {CALLOUTS[state.callout.id]}</p>}
       </div>
       <div className="rc-pad rc-panel" aria-label="Precision movement">
