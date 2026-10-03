@@ -8,6 +8,7 @@ import { disposeWorld, setupWorld } from "./game/world/setup";
 import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
 import { spawnGuests, tickGuests } from "./game/sim/guests";
 import { savePark } from "./game/persistence";
+import { tickOperations } from "./game/sim/operations";
 
 // Midnight is a simulation event, scheduled after restoring the clock.
 function scheduleMidnight(ctx: GameContext): void {
@@ -42,6 +43,7 @@ export const loop: GameLoop<GameContext> = {
   onTick(ctx, dt) {
     if (!session.started || session.gameOver || dt <= 0) return;
     updateOpenState(ctx);
+    tickOperations(ctx, dt);
     const metrics = currentMetrics();
     spawnGuests(ctx, dt, metrics.totalAppeal);
     tickGuests(ctx, dt, metrics.tracks);

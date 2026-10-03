@@ -507,6 +507,162 @@
       "meta": {
         "catalogId": "deco_tree"
       }
+    },
+    {
+      "id": "midway-link-1",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 56
+      },
+      "label": "Entrance threshold",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-2",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 52
+      },
+      "label": "Entrance approach",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-3",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "label": "Midway junction",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-4",
+      "kind": "prop",
+      "position": {
+        "x": -12,
+        "y": 0,
+        "z": 12
+      },
+      "label": "Carousel access",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-5",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 12
+      },
+      "label": "Coaster approach",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-6",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 8
+      },
+      "label": "Coaster approach",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-7",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 4
+      },
+      "label": "Coaster approach",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-8",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Coaster approach",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-9",
+      "kind": "prop",
+      "position": {
+        "x": 16,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Coaster queue",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "midway-link-10",
+      "kind": "prop",
+      "position": {
+        "x": 20,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Coaster queue",
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "shade-carousel",
+      "kind": "prop",
+      "position": {
+        "x": -28,
+        "y": 0,
+        "z": 16
+      },
+      "label": "Carousel shade",
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "shade-refreshments",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 36
+      },
+      "label": "Refreshment shade",
+      "meta": {
+        "catalogId": "deco_tree"
+      }
     }
   ],
   "volumes": [],
@@ -576,5 +732,6 @@
   ],
   "annotations": [],
   "prefabs": [],
-  "collections": []
+  "collections": [],
+  "catalogs": []
 }
