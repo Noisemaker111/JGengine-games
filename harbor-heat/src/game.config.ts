@@ -20,6 +20,7 @@ export const game = defineGame({
   physics,
   inventories,
   input: keybinds,
+  hudFit: { mobile: { minScale: 0.85 } },
   server: { mode: "openworld" },
   // Touch controls are context-curated (#1370): each mode shows only the verbs that context uses.
   // On foot the joystick walks (analog) and the cluster is the five gameplay verbs; flight and
