@@ -8,7 +8,7 @@
         "providerId": "drift-foundry",
         "instanceId": "corridor-world"
       },
-      "reason": "Zone terrain, frontage rows, and seeded debris remain generated from the run catalog. The advancing compactor and destructible barricades follow simulation state. Static lamps, towers, and approach cues are authored in editor.scene.json."
+      "reason": "Zone terrain, frontage rows, and seeded debris remain generated from the run catalog. The advancing compactor and destructible barricades follow simulation state. Static lamps, towers, approach cues, and the open exit gantry are authored in editor.scene.json."
     },
     {
       "provenance": {
@@ -248,6 +248,12 @@
       "provenance": {
         "kind": "authored",
         "documentId": "cue-gate_gantry_jump_2"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "exit-gate"
       }
     }
   ]

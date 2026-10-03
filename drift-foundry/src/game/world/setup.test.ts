@@ -1,11 +1,13 @@
 import { expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { resolveAuthoredObjects } from "@jgengine/core/world/authoredObjects";
 
 import { editorLayers } from "../../editorLayers";
 import { ROUTE_GATES } from "../route/gates";
-import { placeGateBarricades, placeZoneDressing, syncClearedGates, syncCompactorRow } from "./setup";
+import { EXIT_Z } from "../run/constants";
+import { placeExitGate, placeGateBarricades, placeZoneDressing, syncClearedGates, syncCompactorRow } from "./setup";
 
 function boot() {
   return createGameContext({
@@ -23,6 +25,11 @@ test("every barricade has matching approach signs before its launch or contact p
     expect(posts.some((post) => post.x < 0)).toBe(true);
     expect(posts.some((post) => post.x > 0)).toBe(true);
     for (const post of posts) expect(gate.atZ - post.z).toBeGreaterThanOrEqual(16);
+    for (const post of posts) {
+      const approachDepth = 32 - (gate.atZ - post.z) + 7.6;
+      const halfWidth = approachDepth * Math.tan(64 * Math.PI / 360) * 1.6;
+      expect(Math.abs(post.x)).toBeLessThan(halfWidth * .6);
+    }
     if (gate.requirement === "jump") {
       const launch = resolveAuthoredObjects({ markers: cues }).find((object) => object.catalogId === "jump_cue");
       expect(launch).toBeDefined();
@@ -59,4 +66,42 @@ test("compactor removal includes authored landmarks and approach signs", () => {
   expect(ctx.scene.object.get("tower-0")).toBeNull();
   expect(ctx.scene.object.get("post-gate_canyon_plow-left")).toBeNull();
   expect(ctx.scene.object.get("post-gate_canyon_jump-left")).not.toBeNull();
+});
+
+test("the authored finish stays placed through compaction, restore and repeated setup", () => {
+  const ctx = boot();
+  const rows = placeZoneDressing(ctx);
+  placeExitGate(ctx);
+  placeExitGate(ctx);
+  expect(ctx.scene.object.list().filter((object) => object.instanceId === "exit-gate")).toHaveLength(1);
+  expect(ctx.scene.object.get("exit-gate")?.position).toEqual([0, 0, EXIT_Z]);
+  syncCompactorRow(ctx, EXIT_Z + 20, rows, { index: 0 });
+  expect(ctx.scene.object.get("exit-gate")).not.toBeNull();
+  const restored = boot();
+  restored.hydrate(ctx.snapshot());
+  placeExitGate(restored);
+  expect(restored.scene.object.list()).toHaveLength(1);
+  expect(restored.scene.object.get("exit-gate")?.catalogId).toBe("exit_gate_arch");
+});
+
+test("the original gantry leaves the center road clear below its nine meter beam", () => {
+  const bytes = readFileSync(new URL("../art/exit-gantry.glb", import.meta.url));
+  const jsonLength = bytes.readUInt32LE(12);
+  const gltf = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString());
+  const binaryStart = 28 + jsonLength;
+  let lowTriangles = 0;
+  for (const primitive of gltf.meshes[0].primitives) {
+    const accessor = gltf.accessors[primitive.attributes.POSITION];
+    const view = gltf.bufferViews[accessor.bufferView];
+    const offset = binaryStart + view.byteOffset;
+    for (let vertex = 0; vertex < accessor.count; vertex += 3) {
+      const xs = [0, 1, 2].map((index) => bytes.readFloatLE(offset + (vertex + index) * 12));
+      const ys = [0, 1, 2].map((index) => bytes.readFloatLE(offset + (vertex + index) * 12 + 4));
+      if (Math.min(...ys) >= 9) continue;
+      lowTriangles += 1;
+      expect(xs.every((x) => Math.abs(x) >= 8.79)).toBe(true);
+      expect(xs.every((x) => Math.sign(x) === Math.sign(xs[0]!))).toBe(true);
+    }
+  }
+  expect(lowTriangles).toBeGreaterThan(0);
 });

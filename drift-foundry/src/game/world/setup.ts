@@ -6,13 +6,12 @@ import { placeAuthoredObjects, resolveAuthoredObjects } from "@jgengine/core/wor
 import { editorLayers } from "../../editorLayers";
 
 import {
-  EXIT_GATE_ARCH,
   GATE_BARRICADE_JUMP,
   GATE_BARRICADE_PLOW,
   PICKUP_STATIONS,
 } from "../objects/catalog";
 import { PICKUPS } from "../run/pickups";
-import { EXIT_Z, RUN_SEED } from "../run/constants";
+import { RUN_SEED } from "../run/constants";
 import { ROUTE_GATES } from "../route/gates";
 import { ZONES } from "../zones/catalog";
 import { partById } from "../parts/catalog";
@@ -97,8 +96,9 @@ export function placePickupMarkers(ctx: GameContext): void {
 }
 
 export function placeExitGate(ctx: GameContext): void {
-  const y = ctx.world.groundHeightAt(0, EXIT_Z);
-  placeIdempotent(ctx, EXIT_GATE_ARCH, 0, y, EXIT_Z, "exit-gate");
+  const finish = authoredObjects("finish_landmark");
+  if (finish.length !== 1 || finish[0]!.instanceId !== "exit-gate") throw new Error("Drift Foundry requires the authored exit-gate landmark");
+  placeAuthoredObjects(ctx.scene.object, finish, (x, z) => ctx.world.groundHeightAt(x, z), { onExisting: "replace" });
 }
 
 export function syncPickupMarkers(ctx: GameContext, collected: ReadonlySet<string>, removed: Set<string>): void {

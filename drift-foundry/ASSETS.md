@@ -1,15 +1,20 @@
 # Drift Foundry art
 
-The Row Six salvage buggy, four pickup stations, jump barriers and teal jump marks in
+The Row Six salvage buggy, four pickup stations, jump barriers, teal jump marks and open exit gantry in
 `src/game/art/` are original procedural geometry authored for this game. Regenerate
 them with `bun run author-models`. The pit poster in `StartScreen.tsx` is original SVG.
 Model module URLs travel with the published-package game through either its standalone
 mount or the engine host.
 
 Amber plow posts and cyan jump posts mark approaches before each barricade. Static
-lamps, towers and route cues are authored in `src/editor.scene.json` through the
+lamps, towers, route cues and the finish landmark are authored in `src/editor.scene.json` through the
 published editor RPC; runtime resolves those placements with shared authored-object APIs.
 The live compactor and destructible barricades remain simulation-owned.
+
+The exit gantry has steel and rust trusses, hazard stripes and cyan lamps. Its center
+stays open beneath a crossbeam more than nine meters above the road. Approach posts
+sit eleven meters either side of the centerline so their icons fit the chase view
+before the launch marks.
 
 Use **X / Keep Engine** to retain the current motor at later engine stations. The
 truck motor carries more speed but turns less sharply than the EV. The choice survives

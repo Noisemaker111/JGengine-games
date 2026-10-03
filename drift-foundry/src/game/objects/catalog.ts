@@ -48,5 +48,6 @@ export const OBJECT_CATALOG: Record<string, GameContextObjectEntry> = {
   route_jump_post: {},
   route_plow_post: {},
   ...Object.fromEntries(Object.values(PICKUP_STATIONS).map((id) => [id, {}])),
-  [EXIT_GATE_ARCH]: {},
+  // A finish landmark: fitting its concave opening as one box would obstruct the chase camera.
+  [EXIT_GATE_ARCH]: { colliders: {} },
 };

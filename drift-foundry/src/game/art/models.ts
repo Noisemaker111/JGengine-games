@@ -19,6 +19,7 @@ export const upgradeModels: Record<string, ModelConfig> = {
 };
 export const jumpBarrierModel: ModelConfig = { url: new URL("./jump-barrier.glb", import.meta.url).href, anchor: "origin" };
 export const jumpCueModel: ModelConfig = { url: new URL("./jump-cue.glb", import.meta.url).href, anchor: "origin", shadows: "none" };
+export const exitGantryModel: ModelConfig = { url: new URL("./exit-gantry.glb", import.meta.url).href, anchor: "origin" };
 export const routeCueModels: Record<string, ModelConfig> = {
   route_jump_post: { url: new URL("./route-jump-post.glb", import.meta.url).href, anchor: "origin" },
   route_plow_post: { url: new URL("./route-plow-post.glb", import.meta.url).href, anchor: "origin" },

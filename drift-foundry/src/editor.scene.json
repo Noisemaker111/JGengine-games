@@ -277,7 +277,7 @@
       "id": "post-gate_canyon_plow-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 92
       },
@@ -291,7 +291,7 @@
       "id": "post-gate_canyon_plow-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 92
       },
@@ -305,7 +305,7 @@
       "id": "post-gate_canyon_jump-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 132
       },
@@ -319,7 +319,7 @@
       "id": "post-gate_canyon_jump-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 132
       },
@@ -348,7 +348,7 @@
       "id": "post-gate_flats_plow_1-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 192
       },
@@ -362,7 +362,7 @@
       "id": "post-gate_flats_plow_1-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 192
       },
@@ -376,7 +376,7 @@
       "id": "post-gate_flats_jump-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 232
       },
@@ -390,7 +390,7 @@
       "id": "post-gate_flats_jump-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 232
       },
@@ -419,7 +419,7 @@
       "id": "post-gate_flats_plow_2-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 282
       },
@@ -433,7 +433,7 @@
       "id": "post-gate_flats_plow_2-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 282
       },
@@ -447,7 +447,7 @@
       "id": "post-gate_gantry_jump_1-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 332
       },
@@ -461,7 +461,7 @@
       "id": "post-gate_gantry_jump_1-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 332
       },
@@ -490,7 +490,7 @@
       "id": "post-gate_gantry_plow-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 382
       },
@@ -504,7 +504,7 @@
       "id": "post-gate_gantry_plow-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 382
       },
@@ -518,7 +518,7 @@
       "id": "post-gate_gantry_jump_2-left",
       "kind": "gate_cue",
       "position": {
-        "x": -17,
+        "x": -11,
         "y": 0,
         "z": 422
       },
@@ -532,7 +532,7 @@
       "id": "post-gate_gantry_jump_2-right",
       "kind": "gate_cue",
       "position": {
-        "x": 17,
+        "x": 11,
         "y": 0,
         "z": 422
       },
@@ -555,6 +555,19 @@
         "catalogId": "jump_cue",
         "gateId": "gate_gantry_jump_2",
         "verticalOffset": 0.03
+      }
+    },
+    {
+      "id": "exit-gate",
+      "kind": "finish_landmark",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 470
+      },
+      "label": "Row Six open exit gantry",
+      "meta": {
+        "catalogId": "exit_gate_arch"
       }
     }
   ],
