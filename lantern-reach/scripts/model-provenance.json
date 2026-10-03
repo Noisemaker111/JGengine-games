@@ -1,0 +1,158 @@
+{
+  "sourceRevision": "612c174c7fa7b082450139c74ef87f4f5bb336ab",
+  "sourceBase": "https://raw.githubusercontent.com/Noisemaker111/jgengine/612c174c7fa7b082450139c74ef87f4f5bb336ab/apps/dev/public/models/claudecraft/",
+  "creditUrl": "https://github.com/Noisemaker111/jgengine/blob/612c174c7fa7b082450139c74ef87f4f5bb336ab/CREDITS.md#world-of-claudecraft",
+  "license": "CC0-1.0",
+  "models": [
+    {
+      "path": "creatures/demonalt.glb",
+      "bytes": 160088,
+      "sha256": "2ade9fc07ae9d1af93747b736669d377264fdb9e695ffa0f6fe17c93aebc6db3",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/fox.glb",
+      "bytes": 332748,
+      "sha256": "2694028b47e84bad3b9d985aa7743dae02a3bcfddd6becd73b46c747a1e067b3",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/frog.glb",
+      "bytes": 140836,
+      "sha256": "0d77a9e6b9a741bca8fb231a85eab7c7f894ea38099048a4696bd6f2edf3afef",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/ghost.glb",
+      "bytes": 78548,
+      "sha256": "553f37c4127b524bdf484e93acca4aeace00e100c7df0c7a7f4e5b5da4d54efc",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/giant.glb",
+      "bytes": 52088,
+      "sha256": "db10fa971722b3b85bd4646541d355621c77da0ae2824dbf9ab2587dc0137775",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/goblin.glb",
+      "bytes": 47924,
+      "sha256": "2f02ce927a8871554f3931655d75f1abb8237d36be8a19a35b09920d0812bc3c",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/golelingevolved.glb",
+      "bytes": 85588,
+      "sha256": "156f4c2dcf93c6e52a738d8a93e09d1988f933fe4f2d1f9d30411b5eae7f2b94",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/greyjaw.glb",
+      "bytes": 414356,
+      "sha256": "99fd4f174bf5b877ddda11f879c5491d4d3301f3f776d059d7fba423877d5959",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/orc.glb",
+      "bytes": 176892,
+      "sha256": "6c59f0f4a163f493c7ef55a94f1f5bb619fd70b1a4c33edf248790ed873a0826",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/spider.glb",
+      "bytes": 130436,
+      "sha256": "5becf8b6510f0620ff473becc29c6567f7ae32fc1bd9f42e0b647599aa6ed6de",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/wild_boar.glb",
+      "bytes": 290900,
+      "sha256": "d47c367f463004fdb6acb00a051c2bdc6d615c7e36c8b6165a726bd59b1843cf",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/wolf_basic.glb",
+      "bytes": 333040,
+      "sha256": "655da121afa8768c13a3b2aa172e6875c716d06e352110bf68eaa4f34c9fec6e",
+      "author": "Quaternius"
+    },
+    {
+      "path": "creatures/yetialt.glb",
+      "bytes": 149784,
+      "sha256": "6c14f370c2aff231186aee084902113e58823e1cd97f5dd9958417c4a9288767",
+      "author": "Quaternius"
+    },
+    {
+      "path": "enemies/necromancer.glb",
+      "bytes": 1440016,
+      "sha256": "34547044f950ec646e1c0c726dd97f357908eb8de23a58a99db2aefee4687dc4",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "enemies/skeleton_mage.glb",
+      "bytes": 1994844,
+      "sha256": "6ba188f0d81a527201668a942dc08629cf2f991e970982af870e5de0feff2309",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "enemies/skeleton_minion.glb",
+      "bytes": 2008192,
+      "sha256": "8adc2d39c581e6f8b5c68bfe4c3166c9999935abdd67c8689e73caf930679634",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "enemies/skeleton_rogue.glb",
+      "bytes": 582560,
+      "sha256": "7ec02d186c2668f8fde32729bddad510d282e259918f2d38aeaaac74dd8adb9a",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/barbarian.glb",
+      "bytes": 1215868,
+      "sha256": "d64973ac468398f2c1428eb43743f734bd74c9ed90cf6fe28b92794ac9a84850",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/druid.glb",
+      "bytes": 1233800,
+      "sha256": "44d44747b0b1859931907b27ce9049e15761dad01b0811b96a0ae1d137247eba",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/knight.glb",
+      "bytes": 1212756,
+      "sha256": "ce0d0a5ec1d67594629ecac20a7576fde22a44456e7628e8eb100891bc6dda97",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/mage.glb",
+      "bytes": 1212924,
+      "sha256": "473bcf6ad4d1a8e23a874b02acb3347ed215f06af7e89cec8e2f2a7657b84c9b",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/paladin.glb",
+      "bytes": 1215256,
+      "sha256": "d58b07df5a5ac41b8c20ef298183e9e19ab2b51695aa9348cb25323ecfe319a3",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/ranger.glb",
+      "bytes": 1238412,
+      "sha256": "bd35fdb403f25b2a1f57c98e883980c916ef83261856ffe01ca1c4c8c7d98227",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/rogue.glb",
+      "bytes": 1221148,
+      "sha256": "11c7e99ea73b8f81eac0fa73bc1e6a03b6c2d85ad910c84fa96c79bbf3439e0e",
+      "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "players/rogue_hooded.glb",
+      "bytes": 1219416,
+      "sha256": "542fdba7240f9688bdcf075c905fb5a93d1cd3314b2739a3bf3470054357d1c8",
+      "author": "Kay Lousberg (KayKit)"
+    }
+  ]
+}
