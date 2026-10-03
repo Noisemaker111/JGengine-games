@@ -1,6 +1,6 @@
 # Resonant Crossing
 
-Guide Lumen and Anchor through four observatory chambers. Lumen plants a directional prism; Anchor leaves one weight. The final two chambers require moving these devices between ordered relay stations while keeping live gates and hazards safe.
+Guide Lumen and Anchor through four observatory chambers. Lumen plants a directional prism; Anchor leaves one weight. The final two chambers require moving these devices between ordered relay stations on distinct beam lines. Later stations change prism direction while Anchor advances the weight, keeping live gates and hazards safe.
 
 Use WASD or arrows for one tile per press, Q to swap heroes, E to use a device, R to restart the chamber, and Escape or P to pause. The on-screen direction and aiming buttons offer the same commands. Ready, Hold, Go and Recover callouts identify the sending hero. Both heroes must reach their matching exit rings.
 
@@ -27,7 +27,7 @@ Two distinct authored layouts exercise the same workflow:
 | Relay Circuit, 119 cells | 121 RPC calls | 3 RPC calls |
 | Relay Courtyard, 231 cells | 233 RPC calls | 3 RPC calls |
 
-These recreate identical documents using existing published editor operations. Five local trials measured medians of 58.86 → 1.97 ms and 118.24 → 1.07 ms respectively. These are in-memory authoring measurements, not browser play times or an SDK performance comparison. Both layouts also exercise persisted paint, undo, redo and export.
+These recreate identical documents using existing published editor operations. Five local trials of the final authored layouts measured medians of 16.17 → 1.07 ms and 56.89 → 1.27 ms respectively. These are in-memory authoring measurements, not browser play times or an SDK performance comparison. Both layouts also exercise persisted paint, undo, redo and export.
 
 ## Verification
 
@@ -38,6 +38,6 @@ cd resonant-crossing
 bun node_modules/vite/bin/vite.js build
 ```
 
-Game commands enforce hero ownership and phase gates. The native keyboard uses discrete commands so the shell's continuous half-cell grid snapping cannot move an idle integer-centered puzzle hero. Boot explicitly seats the local player when the published offline fallback omits its join callback. The native capture probe reports role, devices, relays, recovery, phase and positions after actual rendered frames.
+Game commands enforce hero ownership and phase gates, using the authenticated hosted command actor before any supplied player id. Join callbacks seat the joining player even when the context belongs to the host. The native keyboard uses discrete commands so the shell's continuous half-cell grid snapping cannot move an idle integer-centered puzzle hero. Boot explicitly seats the local player when the published offline fallback omits its join callback. The native capture probe reports role, devices, relays, recovery, phase and positions after actual rendered frames.
 
 The configured P2P adapter requires a playable-aware authoritative session bootstrap. The current published shell's default resolver falls back to offline play; this standalone build therefore supports one player swapping both heroes. Joint-seat rules are tested, but two-browser shared-puzzle gameplay awaits the coordinated SDK release and bootstrap adoption. PR/HQ evidence records the native play coverage separately.
