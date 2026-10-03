@@ -46,10 +46,10 @@ export function DialoguePanel() {
   if (npcId === null || filtered === null) return null;
   const npc = NPCS.find((entry) => entry.id === npcId);
   return (
-    <div className={`${PANEL} pointer-events-auto w-96`}>
+    <div role="dialog" aria-label={npc?.name ?? "Conversation"} data-hud-window="conversation" className={`${PANEL} lantern-dialogue pointer-events-auto w-96`}>
       <div className={PANEL_TITLE}>
         <span>{npc?.name ?? npcId}</span>
-        <button type="button" className={CLOSE_BUTTON} onClick={() => commands.run("dialogue.close", {})}>
+        <button type="button" aria-label="Close conversation" className={CLOSE_BUTTON} onClick={() => commands.run("dialogue.close", {})}>
           ✕
         </button>
       </div>

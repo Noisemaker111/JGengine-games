@@ -1,3 +1,5 @@
+import { GameIcon } from "@jgengine/react/gameIcons";
+import { useState } from "react";
 import { KeyHint } from "@jgengine/react";
 import { IconTreatment, schoolForAction } from "@jgengine/react/iconTreatment";
 import { useEntityStat, useGame, useGameStore, usePlayer, useTicker } from "@jgengine/react/hooks";
@@ -26,6 +28,7 @@ function Slot({
 }) {
   const ctx = useGameContext();
   const { commands } = useGame();
+  const [notice, setNotice] = useState<string | null>(null);
   const hero = heroOf(ctx, userId);
   const snapshot = hero?.kit.state(ability.id, resource) ?? null;
   const locked = ability.levelReq > level;
@@ -49,9 +52,14 @@ function Slot({
           commands.run("spellbook.assign", { abilityId: data.slice(8), slot: index });
         }
       }}
-      onClick={() => commands.run(`castSlot${index + 1}`, {})}
+      onClick={() => {
+        const result = commands.run(`castSlot${index + 1}`, {});
+        setNotice(result.status === "rejected" ? result.reason : null);
+      }}
+      aria-label={`${ability.name}${locked ? `, unlocks at level ${ability.levelReq}` : ""}`}
+      aria-disabled={locked || noResource || cooldownFraction > 0}
       title={`${ability.name}${ability.cost > 0 ? ` · ${ability.cost}` : ""}${ability.cooldown > 0 ? ` · ${ability.cooldown}s cd` : ""}`}
-      className={`lantern-slot relative flex h-[46px] w-[46px] items-center justify-center overflow-hidden transition ${
+      className={`lantern-slot lantern-ability relative flex items-center justify-center transition ${
         locked
           ? "text-stone-700 grayscale"
           : noResource
@@ -60,7 +68,7 @@ function Slot({
       }`}
       style={justCast ? { boxShadow: "0 0 10px #ffd100aa, inset 0 0 6px #ffd10066" } : undefined}
     >
-      <IconTreatment icon={ability.icon} school={schoolForAction(ability.id)} size={40} style={{ borderRadius: 4 }} />
+      <IconTreatment className="lantern-ability-icon" glyph={<GameIcon name={ability.icon} size={25} color={locked ? "#aaa58c" : ability.school === "physical" ? "#f0d398" : "#f1e2ba"} />} icon={ability.icon} school={ability.school === "physical" ? "steel" : schoolForAction(ability.school)} size={40} style={{ borderRadius: 1, background: ability.school === "physical" ? "radial-gradient(circle at 35% 30%, #526244, #15271b)" : undefined, boxShadow: "inset 0 0 0 1px #9e865255, inset 0 -4px 8px #0005", border: "1px solid #8e7b52" }} />
       {cooldownFraction > 0 && !locked && (
         <span
           className="absolute inset-x-0 bottom-0 bg-black/75"
@@ -78,6 +86,8 @@ function Slot({
           Lv {ability.levelReq}
         </span>
       )}
+      <span className="lantern-ability-name">{ability.name}</span>
+      {notice !== null && <span className="lantern-action-notice" role="status">{notice}</span>}
       <KeyHint className="absolute right-0.5 top-0.5 text-[9px] font-bold text-[#c8a838] [text-shadow:1px_1px_1px_#000]">
         {index + 1}
       </KeyHint>
@@ -97,7 +107,7 @@ export function ActionBar() {
   if (classId === null) return null;
   const cls = classById(classId);
   return (
-    <div className="lantern-panel flex items-end gap-1 p-1.5">
+    <div className="lantern-panel lantern-actionbar flex items-end gap-1 p-1.5">
       {Array.from({ length: 9 }, (_, index) => {
         const ability = cls.abilities.find((entry) => entry.id === bar[index]);
         if (ability === undefined) {
@@ -112,7 +122,7 @@ export function ActionBar() {
                   commands.run("spellbook.assign", { abilityId: data.slice(8), slot: index });
                 }
               }}
-              className="lantern-slot relative flex h-[46px] w-[46px] items-center justify-center opacity-50"
+              className="lantern-slot lantern-ability relative flex items-center justify-center opacity-50"
             >
               <KeyHint className="absolute right-0.5 top-0.5 text-[9px] font-bold text-stone-600">
                 {index + 1}
@@ -172,8 +182,8 @@ export function XpBar() {
   const fraction = capped ? 1 : xp.max > 0 ? xp.current / xp.max : 0;
   const restedFraction = capped || xp.max <= 0 ? 0 : Math.min(1, (xp.current + rested) / xp.max);
   return (
-    <div className="pointer-events-none w-[612px] max-w-[86vw]">
-      <div className="lantern-bar-rail relative h-[10px] overflow-hidden">
+    <div className="lantern-xp pointer-events-none w-full">
+      <div className="lantern-bar-rail relative h-[4px] overflow-hidden">
         {restedFraction > fraction && (
           <div
             className="absolute inset-y-0 left-0 bg-[#4a9eff66]"
@@ -190,7 +200,7 @@ export function XpBar() {
           }}
         />
       </div>
-      <p className="mt-0.5 text-center text-[10px] font-medium text-[#b974ff] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
+      <p className="mt-0.5 text-center text-[11px] font-medium text-[#d8c18e] [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
         {capped
           ? "Level 20 — the road ends at the Hollow Crypt"
           : `${xp.current} / ${xp.max} XP${rested > 0 ? ` · rested ${Math.round(rested)}` : ""}`}

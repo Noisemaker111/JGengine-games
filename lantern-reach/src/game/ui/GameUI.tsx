@@ -1,7 +1,8 @@
-import { HudCanvas, HudPanel, SettingsTrigger, useHudLayout } from "@jgengine/react";
+import { HudCanvas, HudPanel, useHudLayout, usePanels } from "@jgengine/react";
 import { useGame, useGameStore, usePlayer } from "@jgengine/react/hooks";
 import { useKeyedStore } from "@jgengine/react/store";
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
+import { useHudViewport } from "@jgengine/react/hudViewport";
 
 import { bankStore, cinematicStore, classStore, dialogueStore, mailOpenStore, panelStore, shopStore } from "../session/stores";
 import { ActionBar, CastBar, XpBar } from "./components/ActionBar";
@@ -17,7 +18,6 @@ import { SpellbookPanel } from "./components/Spellbook";
 import { SwingTimer } from "./components/SwingTimer";
 import { TalentPanel } from "./components/Talents";
 import {
-  CreditLine,
   DeathOverlay,
   KillLootToasts,
   LevelUpOverlay,
@@ -26,6 +26,7 @@ import {
 } from "./components/Overlays";
 import { ArenaPanel, FiestaBanner, FiestaHud } from "./components/Arena";
 import { DelveHud, MailPanel, ValeCupHud, YumiHud } from "./components/ContentPanels";
+import { FieldMenu, FieldWindows, FIELD_WINDOWS } from "./components/FieldMenu";
 import { PlayerFrame, TargetFrame } from "./components/UnitFrames";
 
 function SkipIntro() {
@@ -57,7 +58,14 @@ function SkipIntro() {
   );
 }
 
+const SURFACE_WINDOW = [{ id: "surfaces", title: "Field window" }] as const;
+const UI_WINDOWS = [...FIELD_WINDOWS, ...SURFACE_WINDOW];
+const PANEL_CLOSE: Record<string, string> = { bags: "openBags", character: "openCharacter", quests: "openQuestLog", spellbook: "openSpellbook", talents: "openTalents", crafting: "craft.open", arena: "openArena" };
+
 export function GameUI() {
+  const { commands } = useGame();
+  const uiScale = useHudViewport()?.userScale ?? 1;
+  const viewportStyle = { "--lantern-hud-width": `calc(100vw / ${uiScale})`, "--lantern-hud-height": `calc(100dvh / ${uiScale})` } as CSSProperties;
   const { userId } = usePlayer();
   const layout = useHudLayout({ storageKey: "lantern-reach-hud" });
   const classId = useKeyedStore(classStore, userId);
@@ -68,11 +76,27 @@ export function GameUI() {
   const mailOpen = useKeyedStore(mailOpenStore, userId);
   const lockpickOpen = useGameStore((ctx) => ctx.game.store.get(`lockpick:${userId}`) !== undefined);
   const auctionOpen = useGameStore((ctx) => ctx.game.store.get(`auction:${userId}`) === true);
+  const surfaceOpen = panel !== null || shopOpen || dialogueOpen || bankOpen || mailOpen || lockpickOpen || auctionOpen;
+  const surfaces = usePanels(UI_WINDOWS, { onClose: (id) => {
+    if (id !== "surfaces") return;
+    if (panel !== null && PANEL_CLOSE[panel] !== undefined) commands.run(PANEL_CLOSE[panel]!, {});
+    if (dialogueOpen) commands.run("dialogue.close", {});
+    if (shopOpen) commands.run("shop.close", {});
+    if (bankOpen) commands.run("bank.close", {});
+    if (mailOpen) commands.run("mail.close", {});
+    if (lockpickOpen) commands.run("lockpick.close", {});
+    if (auctionOpen) commands.run("auction.close", {});
+  } });
+  useEffect(() => {
+    if (surfaceOpen && !surfaces.isOpen("surfaces")) surfaces.open("surfaces");
+    if (!surfaceOpen && surfaces.isOpen("surfaces")) surfaces.close("surfaces");
+  }, [surfaceOpen, surfaces]);
   if (classId === null) return <ClassSelect />;
   return (
     <>
-      <HudCanvas layout={layout}>
-        <HudPanel id="target" anchor="top-left" inset={{ x: 12, y: 12 }}>
+      <HudCanvas layout={layout} className="lantern-hud" style={viewportStyle}>
+        <HudPanel id="player" anchor="top-left" priority="critical" inset={{ x: 18, y: 18 }}><PlayerFrame /></HudPanel>
+        <HudPanel id="target" anchor="top-left" priority="critical" inset={{ x: 18, y: 18 }}>
           <TargetFrame />
         </HudPanel>
         <HudPanel id="zone" anchor="top" inset={{ x: 0, y: 12 }}>
@@ -81,13 +105,11 @@ export function GameUI() {
         <HudPanel id="fiesta-banner" anchor="top" inset={{ x: 0, y: 56 }}>
           <FiestaBanner />
         </HudPanel>
-        <HudPanel id="settings" anchor="top-right" inset={{ x: 16, y: 14 }} order={-1}>
-          <SettingsTrigger className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-md border border-stone-700 bg-stone-950/80 text-amber-300 transition hover:border-amber-500 hover:bg-stone-800" />
-        </HudPanel>
-        <HudPanel id="minimap" anchor="top-right" inset={{ x: 14, y: 60 }}>
+        <HudPanel id="tools" anchor="top-right" priority="secondary" inset={{ x: 18, y: 18 }}><FieldMenu manager={surfaces} /></HudPanel>
+        <HudPanel id="minimap" className="lantern-map-hud" anchor="top-right" mobileBehavior="hidden" inset={{ x: 14, y: 60 }}>
           <Minimap />
         </HudPanel>
-        <HudPanel id="quests" anchor="top-right" inset={{ x: 14, y: 60 }}>
+        <HudPanel id="quests" className="lantern-objectives" anchor="top-right" priority="secondary" inset={{ x: 14, y: 60 }}>
           <QuestTracker />
         </HudPanel>
         <HudPanel id="content-hud" anchor="top-right" inset={{ x: 16, y: 180 }}>
@@ -98,25 +120,21 @@ export function GameUI() {
             <FiestaHud />
           </div>
         </HudPanel>
-        <HudPanel id="chat" anchor="bottom-left" inset={{ x: 16, y: 60 }}>
+        <HudPanel id="chat" anchor="bottom-left" priority="tertiary" className="lantern-chat-anchor" inset={{ x: 18, y: 18 }}>
           <ChatLog />
         </HudPanel>
-        <HudPanel id="feed" anchor="bottom-left" inset={{ x: 16, y: 270 }}>
+        <HudPanel id="feed" anchor="bottom-left" mobileBehavior="transient" inset={{ x: 18, y: 18 }}>
           <KillLootToasts />
         </HudPanel>
-        <HudPanel id="bottom-bar" anchor="bottom" inset={{ x: 0, y: 10 }}>
-          <div className="flex flex-col items-center gap-1.5">
+        <HudPanel id="bottom-bar" anchor="bottom" priority="critical" className="lantern-action-anchor" inset={{ x: 0, y: 14 }}>
+          <div className="lantern-combat-rail flex flex-col items-center gap-1.5">
             <CastBar />
             <SwingTimer />
-            <PlayerFrame />
-            <XpBar />
             <ActionBar />
+            <XpBar />
           </div>
         </HudPanel>
-        <HudPanel id="credit" anchor="bottom-right" inset={{ x: 14, y: 10 }}>
-          <CreditLine />
-        </HudPanel>
-      </HudCanvas>
+      <FieldWindows manager={surfaces} />
       {(panel === "bags" ||
         panel === "character" ||
         panel === "quests" ||
@@ -130,7 +148,7 @@ export function GameUI() {
         mailOpen ||
         lockpickOpen ||
         auctionOpen) && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-4">
+        <div className="lantern-window-layer pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-4">
           {dialogueOpen && <DialoguePanel />}
           {shopOpen && <VendorPanel />}
           {bankOpen && <BankPanel />}
@@ -150,6 +168,7 @@ export function GameUI() {
       <FishingOverlay />
       <LevelUpOverlay />
       <DeathOverlay />
+      </HudCanvas>
     </>
   );
 }

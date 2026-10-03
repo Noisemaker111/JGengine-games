@@ -153,6 +153,1062 @@
       "bytes": 1219416,
       "sha256": "542fdba7240f9688bdcf075c905fb5a93d1cd3314b2739a3bf3470054357d1c8",
       "author": "Kay Lousberg (KayKit)"
+    },
+    {
+      "path": "scenery/Wall_Plaster_Straight.glb",
+      "sourcePath": "../quaternius-medieval-village/Wall_Plaster_Straight.glb",
+      "bytes": 8916,
+      "sha256": "5e4d5d3da9523dd96ddd19f683d51d6654281d575adf9e9c0c912b03337a2bcc",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.0000001192092896,
+          "d": 0.4064820408821106
+        },
+        "center": {
+          "x": -5.960464477539063e-8,
+          "z": -0.1107943058013916
+        },
+        "minY": -0.0020958781242370605,
+        "maxY": 3.1226887702941895
+      }
+    },
+    {
+      "path": "scenery/Wall_Plaster_Window_Wide_Round.glb",
+      "sourcePath": "../quaternius-medieval-village/Wall_Plaster_Window_Wide_Round.glb",
+      "bytes": 10996,
+      "sha256": "c07d92a2b8e6b591d285a5069f7758687c730c68aefef7319aae5c3f3bb50909",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.0000001192092896,
+          "d": 0.4064820408821106
+        },
+        "center": {
+          "x": -5.960464477539063e-8,
+          "z": -0.1107943058013916
+        },
+        "minY": 0,
+        "maxY": 3.1226887702941895
+      }
+    },
+    {
+      "path": "scenery/Wall_Plaster_Door_Round.glb",
+      "sourcePath": "../quaternius-medieval-village/Wall_Plaster_Door_Round.glb",
+      "bytes": 13188,
+      "sha256": "32e218aac75eb34994e4c1e2c88d2d5727afe7339ea4127d2f7db9b06cdce83c",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.0000001192092896,
+          "d": 0.4064820408821106
+        },
+        "center": {
+          "x": -5.960464477539063e-8,
+          "z": -0.1107943058013916
+        },
+        "minY": 0,
+        "maxY": 3.1226887702941895
+      }
+    },
+    {
+      "path": "scenery/Wall_UnevenBrick_Straight.glb",
+      "sourcePath": "../quaternius-medieval-village/Wall_UnevenBrick_Straight.glb",
+      "bytes": 6684,
+      "sha256": "a41964a8c5a8e776cb00b9d0a276f62f54cf502bb3a8e34870d7b8a084ed8c4a",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.0000001192092896,
+          "d": 0.4064817279577255
+        },
+        "center": {
+          "x": -5.960464477539063e-8,
+          "z": -0.11079446226358414
+        },
+        "minY": 0,
+        "maxY": 3.1226887702941895
+      }
+    },
+    {
+      "path": "scenery/Wall_UnevenBrick_Door_Round.glb",
+      "sourcePath": "../quaternius-medieval-village/Wall_UnevenBrick_Door_Round.glb",
+      "bytes": 9300,
+      "sha256": "755232a3c19bfdc392113038b2ce5b526ef71ea6100f69cd86ea60b5b29ee912",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.0000001192092896,
+          "d": 0.4064817279577255
+        },
+        "center": {
+          "x": -5.960464477539063e-8,
+          "z": -0.11079446226358414
+        },
+        "minY": 0,
+        "maxY": 3.1226887702941895
+      }
+    },
+    {
+      "path": "scenery/Roof_RoundTiles_4x4.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_RoundTiles_4x4.glb",
+      "bytes": 110380,
+      "sha256": "e620bd566350d9d5320e2ddd3367c2f9e2d15831618c57fa1728e29fd8b57931",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 5.561474800109863
+        },
+        "center": {
+          "x": 0,
+          "z": 0.04082942008972168
+        },
+        "minY": -0.5157185792922974,
+        "maxY": 3.7336742877960205
+      }
+    },
+    {
+      "path": "scenery/Roof_RoundTiles_4x6.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_RoundTiles_4x6.glb",
+      "bytes": 133048,
+      "sha256": "7dbcc10a24ab97527fc94e10b083150a561d28b9d311465abd0100cceb1f2ef9",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 7.572280406951904
+        },
+        "center": {
+          "x": 0,
+          "z": 0.00010585784912109375
+        },
+        "minY": -0.5157185792922974,
+        "maxY": 3.7178683280944824
+      }
+    },
+    {
+      "path": "scenery/Roof_RoundTiles_4x8.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_RoundTiles_4x8.glb",
+      "bytes": 160548,
+      "sha256": "b02e0e6400a97ece38746a7752665015b3d784ddebc829b0f99e53a9d1627ef1",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 9.682739734649658
+        },
+        "center": {
+          "x": 0,
+          "z": 0.012616395950317383
+        },
+        "minY": -0.5157185792922974,
+        "maxY": 3.713447093963623
+      }
+    },
+    {
+      "path": "scenery/Roof_RoundTiles_6x6.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_RoundTiles_6x6.glb",
+      "bytes": 170676,
+      "sha256": "14ee834f854cf490aba4de3172453c41e8416ebee88cfed7fe671b1add4cc06b",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 8.03218936920166
+        },
+        "center": {
+          "x": 0,
+          "z": 0.07789182662963867
+        },
+        "minY": -0.7821269035339355,
+        "maxY": 4.890044689178467
+      }
+    },
+    {
+      "path": "scenery/Roof_RoundTiles_6x8.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_RoundTiles_6x8.glb",
+      "bytes": 190948,
+      "sha256": "697794d5e97a4d941d4d60f7f30ead460751b414d720b41c2337419fee8543af",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 9.682739734649658
+        },
+        "center": {
+          "x": 0,
+          "z": 0.012616395950317383
+        },
+        "minY": -0.7821269035339355,
+        "maxY": 4.890044689178467
+      }
+    },
+    {
+      "path": "scenery/Roof_2x4_RoundTile.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_2x4_RoundTile.glb",
+      "bytes": 63544,
+      "sha256": "813dcef47e0d705da2203b0f3cfa3ef06fd88c5485c716165547cf0515f8d178",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 3.2934184074401855,
+          "d": 4.232189655303955
+        },
+        "center": {
+          "x": 1.1920928955078125e-7,
+          "z": -0.008414030075073242
+        },
+        "minY": -0.3415522575378418,
+        "maxY": 2.3241586685180664
+      }
+    },
+    {
+      "path": "scenery/Roof_Front_Brick4.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_Front_Brick4.glb",
+      "bytes": 16132,
+      "sha256": "20954dedae478f50fdc90de49fab3dfea51afe60212108e04c5ffb47cf650989",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 4.399803400039673,
+          "d": 1.129103422164917
+        },
+        "center": {
+          "x": 0.016094326972961426,
+          "z": 0.22958803176879883
+        },
+        "minY": -0.13180206716060638,
+        "maxY": 2.9367027282714844
+      }
+    },
+    {
+      "path": "scenery/Roof_Front_Brick6.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_Front_Brick6.glb",
+      "bytes": 21584,
+      "sha256": "0b35cdcf842bdf48eb30acca0fad783150c2d09112a8097e0c2900c6da211deb",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 6.694395303726196,
+          "d": 1.1291040182113647
+        },
+        "center": {
+          "x": 0.0006796121597290039,
+          "z": 0.2295883297920227
+        },
+        "minY": -0.13180209696292877,
+        "maxY": 4.383981704711914
+      }
+    },
+    {
+      "path": "scenery/Roof_Tower_RoundTiles.glb",
+      "sourcePath": "../quaternius-medieval-village/Roof_Tower_RoundTiles.glb",
+      "bytes": 209168,
+      "sha256": "ea0152c3982fcbf25f85f01961182a7b24aa3627f7d9ac195d78c59f2ff011f9",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.650521278381348,
+          "d": 5.427099704742432
+        },
+        "center": {
+          "x": 0,
+          "z": 0
+        },
+        "minY": -0.5719583630561829,
+        "maxY": 6.788815498352051
+      }
+    },
+    {
+      "path": "scenery/Door_4_Round.glb",
+      "sourcePath": "../quaternius-medieval-village/Door_4_Round.glb",
+      "bytes": 79912,
+      "sha256": "f34d478579fdd5d08805609f8ede82069905d55735e1c393fa477a2db2b83183",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 1.1147095635533333,
+          "d": 0.20934630930423737
+        },
+        "center": {
+          "x": 0.5142482779920101,
+          "z": -0.012914516031742096
+        },
+        "minY": 0.033089637756347656,
+        "maxY": 2.3558475971221924
+      }
+    },
+    {
+      "path": "scenery/Window_Wide_Round1.glb",
+      "sourcePath": "../quaternius-medieval-village/Window_Wide_Round1.glb",
+      "bytes": 24692,
+      "sha256": "e76c7df5bac25fa481ffce2102ae442404740f1eb864c9f73332edd3506f0d20",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 1.364915370941162,
+          "d": 0.5295750498771667
+        },
+        "center": {
+          "x": 0,
+          "z": 0.012504488229751587
+        },
+        "minY": 1.01604425907135,
+        "maxY": 2.741780996322632
+      }
+    },
+    {
+      "path": "scenery/WindowShutters_Wide_Round_Open.glb",
+      "sourcePath": "../quaternius-medieval-village/WindowShutters_Wide_Round_Open.glb",
+      "bytes": 13332,
+      "sha256": "bdf6e73f82521aa68ff9da0cf0764c072149efcc52edcd5bdcfa14f8819689e1",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.3034836053848267,
+          "d": 0.47235530614852905
+        },
+        "center": {
+          "x": -0.04821544885635376,
+          "z": 0.32697251439094543
+        },
+        "minY": 1.0932440757751465,
+        "maxY": 2.740431785583496
+      }
+    },
+    {
+      "path": "scenery/Prop_Chimney.glb",
+      "sourcePath": "../quaternius-medieval-village/Prop_Chimney.glb",
+      "bytes": 23300,
+      "sha256": "3cb0f41147694bb8ea8c7e25146810aec49f2be2425972fa62f9b9cca1670171",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 0.9457785189151764,
+          "d": 1.0000001192092896
+        },
+        "center": {
+          "x": -0.02711080014705658,
+          "z": 0
+        },
+        "minY": 5.960464477539063e-8,
+        "maxY": 3.177875280380249
+      }
+    },
+    {
+      "path": "scenery/Prop_Chimney2.glb",
+      "sourcePath": "../quaternius-medieval-village/Prop_Chimney2.glb",
+      "bytes": 6336,
+      "sha256": "1ccf37c0c9f39c5789e60fe89d4b569f2fb8a915adb8cf10212c7b61b7ba86a7",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 0.9457785189151764,
+          "d": 0.9880171120166779
+        },
+        "center": {
+          "x": -0.02711080014705658,
+          "z": 1.4901161193847656e-8
+        },
+        "minY": 5.820766091346741e-8,
+        "maxY": 3
+      }
+    },
+    {
+      "path": "scenery/Prop_Wagon.glb",
+      "sourcePath": "../quaternius-medieval-village/Prop_Wagon.glb",
+      "bytes": 105068,
+      "sha256": "9844be01699caa44b37b086e4bf2249401fa290d858e99305027dfd85cd40d2e",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 1.9514083862304688,
+          "d": 4.024016499519348
+        },
+        "center": {
+          "x": -0.003654956817626953,
+          "z": -1.1384238600730896
+        },
+        "minY": 0.00312984362244606,
+        "maxY": 1.5323269367218018
+      }
+    },
+    {
+      "path": "scenery/Prop_Crate.glb",
+      "sourcePath": "../quaternius-medieval-village/Prop_Crate.glb",
+      "bytes": 17736,
+      "sha256": "c9295acc2238f5e799888e91fb4bf874ceaf5f1bbd3a8b7c00f88ec9b01118af",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 1.0835824608802795,
+          "d": 1.08358234167099
+        },
+        "center": {
+          "x": -2.9802322387695312e-8,
+          "z": 2.9802322387695312e-8
+        },
+        "minY": 0.003361523151397705,
+        "maxY": 1.0629422664642334
+      }
+    },
+    {
+      "path": "scenery/Corner_Exterior_Wood.glb",
+      "sourcePath": "../quaternius-medieval-village/Corner_Exterior_Wood.glb",
+      "bytes": 2476,
+      "sha256": "453c9ca0356bbf84dfa4bc433aac76c39518c9d7efc84302be5e73a4e00c815a",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 0.21017442643642426,
+          "d": 0.23964012414216995
+        },
+        "center": {
+          "x": -1.1920928955078125e-7,
+          "z": 1.1175870895385742e-8
+        },
+        "minY": -1.5052728485898115e-7,
+        "maxY": 2.999999761581421
+      }
+    },
+    {
+      "path": "scenery/CommonTree_1.glb",
+      "sourcePath": "../quaternius-stylized-nature/CommonTree_1.glb",
+      "bytes": 494444,
+      "sha256": "11b3119e841cc73861808b10d27e16beb80fd32a4bc9596533a10121a54cff86",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature",
+      "dims": {
+        "footprint": {
+          "w": 4.311422824859619,
+          "d": 4.577713966369629
+        },
+        "center": {
+          "x": -0.038747310638427734,
+          "z": 0.06433796882629395
+        },
+        "minY": -0.24277201294898987,
+        "maxY": 7.022013187408447
+      }
+    },
+    {
+      "path": "scenery/CommonTree_3.glb",
+      "sourcePath": "../quaternius-stylized-nature/CommonTree_3.glb",
+      "bytes": 299848,
+      "sha256": "6f23f08f98b90c47b3d2a1794a2f4d788407653fcb5bb94a9c8e043977b71ce6",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature",
+      "dims": {
+        "footprint": {
+          "w": 4.0628461837768555,
+          "d": 4.241076946258545
+        },
+        "center": {
+          "x": 0.044957876205444336,
+          "z": 0.05957293510437012
+        },
+        "minY": -0.24277201294898987,
+        "maxY": 9.182417869567871
+      }
+    },
+    {
+      "path": "scenery/Bush_Common.glb",
+      "sourcePath": "../quaternius-stylized-nature/Bush_Common.glb",
+      "bytes": 93360,
+      "sha256": "9a49cf600272e8e4d0b62e845daf2952e54872b83ac2b789e3bc1d488956c4c1",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature",
+      "dims": {
+        "footprint": {
+          "w": 1.9148447513580322,
+          "d": 1.9651408791542053
+        },
+        "center": {
+          "x": 0.033946216106414795,
+          "z": 0.008181244134902954
+        },
+        "minY": -0.234694704413414,
+        "maxY": 1.3470909595489502
+      }
+    },
+    {
+      "path": "scenery/Rock_Medium_1.glb",
+      "sourcePath": "../quaternius-stylized-nature/Rock_Medium_1.glb",
+      "bytes": 14628,
+      "sha256": "ba6842f1aae12d3267eab3dcd3b3379da4b9792f8a1a4a0a77e80427ad9ec79f",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature",
+      "dims": {
+        "footprint": {
+          "w": 3.2251484394073486,
+          "d": 2.9891364574432373
+        },
+        "center": {
+          "x": -0.11471307277679443,
+          "z": 0.3446849584579468
+        },
+        "minY": -0.27113133668899536,
+        "maxY": 1.988665223121643
+      }
+    },
+    {
+      "path": "scenery/T_WoodTrim_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_WoodTrim_Normal.png",
+      "bytes": 3596501,
+      "sha256": "5847623e4ed6c206e59f32d1718ee75dcb2b49a1d55ede7ef70a254739caf4a8",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_WoodTrim_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_WoodTrim_BaseColor.png",
+      "bytes": 2082310,
+      "sha256": "a59f410b07a9bc5f0664df3ba7a2c1e37acffc7979795911f3fc8730ab60e33e",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_WoodTrim_Roughness.png",
+      "sourcePath": "../quaternius-medieval-village/T_WoodTrim_Roughness.png",
+      "bytes": 1697111,
+      "sha256": "e888464fd4199d458d8cf39e00fa07d56f8a0bcb658aa03b4a7c95d466ceefa3",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Plaster_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_Plaster_Normal.png",
+      "bytes": 4607606,
+      "sha256": "8b9617b561466cce00d5a0628eae7bef208dcf63445d72570e7f8e5057fed0d4",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Plaster_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_Plaster_BaseColor.png",
+      "bytes": 3316410,
+      "sha256": "98547ca83888307e3ffa96384ce058b7622affe0a42add3b36d0b48618c5eda4",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Plaster_ORM.png",
+      "sourcePath": "../quaternius-medieval-village/T_Plaster_ORM.png",
+      "bytes": 2381579,
+      "sha256": "7be9d64a6154ba12bb7086e1d6774a7d5bbbc95775efb614f6ff40a4787fe0c7",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Brick_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_Brick_Normal.png",
+      "bytes": 4474267,
+      "sha256": "6349f1fb3eed9985e6f969c1de04b9e92490020a12ba19a44b96ea808fb27c1a",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Brick_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_Brick_BaseColor.png",
+      "bytes": 2447169,
+      "sha256": "5515f57e61767838f53f4b9e25aa83b1382ad345ff6b446482718b5140c33813",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_Brick_Roughness.png",
+      "sourcePath": "../quaternius-medieval-village/T_Brick_Roughness.png",
+      "bytes": 689204,
+      "sha256": "981e7a4f8e3119749b2fb3d557e3d0ba0551e75a39b467cff0a3a948a9392716",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RockTrim_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_RockTrim_Normal.png",
+      "bytes": 3925938,
+      "sha256": "f93f82f7e69aa0bf1900f8ab3f252390f091b771f0b84a345c5fefb0f0155cd3",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RockTrim_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_RockTrim_BaseColor.png",
+      "bytes": 1908835,
+      "sha256": "aa571cd612091a8f4c95393f8f938bd6e5d47a8cdfd9c896b60a4b37903e2c7c",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RockTrim_ORM.png",
+      "sourcePath": "../quaternius-medieval-village/T_RockTrim_ORM.png",
+      "bytes": 1625807,
+      "sha256": "5287dd9a4e9fb7423af8d8440a8de8bdb8910f9f37ba148f619a6eddf58d5bc8",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_UnevenBrick_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_UnevenBrick_Normal.png",
+      "bytes": 3866626,
+      "sha256": "bbf623cc35720d67a02079b20b9a6d9641c3686952b288cda97dec41e4b8acad",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_UnevenBrick_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_UnevenBrick_BaseColor.png",
+      "bytes": 2945342,
+      "sha256": "ee0f096df6110e943cd9739680b61bc0ffd6fe00db752c5c3797941057a95ebc",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_UnevenBrick_Roughness.png",
+      "sourcePath": "../quaternius-medieval-village/T_UnevenBrick_Roughness.png",
+      "bytes": 1246162,
+      "sha256": "da170cb92ac5479b93ca0c0002b783f1186a146e6e3124891ce7bfe6e1a8a942",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RoundTiles_Normal.png",
+      "sourcePath": "../quaternius-medieval-village/T_RoundTiles_Normal.png",
+      "bytes": 3792369,
+      "sha256": "e8cf202fbc1ec36c3f5389a25ab9c99f015d49ae0ca963d0404614c3e1e8f687",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RoundTiles_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_RoundTiles_BaseColor.png",
+      "bytes": 4352034,
+      "sha256": "acf388ebd1a97346e1e5b59091cfc609ed15b4f70b83a626089f12a82a2d9997",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_RoundTiles_Roughness.png",
+      "sourcePath": "../quaternius-medieval-village/T_RoundTiles_Roughness.png",
+      "bytes": 1624660,
+      "sha256": "02c5cdbb6768de6ac674a343265c020c5bd6ef70fd7ba555d9b9dc7445179366",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_MetalOrnaments_BaseColor.png",
+      "sourcePath": "../quaternius-medieval-village/T_MetalOrnaments_BaseColor.png",
+      "bytes": 725116,
+      "sha256": "28603125908bb443ef7ac405d6bf2978dafdd348081c1dfd21630ac09862b668",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/T_MetalOrnaments_Roughness.png",
+      "sourcePath": "../quaternius-medieval-village/T_MetalOrnaments_Roughness.png",
+      "bytes": 89547,
+      "sha256": "2de0135d6ffc3021e2550860107f531d0e64fdd0b46b3bf06f2f85e30b818874",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village"
+    },
+    {
+      "path": "scenery/Bark_NormalTree_Normal.png",
+      "sourcePath": "../quaternius-stylized-nature/Bark_NormalTree_Normal.png",
+      "bytes": 4384496,
+      "sha256": "852f6155404b8c39e100e41e26970e02a6a5c81b482d3726618dab28e3ad03a2",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature"
+    },
+    {
+      "path": "scenery/Bark_NormalTree.png",
+      "sourcePath": "../quaternius-stylized-nature/Bark_NormalTree.png",
+      "bytes": 3894788,
+      "sha256": "f36e94fdd73255347325b998e02a0b2575fdf714b0315bfe5e8ff34bc8e13603",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature"
+    },
+    {
+      "path": "scenery/Leaves_NormalTree_C.png",
+      "sourcePath": "../quaternius-stylized-nature/Leaves_NormalTree_C.png",
+      "bytes": 158796,
+      "sha256": "998612bdf0b76a22f5f54d65cd7a457815d2842d89653fa4348a4ebb42933ad3",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature"
+    },
+    {
+      "path": "scenery/Leaves_TwistedTree_C.png",
+      "sourcePath": "../quaternius-stylized-nature/Leaves_TwistedTree_C.png",
+      "bytes": 70353,
+      "sha256": "0e459b56b14c0e81b1b7cf3d1e8c6f0bb71790eb6c46bb02a76a922d8df646ea",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature"
+    },
+    {
+      "path": "scenery/Rocks_Diffuse.png",
+      "sourcePath": "../quaternius-stylized-nature/Rocks_Diffuse.png",
+      "bytes": 2517398,
+      "sha256": "b813696df6081f469a127092eb0ce45cc39d56f3ccc0699152bfcd3804810b48",
+      "author": "Quaternius",
+      "pack": "quaternius-stylized-nature"
+    },
+    {
+      "path": "settlements/settlement-0.glb",
+      "authoredFile": "../src/art/settlement-0.glb",
+      "bytes": 395136,
+      "sha256": "9fe3f0ad0153bf0235a1e710333dfb6b306654b9be7623be2e7c657c4668b413",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 7.572280645370483
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.039894261360131855
+        },
+        "minY": -0.0020958781242370605,
+        "maxY": 6.977875280380249
+      },
+      "sourcePrefabId": "building:Wilkes provision house",
+      "draws": 11,
+      "sourcePrefabSha256": "4564b5de2960613f0bf8c80218bae9f600ceedf794c23ff9655d9f48101ac455"
+    },
+    {
+      "path": "settlements/settlement-1.glb",
+      "authoredFile": "../src/art/settlement-1.glb",
+      "bytes": 338124,
+      "sha256": "af127180cef68a41ea00267081158709b37c46cef902e8c437ae94e1182730ef",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 5.561475038528442
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": 0.0008293008804685087
+        },
+        "minY": -0.0020958781242370605,
+        "maxY": 6.977875280380249
+      },
+      "sourcePrefabId": "building:Lin apothecary",
+      "draws": 11,
+      "sourcePrefabSha256": "f4abff6d95565e25f5d4ab297278e1660fb1612728f533e34988cc86781a674a"
+    },
+    {
+      "path": "settlements/settlement-2.glb",
+      "authoredFile": "../src/art/settlement-2.glb",
+      "bytes": 679688,
+      "sha256": "9a0f98e982f1e606faa320f6c05a0446d955eb3a8b4632b96d8dfe51b7e9a99e",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 9.682739658355729
+        },
+        "center": {
+          "x": 0.04999999999999982,
+          "z": -0.052383565902715645
+        },
+        "minY": 0,
+        "maxY": 10.890044689178467
+      },
+      "sourcePrefabId": "building:Eastbrook watch hall",
+      "draws": 9,
+      "sourcePrefabSha256": "8e85bc5de33da57d7328645df40d0a76571beb00739bcc7fd1bae8473b5727ad"
+    },
+    {
+      "path": "settlements/settlement-3.glb",
+      "authoredFile": "../src/art/settlement-3.glb",
+      "bytes": 492688,
+      "sha256": "ba6a77d65e88e224c67402c0751d150a9bff69fbd97b5a6c49138c7722573f98",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.650521278381348,
+          "d": 5.427099704742432
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.06499999999999773
+        },
+        "minY": 0,
+        "maxY": 12.78881549835205
+      },
+      "sourcePrefabId": "building:Aldric lantern chapel",
+      "draws": 10,
+      "sourcePrefabSha256": "6bcf1f39cdb3337840d688737d57b9d0f8da88f0b4ca275d98c1d562bb644785"
+    },
+    {
+      "path": "settlements/settlement-4.glb",
+      "authoredFile": "../src/art/settlement-4.glb",
+      "bytes": 409592,
+      "sha256": "7392a2a6c944bc794039635b77a5d8487fe44bdf3f7ffaf15ebc5718f25fb7d1",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 8.03218936920166
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": 0.03789182662967505
+        },
+        "minY": 0,
+        "maxY": 7.890044689178467
+      },
+      "sourcePrefabId": "building:Odell workshop",
+      "draws": 9,
+      "sourcePrefabSha256": "af513a16c4b70a0085775c488e8c80430fe5b88d44d975d35f2946c61d4ee1a3"
+    },
+    {
+      "path": "settlements/settlement-5.glb",
+      "authoredFile": "../src/art/settlement-5.glb",
+      "bytes": 663016,
+      "sha256": "9b2033d216d2b0233ca9fcf83e2d47c8f2dd55916ae8afae463c5e8273f19d69",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 9.682739734649658
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.05238360404968034
+        },
+        "minY": -0.0020958781242370605,
+        "maxY": 9.97787528038025
+      },
+      "sourcePrefabId": "building:Reach wayside inn",
+      "draws": 11,
+      "sourcePrefabSha256": "8647b0929865e7d32d876c1220d8da366230a95c9d0b422d088b8c9811bc77c3"
+    },
+    {
+      "path": "settlements/settlement-6.glb",
+      "authoredFile": "../src/art/settlement-6.glb",
+      "bytes": 395128,
+      "sha256": "6e37917ec13e383d1b57f0eedb2ace4d3258a56386996dfb80eb1fd5eb3c2ca0",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.513076305389404,
+          "d": 7.572280645370483
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.03989426136016738
+        },
+        "minY": -0.0020958781242370605,
+        "maxY": 6.977875280380249
+      },
+      "sourcePrefabId": "building:Fenbridge dock house",
+      "draws": 11,
+      "sourcePrefabSha256": "c7da0df796b5bb728b39a0f29721aaa316d4ae1392fc27578624d2aecfc3622c"
+    },
+    {
+      "path": "settlements/settlement-7.glb",
+      "authoredFile": "../src/art/settlement-7.glb",
+      "bytes": 492684,
+      "sha256": "774e3f42bc1506c2ba11014da57165177c3c4a2931fd7d5d3e6cad2580307641",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.650521278381348,
+          "d": 5.427099704742432
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.0649999999999995
+        },
+        "minY": 0,
+        "maxY": 12.78881549835205
+      },
+      "sourcePrefabId": "building:Fenbridge ward tower",
+      "draws": 10,
+      "sourcePrefabSha256": "f8075a0de426bbfafe5d12419157e6c14cc4aab5fb840a5c89a73fbf7ed23128"
+    },
+    {
+      "path": "settlements/settlement-8.glb",
+      "authoredFile": "../src/art/settlement-8.glb",
+      "bytes": 679736,
+      "sha256": "8e0bfe47eba5a8a90d9e4598e9647e0e11736e6053df2b57e6f66c0dea756523",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 9.682739658355729
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.052383565902715645
+        },
+        "minY": 0,
+        "maxY": 10.890044689178467
+      },
+      "sourcePrefabId": "building:Highwatch lodge",
+      "draws": 9,
+      "sourcePrefabSha256": "af45e3d05ad61bc4f83ed4011217351d885356cd7e1d6114eb20150a45ea77f6"
+    },
+    {
+      "path": "settlements/settlement-9.glb",
+      "authoredFile": "../src/art/settlement-9.glb",
+      "bytes": 492688,
+      "sha256": "afd4102f9c41a29e4a669c14faef09389d5cdbb57f3aac075079b7c454614b09",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 5.650521278381348,
+          "d": 5.427099704742432
+        },
+        "center": {
+          "x": 0.05000000000000071,
+          "z": -0.06499999999999773
+        },
+        "minY": 0,
+        "maxY": 12.78881549835205
+      },
+      "sourcePrefabId": "building:Highwatch beacon tower",
+      "draws": 10,
+      "sourcePrefabSha256": "68228a7ca4a70ffe7ac5fcdf0ed2e97cdb26fa88783ce0520a4f2c8d2619e73e"
+    },
+    {
+      "path": "settlements/settlement-10.glb",
+      "authoredFile": "../src/art/settlement-10.glb",
+      "bytes": 409596,
+      "sha256": "19621842558c89903b7b6eca5f9927bb7fcbcc5b29a7ae90a338f3d47c623d1b",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 8.249783515930176,
+          "d": 8.03218936920166
+        },
+        "center": {
+          "x": 0.04999999999999716,
+          "z": 0.03789182662967505
+        },
+        "minY": 0,
+        "maxY": 7.890044689178467
+      },
+      "sourcePrefabId": "building:Hollow Crypt gatehouse",
+      "draws": 9,
+      "sourcePrefabSha256": "b11f5f93057d35f41dd9e9526d0e31e53ce6c131cddd4c73be74f0717d0ca41c"
+    },
+    {
+      "path": "scenery/Floor_UnevenBrick.glb",
+      "sourcePath": "../quaternius-medieval-village/Floor_UnevenBrick.glb",
+      "bytes": 1856,
+      "sha256": "2e5be86cc38ae44423c98f8a1cdb0d07c98ab33827bbf39c24e85b2fb09871d7",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2,
+          "d": 2
+        },
+        "center": {
+          "x": 0,
+          "z": 0
+        },
+        "minY": -0.010000384412705898,
+        "maxY": 0.009999990463256836
+      }
+    },
+    {
+      "path": "scenery/Prop_WoodenFence_Single.glb",
+      "sourcePath": "../quaternius-medieval-village/Prop_WoodenFence_Single.glb",
+      "bytes": 4440,
+      "sha256": "2c566e7a95d96b5a918cb18288220dfa2faa77489ebe9c486649256092260da4",
+      "author": "Quaternius",
+      "pack": "quaternius-medieval-village",
+      "dims": {
+        "footprint": {
+          "w": 2.064099669456482,
+          "d": 0.1198200061917305
+        },
+        "center": {
+          "x": 0.0005990862846374512,
+          "z": 3.3527612686157227e-8
+        },
+        "minY": -0.02825251966714859,
+        "maxY": 0.8098565340042114
+      }
+    },
+    {
+      "path": "scenery/torch_mounted.glb",
+      "sourcePath": "../kaykit-dungeon/torch_mounted.glb",
+      "bytes": 33220,
+      "sha256": "a617c159e02932db48ca81ec46f1f100acc8904fb6ece43e919d2f93c13950e9",
+      "author": "Kay Lousberg",
+      "pack": "kaykit-dungeon",
+      "dims": {
+        "footprint": {
+          "w": 0.550283282995224,
+          "d": 0.615840498726163
+        },
+        "center": {
+          "x": 0.000005140900611877441,
+          "z": 0.30792024526963946
+        },
+        "minY": -0.3808070421218872,
+        "maxY": 0.6816596984863281
+      }
+    },
+    {
+      "path": "settlements/market-cobbles.glb",
+      "authoredFile": "../src/art/market-cobbles.glb",
+      "author": "Lantern Reach, from Quaternius CC0 parts",
+      "pack": "quaternius-medieval-village",
+      "sourcePrefabId": "street:market-cobbles",
+      "bytes": 16272,
+      "sha256": "6487ad0774ffdefe57910cf497914bcb064561268c312450d233e2bb3af5d737",
+      "sourcePrefabSha256": "144149fd4661fc0046a92a505e705548fddb09bf26030e3762de2cb3e5226628",
+      "draws": 1,
+      "dims": {
+        "footprint": {
+          "w": 26,
+          "d": 8
+        },
+        "center": {
+          "x": 0,
+          "z": 0
+        },
+        "minY": 0.0199996155872941,
+        "maxY": 0.039999990463256835
+      }
     }
   ]
 }

@@ -10,12 +10,13 @@ import { mobById } from "../../entities/enemies/catalog";
 import { NPCS } from "../../entities/npcs/catalog";
 import { mobRuntimeOf } from "../../ai/mobs";
 import { autoAttackStore, aurasStore, classStore, nameStore, petStore } from "../../session/stores";
+import { ZoneLabel } from "./Overlays";
 import { RESOURCE_COLORS } from "../theme";
 
 // The bronze-framed rail (#1033): the `lantern-bar-rail` look expressed as shared vitals tokens, so the
 // bars come from the atomic `HealthBar`/`ManaBar` with a per-instance `fill` for the class color.
 const RAIL_TOKENS: CSSProperties = {
-  ...barTokens({ track: "#1a1a1a", frame: "#000000", frameWidth: "1px", height: "15px", radius: "0px", bevel: "none", text: "#ffffff" }),
+  ...barTokens({ track: "#1a1a1a", frame: "#000000", frameWidth: "1px", height: "18px", radius: "0px", bevel: "none", text: "#ffffff" }),
 };
 
 /** Pulls the hex out of a `bg-[#rrggbb]` Tailwind class (or passes a hex through). */
@@ -82,9 +83,9 @@ function Portrait({
   hostile?: boolean;
 }) {
   return (
-    <div className="relative h-16 w-16 shrink-0">
+    <div className="lantern-portrait relative h-14 w-14 shrink-0">
       <span
-        className="flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 bg-[radial-gradient(circle_at_35%_30%,#2c2c3a,#15151f)]"
+        className="flex h-[50px] w-[50px] items-center justify-center rounded-full border-2 bg-[radial-gradient(circle_at_35%_30%,#2c2c3a,#15151f)]"
         style={{ borderColor: hostile === true ? "#8a2a20" : "#6f5a2a", color }}
       >
         <GameIcon name={icon} size={30} />
@@ -110,13 +111,13 @@ export function PlayerFrame() {
   if (classId === null || health === null) return null;
   const cls = classById(classId);
   return (
-    <div>
+    <div className="lantern-unit">
       <div className="flex items-center">
         <Portrait icon={cls.icon} color={cls.color} level={level?.current ?? 1} />
-        <div className="lantern-panel w-[190px] rounded-l-none px-2 py-1.5">
-          <div className="lantern-title truncate text-xs">{name ?? cls.name}</div>
+        <div className="lantern-panel lantern-vitals w-[210px] rounded-l-none px-2 py-1.5">
+          <div className="lantern-title truncate text-sm">{name ?? cls.name}</div>
           <div className="mt-0.5 space-y-0.5">
-            <Bar value={health.current} max={health.max} fill="bg-[#1eb838]" />
+            <Bar value={health.current} max={health.max} fill="bg-[#7fb06d]" />
             <Bar
               value={resource?.current ?? 0}
               max={resource?.max ?? 100}
@@ -126,6 +127,7 @@ export function PlayerFrame() {
           </div>
         </div>
       </div>
+      <div className="lantern-mobile-zone"><ZoneLabel /></div>
       <AuraRow instanceId={userId} />
       {pet !== null && (
         <div className="lantern-panel mt-1.5 w-[190px] px-2 py-1">
@@ -137,7 +139,7 @@ export function PlayerFrame() {
             <span className="text-[#998d6a]">{pet.role}</span>
           </div>
           <div className="mt-0.5">
-            <Bar value={pet.hp} max={Math.max(1, pet.maxHp)} fill="bg-[#1eb838]" />
+            <Bar value={pet.hp} max={Math.max(1, pet.maxHp)} fill="bg-[#7fb06d]" />
           </div>
         </div>
       )}
@@ -159,12 +161,12 @@ export function TargetFrame() {
   const display = mob?.name ?? npc?.name ?? targetName;
   const hostile = runtime !== null;
   return (
-    <div>
+    <div className="lantern-unit">
       <div className="flex items-center">
-        <div className="lantern-panel w-[190px] rounded-r-none px-2 py-1.5">
+        <div className="lantern-panel lantern-vitals w-[210px] rounded-r-none px-2 py-1.5">
           <div className="flex items-baseline justify-between">
             <span
-              className="truncate text-xs font-semibold [text-shadow:1px_1px_2px_#000]"
+              className="truncate text-sm font-semibold [text-shadow:1px_1px_2px_#000]"
               style={{ color: hostile ? "#ff6b5e" : "#9fdc7f", fontFamily: "var(--lantern-font-display)" }}
             >
               {display}
@@ -173,7 +175,7 @@ export function TargetFrame() {
             </span>
           </div>
           <div className="mt-0.5">
-            <Bar value={health.current} max={health.max} fill="bg-[#1eb838]" />
+            <Bar value={health.current} max={health.max} fill="bg-[#7fb06d]" />
           </div>
         </div>
         <Portrait

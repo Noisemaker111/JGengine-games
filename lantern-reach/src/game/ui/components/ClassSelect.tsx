@@ -1,5 +1,8 @@
 import { GameIcon } from "@jgengine/react/gameIcons";
 import { SettingsTrigger } from "@jgengine/react";
+import { CreditsScreen } from "@jgengine/react/creditsScreen";
+import { useMenuRouter } from "@jgengine/react/menuRouter";
+import { CREDITS } from "./FieldMenu";
 import { useGame, usePlayer } from "@jgengine/react/hooks";
 import { type MouseEvent, useCallback, useState } from "react";
 
@@ -13,6 +16,7 @@ import {
 
 export function ClassSelect() {
   const { commands } = useGame();
+  const menu = useMenuRouter<"callings" | "credits">("callings");
   const { userId } = usePlayer();
   void userId;
   const [selected, setSelected] = useState<string | null>(null);
@@ -24,20 +28,24 @@ export function ClassSelect() {
   const ready = classSelectReady(selected, name);
   return (
     <div
-      className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center"
+      className="lantern-title-screen pointer-events-auto absolute inset-0 z-40 flex items-center justify-center"
       style={{ background: "radial-gradient(ellipse at center, #15151f 0%, #08080d 80%)" }}
     >
-      <SettingsTrigger className="pointer-events-auto absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-md border border-[#6f5a2a] bg-[#15151f]/90 text-[#c8a838] transition hover:border-[#ffd100]" />
-      <div className="max-w-4xl px-6 text-center">
+      <nav className="lantern-title-tools lantern-tools" aria-label="Main menu">
+        <button type="button" className="lantern-tool" onClick={() => menu.open("credits")}>Credits</button>
+        <SettingsTrigger className="lantern-tool">Settings</SettingsTrigger>
+      </nav>
+      {menu.current === "credits" ? <div className="lantern-panel lantern-front-credits"><CreditsScreen document={CREDITS} /><button className="lantern-btn mt-5 px-5 py-2" type="button" onClick={menu.back}>Back to callings</button></div> :
+      <div className="lantern-callings max-w-4xl px-6 text-center">
         <p
           className="text-sm uppercase tracking-[0.3em] text-[#c8a838]"
           style={{ fontFamily: "var(--lantern-font-display)" }}
         >
           Lantern Reach
         </p>
-        <h1 className="lantern-title mt-1 text-4xl font-bold">Choose Your Class</h1>
-        <p className="mt-2 text-sm text-[#998d6a]">
-          Nine callings, three zones, one road to the Hollow Crypt.
+        <h1 className="lantern-title mt-1 text-4xl font-bold">Choose your calling</h1>
+        <p className="mt-2 text-sm text-[#bdb69f]">
+          A name, a calling, and a light against the dark.
         </p>
         <input
           type="text"
@@ -48,7 +56,7 @@ export function ClassSelect() {
           className="lantern-panel mx-auto mt-6 block w-72 rounded-md px-4 py-2.5 text-center text-white placeholder:text-[#6b6350] focus:border-[#ffd100] focus:outline-none"
           style={{ fontSize: 16, fontFamily: "var(--lantern-font-display)", letterSpacing: "0.05em" }}
         />
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="lantern-class-grid mt-6 grid grid-cols-3 gap-3">
           {CLASSES.map((cls) => {
             const sel = selected === cls.id;
             return (
@@ -56,8 +64,9 @@ export function ClassSelect() {
                 key={cls.id}
                 type="button"
                 data-class-id={cls.id}
+                aria-pressed={sel}
                 onClick={handleSelect}
-                className="lantern-panel group flex min-h-[92px] items-center gap-3 px-4 py-3 text-left transition"
+                className="lantern-panel lantern-calling group flex min-h-[92px] items-center gap-3 px-4 py-3 text-left transition"
                 style={
                   sel
                     ? { boxShadow: `0 0 16px ${cls.color}`, borderColor: cls.color }
@@ -77,8 +86,8 @@ export function ClassSelect() {
                   >
                     {cls.name}
                   </span>
-                  <span className="block text-xs capitalize text-[#998d6a]">{cls.resource}</span>
-                  <span className="block text-xs text-stone-500">
+                  <span className="block text-xs capitalize text-[#bdb69f]">{cls.resource}</span>
+                  <span className="block text-xs text-[#bdb69f]">
                     {cls.abilities.slice(0, 2).map((ability) => ability.name).join(" · ")}
                   </span>
                 </span>
@@ -103,9 +112,9 @@ export function ClassSelect() {
             boxShadow: "0 2px 8px #000a, 0 0 26px rgba(255,209,0,0.28)",
           }}
         >
-          Play
+          Begin the journey
         </button>
-      </div>
+      </div>}
     </div>
   );
 }

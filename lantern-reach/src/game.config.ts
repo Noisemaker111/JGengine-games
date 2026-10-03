@@ -8,6 +8,7 @@ import { editorLayers } from "./editorLayers";
 import { assets, entitySprites } from "./game/assets";
 import { audio } from "./game/audio/catalog";
 import { entityModels } from "./game/models";
+import { objectModels } from "./game/scenery";
 import { content } from "./game/content";
 import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
@@ -72,17 +73,20 @@ export const game = defineGame({
   multiplayer: ws({ authority: "server" }),
   assets,
   editorLayers,
-  scenePlacement: false,
+  scenePlacement: true,
   world,
   physics,
   inventories,
   input: keybinds,
+  hudFit: { designSize: { width: 1280, height: 720 }, minScale: 1, maxScale: 1, mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
+  touch: { style: "mechanical", buttons: [{ action: "jump", label: "Jump", shape: "square", icon: "jump" }, { action: "attack", label: "Attack", shape: "square", icon: "sword" }, { action: "interact", label: "Interact", shape: "square", icon: "hand" }, { action: "tabTarget", label: "Target", shape: "square", icon: "crosshairIcon" }], hidden: ["castSlot1", "castSlot2", "castSlot3", "castSlot4", "castSlot5", "castSlot6", "castSlot7", "castSlot8", "castSlot9", "openBags", "openCharacter", "openQuestLog", "openSpellbook", "openTalents", "openArena"] },
   content,
   systems,
   loop,
   GameUI,
   entitySprites,
   entityModels,
+  objectModels,
   audio,
   prompts,
   objectStyles,

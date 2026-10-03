@@ -13,7 +13,7 @@ import sceneJson from "./editor.scene.json";
  * zone hubs and their graveyards, the Hollow Crypt, dungeon compounds, the zone bands (box volumes),
  * and every NPC spawn. Zone/NPC/dungeon tables read coordinates from this document (see `world/zones`,
  * `entities/npcs/catalog`, `dungeons/catalog`); metadata (names, level ranges, dialogue) stays in code.
- * The procedural terrain, weather, and structures stay generated in `world.ts`. Open F2+E to edit live.
+ * The settlement architecture, roads, sculpt and lighting also live in the document. Open F2+E to edit live.
  */
 export const editorLayers: EditorDocument = normalizeEditorLayers(sceneJson as unknown as EditorLayersInput);
 

@@ -7,6 +7,7 @@ import { MOBS } from "./entities/enemies/catalog";
 import { NPCS } from "./entities/npcs/catalog";
 import { classEntityId, CLASS_ENTITY_ID, type MobDef, type NpcDef } from "./model";
 import { PETS } from "./pets/catalog";
+import { CREATURE_ANIMATIONS } from "./entityModelBindings";
 
 const PLAYERS = "/models/lantern-reach/players";
 const ENEMIES = "/models/lantern-reach/enemies";
@@ -43,7 +44,9 @@ function creature(
   return {
     url: `${CREATURES}/${file}.glb`,
     targetHeight: height,
-    ...(clips === null
+    ...(CREATURE_ANIMATIONS[file] !== undefined
+      ? { animation: CREATURE_ANIMATIONS[file] }
+      : clips === null
       ? { animation: { clip: "Flying_Idle" } }
       : { animation: { states: { ...clips } } }),
   };

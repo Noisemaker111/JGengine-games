@@ -22,9 +22,10 @@ for (const model of provenance.models) {
     continue;
   }
   let data: Uint8Array;
-  if (sourceDir !== undefined) data = await readFile(join(sourceDir, model.path));
+  if ("authoredFile" in model) data = await readFile(new URL(model.authoredFile, import.meta.url));
+  else if (sourceDir !== undefined) data = await readFile(join(sourceDir, model.path));
   else {
-    const response = await fetch(provenance.sourceBase + model.path);
+    const response = await fetch(provenance.sourceBase + ("sourcePath" in model ? model.sourcePath : model.path));
     if (!response.ok) throw new Error(`${model.path}: HTTP ${response.status}`);
     data = new Uint8Array(await response.arrayBuffer());
   }
@@ -34,4 +35,4 @@ for (const model of provenance.models) {
   copied++;
   bytes += data.byteLength;
 }
-console.log(`${provenance.models.length} verified CC0 models, ${bytes} bytes; ${copied} provisioned into ${targetDir}`);
+console.log(`${provenance.models.length} verified model/map files, ${bytes} bytes; ${copied} provisioned into ${targetDir}`);

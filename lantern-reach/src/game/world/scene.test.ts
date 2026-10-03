@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
+import provenance from "../../../scripts/model-provenance.json";
 
 import { editorLayers } from "../../editorLayers";
 import { DUNGEONS } from "../dungeons/catalog";
@@ -59,5 +63,30 @@ describe("authored scene drives placement", () => {
       const inside = editorLayers.markers.find((m) => m.id === `dungeon:${dungeon.id}:inside`)!;
       expect(dungeon.inside).toEqual([inside.position.x, inside.position.z]);
     }
+  });
+});
+
+describe("authored settlement asset integrity", () => {
+  test("each compact building keeps its editor source and bounded material draws", () => {
+    let draws = 0;
+    for (const asset of provenance.models) {
+      if (!("authoredFile" in asset)) continue;
+      const prefab = editorLayers.prefabs.find((entry) => entry.id === asset.sourcePrefabId);
+      expect(prefab).toBeDefined();
+      expect(createHash("sha256").update(JSON.stringify(prefab!.fragment)).digest("hex")).toBe(asset.sourcePrefabSha256);
+      const bytes = readFileSync(new URL(asset.authoredFile.replace("../src/art/", "../../art/"), import.meta.url));
+      expect(bytes.length).toBe(asset.bytes);
+      expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256);
+      const length = bytes.readUInt32LE(12);
+      const gltf = JSON.parse(bytes.subarray(20, 20 + length).toString());
+      const count = gltf.meshes.reduce((sum: number, mesh: { primitives: unknown[] }) => sum + mesh.primitives.length, 0);
+      expect(count).toBe(asset.draws);
+      expect(count).toBeLessThanOrEqual(12);
+      for (const image of gltf.images) {
+        expect(provenance.models.some((entry) => `/models/lantern-reach/${entry.path}` === image.uri)).toBe(true);
+      }
+      draws += count;
+    }
+    expect(draws).toBeLessThanOrEqual(120);
   });
 });

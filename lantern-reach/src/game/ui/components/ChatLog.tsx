@@ -1,4 +1,5 @@
 import { ChatPanel } from "@jgengine/react/chat";
+import { useChat } from "@jgengine/react/hooks";
 import type { ChatMessage } from "@jgengine/core/game/chat";
 
 import { BUTTON } from "../theme";
@@ -12,14 +13,17 @@ const CHANNEL_LABELS: Record<string, string> = {
 };
 
 export function ChatLog() {
+  const messages = useChat("global");
   return (
     <ChatPanel
       channels={CHANNELS}
-      className="lantern-panel flex w-[370px] flex-col overflow-hidden text-xs"
+      defaultExpanded={false}
+      toggleLabel={`Camp chat${messages.length > 0 ? ` · ${messages.length}` : ""}`}
+      className="lantern-panel lantern-chat flex flex-col overflow-hidden text-sm"
       tabsClassName="flex border-b border-[#463a1c]"
       tabClassName="flex-1 px-2 py-1 text-[11px] uppercase tracking-wide text-[#998d6a] transition hover:text-[#c9b27a]"
       activeTabClassName="lantern-title !text-[#ffd100]"
-      logClassName="flex h-32 flex-col gap-0.5 overflow-y-auto px-2.5 py-1.5 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]"
+      logClassName="flex h-28 flex-col gap-0.5 overflow-y-auto px-2.5 py-1.5 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]"
       messageClassName="leading-snug"
       inputClassName="flex items-center gap-1.5 border-t border-[#463a1c] p-1.5"
       inputFieldClassName="flex-1 rounded-[3px] border border-[#463a1c] bg-[#1a1410] px-2 py-1 text-stone-100 focus:border-[#ffd100] focus:outline-none"

@@ -1,6 +1,8 @@
 import type { EntitySpriteConfig } from "@jgengine/core/game/playableGame";
 import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 
+import provenance from "../../scripts/model-provenance.json";
+
 import { FIESTA_ALLY_CATALOG, FIESTA_ENEMY_MOBS } from "./arena/catalog";
 import { DELVE_COMPANION_CATALOG } from "./delves/systems";
 import { CLASS_ENTITY_ID } from "./model";
@@ -10,6 +12,14 @@ import { YUMI_CATALOG } from "./minigames/yumi";
 import { PETS } from "./pets/catalog";
 
 export const assets = createAssetCatalog();
+
+for (const model of provenance.models) {
+  if (!("dims" in model)) continue;
+  assets.register(`lantern:${model.path.split("/").at(-1)!.slice(0, -4)}`, {
+    url: `/models/lantern-reach/${model.path}`,
+    dims: model.dims,
+  });
+}
 
 function billboard(body: string, accent: string, outline: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body

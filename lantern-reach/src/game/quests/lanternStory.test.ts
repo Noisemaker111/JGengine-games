@@ -7,11 +7,9 @@ import {
   memorySaveBackend,
   type SaveBackend,
 } from "@jgengine/core/game/saveStore";
-import { buildingIndex } from "@jgengine/core/world/buildingIndex";
-import { resolveStructureBuildings } from "@jgengine/core/world/environmentSummary";
 import { game } from "../../game.config";
-import { sceneMarkerXZ } from "../../editorLayers";
-import { world } from "../../world";
+import { editorLayers, sceneMarkerXZ } from "../../editorLayers";
+import { objectModels } from "../scenery";
 import { content } from "../content";
 import { DIALOGUES } from "../entities/npcs/dialogues";
 import {
@@ -177,10 +175,7 @@ describe("Last Light on the Road", () => {
     visit(ctx, "marshal_redbrook");
     expect(ctx.game.quest!.canAccept(USER, "q_bandits")).toBeNull();
   });
-  test("authored opening and story residents clear procedural house footprints", () => {
-    const index = buildingIndex(
-      resolveStructureBuildings(world.structures![0]!),
-    );
+  test("authored opening and story residents clear the placed architecture", () => {
     for (const id of [
       "spawn:player",
       "npc:marshal_redbrook",
@@ -188,7 +183,20 @@ describe("Last Light on the Road", () => {
       "npc:apothecary_lin",
       "npc:trader_wilkes",
     ]) {
-      expect(index.isInside(sceneMarkerXZ(id))).toBe(false);
+      const [x, z] = sceneMarkerXZ(id);
+      for (const marker of editorLayers.markers) {
+        if (marker.catalogId === undefined || marker.meta?.navigationSurface === true) continue;
+        const dims = objectModels[marker.catalogId]?.dims;
+        expect(dims).toBeDefined();
+        const yaw = marker.rotationY ?? 0;
+        const dx = x - marker.position.x;
+        const dz = z - marker.position.z;
+        const localX = Math.cos(yaw) * dx - Math.sin(yaw) * dz;
+        const localZ = Math.sin(yaw) * dx + Math.cos(yaw) * dz;
+        const gapX = Math.max(0, Math.abs(localX - dims!.center.x) - dims!.footprint.w / 2);
+        const gapZ = Math.max(0, Math.abs(localZ - dims!.center.z) - dims!.footprint.d / 2);
+        expect(Math.hypot(gapX, gapZ)).toBeGreaterThan(2.5);
+      }
     }
   });
 });

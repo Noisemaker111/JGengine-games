@@ -1,3 +1,4 @@
+import { InventoryGrid, Window as HudWindow } from "@jgengine/react";
 import { GameIcon } from "@jgengine/react/gameIcons";
 import {
   useCurrency,
@@ -43,15 +44,9 @@ function Window({
   wide?: boolean;
 }) {
   return (
-    <div className={`${PANEL} pointer-events-auto ${wide === true ? "w-[440px]" : "w-96"} max-h-[70vh] overflow-hidden`}>
-      <div className={PANEL_TITLE}>
-        <span>{title}</span>
-        <button type="button" className={CLOSE_BUTTON} onClick={onClose}>
-          ✕
-        </button>
-      </div>
-      <div className="max-h-[58vh] overflow-y-auto px-4 py-3">{children}</div>
-    </div>
+    <HudWindow title={title} ariaLabel={typeof title === "string" ? title : "Backpack"} onClose={onClose} width={`min(${wide === true ? 440 : 384}px, calc(var(--lantern-hud-width, 100vw) - 32px))`} variation="themed" className="lantern-game-window" style={{ position: "relative", left: 0, top: 0, maxWidth: "calc(var(--lantern-hud-width, 100vw) - 32px)" }} bodyStyle={{ maxHeight: "min(65dvh, 540px)", overflowY: "auto", padding: 16 }}>
+      {children}
+    </HudWindow>
   );
 }
 
@@ -82,7 +77,7 @@ function ItemRow({
           {item.name}
           {count !== undefined && count > 1 ? ` ×${count}` : ""}
         </span>
-        <span className="block text-[11px] text-stone-500">
+        <span className="block text-[11px] text-[#bdb69f]">
           {item.kind === "weapon" && item.weapon !== undefined
             ? `${item.weapon.min}–${item.weapon.max} dmg · ${item.weapon.speed}s`
             : item.kind === "armor"
@@ -123,8 +118,18 @@ export function BagsPanel() {
   const close = () => commands.run("openBags", {});
   return (
     <Window title={<span>Backpack · <span className="text-amber-400">{copperLabel(copper)}</span></span>} onClose={close}>
+      <InventoryGrid inventoryId="bags" columns={6} size={42} gap={5} className="lantern-inventory-grid mb-3" itemIcon={(id) => {
+        const item = itemDefById(id);
+        return item === null ? null : <GameIcon name={item.icon} size={24} color="#e6c786" />;
+      }} onActivate={(index) => {
+        const slot = slots[index];
+        if (slot === null || slot === undefined) return;
+        const item = itemDefById(slot.itemId);
+        if (shopId === null && item?.kind !== "consumable" && item?.slot === undefined) return;
+        commands.run(shopId !== null ? "shop.sell" : "bags.use", { itemId: slot.itemId });
+      }} />
       {slots.every((slot) => slot === null) ? (
-        <p className="py-6 text-center text-sm text-stone-500">Your backpack is empty.</p>
+        <p className="py-6 text-center text-sm text-[#bdb69f]">Your backpack is empty.</p>
       ) : (
         <div className="space-y-0.5">
           {slots.map((slot, index) =>
@@ -211,7 +216,7 @@ export function CharacterPanel() {
       </div>
       <h3 className="mt-4 mb-1 text-xs font-semibold uppercase tracking-wider text-amber-500/80">Equipped</h3>
       {Object.entries(equips).length === 0 ? (
-        <p className="text-sm text-stone-500">Nothing equipped.</p>
+        <p className="text-sm text-[#bdb69f]">Nothing equipped.</p>
       ) : (
         <div className="space-y-0.5">
           {Object.entries(equips).map(([slot, itemId]) =>
@@ -294,7 +299,7 @@ function SetBonuses({ equips }: { equips: Partial<Record<EquipSlot, string>> }) 
             {set.tiers.map((tier) => (
               <p
                 key={tier.pieces}
-                className={`text-xs ${tier.active ? "text-emerald-300" : "text-stone-500"}`}
+                className={`text-xs ${tier.active ? "text-emerald-300" : "text-[#bdb69f]"}`}
               >
                 ({tier.pieces}) {tier.text}
               </p>
@@ -312,7 +317,7 @@ export function QuestLogPanel() {
   return (
     <Window title="Quest Log" onClose={() => commands.run("openQuestLog", {})} wide>
       {journal.length === 0 ? (
-        <p className="py-6 text-center text-sm text-stone-500">
+        <p className="py-6 text-center text-sm text-[#bdb69f]">
           No quests yet — speak with the marshals and wardens of the hubs.
         </p>
       ) : (
@@ -437,7 +442,7 @@ export function VendorPanel() {
       onClose={() => commands.run("shop.close", {})}
       wide
     >
-      <p className="mb-2 text-xs text-stone-500">Open your backpack (B) to sell. Prices in copper.</p>
+      <p className="mb-2 text-xs text-[#bdb69f]">Open your backpack (B) to sell. Prices in copper.</p>
       <div className="space-y-0.5">
         {stock.map((itemId) => (
           <ItemRow
