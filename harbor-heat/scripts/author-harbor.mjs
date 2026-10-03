@@ -1,6 +1,7 @@
 // Original Harbor Heat geometry. Rebuild with: node scripts/author-harbor.mjs
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 // The exporter uses the browser FileReader contract for binary buffers only.
@@ -18,7 +19,21 @@ function mesh(group, geometry, material, position, rotation = [0, 0, 0]) {
 const box = (g, m, x, y, z, w, h, d, rotation) => mesh(g, new THREE.BoxGeometry(w, h, d), m, [x, y, z], rotation);
 const cylinder = (g, m, x, y, z, rt, rb, h, rotation) => mesh(g, new THREE.CylinderGeometry(rt, rb, h, 10), m, [x, y, z], rotation);
 async function exportModel(name, group) {
-  const data = await new GLTFExporter().parseAsync(group, { binary: true, copyright: 'Original Harbor Heat game art, authored for jgengine-games. Repository license applies.' });
+  group.updateMatrixWorld(true);
+  const batches = new Map();
+  group.traverse((part) => {
+    if (!part.isMesh) return;
+    const material = part.material;
+    const key = [material.color.getHex(), material.metalness, material.roughness, material.emissive.getHex(), material.emissiveIntensity, material.side].join(':');
+    if (!batches.has(key)) batches.set(key, { material, geometries: [] });
+    const geometry = part.geometry.index ? part.geometry.toNonIndexed() : part.geometry.clone();
+    geometry.applyMatrix4(part.matrixWorld);
+    geometry.deleteAttribute('uv');
+    batches.get(key).geometries.push(geometry);
+  });
+  const model = new THREE.Group();
+  for (const { material, geometries } of batches.values()) model.add(new THREE.Mesh(mergeGeometries(geometries), material));
+  const data = await new GLTFExporter().parseAsync(model, { binary: true, copyright: 'Original Harbor Heat game art, authored for jgengine-games. Repository license applies.' });
   await writeFile(new URL(name + '.glb', out), Buffer.from(data));
   console.log(`${name}: ${data.byteLength} bytes`);
 }
@@ -67,6 +82,17 @@ for (let i = -1; i <= 1; i++) {
   box(kiosk, gold, i * 0.7, 2.98, 0.63, 0.5, 0.08, 0.05, [0, 0, -0.45]);
   box(kiosk, gold, i * 0.7, 2.8, 0.63, 0.5, 0.08, 0.05, [0, 0, 0.45]);
 }
+cylinder(kiosk, ink, -1.15, 4.4, 0, 0.08, 0.11, 3.9);
+for (let face = 0; face < 4; face++) {
+  const sign = new THREE.Group(); sign.position.set(-1.15, 5.9, 0); sign.rotation.y = face * Math.PI / 2;
+  box(sign, ink, 0, 0, 0, 1.45, 1.05, 0.22);
+  box(sign, teal, 0, 0, 0.13, 1.28, 0.88, 0.04);
+  for (const y of [-0.19, 0.19]) {
+    box(sign, cream, -0.17, y + 0.08, 0.17, 0.6, 0.12, 0.04, [0, 0, -0.4]);
+    box(sign, cream, 0.17, y + 0.08, 0.17, 0.6, 0.12, 0.04, [0, 0, 0.4]);
+  }
+  kiosk.add(sign);
+}
 await exportModel('dispatch-booth', kiosk);
 
 for (const [index, color] of [coral, teal, gold].entries()) {
@@ -75,9 +101,16 @@ for (const [index, color] of [coral, teal, gold].entries()) {
   box(beacon, color, 0, 0.75, 0, 1.0, 1.25, 0.9);
   box(beacon, cream, 0, 0.95, 0.46, 0.76, 0.18, 0.045);
   box(beacon, ink, 0, 0.55, 0.46, 0.56, 0.12, 0.045);
-  cylinder(beacon, ink, 0, 2.2, 0, 0.06, 0.08, 2.3);
-  mesh(beacon, new THREE.TorusGeometry(0.56, 0.1, 6, 16), mat(color.color, 0.1, 0.7), [0, 3.3, 0]);
-  box(beacon, cream, 0, 3.3, 0, 0.48, 0.31, 0.15);
-  box(beacon, color, 0, 3.3, 0.086, 0.06, 0.31, 0.01);
+  cylinder(beacon, ink, 0, 3.1, 0, 0.08, 0.11, 4.9);
+  cylinder(beacon, color, 0, 4.4, 0, 0.16, 0.16, 0.3);
+  for (let face = 0; face < 4; face++) {
+    const sign = new THREE.Group(); sign.position.y = 5.65; sign.rotation.y = face * Math.PI / 2;
+    box(sign, ink, 0, 0, 0, 1.55, 1.45, 0.18);
+    box(sign, color, 0, 0, 0.1, 1.38, 1.28, 0.04);
+    for (let bar = 0; bar <= index; bar++)
+      box(sign, cream, (bar - index / 2) * 0.33, 0.08, 0.14, 0.15, 0.65, 0.04);
+    box(sign, cream, 0, -0.45, 0.14, 0.84, 0.09, 0.04);
+    beacon.add(sign);
+  }
   await exportModel(`parcel-tower-${index + 1}`, beacon);
 }

@@ -20,6 +20,7 @@ export const game = defineGame({
   physics,
   inventories,
   input: keybinds,
+  hudFit: { mobile: { minScale: 0.85 } },
   server: { mode: "openworld" },
   // Touch controls are context-curated (#1370): each mode shows only the verbs that context uses.
   // On foot the joystick walks (analog) and the cluster is the five gameplay verbs; flight and
@@ -94,6 +95,20 @@ export const game = defineGame({
   prompts,
   entityModels,
   objectModels,
+  visibility: {
+    culling: { defaultMaxRenderDistance: 145, preloadMargin: 16, hysteresis: 8 },
+    objects: {
+      obj_dispatch: { maxRenderDistance: 220 },
+      obj_delivery_1: { maxRenderDistance: 220 },
+      obj_delivery_2: { maxRenderDistance: 220 },
+      obj_delivery_3: { maxRenderDistance: 220 },
+    },
+  },
+  graphics: {
+    low: { renderScale: 0.5, drawDistance: 100, cascades: 1, shadowMapSize: 512, postStages: { ao: false, bloom: false, dof: false, smaa: false } },
+    medium: { renderScale: 1, drawDistance: 145, cascades: 2, shadowMapSize: 1024 },
+    high: { renderScale: 1.5, drawDistance: 220, cascades: 2, shadowMapSize: 1024 },
+  },
   // Mid-afternoon Gulf sun, not noon. The old key was almost overhead at a low intensity with a
   // very bright ambient, so nothing cast a shadow long enough to describe its own shape and every
   // building read as a flat sticker. Sun down and up in strength, ambient way down, plus a cool
@@ -109,9 +124,9 @@ export const game = defineGame({
         castShadow: true,
         // Cascades follow the camera, so the spawn at (-190, 40) gets the same shadow
         // density as the origin — a single origin-anchored box cannot cover this isle.
-        cascades: 3,
-        shadowMaxFar: 220,
-        shadowMapSize: 2048,
+        cascades: 2,
+        shadowMaxFar: 145,
+        shadowMapSize: 1024,
       },
       { color: "#8fbcdc", intensity: 0.26, position: [-170, 44, -70] },
     ],
@@ -162,6 +177,8 @@ export const game = defineGame({
       height: 3,
       lookHeight: 1.15,
       springDamping: 7.5,
+      // Keep walking input relative to a stable camera, rather than recentering on strafe facing.
+      yawResponse: 0,
       fov: { base: 60, speedForMax: 0 },
     },
     shake: { maxOffset: 0.24, maxRoll: 0.045, decayPerSecond: 2.8, exponent: 2, frequency: 21 },
@@ -171,7 +188,7 @@ export const game = defineGame({
   // separates into near, mid, and horizon bands instead of one evenly-lit slab.
   backdrop: {
     background: "#79bde2",
-    fog: { color: "#b9cfd8", near: 90, far: 620 },
+    fog: { color: "#b9cfd8", near: 90, far: 220 },
   },
   // Starts at the day curve's noon keyframe, which is the only point where `world.ts`'s authored
   // sky colours reach the dome unblended with the engine's dawn and dusk presets.

@@ -10,6 +10,10 @@ import { normalizeAfterRestore } from "../loop";
 import { grantCred } from "./progression/cred";
 import { QUESTS } from "./quests/catalog";
 import { loadSavedProgress } from "./saveCompatibility";
+import { activeActionCodes, playControlsActive } from "@jgengine/core/game/controlGate";
+import { createActionStateTracker, toActionStateBindingMap } from "@jgengine/core/input/actionBindings";
+import { keybinds } from "./keybinds";
+import { syncSession } from "./session";
 
 function bootContext(backend: SaveBackend, key = "jgengine:save:harbor-heat"): GameContext {
   return createGameContext({
@@ -27,6 +31,18 @@ function bootContext(backend: SaveBackend, key = "jgengine:save:harbor-heat"): G
 }
 
 describe("harbor-heat whole-world save", () => {
+  test("menu-born input retains bindings while start and pause still gate controls", () => {
+    const ctx = bootContext(memorySaveBackend());
+    syncSession(ctx, false);
+    expect(playControlsActive(ctx)).toBe(false);
+    const tracker = createActionStateTracker(toActionStateBindingMap(activeActionCodes(ctx, keybinds)));
+    syncSession(ctx, true);
+    expect(playControlsActive(ctx)).toBe(true);
+    tracker.handleDown("KeyW");
+    expect(tracker.isDown("moveForward")).toBe(true);
+    syncSession(ctx, false);
+    expect(playControlsActive(ctx)).toBe(false);
+  });
   test("a malformed legacy record remains untouched and does not create current progress", async () => {
     const backend = memorySaveBackend();
     await backend.write("jgengine:save:vice-isle:default", "unfinished{");

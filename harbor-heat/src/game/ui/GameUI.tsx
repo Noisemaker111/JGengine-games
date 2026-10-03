@@ -1,4 +1,5 @@
 import { HudCanvas, HudPanel, SettingsTrigger, useHudLayout } from "@jgengine/react";
+import { useGameLayoutMode } from "@jgengine/react/gameViewport";
 import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { useActivePrompt, useGameStore } from "@jgengine/react/hooks";
@@ -44,6 +45,9 @@ function PromptHint() {
 
 export function GameUI() {
   const layout = useHudLayout({ storageKey: "harbor-heat" });
+  const layoutMode = useGameLayoutMode();
+  const compact = layoutMode !== "desktop-wide";
+  const landscape = layoutMode === "mobile-landscape";
   const started = useGameStarted();
   if (!started) {
     return (
@@ -54,17 +58,17 @@ export function GameUI() {
     );
   }
   return (
-    <><SessionUI /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
-      <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}>
-        <div className="flex flex-col items-center gap-2">
-          <WantedStars />
-          <RaceHud />
-        </div>
+    <><SessionUI /><HudCanvas layout={layout} className="z-[45] font-sans hh-hud">
+      <HudPanel id="wanted" anchor={compact ? "top-right" : "top"} compact="keep" interactive={false}>
+        <WantedStars />
+      </HudPanel>
+      <HudPanel id="race" anchor={compact ? "top-left" : "top"} order={3} compact="keep" interactive={false}>
+        <RaceHud />
       </HudPanel>
       <HudPanel id="settings" anchor="top-right" order={-1} compact="keep">
         <SettingsTrigger />
       </HudPanel>
-      <HudPanel id="minimap" anchor="bottom-left" compact="keep" interactive={false}>
+      <HudPanel id="minimap" anchor={landscape ? "top-right" : "bottom-left"} order={landscape ? 1 : undefined} compact={landscape ? "chip" : "keep"} chip="Coast map" interactive={false}>
         <CityMinimap />
       </HudPanel>
       <HudPanel id="status" anchor="top-left" compact="keep" interactive={false}>
@@ -73,16 +77,16 @@ export function GameUI() {
       <HudPanel id="mission" anchor="right" compact="hide" interactive={false}>
         <MissionTracker />
       </HudPanel>
-      <HudPanel id="courier" anchor="top" order={1} compact="keep">
+      <HudPanel id="courier" anchor={compact ? "top-left" : "top"} order={1} compact={landscape ? "chip" : "keep"} chip="Dispatch / parcels">
         <CourierHud />
       </HudPanel>
-      <HudPanel id="hotbar" anchor="bottom" compact="keep" interactive={false}>
+      <HudPanel id="hotbar" anchor={compact ? "top-left" : "bottom"} order={compact ? 2 : undefined} compact="keep">
         <div className="flex flex-col items-center gap-2">
           <PromptHint />
           <Hotbar />
         </div>
       </HudPanel>
-      <HudPanel id="speedo" anchor="bottom-right" compact="keep" interactive={false}>
+      <HudPanel id="speedo" anchor="bottom-right" order={0} compact="keep" interactive={false}>
         <Speedo />
       </HudPanel>
       <HudPanel id="dialogue" anchor="center" compact="keep">
