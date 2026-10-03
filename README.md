@@ -4,6 +4,20 @@ Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine
 
 These games use familiar genres with their own titles, settings, characters, and authored content. They also probe engine capabilities. To build a new game, use `npx jgengine create`; assets and upstream source retain their individual licenses.
 
+## Build games through shared capabilities
+
+Every game interaction composes JGengine behavior. When a reusable capability is
+missing or broken, improve its upstream package with a real game adopter instead
+of implementing the same fix separately in each game. Adopt existing SDK behavior
+and remove redundant local machinery. Games retain their unique rules, stories,
+items, assets, editor-authored worlds and presentation.
+
+Compatible engine fixes reach games through one root SDK catalog update. API changes
+may need small consumer migrations; a beta engine merge alone does not change the
+installed packages. Shared behavior must support different designs and art directions,
+not impose identical assets or layouts. [AGENTS.md](AGENTS.md#framework-first-development)
+owns the discovery, upstream implementation, adoption and verification workflow.
+
 ## Games
 
 | Game | Id | Description |
