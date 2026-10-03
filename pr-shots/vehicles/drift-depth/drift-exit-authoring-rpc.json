@@ -1,0 +1,143 @@
+{
+  "commands": [
+    {
+      "method": "set_transform",
+      "id": "post-gate_canyon_plow-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_canyon_plow-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_canyon_jump-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_canyon_jump-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_plow_1-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_plow_1-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_jump-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_jump-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_plow_2-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_flats_plow_2-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_jump_1-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_jump_1-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_plow-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_plow-right",
+      "x": 11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_jump_2-left",
+      "x": -11
+    },
+    {
+      "method": "set_transform",
+      "id": "post-gate_gantry_jump_2-right",
+      "x": 11
+    },
+    {
+      "method": "add_marker",
+      "id": "exit-gate",
+      "kind": "finish_landmark",
+      "x": 0,
+      "z": 470,
+      "label": "Row Six open exit gantry",
+      "meta": {
+        "catalogId": "exit_gate_arch"
+      }
+    }
+  ],
+  "summary": {
+    "ok": true,
+    "result": {
+      "gameId": "drift-foundry",
+      "kinds": {
+        "markers": [
+          "finish_landmark",
+          "gate_cue",
+          "player_spawn",
+          "yard_landmark"
+        ],
+        "volumes": [],
+        "paths": []
+      },
+      "markers": 41,
+      "volumes": 0,
+      "paths": 0,
+      "annotations": 0,
+      "selection": [
+        "exit-gate"
+      ],
+      "selectedMarker": {
+        "id": "exit-gate",
+        "kind": "finish_landmark",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 470
+        },
+        "label": "Row Six open exit gantry",
+        "meta": {
+          "catalogId": "exit_gate_arch"
+        }
+      },
+      "bounds": {
+        "min": {
+          "x": -64,
+          "y": 0,
+          "z": 4
+        },
+        "max": {
+          "x": 62,
+          "y": 0,
+          "z": 470
+        }
+      }
+    }
+  }
+}

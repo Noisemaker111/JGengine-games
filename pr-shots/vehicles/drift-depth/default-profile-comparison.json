@@ -1,0 +1,221 @@
+{
+  "provenance": "Actual browser debug_snapshot before/after. Brief spawn native inputs, softwareGL. Original after-default captured before final gantry/HUD revisions. Small samples and possible pose differences; no representative hardware FPS or general performance/feel pass.",
+  "games": [
+    {
+      "game": "harbor-heat",
+      "viewport": [
+        640,
+        400
+      ],
+      "profile": "each build defaults, same short spawn native-input hot path",
+      "before": {
+        "frame": {
+          "fps": 0.4,
+          "avgFrameMs": 2465.4,
+          "p95FrameMs": 4069.6,
+          "maxFrameMs": 4069.6,
+          "avgSimMs": 4.8,
+          "maxSimMs": 11.1,
+          "avgOutsideMs": 2460.6,
+          "maxOutsideMs": 4065.2,
+          "longFrames": 14,
+          "samples": 14,
+          "phases": [
+            {
+              "name": "actions",
+              "avgMs": 0.7,
+              "maxMs": 5.3,
+              "pctOfSim": 14
+            },
+            {
+              "name": "pose",
+              "avgMs": 0.6,
+              "maxMs": 2.9,
+              "pctOfSim": 13
+            },
+            {
+              "name": "onTick",
+              "avgMs": 0.4,
+              "maxMs": 2.4,
+              "pctOfSim": 9
+            },
+            {
+              "name": "time+input",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 2
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 5075,
+          "triangles": 1969765,
+          "geometries": 201,
+          "textures": 190
+        },
+        "probes": {
+          "entities": 152,
+          "objects": 488,
+          "fallbacks": {},
+          "textureErrors": []
+        }
+      },
+      "after": {
+        "frame": {
+          "fps": 0.4,
+          "avgFrameMs": 2606.5,
+          "p95FrameMs": 5310.1,
+          "maxFrameMs": 5310.1,
+          "avgSimMs": 20.1,
+          "maxSimMs": 45.3,
+          "avgOutsideMs": 2586.4,
+          "maxOutsideMs": 5305,
+          "longFrames": 5,
+          "samples": 5,
+          "phases": [
+            {
+              "name": "pose",
+              "avgMs": 4.5,
+              "maxMs": 21.4,
+              "pctOfSim": 23
+            },
+            {
+              "name": "onTick",
+              "avgMs": 1.6,
+              "maxMs": 5,
+              "pctOfSim": 8
+            },
+            {
+              "name": "time+input",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 0
+            },
+            {
+              "name": "actions",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 0
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 1163,
+          "triangles": 1563747,
+          "geometries": 138,
+          "textures": 129
+        },
+        "probes": {
+          "entities": 152,
+          "objects": 488,
+          "fallbacks": {},
+          "textureErrors": []
+        }
+      },
+      "drawCallReductionPercent": 77.08,
+      "triangleReductionPercent": 20.61
+    },
+    {
+      "game": "drift-foundry",
+      "viewport": [
+        640,
+        400
+      ],
+      "profile": "each build defaults, same short spawn native-input hot path",
+      "before": {
+        "frame": {
+          "fps": 0.4,
+          "avgFrameMs": 2524,
+          "p95FrameMs": 5394.3,
+          "maxFrameMs": 5394.3,
+          "avgSimMs": 0.5,
+          "maxSimMs": 2.3,
+          "avgOutsideMs": 2523.4,
+          "maxOutsideMs": 5394,
+          "longFrames": 11,
+          "samples": 11,
+          "phases": [
+            {
+              "name": "onTick",
+              "avgMs": 0.4,
+              "maxMs": 1.5,
+              "pctOfSim": 78
+            },
+            {
+              "name": "time+input",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 19
+            },
+            {
+              "name": "actions",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 19
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 2263,
+          "triangles": 1758527,
+          "geometries": 80,
+          "textures": 34
+        },
+        "probes": {
+          "entities": 2,
+          "objects": 222,
+          "fallbacks": {},
+          "textureErrors": []
+        }
+      },
+      "after": {
+        "frame": {
+          "fps": 0.4,
+          "avgFrameMs": 2469.2,
+          "p95FrameMs": 5925.6,
+          "maxFrameMs": 5925.6,
+          "avgSimMs": 0.7,
+          "maxSimMs": 2.2,
+          "avgOutsideMs": 2468.5,
+          "maxOutsideMs": 5925.1,
+          "longFrames": 7,
+          "samples": 7,
+          "phases": [
+            {
+              "name": "onTick",
+              "avgMs": 0.6,
+              "maxMs": 1.7,
+              "pctOfSim": 86
+            },
+            {
+              "name": "actions",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 14
+            },
+            {
+              "name": "time+input",
+              "avgMs": 0.1,
+              "maxMs": 0.1,
+              "pctOfSim": 14
+            }
+          ]
+        },
+        "render": {
+          "drawCalls": 1104,
+          "triangles": 1180437,
+          "geometries": 84,
+          "textures": 47
+        },
+        "probes": {
+          "entities": 2,
+          "objects": 238,
+          "fallbacks": {},
+          "textureErrors": []
+        }
+      },
+      "drawCallReductionPercent": 51.22,
+      "triangleReductionPercent": 32.87
+    }
+  ]
+}
