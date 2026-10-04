@@ -5,6 +5,13 @@ import { VEHICLES } from "../../entities/vehicles/catalog";
 import { CRED_GATES } from "../../progression/cred";
 
 const STOCK = VEHICLES.filter((v) => v.price > 0);
+const ROLES: Record<string, string> = {
+  car_compact: "Affordable courier · easy corners",
+  car_muscle: "Fast launches · brake early",
+  car_sport: "Express runs · strong brakes and grip",
+  car_suv: "Heavy cruiser · allow stopping room",
+  car_bus: "Slow tourer · wide turns",
+};
 
 export function GaragePanel() {
   const { commands } = useGame();
@@ -20,7 +27,8 @@ export function GaragePanel() {
         <span className="text-sm font-black uppercase tracking-widest">Sunset Motors</span>
         <span className="-skew-x-6 border-2 border-black bg-[#2f8f4e] px-2 text-sm font-black text-[#eaffdd]">${cash.toLocaleString()}</span>
       </div>
-      <div className="flex flex-col gap-1 p-3">
+      <div className="px-3 pt-2 text-[10px] font-bold">Express pays more with a short deadline. Crashes damage the parcel; good brakes protect your $100 bond.</div>
+      <div className="flex max-h-[50vh] flex-col gap-1 overflow-y-auto p-3">
         {STOCK.map((car) => {
           const gate = CRED_GATES[car.id];
           const locked = gate !== undefined && cred < gate;
@@ -35,9 +43,13 @@ export function GaragePanel() {
                 affordable ? "bg-white hover:bg-[#d8f7f2]" : "bg-[#c9c2ad] text-black/40"
               }`}
             >
-              <span className="flex items-center gap-2">
-                <span className="inline-block h-3 w-6 -skew-x-12 border border-black" style={{ background: car.body }} />
-                {car.label}
+              <span className="flex flex-col gap-0.5">
+                <span className="flex items-center gap-2">
+                  <span className="inline-block h-3 w-6 -skew-x-12 border border-black" style={{ background: car.body }} />
+                  {car.label}
+                </span>
+                <span className="text-[9px] font-medium normal-case">{ROLES[car.id] ?? "Aircraft · standard parcels only"}</span>
+                {car.dynamics.type === "ground" && <span className="text-[9px] font-medium normal-case">{Math.round(car.dynamics.tuning.topSpeed * 3.6)} km/h · brake {car.dynamics.tuning.brakeAccel.toFixed(1)} m/s² · grip {car.dynamics.tuning.chassis?.tireGrip.toFixed(2)}</span>}
               </span>
               {locked ? (
                 <span className="-skew-x-6 border border-black bg-[#6d2f8f] px-1 text-[10px] text-white">CRED {gate}</span>

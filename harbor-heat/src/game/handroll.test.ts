@@ -6,6 +6,8 @@ import { loop } from "../loop";
 import { content } from "./content";
 import { createHandroll, handrollOf } from "./handroll";
 import { advanceBehaviors } from "@jgengine/core/scene/behaviorRuntime";
+import { createDriving } from "./handroll/driving";
+import { createPursuit } from "./handroll/pursuit";
 
 const HERO = "hero-test";
 const STEP = 1 / 60;
@@ -144,6 +146,62 @@ describe("handroll drivable-vehicle adoption", () => {
     handroll.clearWanted(ctx);
     expect(handroll.wanted().stars).toBe(0);
     expect(handroll.wanted().heat).toBe(0);
+  });
+
+  test("clearing wanted releases officers and cruiser sims immediately, then pursuit can restart", () => {
+    const ctx = boot();
+    const handroll = createHandroll();
+    handroll.addHeat(ctx, 350);
+    handroll.tick(ctx, STEP);
+    expect(ctx.scene.entity.list().some(entity => entity.id.startsWith("cruiser_"))).toBe(true);
+    expect(ctx.scene.entity.list().some(entity => entity.name === "cop_patrol")).toBe(true);
+
+    handroll.clearWanted(ctx);
+    expect(ctx.scene.entity.list().some(entity => entity.id.startsWith("cruiser_") || entity.name === "cop_patrol" || entity.name === "cop_swat")).toBe(false);
+    handroll.addHeat(ctx, 350);
+    handroll.tick(ctx, STEP);
+    expect(ctx.scene.entity.list().some(entity => entity.id.startsWith("cruiser_"))).toBe(true);
+  });
+
+  test("a nearby cruiser witnesses the player even without an officer on foot", () => {
+    const ctx = boot();
+    const pursuit = createPursuit(createDriving());
+    pursuit.addHeat(ctx, 350);
+    pursuit.tickWanted(ctx, STEP);
+    for (const entity of ctx.scene.entity.list()) {
+      if (entity.name === "cop_patrol" || entity.name === "cop_swat") ctx.scene.entity.despawn(entity.id);
+    }
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("car_cop", { id: "cruiser_witness", position: player.position, role: "prop" });
+    const heat = pursuit.wanted().heat;
+    pursuit.tickWanted(ctx, 1);
+    expect(pursuit.wanted().heat).toBe(heat);
+  });
+
+  test("seizing a cruiser transfers pose ownership and recovery keeps the stolen car", () => {
+    const ctx = boot();
+    const driving = createDriving();
+    const pursuit = createPursuit(driving);
+    pursuit.addHeat(ctx, 350);
+    pursuit.tickWanted(ctx, STEP);
+    pursuit.tickCruisers(ctx, STEP);
+    const cruiser = ctx.scene.entity.list().find(entity => entity.id.startsWith("cruiser_"))!;
+    expect(driving.cruiserVehicles.has(cruiser.id)).toBe(true);
+    driving.enterVehicle(ctx, cruiser.id);
+    const position = ctx.scene.entity.get(cruiser.id)!.position;
+    pursuit.tickCruisers(ctx, STEP);
+    expect(driving.cruiserVehicles.has(cruiser.id)).toBe(false);
+    expect(ctx.scene.entity.get(cruiser.id)?.position).toEqual(position);
+
+    pursuit.clearWanted(ctx);
+    expect(ctx.scene.entity.get(cruiser.id)).not.toBeNull();
+    expect(driving.drivingVehicleId()).toBe(cruiser.id);
+    driving.exitVehicle(ctx);
+    pursuit.addHeat(ctx, 350);
+    pursuit.tickWanted(ctx, STEP);
+    pursuit.tickCruisers(ctx, STEP);
+    expect(ctx.scene.entity.get(cruiser.id)?.position).toEqual(position);
+    expect(driving.cruiserVehicles.has(cruiser.id)).toBe(false);
   });
 });
 

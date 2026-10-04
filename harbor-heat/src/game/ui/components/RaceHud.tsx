@@ -1,5 +1,6 @@
 import { useStore } from "@jgengine/react/store";
 import { raceStore } from "../../handroll";
+import { rivalForRoute } from "../../handroll/race";
 
 export function RaceHud() {
   const race = useStore(raceStore, (v) => v ?? null);
@@ -16,7 +17,9 @@ export function RaceHud() {
     );
   }
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex max-w-[360px] flex-col items-center gap-1">
+      <div className="max-w-full border border-[#ffb020]/40 bg-[#12141a]/90 px-2 py-1 text-center text-[10px] text-[#cfd6de]" title={rivalForRoute(race.routeId).brief}>{race.label} · {rivalForRoute(race.routeId).name}</div>
+      <div className="flex items-center gap-2">
       <div className="-skew-x-6 border-2 border-black bg-[#12141a]/90 px-3 py-1 shadow-[3px_3px_0_#000]">
         <span className="text-xl font-black text-[#ffb020]">
           {race.checkpoint}/{race.total}
@@ -28,6 +31,7 @@ export function RaceHud() {
       </div>
       <div className="-skew-x-6 border-2 border-black bg-[#12141a]/90 px-2 py-1 text-sm font-black tabular-nums text-[#cfd6de] shadow-[3px_3px_0_#000]">
         {race.timeSec.toFixed(1)}s
+      </div>
       </div>
     </div>
   );

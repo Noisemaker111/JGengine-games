@@ -45,6 +45,7 @@ const OBSTACLE_GATHER = 30;
  * horizon; enter/exit/explode swap this patch in and out via `ctx.camera.setChaseTuning`.
  */
 const DRIVE_CAMERA_TUNING: ChaseCameraTuning = {
+  yawResponse: 5.5,
   // speedForMax tracks the retuned fleet tops (~34–52 m/s) so FOV still sells mid-speed punch.
   fov: { base: 60, max: 88, speedForMax: 48 },
   velocityYaw: { blend: 0.65, minSpeed: 12, response: 5.5 },
@@ -362,6 +363,25 @@ export function createDriving(): Driving {
     ctx.scene.entity.update(riderId, { movement: { ...(rider?.movement ?? {}), frozen: seated }, hidden: seated });
   }
 
+  function releaseDriver(ctx: GameContext): void {
+    if (driving === null) return;
+    const vehicleId = driving;
+    vehicleSeats.mounts.dismount(ctx.player.userId);
+    driving = null;
+    // Patrols own the scene pose again after exit; their next driver must start there, at rest.
+    dropCarSim(vehicleId);
+    aircraft.delete(vehicleId);
+    flightThrottles.delete(vehicleId);
+    vtolModes.delete(vehicleId);
+    drivingAudio.stop(ctx);
+    lastTelemetry = { mode: "ground", speedMs: 0, altitude: 0, verticalSpeed: 0, gear: 1, rpm: 0, stalled: false, vtol: false };
+    drivingStore.write(ctx, null);
+    setTouchControlsMode(ctx, null);
+    ctx.camera.setChaseTuning(null);
+    ctx.camera.follow(ctx.player.userId);
+    setRiderSeated(ctx, ctx.player.userId, false);
+  }
+
   function playerWorldPos(ctx: GameContext): readonly [number, number, number] | null {
     if (driving !== null) {
       const vehicle = ctx.scene.entity.get(driving);
@@ -410,15 +430,8 @@ export function createDriving(): Driving {
         rotationY: vehicle?.rotationY ?? 0,
       });
       behaviorControl(ctx).resume(driving);
-      driving = null;
-      drivingAudio.stop(ctx);
-      lastTelemetry = { mode: "ground", speedMs: 0, altitude: 0, verticalSpeed: 0, gear: 1, rpm: 0, stalled: false, vtol: false };
-      drivingStore.write(ctx, null);
-      setTouchControlsMode(ctx, null);
-      ctx.camera.setChaseTuning(null);
+      releaseDriver(ctx);
       if (!result.ok) return;
-      ctx.camera.follow(result.cameraTarget);
-      setRiderSeated(ctx, result.cameraTarget, result.riderMovementPatch.frozen);
       ctx.scene.entity.setPose(ctx.player.userId, { position: result.placement.position, rotationY: result.placement.rotationY });
     },
     drivingVehicleId: () => driving,
@@ -434,17 +447,9 @@ export function createDriving(): Driving {
       ctx.scene.entity.effect({ from: vehicleId, at, radius: 6, effect: "damage", via: { amount: 55 } });
       let wasDriven = false;
       if (driving === vehicleId) {
-        vehicleSeats.mounts.dismount(ctx.player.userId);
-        driving = null;
-        drivingAudio.stop(ctx);
-        lastTelemetry = { mode: "ground", speedMs: 0, altitude: 0, verticalSpeed: 0, gear: 1, rpm: 0, stalled: false, vtol: false };
-        ctx.camera.follow(ctx.player.userId);
-        ctx.camera.setChaseTuning(null);
+        releaseDriver(ctx);
         const rider = ctx.scene.entity.get(ctx.player.userId);
-        setRiderSeated(ctx, ctx.player.userId, false);
         ctx.scene.entity.setPose(ctx.player.userId, { position: at, rotationY: rider?.rotationY ?? 0 });
-        drivingStore.write(ctx, null);
-        setTouchControlsMode(ctx, null);
         wasDriven = true;
       }
       dropCarSim(vehicleId);
@@ -457,7 +462,12 @@ export function createDriving(): Driving {
       if (driving !== null) {
         const vehicle = ctx.scene.entity.get(driving);
         if (vehicle === null) {
-          driving = null;
+          releaseDriver(ctx);
+          const rider = ctx.scene.entity.get(ctx.player.userId);
+          if (rider !== null) {
+            const [x, , z] = rider.position;
+            ctx.scene.entity.setPose(ctx.player.userId, { position: [x, ctx.world.groundHeightAt(x, z), z] });
+          }
         } else {
           const definition = vehicleById(vehicle.name);
           if (definition?.dynamics.type === "aircraft") {
