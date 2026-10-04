@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { SceneEntity } from "@jgengine/core/scene/entityStore";
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
 import { useStore } from "@jgengine/react/store";
 import { HEROES } from "./entities/players/catalog";
-import { ROOMS, roomBounds } from "./rooms/catalog";
+import { ROOMS, roomBounds, getAuthoredDocument, type RoomBounds } from "./rooms/catalog";
 import { duetStore } from "./stores";
 import { DIR_VECTORS, type V2 } from "./types";
 
@@ -15,6 +16,7 @@ const STONE = "#324a59";
 const DARK = "#172735";
 const CYAN = HEROES.lumen.color;
 const AMBER = HEROES.anchor.color;
+const EMPTY_RELAYS: readonly string[] = [];
 
 function Block({ at = [0, 0, 0], size, color = STONE, glow = false }: {
   at?: [number, number, number]; size: [number, number, number]; color?: string; glow?: boolean;
@@ -71,12 +73,7 @@ export function renderHero(entity: SceneEntity): ReactNode {
 export function renderDuetObject(object: SceneObject): ReactNode {
   const color = object.visual?.color ?? BRASS;
   switch (object.catalogId) {
-    case "wall": return <group>
-      <Block at={[0, 0.12, 0]} size={[0.98, 0.32, 0.98]} color={DARK} />
-      <Block at={[0, 0.32, 0]} size={[0.86, 0.12, 0.86]} />
-      <Block at={[0, 0.4, 0]} size={[0.66, 0.06, 0.66]} color={BRASS} />
-      <Block at={[0, 0.46, 0]} size={[0.18, 0.05, 0.18]} color={DARK} />
-    </group>;
+    case "wall": return <></>;
     case "gate": return <group>
       {[-0.38, 0.38].map(x => <Block key={x} at={[x, 0.43, 0]} size={[0.12, 0.86, 0.22]} color={BRASS} />)}
       <Block at={[0, 0.85, 0]} size={[0.9, 0.12, 0.25]} color={BRASS} />
@@ -84,12 +81,14 @@ export function renderDuetObject(object: SceneObject): ReactNode {
       <Crystal color={color} y={0.86} scale={0.1} />
     </group>;
     case "plate": return <group>
+      <Html center position={[0, 0.44, 0]} zIndexRange={[1, 0]} className="rc-world-label"><span>{object.instanceId.replace("plate:", "")}</span></Html>
       <mesh position-y={0.05} receiveShadow><cylinderGeometry args={[0.4, 0.43, 0.1, 8]} />
         <meshStandardMaterial color={BRASS} metalness={0.65} roughness={0.4} /></mesh>
       <Ring radius={0.3} y={0.12} color={color} />
       <Block at={[0, 0.12, 0]} size={[0.23, 0.025, 0.23]} color={AMBER} glow />
     </group>;
     case "receiver": return <group>
+      <Html center position={[0, 0.94, 0]} zIndexRange={[1, 0]} className="rc-world-label rc-world-label-light"><span>{object.instanceId.replace("recv:", "")}</span></Html>
       <Block at={[0, 0.09, 0]} size={[0.52, 0.18, 0.52]} color={BRASS} />
       <Block at={[0, 0.29, 0]} size={[0.15, 0.36, 0.15]} />
       <mesh position-y={0.58} rotation-y={Math.PI / 2}><torusGeometry args={[0.23, 0.06, 8, 24]} />
@@ -117,43 +116,177 @@ export function renderDuetObject(object: SceneObject): ReactNode {
   }
 }
 
-function Wire({ from, to, color, lit }: { from: V2; to: V2; color: string; lit: boolean }) {
+function Wire({ from, to, color, lit, width = 0.035 }: { from: V2; to: V2; color: string; lit: boolean; width?: number }) {
   const dx = to.x - from.x;
   const dz = to.z - from.z;
   const length = Math.hypot(dx, dz);
   return <mesh position={[(from.x + to.x) / 2, 0.025, (from.z + to.z) / 2]} rotation-y={Math.atan2(dx, dz)}>
-    <boxGeometry args={[0.035, 0.02, length]} /><meshStandardMaterial color={lit ? color : "#6c6a5c"}
+    <boxGeometry args={[width, 0.02, length]} /><meshStandardMaterial color={lit ? color : "#6c6a5c"}
       emissive={lit ? color : "#000000"} emissiveIntensity={0.8} /></mesh>;
+}
+
+interface InstancePose {
+  x: number; y: number; z: number; color?: string; scale?: number;
+}
+
+function InstancedStone({ poses, size, color }: {
+  poses: readonly InstancePose[]; size: [number, number, number]; color: string;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const transform = new THREE.Object3D();
+    for (let i = 0; i < poses.length; i++) {
+      const pose = poses[i]!;
+      transform.position.set(pose.x, pose.y, pose.z);
+      transform.scale.setScalar(pose.scale ?? 1);
+      transform.updateMatrix();
+      mesh.setMatrixAt(i, transform.matrix);
+      mesh.setColorAt(i, new THREE.Color(pose.color ?? color));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [poses, color]);
+  return <instancedMesh ref={ref} args={[undefined, undefined, poses.length]} castShadow receiveShadow>
+    <boxGeometry args={size} /><meshStandardMaterial color="white" roughness={0.55} metalness={0.3} />
+  </instancedMesh>;
+}
+
+function AmbientStars() {
+  const document = getAuthoredDocument();
+  const stars = useMemo(() => document.markers.filter(marker => marker.kind === "observatory-star"), [document]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const transform = new THREE.Object3D();
+    stars.forEach((star, i) => {
+      transform.position.set(star.position.x, star.position.y, star.position.z);
+      transform.scale.setScalar(Number(star.meta?.radius ?? 0.025));
+      transform.updateMatrix();
+      mesh.setMatrixAt(i, transform.matrix);
+      mesh.setColorAt(i, new THREE.Color(star.color ?? "#7299b0"));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [stars]);
+  return <group>
+    <instancedMesh ref={ref} args={[undefined, undefined, stars.length]}>
+      <sphereGeometry args={[1, 4, 4]} /><meshBasicMaterial color="white" />
+    </instancedMesh>
+    {document.markers.filter(marker => marker.kind === "observatory-ring").map(marker =>
+      <group key={marker.id} position={[marker.position.x, marker.position.y, marker.position.z]} rotation-z={Number(marker.meta?.tilt ?? 0)}>
+        <Ring radius={Number(marker.meta?.radius ?? 1)} y={0} color={marker.color ?? BRASS} thick={Number(marker.meta?.thickness ?? 0.04)} />
+      </group>)}
+  </group>;
+}
+
+export function fitRoomCamera(camera: THREE.PerspectiveCamera, bounds: RoomBounds, viewport: {
+  width: number; height: number; top: number; bottom: number; gutter: number;
+}): { left: number; right: number; top: number; bottom: number } | null {
+  const corners: THREE.Vector3[] = [];
+  for (const x of [bounds.minX - 0.7, bounds.maxX + 0.7])
+    for (const z of [bounds.minZ - 0.7, bounds.maxZ + 0.7])
+      for (const y of [-0.7, 1.4]) corners.push(new THREE.Vector3(x, y, z));
+  const projected = () => {
+    const pixels = corners.map(point => {
+      const p = point.clone().project(camera);
+      return { x: (p.x + 1) * viewport.width / 2, y: (1 - p.y) * viewport.height / 2 };
+    });
+    return { left: Math.min(...pixels.map(p => p.x)), right: Math.max(...pixels.map(p => p.x)),
+      top: Math.min(...pixels.map(p => p.y)), bottom: Math.max(...pixels.map(p => p.y)) };
+  };
+  camera.clearViewOffset();
+  camera.zoom = 1;
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld(true);
+  if (viewport.width <= viewport.gutter * 2 || viewport.height <= 0 ||
+      corners.some(point => point.clone().applyMatrix4(camera.matrixWorldInverse).z >= -camera.near)) return null;
+  const base = projected();
+  if (!Object.values(base).every(Number.isFinite) || base.right <= base.left || base.bottom <= base.top) return null;
+  camera.zoom = Math.min(1, (viewport.width - viewport.gutter * 2) / (base.right - base.left),
+    Math.max(64, viewport.bottom - viewport.top) / (base.bottom - base.top));
+  camera.updateProjectionMatrix();
+  const fitted = projected();
+  camera.setViewOffset(viewport.width, viewport.height,
+    (fitted.left + fitted.right - viewport.width) / 2,
+    (fitted.top + fitted.bottom - viewport.top - viewport.bottom) / 2,
+    viewport.width, viewport.height);
+  return projected();
 }
 
 export function DuetEnvironment() {
   const index = useStore(duetStore, s => s.roomIndex);
   const pressed = useStore(duetStore, s => s.pressedPlates);
   const powered = useStore(duetStore, s => s.poweredReceivers);
+  const completed = useStore(duetStore, s => s.latch.completedRelays ?? EMPTY_RELAYS);
   const room = ROOMS[index] ?? ROOMS[0]!;
   const bounds = roomBounds(room);
   const camera = useThree(s => s.camera);
   const size = useThree(s => s.size);
+  const canvas = useThree(s => s.gl.domElement);
+  const status = useStore(duetStore, s => s.status);
+  const active = useStore(duetStore, s => s.active);
   useEffect(() => {
-    // Fit the entire circuit in portrait as well as wide windows; the rig retains its position.
-    if (camera instanceof THREE.PerspectiveCamera) {
-      const viewWidth = (size.width / size.height) * 24 * Math.tan(camera.fov * Math.PI / 360);
-      camera.zoom = Math.min(1, viewWidth / (bounds.width + 1.5));
-      camera.updateProjectionMatrix();
-    }
-  }, [camera, size.width, size.height, bounds.width]);
-  const stars = useMemo(() => Array.from({ length: 90 }, (_, i) => {
-    const angle = i * 2.39996;
-    const radius = 10 + (i % 17) * 0.8;
-    return [Math.cos(angle) * radius, -1.5 - (i % 5), Math.sin(angle) * radius] as [number, number, number];
-  }), []);
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    let frame = 0;
+    let retries = 0;
+    const fit = () => {
+      const ui = document.querySelector<HTMLElement>(".rc-ui");
+      if (!ui) return;
+      const canvasRect = canvas.getBoundingClientRect();
+      const gap = size.width <= 600 ? 8 : 10;
+      const header = ui.querySelector<HTMLElement>(".rc-header");
+      const signals = ui.querySelector<HTMLElement>(".rc-signals");
+      const circuit = ui.querySelector<HTMLElement>(".rc-circuit");
+      const footer = ui.querySelector<HTMLElement>(".rc-footer");
+      const bottomOf = (element: HTMLElement | null, fallback: number) => element && element.getBoundingClientRect().height
+        ? element.getBoundingClientRect().bottom - canvasRect.top : fallback;
+      const headerBottom = bottomOf(header, 0);
+      ui.style.setProperty("--rc-signals-top", `${headerBottom + gap}px`);
+      const signalBottom = bottomOf(signals, headerBottom);
+      ui.style.setProperty("--rc-circuit-top", `${signalBottom + gap}px`);
+      const circuitBottom = bottomOf(circuit, signalBottom);
+      ui.style.setProperty("--rc-toast-top", `${circuitBottom + gap}px`);
+      const feedback = Number.parseFloat(getComputedStyle(ui).getPropertyValue("--rc-feedback-inset")) || 48;
+      const top = circuitBottom + feedback;
+      const bottom = footer ? footer.getBoundingClientRect().top - canvasRect.top - 12 : size.height - 18;
+      const result = fitRoomCamera(camera, bounds, { width: size.width, height: size.height, top,
+        bottom: Math.max(top + 64, bottom), gutter: size.width <= 600 ? 10 : 24 });
+      if (!result && retries++ < 10) frame = requestAnimationFrame(fit);
+    };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit); };
+    const observer = new ResizeObserver(schedule);
+    document.querySelectorAll(".rc-header,.rc-signals,.rc-circuit,.rc-footer").forEach(element => observer.observe(element));
+    schedule();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+  }, [camera, canvas, size.width, size.height, room, status, active, completed.length]);
+  const floor = useMemo(() => room.floor.map(cell => ({ ...cell, y: -0.06,
+    color: (cell.x + cell.z) % 2 === 0 ? "#536773" : "#465b68" })), [room]);
+  const corners = useMemo(() => room.floor.map(cell => ({ x: cell.x - 0.38, y: 0.01, z: cell.z - 0.38 })), [room]);
+  const walls = useMemo(() => [0.12, 0.32, 0.4, 0.46].map(y => room.walls.map(cell => ({ ...cell, y }))), [room]);
+  const authored = getAuthoredDocument();
+  const routes = authored.paths.filter(path => path.meta?.roomId === room.id);
+  const zones = authored.volumes.filter(zone => zone.meta?.roomId === room.id);
   return <group>
     <Block at={[bounds.centerX, -0.32, bounds.centerZ]} size={[bounds.width + 0.12, 0.55, bounds.depth + 0.12]} color={DARK} />
     <Block at={[bounds.centerX, -0.61, bounds.centerZ]} size={[bounds.width - 0.25, 0.12, bounds.depth - 0.25]} color={BRASS} />
-    {room.floor.map(cell => <group key={`${cell.x}:${cell.z}`} position={[cell.x, 0, cell.z]}>
-      <Block at={[0, -0.06, 0]} size={[0.96, 0.12, 0.96]} color={(cell.x + cell.z) % 2 === 0 ? "#536773" : "#465b68"} />
-      <Block at={[-0.38, 0.01, -0.38]} size={[0.04, 0.02, 0.04]} color={BRASS} />
-    </group>)}
+    <InstancedStone poses={floor} size={[0.96, 0.12, 0.96]} color={STONE} />
+    <InstancedStone poses={corners} size={[0.04, 0.02, 0.04]} color={BRASS} />
+    <InstancedStone poses={walls[0]!} size={[0.98, 0.32, 0.98]} color={DARK} />
+    <InstancedStone poses={walls[1]!} size={[0.86, 0.12, 0.86]} color={STONE} />
+    <InstancedStone poses={walls[2]!} size={[0.66, 0.06, 0.66]} color={BRASS} />
+    <InstancedStone poses={walls[3]!} size={[0.18, 0.05, 0.18]} color={DARK} />
+    {routes.flatMap(path => path.points.slice(1).map((to, i) =>
+      <Wire key={`${path.id}:${i}`} from={path.points[i]!} to={to} color={path.color ?? BRASS} width={path.width}
+        lit={path.meta?.role === "lumen" ? powered.length > 0 : path.meta?.role === "anchor" ? pressed.length > 0 : false} />))}
+    {zones.map(zone => zone.halfExtents && <mesh key={zone.id} position={[zone.center.x, 0.013, zone.center.z]} rotation-x={-Math.PI / 2}>
+      <planeGeometry args={[zone.halfExtents.x * 2 - 0.12, zone.halfExtents.z * 2 - 0.12]} />
+      <meshBasicMaterial color={completed.includes(String(zone.meta?.relay)) ? "#4c9b8c" : "#bda36e"} transparent opacity={0.08} depthWrite={false} />
+    </mesh>)}
     {room.gates.flatMap(gate => [
       ...gate.plates.flatMap(id => {
         const signal = room.plates.find(p => p.id === id);
@@ -164,11 +297,7 @@ export function DuetEnvironment() {
         return signal ? gate.cells.map((cell, i) => <Wire key={`${gate.id}:${id}:${i}`} from={signal.cell} to={cell} color={CYAN} lit={powered.includes(id)} />) : [];
       }),
     ])}
-    {/* Brass armillary rings and a deterministic starfield give the floating chamber its silhouette. */}
-    <group position={[0, -1.4, 0]}><Ring radius={8.5} y={0} color="#48515e" thick={0.04} />
-      <group rotation-z={0.24}><Ring radius={9.2} y={0} color="#74624c" thick={0.045} /></group></group>
-    {stars.map((at, i) => <mesh key={i} position={at}><sphereGeometry args={[0.025 + (i % 3) * 0.01, 4, 4]} />
-      <meshBasicMaterial color={i % 3 === 0 ? "#d3b986" : "#7299b0"} /></mesh>)}
+    <AmbientStars />
   </group>;
 }
 

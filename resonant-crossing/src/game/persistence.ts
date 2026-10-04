@@ -26,3 +26,10 @@ export function readPreferences(): Preferences {
 export function writeLocal(key: string, value: unknown): boolean {
   try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
 }
+
+export function writeCheckpoint(next: Checkpoint): boolean {
+  const previous = readCheckpoint();
+  const checkpoint: Checkpoint = { version: 1, roomIndex: Math.max(previous?.roomIndex ?? 0, next.roomIndex),
+    complete: previous?.complete === true || next.complete };
+  return writeLocal(CHECKPOINT_KEY, checkpoint);
+}

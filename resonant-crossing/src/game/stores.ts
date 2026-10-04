@@ -7,6 +7,8 @@ import type { HeroId, V2 } from "./types";
 import type { Latch } from "./rooms/engine";
 
 export type RunStatus = "ready" | "paused" | "playing" | "solved" | "complete";
+export const CALLOUTS = { ready: "Ready at my station.", hold: "Hold the circuit — I am crossing.", go: "The path is clear. Go!", recover: "Recovering — keep your device planted." } as const;
+export type CalloutId = keyof typeof CALLOUTS;
 
 export interface DuetState {
   roomIndex: number;
@@ -24,15 +26,21 @@ export interface DuetState {
   reducedMotion: boolean;
   /** Toast text pushed by abilities/hazards, mirrored from `toastQueue`'s single live slot. */
   toast: string | null;
+  safeCells: Record<HeroId, V2 | null>;
+  recoveries: number;
+  callout: { hero: HeroId; id: CalloutId; sequence: number } | null;
 }
 
-export function freshRoom(index: number): Pick<DuetState, "latch" | "solveTimer" | "toast" | "status"> & { roomIndex: number } {
+export function freshRoom(index: number): Pick<DuetState, "latch" | "solveTimer" | "toast" | "status" | "safeCells" | "recoveries" | "callout"> & { roomIndex: number } {
   return {
     roomIndex: index,
     latch: { anchorCell: null, prism: null },
     solveTimer: 0,
     toast: null,
     status: "playing",
+    safeCells: { lumen: null, anchor: null },
+    recoveries: 0,
+    callout: null,
   };
 }
 
@@ -49,6 +57,9 @@ export const duetStore = defineStore<DuetState>("resonant-crossing", () => ({
   exits: [],
   reducedMotion: false,
   toast: null,
+  safeCells: { lumen: null, anchor: null },
+  recoveries: 0,
+  callout: null,
 }));
 
 /** Seconds a toast stays on screen before it self-expires — matches the previous hand-rolled `TOAST_TICKS`/hazard hold. */
@@ -83,9 +94,9 @@ export function clearToast(ctx: GameContext): void {
 }
 
 export function withAnchor(latch: Latch, anchorCell: V2 | null): Latch {
-  return { anchorCell, prism: latch.prism };
+  return { ...latch, anchorCell };
 }
 
 export function withPrism(latch: Latch, prism: Latch["prism"]): Latch {
-  return { anchorCell: latch.anchorCell, prism };
+  return { ...latch, prism };
 }

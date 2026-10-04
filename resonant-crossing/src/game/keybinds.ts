@@ -1,10 +1,10 @@
 import type { ActionCodesMap } from "@jgengine/core/input/actionBindings";
 
 export const keybinds: ActionCodesMap = {
-  moveForward: ["KeyW", "ArrowUp"],
-  moveBack: ["KeyS", "ArrowDown"],
-  moveLeft: ["KeyA", "ArrowLeft"],
-  moveRight: ["KeyD", "ArrowRight"],
+  "duet.north": ["KeyW", "ArrowUp"],
+  "duet.south": ["KeyS", "ArrowDown"],
+  "duet.west": ["KeyA", "ArrowLeft"],
+  "duet.east": ["KeyD", "ArrowRight"],
   swap: ["KeyQ", "ShiftLeft"],
   ability: ["KeyE", "Space"],
   reset: ["KeyR"],
