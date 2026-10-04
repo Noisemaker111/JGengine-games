@@ -1,7 +1,560 @@
-html,
-body,
-#root {
+html, body, #root  {
   height: 100%;
   margin: 0;
   background: #0c0e12;
+}
+/* Original field-journal interface. */
+.fs-ui {
+  position:absolute;
+  inset:0;
+  z-index:30;
+  pointer-events:none;
+  color:#f0ead7;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  font-size:14px
+}
+.fs-ui * {
+  box-sizing:border-box
+}
+.fs-ui button,.fs-ui input {
+  pointer-events:auto
+}
+.fs-ui button {
+  border:1px solid #768f7d;
+  border-radius:6px;
+  padding:11px 16px;
+  background:#294b40;
+  color:#f4edd9;
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+  transition:background .15s,transform .15s
+}
+.fs-ui button:hover {
+  background:#3b6652
+}
+.fs-ui button:focus-visible,.fs-ui input:focus-visible {
+  outline:3px solid #e5bb71;
+  outline-offset:4px
+}
+.fs-ui button:active {
+  transform:translateY(1px)
+}
+.fs-ui kbd {
+  display:inline-block;
+  border:1px solid #789184;
+  padding:1px 5px;
+  border-radius:3px;
+  font:10px ui-monospace,monospace;
+  letter-spacing:.03em;
+  color:#dbe4d0
+}
+.fs-eyebrow {
+  display:block;
+  color:#b1c6a6;
+  font:10px ui-monospace,monospace;
+  letter-spacing:.16em;
+  line-height:1.6
+}
+.fs-topbar {
+  position:absolute;
+  top:max(20px,env(safe-area-inset-top));
+  left:max(24px,env(safe-area-inset-left));
+  right:max(24px,env(safe-area-inset-right));
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px
+}
+.fs-topbar>div:first-child {
+  background:#18392ee8;
+  padding:12px 18px;
+  border-left:3px solid #cba268;
+  border-radius:0 7px 7px 0
+}
+.fs-topbar strong {
+  display:block;
+  font-size:19px;
+  letter-spacing:.11em
+}
+.fs-top-actions {
+  display:flex;
+  gap:12px;
+  align-items:center
+}
+.fs-time {
+  padding:8px;
+  background:#18392edb;
+  border-radius:5px;
+  font:15px ui-monospace,monospace
+}
+.fs-journal {
+  position:absolute;
+  top:118px;
+  left:24px;
+  width:248px;
+  border:1px solid #70827180;
+  border-radius:7px;
+  padding:18px;
+  background:#193b30ed;
+  box-shadow:0 8px 25px #15281b24
+}
+.fs-journal h2 {
+  font-size:17px;
+  font-weight:600;
+  margin:9px 0 16px;
+  line-height:1.3
+}
+.fs-station {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:10px 0;
+  border-top:1px solid #72917a42
+}
+.fs-number {
+  font:19px ui-monospace,monospace;
+  width:26px
+}
+.fs-station strong {
+  font-size:13px;
+  display:block
+}
+.fs-station small {
+  display:block;
+  color:#b4c4aa;
+  margin-top:3px;
+  font-size:11px
+}
+.fs-complete strong {
+  color:#b6d7a4
+}
+.fs-direction {
+  font:11px ui-monospace,monospace;
+  color:#e5c285;
+  margin:14px 0
+}
+.fs-map {
+  display:block;
+  width:100%;
+  height:auto;
+  border:1px solid #6d897370;
+  border-radius:8px
+}
+.fs-vitals {
+  position:absolute;
+  bottom:max(24px,calc(env(safe-area-inset-bottom) + 18px));
+  left:24px;
+  width:248px;
+  padding:14px 16px;
+  background:#193b30ee;
+  border:1px solid #69816c88;
+  border-radius:7px
+}
+.fs-vitals>div:first-child {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px
+}
+.fs-vitals strong {
+  font:18px ui-monospace,monospace
+}
+.fs-vitals small {
+  font-size:10px;
+  color:#c4cdb7
+}
+.fs-vitals .fs-eyebrow {
+  font-size:9px
+}
+.fs-meter {
+  height:5px;
+  background:#101e1a;
+  border-radius:3px;
+  overflow:hidden;
+  margin:10px 0
+}
+.fs-meter i {
+  display:block;
+  height:100%;
+  background:#b6cd8c;
+  transition:width .08s linear
+}
+.fs-danger {
+  border-color:#f4a071
+}
+.fs-danger .fs-meter i {
+  background:#ed8b61
+}
+.fs-feedback {
+  position:absolute;
+  bottom:145px;
+  left:50%;
+  transform:translateX(-50%);
+  max-width:min(530px,calc(100% - 48px));
+  background:#193b30ed;
+  padding:10px 16px;
+  text-align:center;
+  border-radius:5px;
+  font-size:12px
+}
+.fs-feedback:empty {
+  display:none
+}
+.fs-interaction {
+  position:absolute;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(410px,calc(100% - 48px));
+  padding:16px 22px;
+  border:1px solid #dac78a;
+  background:#18392ef5;
+  border-radius:7px;
+  text-align:center
+}
+.fs-interaction strong {
+  display:block;
+  font-size:20px;
+  margin:6px 0
+}
+.fs-interaction>span:last-of-type {
+  font-size:11px;
+  color:#c4cdb7
+}
+.fs-control-hint {
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  background:#193b30dd;
+  border-radius:5px;
+  padding:10px 14px;
+  font-size:11px
+}
+.fs-control-hint span {
+  margin:0 6px;
+  color:#8b9e87
+}
+.fs-overlay {
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  background:linear-gradient(120deg,#102c27e8,#19372b95);
+  pointer-events:auto;
+  overflow:auto
+}
+.fs-sheet {
+  display:grid;
+  grid-template-columns:.85fr 1.15fr;
+  max-width:880px;
+  width:100%;
+  border:1px solid #a6b390;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 24px 80px #0b201a70
+}
+.fs-sheet-art {
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  padding:42px 34px;
+  background:#224b3e;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 23px,#96b29a10 24px)
+}
+.fs-seal {
+  width:87px;
+  height:87px;
+  border:1px solid #c9bb85;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#eee1b7;
+  font:34px Georgia,serif;
+  gap:4px
+}
+.fs-seal span {
+  font:11px ui-monospace,monospace;
+  align-self:flex-end;
+  padding-bottom:24px
+}
+.fs-map-large {
+  margin:6px 0
+}
+.fs-sheet-art p {
+  font:22px/1.5 Georgia,serif;
+  color:#e4d7b4;
+  margin:0
+}
+.fs-art-credit {
+  font-size:10px;
+  color:#b8c7ab;
+  margin-top:auto
+}
+.fs-sheet-body {
+  background:#f0ead7;
+  padding:42px;
+  color:#274539
+}
+.fs-sheet-body .fs-eyebrow {
+  color:#59755d
+}
+.fs-sheet-body h1 {
+  font:46px/1.05 Georgia,serif;
+  letter-spacing:-.025em;
+  margin:18px 0
+}
+.fs-sheet-body p {
+  line-height:1.6;
+  font-size:14px
+}
+.fs-brief {
+  margin:22px 0;
+  display:grid;
+  gap:9px;
+  padding:15px 0;
+  border-top:1px solid #b6c0a6;
+  border-bottom:1px solid #b6c0a6;
+  font:12px ui-monospace,monospace
+}
+.fs-brief small {
+  font:12px/1.5 'Segoe UI',sans-serif;
+  color:#58705a;
+  margin-top:4px
+}
+.fs-buttons {
+  display:grid;
+  gap:9px
+}
+.fs-sheet-body button {
+  width:100%;
+  text-align:left;
+  background:transparent;
+  color:#254434;
+  border-color:#a9b899
+}
+.fs-sheet-body button:hover {
+  background:#dce3c9
+}
+.fs-sheet-body .fs-primary {
+  background:#294f3e;
+  color:#f4edd4;
+  border-color:#294f3e;
+  padding:14px 17px
+}
+.fs-sheet-body .fs-primary:hover {
+  background:#3c6449
+}
+.fs-primary span {
+  float:right
+}
+.fs-sheet-body .fs-note {
+  font-size:11px;
+  color:#5b715b;
+  margin:20px 0 0
+}
+.fs-setting {
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+  padding:20px 0;
+  border-bottom:1px solid #bac5aa
+}
+.fs-setting small {
+  display:block;
+  font-size:12px;
+  margin-top:5px;
+  color:#5b715b
+}
+.fs-setting input {
+  width:22px;
+  height:22px;
+  accent-color:#294f3e;
+  flex-shrink:0
+}
+.fs-setting~.fs-primary {
+  margin-top:24px
+}
+.fs-report {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:10px 20px;
+  align-items:center;
+  padding:20px 0;
+  margin-bottom:10px
+}
+.fs-report strong {
+  font:28px Georgia,serif
+}
+.fs-report span {
+  font-size:12px;
+  color:#5b715b
+}
+.fs-reduced-motion *,.fs-reduced-motion button {
+  transition:none
+}
+@media(max-width:900px) {
+  .fs-journal {
+    width:208px;
+    padding:12px
+  }
+  .fs-vitals {
+    width:208px
+  }
+  .fs-feedback {
+    bottom:152px;
+    left:auto;
+    right:20px;
+    transform:none;
+    max-width:calc(100% - 260px)
+  }
+  .fs-interaction,.fs-control-hint {
+    left:auto;
+    right:20px;
+    transform:none;
+    max-width:calc(100% - 260px)
+  }
+  .fs-control-hint {
+    white-space:normal
+  }
+}
+@media(max-width:620px),(max-height:560px) {
+  .fs-sheet {
+    grid-template-columns:1fr;
+    max-width:480px
+  }
+  .fs-sheet-art {
+    display:none
+  }
+  .fs-sheet-body {
+    padding:25px
+  }
+  .fs-sheet-body h1 {
+    font-size:36px
+  }
+  .fs-topbar {
+    top:10px;
+    left:10px;
+    right:10px
+  }
+  .fs-topbar>div:first-child {
+    padding:7px 10px
+  }
+  .fs-topbar strong {
+    font-size:13px
+  }
+  .fs-topbar .fs-eyebrow {
+    font-size:7px
+  }
+  .fs-topbar button {
+    padding:8px;
+    font-size:11px
+  }
+  .fs-top-actions {
+    gap:5px
+  }
+  .fs-time {
+    font-size:11px
+  }
+  .fs-journal {
+    top:76px;
+    left:10px;
+    width:170px;
+    padding:10px
+  }
+  .fs-journal h2 {
+    display:none
+  }
+  .fs-station {
+    padding:6px 0;
+    gap:8px
+  }
+  .fs-station strong {
+    font-size:11px
+  }
+  .fs-station small {
+    font-size:9px
+  }
+  .fs-number {
+    font-size:14px;
+    width:20px
+  }
+  .fs-journal .fs-map {
+    display:none
+  }
+  .fs-journal .fs-direction {
+    font-size:9px;
+    margin:10px 0 0
+  }
+  .fs-vitals {
+    top:76px;
+    right:10px;
+    left:auto;
+    bottom:auto;
+    width:156px;
+    padding:10px
+  }
+  .fs-vitals>div:first-child {
+    display:block
+  }
+  .fs-vitals>small {
+    display:none
+  }
+  .fs-vitals strong {
+    font-size:15px;
+    display:block;
+    margin-top:4px
+  }
+  .fs-vitals .fs-meter {
+    margin:6px 0 0
+  }
+  .fs-feedback {
+    bottom:max(194px,calc(var(--jg-hud-dock-clearance,0px) + 135px));
+    left:10px;
+    right:10px;
+    max-width:none;
+    padding:8px 12px;
+    font-size:11px
+  }
+  .fs-interaction {
+    bottom:max(100px,calc(var(--jg-hud-dock-clearance,0px) + 12px));
+    left:10px;
+    right:10px;
+    width:auto;
+    max-width:none;
+    padding:10px
+  }
+  .fs-interaction strong {
+    font-size:16px
+  }
+  .fs-interaction>span:last-of-type {
+    font-size:10px
+  }
+  .fs-control-hint {
+    display:none
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .fs-ui * {
+    transition:none!important
+  }
+}
+.fs-overlay  {
+  align-items: safe center;
+}
+@media (max-width: 380px)  {
+  .fs-journal  {
+    width: 146px;
+  }
+  .fs-vitals  {
+    width: 136px;
+  }
+  .fs-vitals .fs-eyebrow  {
+    font-size: 8px;
+  }
 }

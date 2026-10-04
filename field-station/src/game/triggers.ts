@@ -108,6 +108,12 @@ export function clearHazard(): void {
   activeHazard = null;
 }
 
+/** New runs and restored logs must detect an enter even if the previous run ended in this zone. */
+export function resetAuthoredTriggers(): void {
+  runtime = null;
+  activeHazard = null;
+}
+
 /** Watch authored triggers against the local player; call from onTick. */
 export function tickAuthoredTriggers(ctx: GameContext): void {
   const entity = ctx.scene.entity.get(ctx.player.userId);

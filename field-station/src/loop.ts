@@ -5,6 +5,7 @@ import { createControlGroupManager, HOME_BOOKMARK, type ControlGroupManager } fr
 import { player } from "./game/entities/players/catalog";
 import { tickHealth } from "./game/health";
 import { tickAuthoredTriggers } from "./game/triggers";
+import { expedition, initExpedition, initializeSurveyor, surveyFailed, tickExpedition } from "./game/expedition";
 
 type PlayerMeta = { kind: "player" };
 
@@ -25,7 +26,8 @@ function ensureControlGroups(ctx: GameContext): ControlGroupManager {
 }
 
 function onInit(ctx: GameContext): void {
-  void ctx;
+  controlGroups = null;
+  initExpedition(ctx);
 }
 
 function onNewPlayer(ctx: GameContext): void {
@@ -42,6 +44,7 @@ function onNewPlayer(ctx: GameContext): void {
   groups.selection.replace([ctx.player.userId]);
   groups.bindGroup(1);
   groups.bookmarks.bind(HOME_BOOKMARK, [ctx.player.userId]);
+  initializeSurveyor(ctx);
 }
 
 function onTick(ctx: GameContext, dt: number): void {
@@ -49,10 +52,13 @@ function onTick(ctx: GameContext, dt: number): void {
   if (entity === null) return;
   void entityMetaOf(entity, isPlayerMeta);
   const groups = ensureControlGroups(ctx);
+  if (ctx.input.justPressed("pause")) ctx.game.commands.run(expedition.read(ctx).phase === "paused" ? "survey.resume" : "survey.pause", {});
+  if (expedition.read(ctx).phase !== "playing") return;
   if (ctx.input.justPressed("recallGroup1")) groups.recallGroup(1);
   if (ctx.input.justPressed("recallHome")) groups.recallHome();
   tickAuthoredTriggers(ctx);
-  tickHealth(ctx, dt);
+  if (tickHealth(ctx, dt)) { surveyFailed(ctx); return; }
+  tickExpedition(ctx, dt);
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
