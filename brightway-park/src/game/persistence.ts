@@ -16,6 +16,7 @@ export interface ParkSave {
   clock: ClockSnapshot; unlocks: string[];
   gameOver: boolean; won: boolean; winDismissed: boolean;
   rng?: number | null;
+  policies?: { marketing: "local" | "festival"; supply: "lean" | "buffered" };
 }
 const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
 
@@ -29,11 +30,15 @@ export function decodeSave(raw: string): ParkSave | null {
     if (!Array.isArray(s.unlocks) || !s.unlocks.every(id => MILESTONES.some(m => m.unlock === id))) return null;
     if (![s.gameOver, s.won, s.winDismissed].every(v => typeof v === "boolean")) return null;
     if (s.rng !== undefined && s.rng !== null && (!Number.isInteger(s.rng) || s.rng < -0x80000000 || s.rng > 0x7fffffff)) return null;
+    if (s.policies !== undefined && (!s.policies || !["local", "festival"].includes(s.policies.marketing) || !["lean", "buffered"].includes(s.policies.supply))) return null;
     if (!Array.isArray(s.placed) || !Array.isArray(s.guests)) return null;
     const cells = new Set<string>(), ids = new Set<string>();
     for (const p of s.placed) {
       if (!p || typeof p.id !== "string" || ids.has(p.id) || !Object.hasOwn(BUILDABLES,p.catalogId)) return null;
       if (![p.x,p.z,p.stock,p.soldTotal,p.occupants].every(finite) || p.stock < 0 || p.occupants < 0) return null;
+      if (p.wear !== undefined && (!finite(p.wear) || p.wear < 0 || p.wear > 100)) return null;
+      if (p.closed !== undefined && typeof p.closed !== "boolean") return null;
+      if (p.upgrade !== undefined && p.upgrade !== null && !["efficient", "premium"].includes(p.upgrade)) return null;
       const def = buildableDef(p.catalogId), [dx,dz] = blockCenter(def,0,0);
       const gx = p.x-dx, gz = p.z-dz;
       if (gx % 4 !== 0 || gz % 4 !== 0) return null;
@@ -48,6 +53,7 @@ export function decodeSave(raw: string): ParkSave | null {
     for (const {state:g,position} of s.guests) {
       if (!g || typeof g.id !== "string" || guestIds.has(g.id) || !GUEST_KINDS.includes(g.kind)) return null;
       if (![g.happy,g.money,g.hunger,g.thirst,g.souvenir,g.visits,g.busy,g.litterTimer].every(finite)) return null;
+      if (g.visited !== undefined && (!Array.isArray(g.visited) || g.visited.length > 6 || !g.visited.every(id => Object.hasOwn(BUILDABLES, id) && BUILDABLES[id]?.ride !== undefined))) return null;
       if (!["seeking","busy","leaving"].includes(g.phase) || (g.targetId !== null && !ids.has(g.targetId))) return null;
       if (!Array.isArray(position) || position.length !== 3 || !position.every(finite)) return null;
       if (g.target !== null && (!Array.isArray(g.target) || g.target.length !== 3 || !g.target.every(finite))) return null;
@@ -61,10 +67,11 @@ export function snapshotPark(ctx: GameContext): ParkSave {
   return {
     version: 1, stats: Object.fromEntries(numbers.map(k => [k,session[k]])) as Stats,
     placed: [...session.placed.values()].map(p => ({...p})),
-    guests: [...session.guests.values()].map(g => ({state:{...g},position:[...(ctx.scene.entity.get(g.id)?.position ?? [0,0,58])] as [number,number,number]})),
+    guests: [...session.guests.values()].map(g => ({state:{...g, ...(g.visited ? {visited: [...g.visited]} : {})},position:[...(ctx.scene.entity.get(g.id)?.position ?? [0,0,58])] as [number,number,number]})),
     clock: ctx.time.snapshot(), unlocks: [...(ctx.game.unlocks?.list(ctx.player.userId) ?? [])],
     gameOver: session.gameOver, won: session.won, winDismissed: session.winDismissed,
     rng: rngStateOf(ctx.rng),
+    policies: { marketing: session.marketing, supply: session.supply },
   };
 }
 
@@ -87,6 +94,8 @@ export function restorePark(ctx: GameContext): boolean {
   const s = decodeSave(raw);
   if (!s) { session.saveStatus = "Existing save could not be read; it has been preserved"; return false; }
   Object.assign(session,s.stats,{gameOver:s.gameOver,won:s.won,winDismissed:s.winDismissed,hasSave:true});
+  session.marketing = s.policies?.marketing ?? "local";
+  session.supply = s.policies?.supply ?? "lean";
   session.ledger = createParkLedger(s.stats.day, s.stats.cash);
   for (const p of s.placed) {
     session.placed.set(p.id,p);

@@ -1,5 +1,6 @@
 import { buildableDef, type BuildableDef } from "../objects/catalog";
 import type { PlacedObject } from "../session";
+import { connectedTracks, hasPathAccess, objectUpkeep, operational } from "./operations";
 
 export interface ParkMetrics {
   rides: number;
@@ -13,7 +14,7 @@ export interface ParkMetrics {
 }
 
 export function coasterThrill(tracks: number): number {
-  return tracks * 0.7;
+  return Math.min(12, Math.max(0, tracks)) * 0.7;
 }
 
 export function objectAppeal(def: BuildableDef, tracks: number): number {
@@ -32,21 +33,31 @@ export function computeMetrics(placed: readonly PlacedObject[]): ParkMetrics {
   const stallNeeds = new Set<string>();
   for (const obj of placed) {
     const def = buildableDef(obj.catalogId);
-    dailyUpkeep += def.upkeep;
+    dailyUpkeep += objectUpkeep(obj);
     if (def.category === "track") tracks += 1;
     if (def.category === "scenery" || def.category === "path") scenery += 1;
     if (def.staff !== undefined) cleaning += def.staff.cleaning;
-    if (def.category === "ride") {
+    if (def.category === "ride" && operational(obj)) {
       rides += 1;
       rideKinds.add(def.id);
     }
-    if (def.stall !== undefined) {
+    if (def.stall !== undefined && operational(obj)) {
       stalls += 1;
       stallNeeds.add(def.stall.need);
     }
   }
   let totalAppeal = 0;
-  for (const obj of placed) totalAppeal += objectAppeal(buildableDef(obj.catalogId), tracks);
+  let sceneryAppeal = 0;
+  for (const obj of placed) {
+    const def = buildableDef(obj.catalogId);
+    if (def.category === "scenery" || def.category === "path" || def.category === "track") {
+      sceneryAppeal += def.category === "path" ? Math.min(.4, def.appeal) : def.appeal;
+    } else if (operational(obj)) {
+      const base = objectAppeal(def, def.id === "ride_coaster" ? connectedTracks(obj) : 0);
+      totalAppeal += base * (hasPathAccess(obj) ? 1 : .4) * (obj.upgrade === "premium" ? 1.45 : obj.upgrade === "efficient" ? .85 : 1);
+    }
+  }
+  totalAppeal += Math.min(sceneryAppeal, 8 + rides * 7);
   const variety = rideKinds.size + stallNeeds.size;
   return { rides, stalls, tracks, scenery, cleaning, variety, totalAppeal, dailyUpkeep };
 }

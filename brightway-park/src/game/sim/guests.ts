@@ -1,10 +1,11 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { ENTRANCE, PARK_HALF, guestCap } from "../catalog";
+import { ENTRANCE, guestCap } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
 import { nextGuestId, session, type GuestState, type PlacedObject } from "../session";
 import { coasterThrill, demand } from "./rating";
+import { connectedTracks, hasPathAccess, localComfort, objectCapacity, objectPrice, objectServiceSeconds, operational, weatherForDay } from "./operations";
 
 const HUNGER_RATE = 1.2;
 const THIRST_RATE = 1.5;
@@ -12,7 +13,19 @@ const HAPPY_DRIFT = 0.18;
 const ARRIVE_DISTANCE = 2.2;
 const MAX_VISITS = 6;
 const MIN_SPEND = 6;
-const STALL_SERVICE = 2.2;
+const MAX_WAIT = 12;
+
+export function guestPreference(guest: GuestState): "family" | "thrill" {
+  return guest.kind === "guest_a" || guest.kind === "guest_b" ? "family" : "thrill";
+}
+
+function repeatFactor(guest: GuestState, obj: PlacedObject): number {
+  return Math.pow(0.4, (guest.visited ?? []).filter((id) => id === obj.catalogId).length);
+}
+
+function rideFit(guest: GuestState, thrill: number): number {
+  return guestPreference(guest) === "family" ? Math.max(0.2, 1.5 - thrill * 0.09) : 0.65 + thrill * 0.08;
+}
 
 export function needPressure(value: number): number {
   return Math.max(0, (value - 45) / 55);
@@ -21,13 +34,15 @@ export function needPressure(value: number): number {
 export function targetScore(
   guest: GuestState,
   obj: PlacedObject,
-  tracks: number,
+  _tracks: number,
   distance: number,
 ): number {
   const def = buildableDef(obj.catalogId);
+  if (!operational(obj) || obj.occupants >= objectCapacity(obj)) return -1;
   const proximity = 1 / (1 + distance * 0.05);
+  const access = hasPathAccess(obj) ? 1 : 0.35;
   if (def.stall !== undefined) {
-    if (obj.stock <= 0 || guest.money < def.stall.price) return -1;
+    if (obj.stock <= 0 || guest.money < objectPrice(obj)) return -1;
     const pressure =
       def.stall.need === "hunger"
         ? needPressure(guest.hunger)
@@ -35,12 +50,12 @@ export function targetScore(
           ? needPressure(guest.thirst)
           : guest.souvenir;
     if (pressure <= 0.02) return -1;
-    return (2 + pressure * 8 + def.appeal) * proximity;
+    return (2 + pressure * 8 + def.appeal) * proximity * access;
   }
   if (def.ride !== undefined) {
-    if (obj.occupants >= def.ride.capacity) return -1;
-    const thrill = def.appeal + (def.id === "ride_coaster" ? coasterThrill(tracks) : 0);
-    return (1.5 + thrill * 0.9) * proximity;
+    const thrill = def.ride.thrill + (def.id === "ride_coaster" ? coasterThrill(connectedTracks(obj)) : 0);
+    const upgrade = obj.upgrade === "premium" ? 1.25 : obj.upgrade === "efficient" ? 0.85 : 1;
+    return (1.5 + def.appeal * 0.9) * rideFit(guest, thrill) * repeatFactor(guest, obj) * proximity * access * upgrade;
   }
   return -1;
 }
@@ -77,6 +92,7 @@ function spawnGuest(ctx: GameContext): void {
     thirst: 16 + ctx.rng() * 24,
     souvenir: ctx.rng() * 0.6,
     visits: 0,
+    visited: [],
     phase: "seeking",
     targetId: null,
     target: null,
@@ -105,6 +121,7 @@ export function seedGuests(ctx: GameContext, count: number): void {
       thirst: 20 + ctx.rng() * 40,
       souvenir: ctx.rng() * 0.5,
       visits: 0,
+      visited: [],
       phase: "seeking",
       targetId: null,
       target: null,
@@ -117,9 +134,10 @@ export function seedGuests(ctx: GameContext, count: number): void {
 }
 
 export function spawnGuests(ctx: GameContext, dt: number, totalAppeal: number): void {
+  if (!(dt > 0)) return;
   const cap = guestCap(session.rating);
   if (session.guests.size >= cap) return;
-  const rate = demand(totalAppeal, session.ticketPrice, session.rating, session.open) * 2.4;
+  const rate = demand(totalAppeal, session.ticketPrice, session.rating, session.open) * 0.5 * weatherForDay(session.day).demand * (session.marketing === "festival" ? 1.3 : 1);
   session.spawnAcc += rate * dt;
   let budget = 4;
   while (session.spawnAcc >= 1 && session.guests.size < cap && budget > 0) {
@@ -139,18 +157,21 @@ function finishInteraction(guest: GuestState): void {
   const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
   if (obj !== undefined) {
     const def = buildableDef(obj.catalogId);
-    if (def.stall !== undefined && obj.stock > 0 && guest.money >= def.stall.price) {
-      guest.money -= def.stall.price;
+    const price = objectPrice(obj);
+    if (operational(obj) && def.stall !== undefined && obj.stock > 0 && guest.money >= price) {
+      guest.money -= price;
       obj.stock -= 1;
       obj.soldTotal += 1;
-      session.cash += def.stall.price;
-      session.revenueToday += def.stall.price;
+      session.cash += price;
+      session.revenueToday += price;
       if (def.stall.need === "hunger") guest.hunger = Math.max(0, guest.hunger - 70);
       else if (def.stall.need === "thirst") guest.thirst = Math.max(0, guest.thirst - 75);
       else guest.souvenir = 0;
       guest.happy = Math.min(100, guest.happy + 5);
-    } else if (def.ride !== undefined) {
-      guest.happy = Math.min(100, guest.happy + 6 + def.appeal * 0.8);
+    } else if (operational(obj) && def.ride !== undefined) {
+      const thrill = def.ride.thrill + (def.id === "ride_coaster" ? coasterThrill(connectedTracks(obj)) : 0);
+      guest.happy = Math.min(100, guest.happy + (6 + def.appeal * 0.8) * rideFit(guest, thrill) * repeatFactor(guest, obj));
+      guest.visited = [...(guest.visited ?? []), obj.catalogId].slice(-MAX_VISITS);
     } else if (def.stall !== undefined) {
       guest.happy = Math.max(0, guest.happy - 6);
     }
@@ -160,6 +181,7 @@ function finishInteraction(guest: GuestState): void {
   guest.targetId = null;
   guest.target = null;
   guest.phase = "seeking";
+  guest.busy = 0;
 }
 
 function shouldLeave(guest: GuestState): boolean {
@@ -191,13 +213,19 @@ function despawnGuest(ctx: GameContext, guest: GuestState): void {
 }
 
 export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
+  if (!(dt > 0)) return;
+  const weather = weatherForDay(session.day);
   for (const guest of session.guests.values()) {
+    const ent = ctx.scene.entity.get(guest.id);
+    const pos: readonly [number, number, number] = ent?.position ?? ENTRANCE;
+    const activity = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
+    const comfort = activity !== undefined && distance2(pos[0], pos[2], activity.x, activity.z) <= 10 ? localComfort(activity) : 0;
     guest.hunger = Math.min(100, guest.hunger + HUNGER_RATE * dt);
-    guest.thirst = Math.min(100, guest.thirst + THIRST_RATE * dt);
+    guest.thirst = Math.min(100, guest.thirst + THIRST_RATE * (weather.thirst - Math.max(0, weather.thirst - 1) * comfort * 0.65) * dt);
     guest.souvenir = Math.min(1, guest.souvenir + 0.02 * dt);
     guest.happy = Math.max(
       0,
-      guest.happy - HAPPY_DRIFT * dt - session.litter * 0.002 * dt - needPressure(guest.hunger) * dt * 0.5 - needPressure(guest.thirst) * dt * 0.3,
+      guest.happy - HAPPY_DRIFT * (1 - comfort * 0.65) * dt - session.litter * 0.002 * dt - needPressure(guest.hunger) * dt * 0.5 - needPressure(guest.thirst) * dt * 0.3,
     );
     guest.litterTimer -= dt;
     if (guest.litterTimer <= 0) {
@@ -205,8 +233,14 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
       session.litter = Math.min(100, session.litter + 0.12);
     }
 
-    const ent = ctx.scene.entity.get(guest.id);
-    const pos: readonly [number, number, number] = ent?.position ?? ENTRANCE;
+    if (guest.targetId !== null && (activity === undefined || !operational(activity))) {
+      releaseOccupant(guest);
+      guest.targetId = null;
+      guest.target = null;
+      guest.phase = "seeking";
+      guest.busy = 0;
+      guest.happy = Math.max(0, guest.happy - 4);
+    }
 
     if (guest.phase === "busy") {
       guest.busy -= dt;
@@ -215,14 +249,8 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
     }
 
     if (guest.phase === "leaving") {
-      void pos;
       if (moveGuest(ctx, guest, ENTRANCE, dt)) despawnGuest(ctx, guest);
       continue;
-    }
-
-    if (guest.targetId !== null && !session.placed.has(guest.targetId)) {
-      guest.targetId = null;
-      guest.target = null;
     }
 
     if (guest.targetId === null) {
@@ -232,21 +260,23 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
       }
       const target = chooseTarget(guest, pos, tracks);
       if (target === null) {
-        guest.phase = "leaving";
+        guest.busy += dt;
+        guest.happy = Math.max(0, guest.happy - dt * 0.35);
+        if (guest.busy >= MAX_WAIT) guest.phase = "leaving";
         continue;
       }
       guest.targetId = target.id;
       guest.target = [target.x, 0, target.z];
       target.occupants += 1;
+      guest.busy = 0;
     }
 
     if (guest.target !== null) {
       const arrived = moveGuest(ctx, guest, guest.target, dt);
       if (arrived) {
         const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
-        const def = obj === undefined ? undefined : buildableDef(obj.catalogId);
         guest.phase = "busy";
-        guest.busy = def?.ride?.rideSeconds ?? STALL_SERVICE;
+        guest.busy = obj === undefined ? 0 : objectServiceSeconds(obj) * (hasPathAccess(obj) ? 1 : 1.5);
       }
     }
   }

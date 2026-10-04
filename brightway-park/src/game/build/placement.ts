@@ -84,8 +84,12 @@ export function placeObject(ctx: GameContext, catalogId: string, x: number, z: n
     stock: def.stall?.stock ?? 0,
     soldTotal: 0,
     occupants: 0,
+    wear: 0,
+    upgrade: null,
+    closed: false,
   };
   session.placed.set(id, placed);
+  session.layoutRevision += 1;
   for (const key of footprintCells(def, gx, gz)) session.occupied.set(key, id);
   ctx.scene.object.place(catalogId, cx, 0, cz, { instanceId: id });
   return placed;
@@ -98,6 +102,7 @@ export function removeObject(ctx: GameContext, instanceId: string): boolean {
     if (occ === instanceId) session.occupied.delete(key);
   }
   session.placed.delete(instanceId);
+  session.layoutRevision += 1;
   for (const guest of session.guests.values()) {
     if (guest.targetId === instanceId) {
       guest.targetId = null;

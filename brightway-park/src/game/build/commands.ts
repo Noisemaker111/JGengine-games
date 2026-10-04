@@ -8,6 +8,7 @@ import { BUILDABLES } from "../objects/catalog";
 import { archiveSave, savePark } from "../persistence";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
+import { repairCost, restockQuote, stockTarget, upgradeCost } from "../sim/operations";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -68,6 +69,60 @@ function pointerAction(ctx: GameContext, input: PointerInput): void {
 }
 
 export function registerBuildCommands(ctx: GameContext): void {
+  ctx.game.commands.define<{id: string}>("build.inspect", { apply(state, input) {
+    if (!session.started || session.gameOver || !session.placed.has(input.id)) return;
+    session.selectedTool = null; session.selectedObject = input.id; bump(state);
+  }});
+  const transact = (state: GameContext, cost: number, action: () => void): void => {
+    if (!session.started || session.gameOver) return;
+    if (!Number.isFinite(cost) || cost < 0 || session.cash < cost) {
+      pushToast("Not enough cash — close a ride for free refurbishment or sell a building", "bad", state.time.now());
+      bump(state); return;
+    }
+    session.cash -= cost; action(); savePark(state); bump(state);
+  };
+  ctx.game.commands.define<{key: "marketing" | "supply"; value: string}>("park.policy", { apply(state, input) {
+    if (!session.started || session.gameOver) return;
+    if (input.key === "marketing" && (input.value === "local" || input.value === "festival")) session.marketing = input.value;
+    else if (input.key === "supply" && (input.value === "lean" || input.value === "buffered")) session.supply = input.value;
+    else return;
+    savePark(state); bump(state);
+  }});
+  ctx.game.commands.define<{id: string; upgrade: "efficient" | "premium"}>("build.upgrade", { apply(state, input) {
+    const obj = session.placed.get(input.id);
+    if (!obj || obj.upgrade || !["efficient", "premium"].includes(input.upgrade)) return;
+    const def = buildableDef(obj.catalogId);
+    if (!def.ride && !def.stall) return;
+    transact(state, upgradeCost(obj), () => {
+      obj.upgrade = input.upgrade;
+      pushToast(`${def.label}: ${input.upgrade === "efficient" ? "efficient service" : "premium experience"}`, "good", state.time.now());
+    });
+  }});
+  ctx.game.commands.define<{id: string}>("build.repair", { apply(state, input) {
+    const obj = session.placed.get(input.id);
+    if (!obj || !buildableDef(obj.catalogId).ride || (obj.wear ?? 0) <= 0) return;
+    transact(state, repairCost(obj), () => { obj.wear = 0; pushToast("Mechanic finished repairs", "good", state.time.now()); });
+  }});
+  ctx.game.commands.define<{id: string}>("build.restock", { apply(state, input) {
+    const obj = session.placed.get(input.id);
+    if (!obj || !buildableDef(obj.catalogId).stall || obj.stock >= stockTarget(obj)) return;
+    transact(state, restockQuote(obj), () => { obj.stock = stockTarget(obj); pushToast("Rush delivery arrived · 25% surcharge", "info", state.time.now()); });
+  }});
+  ctx.game.commands.define<{id: string}>("build.toggle", { apply(state, input) {
+    if (!session.started || session.gameOver) return;
+    const obj = session.placed.get(input.id);
+    if (!obj || (!buildableDef(obj.catalogId).ride && !buildableDef(obj.catalogId).stall)) return;
+    obj.closed = !obj.closed;
+    if (obj.closed) {
+      for (const guest of session.guests.values()) if (guest.targetId === obj.id) {
+        guest.targetId = null; guest.target = null; guest.phase = "seeking"; guest.busy = 0;
+        guest.happy = Math.max(0, guest.happy - 4);
+      }
+      obj.occupants = 0;
+    }
+    pushToast(obj.closed ? "Closed · quarter upkeep, ride refurbishment underway" : "Reopened for visitors", "info", state.time.now());
+    savePark(state); bump(state);
+  }});
   ctx.game.commands.define<{reduced:boolean}>("park.motion", {apply(state,input){state.game.store.set("park.reduced-motion",input.reduced);}});
   ctx.game.commands.define("park.start", { apply(state) {
     session.started = true;
@@ -118,7 +173,7 @@ export function registerBuildCommands(ctx: GameContext): void {
       if (!session.started || session.gameOver) return;
       const placed = session.placed.get(input.id);
       if (placed === undefined) return;
-      const refund = Math.round(buildableDef(placed.catalogId).cost * 0.5);
+      const refund = Math.round((buildableDef(placed.catalogId).cost + (placed.upgrade ? upgradeCost(placed) : 0)) * 0.5);
       if (removeObject(state, input.id)) {
         session.cash += refund;
         if (session.selectedObject === input.id) session.selectedObject = null;

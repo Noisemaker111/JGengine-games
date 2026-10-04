@@ -5,6 +5,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Group, Mesh, Plane, Raycaster, TextureLoader, Vector2, Vector3 } from "three";
 import { session, type PlacedObject } from "../session";
 import { BUILDABLES } from "../objects/catalog";
+import { operational } from "../sim/operations";
 import { canPlace, footprintCells } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
@@ -19,10 +20,15 @@ function RideMotion({object}:{object:PlacedObject}) {
   const clock=useGameStore(ctx=>ctx.time);
   const reduced=useGameStore(ctx=>Boolean(ctx.game.store.get("park.reduced-motion")));
   const ref=useRef<Group>(null);
+  const animation=useRef<{last:number|null;elapsed:number}>({last:null,elapsed:0});
   const scene=useMemo(()=>{const copy=gltf.scene.clone();copy.traverse(n=>{if(n instanceof Mesh){n.castShadow=true;n.receiveShadow=true;}});return copy;},[gltf]);
   useFrame(()=>{
     const root=ref.current; if(!root)return;
-    const t=reduced?0:clock.now();
+    const now=clock.now(), state=animation.current;
+    if(state.last===null)state.elapsed=now;
+    else if(operational(object))state.elapsed+=Math.max(0,now-state.last);
+    state.last=now;
+    const t=reduced?0:state.elapsed;
     if(object.catalogId==="ride_carousel") root.rotation.y=t*.25;
     if(object.catalogId==="ride_ferris") {
       root.rotation.z=t*.09;

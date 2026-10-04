@@ -12,6 +12,7 @@ import { buildableDef } from "../objects/catalog";
 import { pushToast, session } from "../session";
 import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
 import { placedList } from "../build/placement";
+import { policyCost, stockTarget, weatherForDay } from "./operations";
 
 const BANKRUPT_LIMIT = 3;
 
@@ -49,7 +50,7 @@ export function restockCost(): number {
   for (const obj of session.placed.values()) {
     const def = buildableDef(obj.catalogId);
     if (def.stall === undefined) continue;
-    cost += (def.stall.stock - obj.stock) * def.stall.restock;
+    if (!obj.closed) cost += Math.max(0, stockTarget(obj) - obj.stock) * def.stall.restock;
   }
   return cost;
 }
@@ -57,15 +58,16 @@ export function restockCost(): number {
 function restockStalls(): void {
   for (const obj of session.placed.values()) {
     const def = buildableDef(obj.catalogId);
-    if (def.stall !== undefined) obj.stock = def.stall.stock;
+    if (def.stall !== undefined && !obj.closed) obj.stock = Math.max(obj.stock, stockTarget(obj));
   }
 }
 
 export function economyDayTick(ctx: GameContext): void {
   const metrics = currentMetrics();
   const restock = restockCost();
-  const total = metrics.dailyUpkeep + restock;
-  const settled = settleDailyUpkeep(session.ledger, session.cash, metrics.dailyUpkeep, restock);
+  const overhead = policyCost();
+  const total = metrics.dailyUpkeep + restock + overhead;
+  const settled = settleDailyUpkeep(session.ledger, session.cash, metrics.dailyUpkeep + overhead, restock);
   session.ledger = settled.ledger;
   session.cash = settled.cash;
   restockStalls();
@@ -95,6 +97,7 @@ export function economyDayTick(ctx: GameContext): void {
   }
 
   session.day += 1;
+  pushToast(`Tomorrow: ${weatherForDay(session.day).label}`, "info", now);
   session.guestsToday = 0;
   session.revenueToday = 0;
 }

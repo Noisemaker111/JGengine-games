@@ -25,6 +25,42 @@ afterEach(() => {
 const runner = () => createHeadlessRunner({ definition: game.game, content, loop, maxStepSeconds: 1 });
 
 describe("park saves and real command boundaries", () => {
+  test("paused management and operation policies survive reload; legacy parks retain safe defaults", () => {
+    const first = runner();
+    first.ui.invoke("park.start");
+    for (let frame = 0; frame < 20; frame++) first.step(1);
+    const ride = [...session.placed.values()].find(p => p.catalogId === "ride_carousel")!;
+    expect(ride.wear).toBeGreaterThan(0);
+    first.ui.invoke("pauseToggle");
+    const before = first.ctx.time.now();
+    first.ui.invoke("park.policy", { key: "marketing", value: "festival" });
+    first.ui.invoke("park.policy", { key: "supply", value: "buffered" });
+    first.ui.invoke("build.inspect", { id: ride.id });
+    first.ui.invoke("build.upgrade", { id: ride.id, upgrade: "efficient" });
+    first.ui.invoke("build.toggle", { id: ride.id });
+    expect(first.ctx.time.now()).toBe(before);
+    const cash = session.cash, wear = ride.wear;
+    const saved = snapshotPark(first.ctx);
+    const corrupted = structuredClone(saved);
+    corrupted.placed[0]!.wear = 101;
+    expect(decodeSave(JSON.stringify(corrupted))).toBeNull();
+    const second = runner();
+    expect(session.cash).toBe(cash);
+    expect(session.marketing).toBe("festival");
+    expect(session.supply).toBe("buffered");
+    expect(session.placed.get(ride.id)).toMatchObject({ upgrade: "efficient", closed: true, wear });
+    expect(second.ctx.time.isPaused()).toBe(true);
+    const legacy = structuredClone(saved);
+    delete legacy.policies;
+    for (const obj of legacy.placed) { delete obj.upgrade; delete obj.closed; delete obj.wear; }
+    for (const guest of legacy.guests) delete guest.state.visited;
+    records.set(SAVE_KEY, JSON.stringify(legacy));
+    runner();
+    expect(session.hasSave).toBe(true);
+    expect(session.marketing).toBe("local");
+    expect(session.supply).toBe("lean");
+  });
+
   test("menu blocks shortcuts; build, refund, ticket and occupied cells survive reload", () => {
     const first = runner();
     first.ui.invoke("pickCarousel");
