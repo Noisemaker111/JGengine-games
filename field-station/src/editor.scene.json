@@ -34,6 +34,69 @@
         "tint": "#7a5230",
         "seed": "bc"
       }
+    },
+    {
+      "id": "survey_station",
+      "kind": "survey_point",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 10
+      },
+      "color": "#e5d8b8",
+      "label": "Field notebook station",
+      "meta": {
+        "role": "station",
+        "triggerRadius": 3
+      }
+    },
+    {
+      "id": "survey_meadow",
+      "kind": "survey_point",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": 12
+      },
+      "color": "#b6bd70",
+      "label": "Meadow observation",
+      "meta": {
+        "role": "sample",
+        "sample": "meadow",
+        "triggerRadius": 3
+      }
+    },
+    {
+      "id": "survey_water",
+      "kind": "survey_point",
+      "position": {
+        "x": -8.5,
+        "y": 0,
+        "z": 8
+      },
+      "color": "#628f85",
+      "label": "Pond observation",
+      "meta": {
+        "role": "sample",
+        "sample": "water",
+        "triggerRadius": 3
+      }
+    },
+    {
+      "id": "survey_hazard",
+      "kind": "survey_point",
+      "position": {
+        "x": 14,
+        "y": 0,
+        "z": 12
+      },
+      "color": "#e58b44",
+      "label": "Scorched ground observation",
+      "meta": {
+        "role": "sample",
+        "sample": "hazard",
+        "triggerRadius": 2
+      }
     }
   ],
   "volumes": [
@@ -53,14 +116,14 @@
       },
       "label": "Lake (water studio)",
       "meta": {
-        "color": "#0d5273",
-        "shallowColor": "#43b0a4",
+        "color": "#204f61",
+        "shallowColor": "#628f85",
         "waveHeight": 0.07,
         "waveSpeed": 0.55,
         "waveScale": 0.6,
         "foam": 1,
         "opacity": 0.9,
-        "reflectivity": 0.35
+        "reflectivity": 0.45
       }
     },
     {
@@ -79,11 +142,11 @@
       },
       "label": "Yard turf (grass studio)",
       "meta": {
-        "density": 69,
-        "bladeHeight": 0.5,
-        "colorBase": "#567f39",
-        "colorTip": "#a3c25c",
-        "colorVariation": 0.3,
+        "density": 18,
+        "bladeHeight": 0.15,
+        "colorBase": "#526d39",
+        "colorTip": "#b0bc72",
+        "colorVariation": 0.4,
         "windStrength": 0.22,
         "windSpeed": 1.6,
         "windGust": 0.16,
@@ -107,11 +170,11 @@
       },
       "label": "Meadow (grass studio)",
       "meta": {
-        "density": 110,
-        "bladeHeight": 0.75,
-        "colorBase": "#3f6f37",
-        "colorTip": "#9ac25a",
-        "colorVariation": 0.45,
+        "density": 42,
+        "bladeHeight": 0.65,
+        "colorBase": "#466c3c",
+        "colorTip": "#b6bd70",
+        "colorVariation": 0.5,
         "windStrength": 0.35,
         "windSpeed": 1.8,
         "windGust": 0.18,
@@ -630,20 +693,50 @@
         "buildingSpacing": 0.55,
         "clusterStrength": 0.35,
         "coreMix": [
-          { "item": "tower", "weight": 5 },
-          { "item": "slab", "weight": 2 },
-          { "item": "shop", "weight": 1 }
+          {
+            "item": "tower",
+            "weight": 5
+          },
+          {
+            "item": "slab",
+            "weight": 2
+          },
+          {
+            "item": "shop",
+            "weight": 1
+          }
         ],
         "midMix": [
-          { "item": "tower", "weight": 2 },
-          { "item": "slab", "weight": 3 },
-          { "item": "rowhouse", "weight": 2 },
-          { "item": "shop", "weight": 1 }
+          {
+            "item": "tower",
+            "weight": 2
+          },
+          {
+            "item": "slab",
+            "weight": 3
+          },
+          {
+            "item": "rowhouse",
+            "weight": 2
+          },
+          {
+            "item": "shop",
+            "weight": 1
+          }
         ],
         "edgeMix": [
-          { "item": "slab", "weight": 2 },
-          { "item": "rowhouse", "weight": 3 },
-          { "item": "shop", "weight": 1 }
+          {
+            "item": "slab",
+            "weight": 2
+          },
+          {
+            "item": "rowhouse",
+            "weight": 3
+          },
+          {
+            "item": "shop",
+            "weight": 1
+          }
         ],
         "hedges": false,
         "driveways": false,
@@ -733,5 +826,25 @@
   "annotations": [],
   "prefabs": [],
   "collections": [],
-  "catalogs": []
+  "catalogs": [],
+  "environment": {
+    "source": {
+      "kind": "gradient",
+      "sky": "#9abdd1",
+      "ground": "#596345",
+      "sun": "#fff0cc",
+      "intensity": 0.8
+    },
+    "preset": "day",
+    "timeOfDay": false,
+    "horizonColor": "#e5d8b8",
+    "zenithColor": "#719db6",
+    "sunIntensity": 1.15,
+    "ambientIntensity": 0.65,
+    "fog": {
+      "near": 500,
+      "far": 2500,
+      "color": "#c3d3cf"
+    }
+  }
 }

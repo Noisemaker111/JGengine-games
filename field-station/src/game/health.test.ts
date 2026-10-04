@@ -13,14 +13,16 @@ import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 import { content } from "./content";
 import { loop } from "../loop";
 import { world, physics } from "../world";
+import { surveyLifecycle } from "./survey";
 
 describe("field-station health loop", () => {
   test("actual authored trigger loop drains, regenerates and respawns with full health", () => {
     const runner = createHeadlessRunner({
-      definition: defineGameDefinition({ name: "Studio health journey", assets: createAssetCatalog(), multiplayer: "off", world, physics }),
+      definition: defineGameDefinition({ name: "Studio health journey", assets: createAssetCatalog(), multiplayer: "off", world, physics, lifecycle: surveyLifecycle }),
       content, loop, player: { userId: "health-journey", isNew: true },
     });
     const { ctx } = runner;
+    ctx.game.commands.run("start", null);
     const id = ctx.player.userId;
     const spawn = ctx.scene.entity.get(id)!.position;
     const zone = findEditorVolume(editorLayers, "hazard_zone")!;

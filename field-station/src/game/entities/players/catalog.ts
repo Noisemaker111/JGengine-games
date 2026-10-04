@@ -11,8 +11,8 @@ export interface PlayerDef {
 
 export const player: PlayerDef = {
   id: "player",
-  name: "Player",
-  walkSpeed: 5.4,
+  name: "Field researcher",
+  walkSpeed: 1.6,
   regenPerSecond: 8,
   stats: { health: { max: 100 } },
 };

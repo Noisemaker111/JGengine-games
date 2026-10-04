@@ -45,9 +45,7 @@ export const world: EnvironmentWorldFeature = environment({
   // No code-side vegetation: the yard turf and the hero meadow are both authored grass_field
   // volumes in editor.scene.json, so grass coverage/density is a slider in the editor, not code.
   sky: sky({
-    preset: "day",
-    // The city districts span hundreds of meters; the default 260m fog would swallow them whole.
-    fog: { near: 500, far: 2500 },
+    ...content.sky,
     hazeStrength: 0.3,
     volumetricClouds: {
       coverage: 0.25,
