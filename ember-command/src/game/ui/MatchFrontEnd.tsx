@@ -70,9 +70,9 @@ export function MatchFrontEnd() {
           <li><strong>Advance</strong><span>Drag-select troops; [R], then right-click up the road.</span></li>
         </ol> : <div className="ec-results"><span>Battle time<strong>{battleTime(hud.elapsed)}</strong></span><span>Waves faced<strong>{hud.wavesSent}</strong></span><span>Troops standing<strong>{hud.playerUnits}</strong></span></div>}
         <button type="button" className="ec-primary" onClick={() => run(ready ? "match.start" : paused ? "match.resume" : "match.restart")}>{ready ? "Take command" : paused ? "Resume battle" : "Fight another skirmish"}</button>
-        <div className="ec-secondary"><button type="button" onClick={() => router.open("settings")}>Settings</button><button type="button" onClick={() => router.open("credits")}>Credits</button>{!ready && <button type="button" onClick={() => run("match.title")}>Return to title</button>}</div>
+        <div className="ec-secondary">{paused && <button type="button" onClick={() => commands.run("match.save", {})}>Save battle</button>}{hud.savedBattle && <button type="button" onClick={() => run("match.load")}>{ready ? "Continue saved battle" : "Restore saved battle"}</button>}<button type="button" onClick={() => router.open("settings")}>Settings</button><button type="button" onClick={() => router.open("credits")}>Credits</button>{!ready && <button type="button" onClick={() => run("match.title")}>Return to title</button>}</div>
         <p className="ec-record">Service record · {prefs.wins} victories / {prefs.losses} defeats{prefs.bestVictory ? ` · Best ${battleTime(prefs.bestVictory)}` : ""}</p>
-        {ready && <small className="ec-footnote">Single-player skirmish · Mouse & keyboard · Matches restart on reload; preferences and service record persist.</small>}
+        {ready && <small className="ec-footnote">Single-player skirmish · Mouse & keyboard · Save from Pause; Continue restores your battle, including cargo, doctrine and pressure.</small>}
       </>}
     </section>
   </div>;

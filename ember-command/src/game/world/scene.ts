@@ -3,6 +3,8 @@ import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
+import { battleSave } from "../persistence";
+import { publishHud } from "../systems";
 import { editorLayers } from "../../editorLayers";
 import { BUILDINGS, combatantDef, DECOR, isNode, NODES } from "../catalog";
 import { grantHeroXp, heroXpFor } from "../hero";
@@ -34,6 +36,10 @@ export function playerKeepPoint(): { x: number; z: number } {
 function onDied(ctx: GameContext, event: EntityDiedEvent): void {
   if (session.over) return;
   session.units.delete(event.instanceId);
+  if (event.catalogId === "hero") {
+    session.heroState.recoveryIn = 20;
+    hudStore.set({ notice: "Bram has fallen. Hold the line for 20 seconds, then revive him at the keep for 100 gold. His levels are lost." });
+  }
   const def = combatantDef(event.catalogId);
   if (def === null) return;
   if (def.id === "keep_enemy") {
@@ -74,8 +80,9 @@ export function setupSkirmish(ctx: GameContext): void {
   }
   resetSession();
   session.started = false;
+  const savedBattle = hudStore.get().savedBattle;
   hudStore.reset();
-  hudStore.set({ phase: "ready", gold: STARTING_GOLD, lumber: STARTING_LUMBER });
+  hudStore.set({ phase: "ready", gold: STARTING_GOLD, lumber: STARTING_LUMBER, savedBattle });
   setGamePhase(ctx, "menu");
   ctx.time.pause();
   ctx.game.economy.grant(ctx.player.userId, GOLD, STARTING_GOLD);
@@ -130,12 +137,45 @@ export function setupSkirmish(ctx: GameContext): void {
   }
 
   initResourceField(ctx.rng);
+  publishHud(ctx);
+  battleSave(ctx);
   if (wiredContexts.has(ctx)) return;
   wiredContexts.add(ctx);
   registerCommands(ctx);
+  ctx.game.commands.define("match.save", { apply: (state) => {
+    if (session.started && !session.over) {
+      void battleSave(state).save().then(() => hudStore.set({ savedBattle: true, notice: "Battle saved. Use Continue or Load battle to resume this checkpoint." })).catch(() => hudStore.set({ notice: "Saving failed. Check device storage and try again." }));
+    }
+    return state;
+  } });
+  ctx.game.commands.define("match.load", { apply: (state) => {
+    void battleSave(state).load().then((loaded) => {
+      if (!loaded) return;
+      session.paused = true;
+      state.time.pause();
+      setGamePhase(state, "paused");
+      publishHud(state);
+      hudStore.set({ phase: "paused", savedBattle: true, notice: "Battle restored and paused. Resume when your orders are ready." });
+    }).catch(() => hudStore.set({ notice: "Battle could not be loaded. Your current battle is unchanged." }));
+    return state;
+  } });
+  ctx.game.commands.define("match.recover", { apply: (state) => {
+    if (!session.started || session.paused || session.over || session.units.has("hero") || session.heroState.recoveryIn > 0 || state.game.economy.balance(state.player.userId, GOLD) < 100) return state;
+    const keep = [...session.units.values()].find((u) => u.catalogId === "keep_player");
+    const p = keep && state.scene.entity.get(keep.id)?.position;
+    if (!p) return state;
+    state.game.economy.charge(state.player.userId, GOLD, 100);
+    state.scene.entity.spawn("hero", { id: "hero", position: [p[0], 0, p[2] - 7], role: "npc" });
+    session.units.set("hero", { id: "hero", catalogId: "hero", faction: "player", kind: "unit", command: { kind: "idle" }, guardPoint: { x: p[0], z: p[2] - 7 }, leash: 14, attackCooldown: 0 });
+    session.heroState.abilityCooldown = 0;
+    publishHud(state);
+    hudStore.set({ notice: "Bram returns at level 1. Protect the depot to recover your wounded army." });
+    return state;
+  } });
   ctx.game.commands.define("match.start", { apply: (state) => {
     if (!session.started && !session.over) {
       session.started = true;
+      publishHud(state);
       hudStore.set({ phase: "playing" });
       setGamePhase(state, "playing");
       state.time.play();
@@ -154,6 +194,7 @@ export function setupSkirmish(ctx: GameContext): void {
   ctx.game.commands.define("match.resume", { apply: (state) => {
     if (session.started && !session.over) {
       session.paused = false;
+      publishHud(state);
       hudStore.set({ phase: "playing" });
       setGamePhase(state, "playing");
       state.time.play();

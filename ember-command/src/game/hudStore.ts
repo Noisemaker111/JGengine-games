@@ -13,6 +13,12 @@ export interface ArmyUnit {
 }
 
 export interface HudSnapshot {
+  doctrine: string | null;
+  nextWavePlan: string;
+  depotCount: number;
+  savedBattle: boolean;
+  recovery: boolean;
+  recoveryIn: number;
   elapsed: number;
   foodReserved: number;
   rallyArmed: boolean;
@@ -54,6 +60,12 @@ export interface HudSnapshot {
 }
 
 const initial: HudSnapshot = {
+  doctrine: null,
+  nextWavePlan: "Watch the war-road",
+  depotCount: 0,
+  savedBattle: false,
+  recovery: false,
+  recoveryIn: 0,
   elapsed: 0,
   foodReserved: 0,
   rallyArmed: false,
@@ -103,6 +115,12 @@ const listeners = new Set<() => void>();
 function changed(next: HudSnapshot): boolean {
   const p = snapshot;
   return (
+    p.doctrine !== next.doctrine ||
+    p.nextWavePlan !== next.nextWavePlan ||
+    p.depotCount !== next.depotCount ||
+    p.savedBattle !== next.savedBattle ||
+    p.recovery !== next.recovery ||
+    p.recoveryIn !== next.recoveryIn ||
     p.elapsed !== next.elapsed ||
     p.foodReserved !== next.foodReserved ||
     p.rallyArmed !== next.rallyArmed ||

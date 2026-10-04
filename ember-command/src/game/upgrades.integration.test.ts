@@ -52,11 +52,13 @@ describe("upgrade math", () => {
 
   test("Iron Weapons adds player damage; Iron Armor removes damage taken; enemy gets neither", () => {
     session.research.ranks.weapons = 2;
-    session.research.ranks.armor = 1;
+    session.research.ranks.armor = 0;
     // Player attacker: base 9 + 2×3 weapon = 15 onto an unarmoured enemy.
     expect(resolveDamage(9, "player", "enemy")).toBe(15);
-    // Enemy attacker onto the player: base 8 − 1×2 armor = 6 (enemy has no weapon upgrade).
+    session.research.ranks.weapons = 0;
+    session.research.ranks.armor = 1;
     expect(resolveDamage(8, "enemy", "player")).toBe(6);
+    expect(resolveDamage(9, "player", "enemy")).toBe(8);
   });
 
   test("a swing always chips at least 1 through heavy armor", () => {

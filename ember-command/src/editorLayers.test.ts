@@ -3,8 +3,9 @@ import { describe, expect, test } from "bun:test";
 import { editorLayers } from "./editorLayers";
 import { combatantDef, DECOR, isNode } from "./game/catalog";
 
-function catalogId(marker: { catalogId?: string }): string {
-  return marker.catalogId ?? "";
+function catalogId(marker: { catalogId?: string; meta?: unknown }): string {
+  const meta = marker.meta as { catalogId?: string } | undefined;
+  return marker.catalogId ?? meta?.catalogId ?? "";
 }
 
 describe("authored skirmish scene", () => {
@@ -36,6 +37,15 @@ describe("authored skirmish scene", () => {
     const peasants = editorLayers.markers.filter((m) => catalogId(m) === "peasant");
     expect(nodes.length).toBeGreaterThanOrEqual(3);
     expect(peasants.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("offers a guarded forward gold and timber route", () => {
+    expect(editorLayers.markers.find(m => m.id === "goldmine_western_pass")?.meta?.catalogId).toBe("goldmine");
+    expect(editorLayers.markers.find(m => m.id === "woods_western_pass")?.meta?.catalogId).toBe("woods");
+    expect(editorLayers.markers.find(m => m.id === "grunt_pass_guard")?.meta?.stance).toBe("guard");
+    const route = editorLayers.paths.find(p => p.id === "western-supply-route");
+    expect(route?.points.length).toBeGreaterThanOrEqual(3);
+    expect(route?.width).toBeGreaterThan(0);
   });
 
   test("enemy units carry a guard or assault stance", () => {

@@ -31,8 +31,8 @@ export const ARMOR_REDUCE_PER_RANK = 2;
 export const UPGRADES: Record<string, UpgradeDef> = {
   weapons: {
     id: "weapons",
-    label: "Iron Weapons",
-    blurb: `+${WEAPON_DMG_PER_RANK} dmg`,
+    label: "Assault Doctrine",
+    blurb: `+${WEAPON_DMG_PER_RANK} dmg, −5% speed/rank`,
     maxRank: 3,
     requires: "barracks",
     cost: (have) => ({ gold: 90 + have * 70, lumber: 40 + have * 30 }),
@@ -40,8 +40,8 @@ export const UPGRADES: Record<string, UpgradeDef> = {
   },
   armor: {
     id: "armor",
-    label: "Iron Armor",
-    blurb: `-${ARMOR_REDUCE_PER_RANK} dmg taken`,
+    label: "Bulwark Doctrine",
+    blurb: `−${ARMOR_REDUCE_PER_RANK} incoming, −1 outgoing/rank`,
     maxRank: 3,
     requires: "barracks",
     cost: (have) => ({ gold: 80 + have * 70, lumber: 50 + have * 30 }),
@@ -98,5 +98,22 @@ function armorReduction(faction: Faction): number {
 /** Effective damage of a swing from `attacker` onto `defender` after both sides' upgrades. Every hit
  * chips at least 1 so armour can soften but never fully negate a blow. */
 export function resolveDamage(base: number, attacker: Faction, defender: Faction): number {
-  return Math.max(1, base + weaponBonus(attacker) - armorReduction(defender));
+  return Math.max(1, base + weaponBonus(attacker) - (attacker === "player" ? upgradeRank("armor") : 0) - armorReduction(defender));
+}
+
+export function doctrine(): string | null {
+  if (upgradeHave("weapons") > 0) return "weapons";
+  if (upgradeHave("armor") > 0) return "armor";
+  return null;
+}
+
+export function movementSpeed(base: number, faction: Faction): number {
+  return base * (faction === "player" ? 1 - upgradeRank("weapons") * 0.05 : 1);
+}
+
+export function matchupDamage(base: number, attackerId: string, defenderId: string): number {
+  if (attackerId === "reaver" && (defenderId === "guard_tower" || defenderId === "barracks" || defenderId === "farm" || defenderId === "keep_player")) return base * 2;
+  if (attackerId === "rifleman" && defenderId === "reaver") return base * 1.5;
+  if (attackerId === "footman" && defenderId === "grunt") return base * 1.25;
+  return base;
 }

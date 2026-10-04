@@ -6,7 +6,7 @@ import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { entityModels } from "./game/models";
-import { isPlayerSelectable } from "./game/session";
+import { isPlayerSelectable, session } from "./game/session";
 import { systems } from "./game/systems";
 import { GameUI } from "./game/ui/GameUI";
 import { EmberCommandWorldOverlay } from "./game/ui/WorldOverlay";
@@ -21,6 +21,7 @@ export const game = defineGame({
   input: keybinds,
   server: { mode: "single" },
   save: "none",
+  persist: false,
   content,
   systems,
   loop: { onInit, onNewPlayer, onTick },
@@ -32,6 +33,8 @@ export const game = defineGame({
   // The three views a reviewer asks about, pinned to authored markers so they frame the same thing
   // after the map moves — `bun run shoot ember-command --view keep-enemy`.
   capture: {
+    play: ["match.start"],
+    probe: (ctx) => ({ elapsed: session.elapsed, clock: ctx.time.now(), paused: Number(ctx.time.isPaused()), started: Number(session.started), gold: ctx.game.economy.balance(ctx.player.userId, "gold"), units: session.units.size, waves: session.enemyWave.sent }),
     views: {
       "keep-player": {
         description: "The Vanguard keep and its opening formation.",
@@ -58,9 +61,7 @@ export const game = defineGame({
   // Faction-coloured health bars (green Vanguard / red Marauders) live in the world overlay so
   // friend/foe reads at a glance — the shell's built-in world bars are always red.
   WorldOverlay: EmberCommandWorldOverlay,
-  // Soft shadows read well but are the dominant cost under software WebGL; a single 1024 map keeps
-  // the look affordable. Real-GPU play is nowhere near this budget.
-  shadows: true,
+  shadows: false,
   lighting: {
     ambient: { color: "#b3c0bc", intensity: 0.6 },
     hemisphere: { skyColor: "#bfd9d5", groundColor: "#686747", intensity: 0.65 },
@@ -69,7 +70,7 @@ export const game = defineGame({
         color: "#ffe1ad",
         intensity: 1.65,
         position: [-36, 48, 26],
-        castShadow: true,
+        castShadow: false,
         shadowMapSize: 1024,
         shadowCameraSize: 60,
       },
