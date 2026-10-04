@@ -16,7 +16,7 @@ import {
 import { CLIFF_MAPS, GROUND_MAPS } from "./game/assets";
 import { FERRALON } from "./game/palette";
 import { SETTLEMENT_KITS } from "./game/world/buildingKit";
-import { ROUTES, SPUR_ROUTES, SIDE_POIS, poiFlattenMasks, roadPathProfiles } from "./game/world/level";
+import { ROUTES, SPUR_ROUTES, SIDE_POIS, authoredScene, poiFlattenMasks, roadPathProfiles } from "./game/world/level";
 import { WORLD_BOUNDS, ZONES } from "./game/world/zones";
 
 export const FERRALON_SEED = "ferralon-arid-badlands-2026";
@@ -288,6 +288,9 @@ export const world: WorldFeature = environment({
   }),
   structures: ZONES.filter((zone) => zone.settlement !== undefined).map((zone) => {
     const settlement = zone.settlement!;
+    const kitId = authoredScene.volumes.find((volume) => volume.id === `zone_${zone.id}`)?.meta?.settlementKit ?? settlement.style;
+    const kit = typeof kitId === "string" ? SETTLEMENT_KITS[kitId] : undefined;
+    if (kit === undefined) throw new Error(`editor.scene.json: invalid settlement kit for ${zone.id}`);
     return building({
       position: [zone.center.x, zone.center.z],
       count: settlement.count,
@@ -296,7 +299,7 @@ export const world: WorldFeature = environment({
       storyHeight: 3,
       spacing: 5,
       style: settlement.style,
-      kit: SETTLEMENT_KITS[settlement.style],
+      kit,
       ...(settlement.palette !== undefined ? { palette: settlement.palette } : {}),
       seed: `${FERRALON_SEED}-${zone.id}`,
     });

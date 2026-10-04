@@ -2,10 +2,14 @@ import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { AMMO_STAT_IDS, type AmmoPool } from "./ammo";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
-import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import { setGamePhase } from "./phase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
-import { gunById, rollGun, startReload, reservePhase } from "./handroll";
+import { gunById, rollGun, toggleReload, cancelReload, reservePhase } from "./handroll";
+import { switchWeapon } from "./combatFeel";
+import { rememberGun } from "./lootPersistence";
+import { CONTRACT_GUNS, shieldProfileById, shieldCapacityFor } from "./progression";
+import { relayDistance, relayStore } from "./relay";
 import { player } from "./entities/players/catalog";
 import { session } from "./session";
 import {
@@ -20,6 +24,7 @@ import {
   talentRanksStore,
   travelOpenStore,
   vendorOpenStore,
+  progressionStore,
 } from "./stores";
 import { TRAVEL_STATIONS } from "./world/sites";
 import { zoneLevelAt } from "./world/zones";
@@ -128,6 +133,7 @@ function openRedChest(ctx: GameContext, instanceId: string): void {
   const chestLevel = Math.max(playerLevel(ctx), zoneLevelAt(at[0], at[2]));
   for (let roll = 0; roll < 2; roll += 1) {
     const gun = rollGun(chestRng, chestLevel, { luck: 4 });
+    rememberGun(ctx, gun.id);
     ctx.scene.worldItem.spawn({
       itemId: gun.id,
       position: [at[0] + 0.8 + roll * 0.8, at[1], at[2] + 0.9],
@@ -142,9 +148,10 @@ function openAmmoChest(ctx: GameContext, instanceId: string): void {
   if (!claimChest(ctx, instanceId)) return;
   const object = ctx.scene.object.get(instanceId);
   const at = object?.position ?? [0, 0, 0];
-  const pools: readonly AmmoPool[] = ["pistol", "smg", "shotgun", "rifle"];
+  const selected = gunById(selectedGunId(ctx) ?? "");
+  const pools: readonly AmmoPool[] = ["pistol", selected?.ammo === "pistol" ? "rifle" : selected?.ammo ?? "rifle"];
   for (let index = 0; index < 2; index += 1) {
-    const pool = pools[Math.floor(chestRng() * pools.length)]!;
+    const pool = pools[index]!;
     ctx.scene.worldItem.spawn({
       itemId: `ammo_${pool}_pack`,
       position: [at[0] + 0.6 + index * 0.7, at[1], at[2] + 0.8],
@@ -171,15 +178,18 @@ export function registerCommands(ctx: GameContext): void {
       if (itemId === null) return;
       const gun = gunById(itemId);
       if (gun === undefined) return;
-      startReload(state, gun);
+      toggleReload(state, gun);
     },
   });
 
   for (const slot of [0, 1, 2, 3]) {
     ctx.game.commands.define(`selectSlot${slot + 1}`, {
       apply(state: GameContext) {
+        const previous = gunById(selectedGunId(state) ?? "");
+        if (previous !== undefined) cancelReload(state, previous);
         session.selectSlot(state, slot);
         noteEquipped(selectedGunId(state));
+        switchWeapon(state, gunById(selectedGunId(state) ?? "") ?? null);
       },
     });
   }
@@ -267,6 +277,7 @@ export function registerCommands(ctx: GameContext): void {
         return;
       }
       const gun = rollGun(chestRng, playerLevel(state), { luck: 6 });
+      rememberGun(state, gun.id);
       const playerEntity = state.scene.entity.get(userId);
       const at = playerEntity?.position ?? [0, 0, 0];
       state.scene.worldItem.spawn({
@@ -366,6 +377,50 @@ export function registerCommands(ctx: GameContext): void {
       const open = skillsOpenStore.read(state);
       if (open) skillsOpenStore.clear(state);
       else skillsOpenStore.write(state, true);
+    },
+  });
+
+  ctx.game.commands.define<{ gunId?: string }>("progression.claimGun", {
+    apply(state: GameContext, input) {
+      const progress = progressionStore.read(state);
+      const relay = relayStore.read(state);
+      if (!relay.rewarded || progress.contractGun !== null) return;
+      if (relay.phase !== "won" && (relayDistance(state) > 3.8 || relay.phase === "defend" || relay.phase === "upload")) return;
+      const gun = CONTRACT_GUNS.find((entry) => entry.id === input.gunId);
+      if (gun === undefined) return;
+      const slots = state.player.inventory.state("hotbar").slots;
+      const slot = slots.findIndex((entry) => entry === null);
+      const position = state.scene.entity.get(state.player.userId)?.position;
+      if (position === undefined) return;
+      if (slot >= 0) {
+        if (state.player.inventory.put("hotbar", gun.id, 1, { slot }).status !== "ok") return;
+      } else {
+        state.scene.worldItem.spawn({ itemId: gun.id, position, rarity: gun.rarity, baseType: gun.family, source: "contract" });
+      }
+      rememberGun(state, gun.id);
+      progressionStore.write(state, { ...progress, contractGun: gun.id });
+      state.scene.entity.stats.delta(state.player.userId, AMMO_STAT_IDS[gun.ammo], gun.ammo === "shotgun" ? 8 : 20);
+      state.scene.entity.floatText({ instanceId: state.player.userId, text: `${gun.name.toUpperCase()} SECURED`, kind: "pickup" });
+      void state.game.save?.checkpoint();
+    },
+  });
+
+  ctx.game.commands.define<{ profileId?: string }>("progression.shield", {
+    apply(state: GameContext, input) {
+      const relay = relayStore.read(state);
+      if (relayDistance(state) > 3.8 || relay.phase === "defend" || relay.phase === "upload" || reservePhase(state) !== "up") return;
+      const profile = shieldProfileById(input.profileId ?? "");
+      if (profile === undefined) return;
+      const progress = progressionStore.read(state);
+      if (profile.id === progress.shieldProfile) return;
+      const shield = state.scene.entity.stats.get(state.player.userId, "shield");
+      if (shield === null || shield.max <= 0) return;
+      const max = shieldCapacityFor(shield.max, progress.shieldProfile, profile.id);
+      const current = max * shield.current / shield.max;
+      state.scene.entity.stats.set(state.player.userId, "shield", { max, current });
+      progressionStore.write(state, { ...progress, shieldProfile: profile.id });
+      state.scene.entity.floatText({ instanceId: state.player.userId, text: `${profile.name.toUpperCase()} SHIELD`, kind: "pickup" });
+      void state.game.save?.checkpoint();
     },
   });
 

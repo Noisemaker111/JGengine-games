@@ -18,13 +18,14 @@
       "id": "rustflat_debris_0",
       "kind": "prop",
       "position": {
-        "x": -512.0428359926057,
+        "x": -519,
         "y": 0,
-        "z": 594.1498784460061
+        "z": 589
       },
-      "rotationY": 6.1370745382910155,
+      "rotationY": 0,
       "meta": {
-        "catalogId": "cover_crate"
+        "catalogId": "cover_crate",
+        "verticalOffset": -0.5
       }
     },
     {
@@ -44,26 +45,28 @@
       "id": "rustflat_debris_2",
       "kind": "prop",
       "position": {
-        "x": -509.24733458882764,
+        "x": -515,
         "y": 0,
-        "z": 595.2403870862676
+        "z": 596
       },
-      "rotationY": 5.109029883144655,
+      "rotationY": 0,
       "meta": {
-        "catalogId": "cover_crate"
+        "catalogId": "cover_crate",
+        "verticalOffset": -0.5
       }
     },
     {
       "id": "rustflat_debris_3",
       "kind": "prop",
       "position": {
-        "x": -508.15071757594825,
+        "x": -506,
         "y": 0,
-        "z": 596.3881150678164
+        "z": 600
       },
-      "rotationY": 3.329096805101756,
+      "rotationY": 0,
       "meta": {
-        "catalogId": "cover_crate"
+        "catalogId": "cover_crate",
+        "verticalOffset": -0.5
       }
     },
     {
@@ -213,9 +216,9 @@
       "id": "rustflat_tree_spawn",
       "kind": "prop",
       "position": {
-        "x": -512,
+        "x": -525,
         "y": 0,
-        "z": 588
+        "z": 585
       },
       "rotationY": 0,
       "meta": {
@@ -5252,9 +5255,9 @@
       "id": "chest_rustflat_waste_ammo_1",
       "kind": "chest",
       "position": {
-        "x": -540,
+        "x": -487,
         "y": 0,
-        "z": 530
+        "z": 590
       },
       "color": "#94a3b8",
       "label": "ammo chest",
@@ -5772,6 +5775,193 @@
       "label": "Harvest turbine C",
       "meta": {
         "catalogId": "wind_turbine"
+      }
+    },
+    {
+      "id": "dead_air_relay",
+      "kind": "objective",
+      "position": {
+        "x": -505,
+        "y": 0,
+        "z": 581
+      },
+      "color": "#e4a358",
+      "label": "Dead Air copper carrier",
+      "meta": {
+        "radius": 22
+      }
+    },
+    {
+      "id": "dead_air_cover_west_a",
+      "kind": "prop",
+      "position": {
+        "x": -517,
+        "y": 0,
+        "z": 579
+      },
+      "label": "West reload shelter",
+      "meta": {
+        "catalogId": "reload_baffle",
+        "verticalOffset": -0.5
+      }
+    },
+    {
+      "id": "dead_air_cover_west_b",
+      "kind": "prop",
+      "position": {
+        "x": -517,
+        "y": 0,
+        "z": 573
+      },
+      "meta": {
+        "catalogId": "reload_baffle",
+        "verticalOffset": -0.5
+      }
+    },
+    {
+      "id": "dead_air_cover_north",
+      "kind": "prop",
+      "position": {
+        "x": -502,
+        "y": 0,
+        "z": 569
+      },
+      "label": "North sightline break",
+      "meta": {
+        "catalogId": "reload_baffle",
+        "verticalOffset": -0.5
+      }
+    },
+    {
+      "id": "dead_air_cover_east",
+      "kind": "prop",
+      "position": {
+        "x": -493,
+        "y": 0,
+        "z": 582
+      },
+      "label": "East crouch cover",
+      "meta": {
+        "catalogId": "low_cover",
+        "verticalOffset": -0.5
+      }
+    },
+    {
+      "id": "dead_air_cover_south",
+      "kind": "prop",
+      "position": {
+        "x": -504,
+        "y": 0,
+        "z": 590
+      },
+      "meta": {
+        "catalogId": "low_cover",
+        "verticalOffset": -0.5
+      }
+    },
+    {
+      "id": "dead_air_spawn_1_0",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -510,
+        "y": 0,
+        "z": 565
+      },
+      "label": "North claw rush",
+      "meta": {
+        "wave": 1,
+        "order": 0,
+        "catalogId": "husk"
+      }
+    },
+    {
+      "id": "dead_air_spawn_1_1",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -480,
+        "y": 0,
+        "z": 577
+      },
+      "label": "East claw flank",
+      "meta": {
+        "wave": 1,
+        "order": 1,
+        "catalogId": "husk"
+      }
+    },
+    {
+      "id": "dead_air_spawn_2_0",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -525,
+        "y": 0,
+        "z": 570
+      },
+      "label": "West shelter pressure",
+      "meta": {
+        "wave": 2,
+        "order": 0,
+        "catalogId": "husk"
+      }
+    },
+    {
+      "id": "dead_air_spawn_2_1",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -489,
+        "y": 0,
+        "z": 563
+      },
+      "label": "North rifle lane",
+      "meta": {
+        "wave": 2,
+        "order": 1,
+        "catalogId": "marauder"
+      }
+    },
+    {
+      "id": "dead_air_spawn_3_0",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -522,
+        "y": 0,
+        "z": 561
+      },
+      "label": "West claw lane",
+      "meta": {
+        "wave": 3,
+        "order": 0,
+        "catalogId": "husk"
+      }
+    },
+    {
+      "id": "dead_air_spawn_3_1",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -480,
+        "y": 0,
+        "z": 572
+      },
+      "label": "East rifle flank",
+      "meta": {
+        "wave": 3,
+        "order": 1,
+        "catalogId": "marauder"
+      }
+    },
+    {
+      "id": "dead_air_spawn_3_2",
+      "kind": "dead_air_spawn",
+      "position": {
+        "x": -498,
+        "y": 0,
+        "z": 557
+      },
+      "label": "North armored suppression",
+      "meta": {
+        "wave": 3,
+        "order": 2,
+        "catalogId": "loader"
       }
     }
   ],
@@ -6386,7 +6576,8 @@
       "label": "Cores Blight — Ember Gate",
       "meta": {
         "zoneId": "cores_blight",
-        "level": 24
+        "level": 24,
+        "settlementKit": "reactor"
       }
     },
     {
@@ -9554,6 +9745,72 @@
       "meta": {
         "from": "glasswind_flats",
         "to": "poi_wreck_field"
+      }
+    },
+    {
+      "id": "dead_air_west_route",
+      "kind": "tactical_route",
+      "points": [
+        {
+          "x": -506,
+          "y": 0,
+          "z": 592
+        },
+        {
+          "x": -522,
+          "y": 0,
+          "z": 589
+        },
+        {
+          "x": -522,
+          "y": 0,
+          "z": 574
+        },
+        {
+          "x": -509,
+          "y": 0,
+          "z": 573
+        }
+      ],
+      "width": 2.8,
+      "color": "#b98a61",
+      "label": "Protected reload loop",
+      "meta": {
+        "role": "reload",
+        "objectiveId": "dead_air_relay"
+      }
+    },
+    {
+      "id": "dead_air_east_route",
+      "kind": "tactical_route",
+      "points": [
+        {
+          "x": -505,
+          "y": 0,
+          "z": 588
+        },
+        {
+          "x": -487,
+          "y": 0,
+          "z": 590
+        },
+        {
+          "x": -485,
+          "y": 0,
+          "z": 578
+        },
+        {
+          "x": -497,
+          "y": 0,
+          "z": 570
+        }
+      ],
+      "width": 3.5,
+      "color": "#dbb865",
+      "label": "Exposed ammunition flank",
+      "meta": {
+        "role": "resupply",
+        "objectiveId": "dead_air_relay"
       }
     }
   ],

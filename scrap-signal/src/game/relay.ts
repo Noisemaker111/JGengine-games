@@ -1,14 +1,16 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { defineStore } from "@jgengine/core/store/defineStore";
-import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase } from "@jgengine/core/game/gamePhase";
+import { setGamePhase } from "./phase";
 import { rememberHome } from "./entities/enemies/ai";
 import { reservePhase } from "./handroll";
 import { activeCharacter } from "./characters";
+import { DEAD_AIR_SITE, DEAD_AIR_SPAWNS } from "./world/level";
 
 /** Fixed authored location; independent of capture-time spawn overrides. */
-export const RELAY = { x: -505, z: 581, radius: 22, seconds: 150, uploadSeconds: 6 };
-const WAVES = [["ripper_pup", "ripper_pup"], ["bruiser_brat", "bruiser_brat"], ["husk", "ripper_pup", "bruiser_brat"]] as const;
+export const RELAY = { ...DEAD_AIR_SITE, seconds: 150, uploadSeconds: 6 };
+const WAVE_COUNT = 3;
 export interface RelayState {
   phase: "idle" | "defend" | "upload" | "won" | "lost";
   wave: number;
@@ -26,14 +28,12 @@ export function relayDistance(ctx: GameContext): number {
 }
 
 function spawnWave(ctx: GameContext, state: RelayState, wave: number): void {
-  const enemies = WAVES[wave - 1]!.map((catalogId, index) => {
-    const angle = -Math.PI / 2 + index * Math.PI * 0.7;
-    const x = RELAY.x + Math.cos(angle) * 11;
-    const z = RELAY.z + Math.sin(angle) * 11;
+  const enemies = DEAD_AIR_SPAWNS.filter((spawn) => spawn.wave === wave).map((spawn) => {
+    const { catalogId, x, z, order } = spawn;
     const position: [number, number, number] = [x, ctx.world.groundHeightAt(x, z), z];
-    const id = `dead_air_${wave}_${index}`;
+    const id = `dead_air_${wave}_${order}`;
     ctx.scene.entity.spawn(catalogId, { id, position });
-    rememberHome(ctx, id, position);
+    rememberHome(ctx, id, position, 1);
     return id;
   });
   relayStore.write(ctx, { ...state, phase: "defend", wave, enemies, upload: 0 });
@@ -71,7 +71,7 @@ export function tickRelay(ctx: GameContext, dt: number): void {
   const upload = state.phase === "upload" && relayDistance(ctx) <= RELAY.radius ? state.upload + dt : state.upload;
   const next = { ...state, remaining, upload };
   if (upload >= RELAY.uploadSeconds) {
-    if (state.wave === WAVES.length) finish(ctx, next, true, "Coretown hears you. The salvage carrier is back on the air.");
+    if (state.wave === WAVE_COUNT) finish(ctx, next, true, "Coretown hears you. The salvage carrier is back on the air.");
     else spawnWave(ctx, next, state.wave + 1);
   } else relayStore.write(ctx, next);
 }

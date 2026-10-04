@@ -2,7 +2,7 @@ import { findEditorMarker, normalizeEditorLayers } from "@jgengine/core/editor/d
 import type { EditorDocument, EditorLayersInput, EditorPath } from "@jgengine/core/editor/index";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import {
-  placeAuthoredObjectsFromDocument,
+  placeAuthoredObjects,
   resolveAuthoredObjects,
 } from "@jgengine/core/world/authoredObjects";
 import type { TerrainPathProfile } from "@jgengine/core/world/pathTerrain";
@@ -67,6 +67,37 @@ const SIDE_POI_META: readonly SidePoiMeta[] = [
 
 /** The authored scene document: placed level props (markers) and the road/spur network (paths). */
 export const authoredScene: EditorDocument = normalizeEditorLayers(sceneJson as unknown as EditorLayersInput);
+
+const relayMarker = findEditorMarker(authoredScene, "dead_air_relay");
+if (relayMarker === undefined || typeof relayMarker.meta?.radius !== "number") {
+  throw new Error("editor.scene.json: Dead Air requires an objective marker with meta.radius");
+}
+
+export const DEAD_AIR_SITE = {
+  x: relayMarker.position.x,
+  z: relayMarker.position.z,
+  radius: relayMarker.meta.radius,
+};
+
+export interface DeadAirSpawn {
+  id: string;
+  wave: number;
+  order: number;
+  catalogId: string;
+  x: number;
+  z: number;
+}
+
+export const DEAD_AIR_SPAWNS: readonly DeadAirSpawn[] = authoredScene.markers
+  .filter((marker) => marker.kind === "dead_air_spawn")
+  .map((marker) => {
+    const { wave, order, catalogId } = marker.meta ?? {};
+    if (!Number.isInteger(wave) || !Number.isInteger(order) || typeof catalogId !== "string") {
+      throw new Error(`editor.scene.json: invalid Dead Air spawn "${marker.id}"`);
+    }
+    return { id: marker.id, wave: wave as number, order: order as number, catalogId, x: marker.position.x, z: marker.position.z };
+  })
+  .sort((a, b) => a.wave - b.wave || a.order - b.order);
 
 function requirePoiMarker(id: string) {
   const marker = findEditorMarker(authoredScene, id);
@@ -195,7 +226,9 @@ export interface PlacedPiece {
 }
 
 /** Every placed level prop, resolved from the authored document (`catalogId` / `meta.catalogId`). */
-export const AUTHORED_PIECES: readonly PlacedPiece[] = resolveAuthoredObjects(authoredScene).map((object) => ({
+const authoredProps = resolveAuthoredObjects(authoredScene, { excludeKinds: ["mob", "boss", "dead_air_spawn"] });
+
+export const AUTHORED_PIECES: readonly PlacedPiece[] = authoredProps.map((object) => ({
   catalogId: object.catalogId,
   x: object.x,
   z: object.z,
@@ -219,9 +252,9 @@ export const NPC_PLACEMENTS: readonly { id: string; name: string; x: number; z: 
 );
 
 export function placeLevel(ctx: GameContext): void {
-  placeAuthoredObjectsFromDocument(
+  placeAuthoredObjects(
     ctx.scene.object,
-    authoredScene,
+    authoredProps,
     (x, z) => ctx.world.groundHeightAt(x, z),
     { verticalOffset: 0.5 },
   );

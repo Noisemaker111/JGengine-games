@@ -2,7 +2,8 @@ import { useEntityStat, useGameStore, useInventory, usePlayer } from "@jgengine/
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { AMMO_LABELS, AMMO_STAT_IDS } from "../../ammo";
-import { gunById, isReloading, magLoaded, type GunDef } from "../../handroll";
+import { gunById, isReloading, magLoaded, reloadFraction, type GunDef } from "../../handroll";
+import { HANDLING, handlingView } from "../../combatFeel";
 import { ELEMENT_COLORS, RARITY_COLORS } from "../../palette";
 import { lastPickupStore, selectedSlotStore } from "../../stores";
 
@@ -32,6 +33,8 @@ export function AmmoPlate() {
   }
   const loaded = magLoaded(ctx, gun);
   const reloading = isReloading(ctx, gun);
+  const progress = reloadFraction(ctx, gun);
+  const handling = handlingView(ctx);
 
   return (
     <div className="scrap-scrim-corner flex flex-col items-end gap-0.5 pl-16 pt-10">
@@ -62,8 +65,10 @@ export function AmmoPlate() {
         </span>
       </div>
       <div className="text-[10px] font-semibold uppercase tracking-wider text-stone-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-        {reloading ? "RELOADING…" : `${AMMO_LABELS[gun.ammo]} ammo · [R] reload`} · ✜ {Math.round(grenades?.current ?? 0)}
+        {reloading ? `RELOAD ${Math.round(progress * 100)}% · ${loaded > 0 ? "fire cancels" : "seek cover"} · R cancel` : `${AMMO_LABELS[gun.ammo]} · ${gun.auto ? "hold fire" : "click fire"} · R reload`} · ✜ {Math.round(grenades?.current ?? 0)}
       </div>
+      {reloading ? <div role="progressbar" aria-label="Weapon reload" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} className="h-1 w-44 bg-stone-900/90"><div className="h-full bg-amber-300" style={{ width: `${progress * 100}%` }} /></div> : null}
+      <div className="text-[10px] font-bold uppercase tracking-wider text-amber-200">{handling.sprinting ? "SPRINT · weapon lowered" : handling.aiming ? `${handling.crouching ? "BRACED" : "AIMING"} · precision / slower movement` : "V aim · C brace · F trigger"}</div>
     </div>
   );
 }
@@ -126,6 +131,12 @@ export function ItemCard() {
         <span className="text-right tabular-nums">{(1000 / gun.weapon.fireIntervalMs).toFixed(1)}/s</span>
         <span>Magazine</span>
         <span className="text-right tabular-nums">{gun.magSize}</span>
+        <span>Reload</span>
+        <span className="text-right tabular-nums">{(gun.reloadMs / 1000).toFixed(2)}s</span>
+        <span>Handling</span>
+        <span className="text-right">{gun.auto ? "held / burst" : "single click"}</span>
+        <span>Aim spread</span>
+        <span className="text-right tabular-nums">{(gun.weapon.spread * HANDLING[gun.family].aim).toFixed(1)}°</span>
         <span>Crit</span>
         <span className="text-right tabular-nums">{Math.round(gun.weapon.critChance * 100)}% ×{gun.weapon.critMult}</span>
         {gun.element !== "none" ? (

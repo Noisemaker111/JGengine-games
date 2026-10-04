@@ -1,5 +1,8 @@
 import type { ItemUseHandler } from "@jgengine/core/item/use";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { SettleResult } from "@jgengine/core/combat/projectiles";
+import { resolveAreaTargets, type EffectResult } from "@jgengine/core/combat/effects";
+import { canTrigger, handledAim, handlingView, noteHandledShot, spendShotCadence } from "../combatFeel";
 import { seededRng } from "@jgengine/core/random/rng";
 import { cameraShake } from "@jgengine/shell/camera";
 import { AMMO_LABELS } from "../ammo";
@@ -9,6 +12,7 @@ import { noteHit, noteShot } from "../feel";
 import { playHit, playShot } from "../audio/drive";
 import {
   applyElementalProc,
+  cancelReload,
   consumeRound,
   elementalDamageMult,
   gunById,
@@ -18,6 +22,7 @@ import {
 } from "../handroll";
 
 const combatRng = seededRng("scrap-combat-procs");
+const aimRng = seededRng("scrap-weapon-dispersion");
 const lastFiredAt = new Map<string, number>();
 const lastWarnAt = new Map<string, number>();
 
@@ -30,7 +35,7 @@ export function resetWeaponState(): void {
 
 function warn(ctx: GameContext, from: string, text: string): void {
   const nowMs = ctx.time.now() * 1000;
-  const at = lastWarnAt.get(from) ?? 0;
+  const at = lastWarnAt.get(from) ?? Number.NEGATIVE_INFINITY;
   if (nowMs - at < 600) return;
   lastWarnAt.set(from, nowMs);
   ctx.scene.entity.floatText({ instanceId: from, text, kind: "warn" });
@@ -46,31 +51,64 @@ function applyHitModifiers(
   targetId: string,
   gunId: string,
   nowMs: number,
+  result: EffectResult,
+  baseDamage?: number,
 ): void {
   const gun = gunById(gunId);
   if (gun === undefined) return;
   const targetEntity = ctx.scene.entity.get(targetId);
-  if (targetEntity === null) return;
+  let shieldHit = result.applied.some((delta) => delta.statId === "shield" && delta.delta < 0);
+  const shieldNow = ctx.scene.entity.stats.get(targetId, "shield")?.current ?? 0;
+  if (targetEntity === null) {
+    noteHit(nowMs, false, result.lethal, shieldHit, shieldHit && shieldNow <= 0);
+    playHit(ctx, ctx.scene.entity.get(from)?.position ?? [0, 0, 0], false);
+    return;
+  }
   const targetDef = enemyById(targetEntity.name);
   const surface = targetDef?.surface ?? "flesh";
   const shield = ctx.scene.entity.stats.get(targetId, "shield");
-  const shielded = shield !== null && shield.current > 0;
+  const shielded = shieldHit || (shield !== null && shield.current > 0);
 
   let mult = elementalDamageMult(ctx, gun.element, surface, shielded, targetId, nowMs) * gunDamageMult();
   const crit = combatRng() < gun.weapon.critChance + bonus("critChance");
   if (crit) mult *= gun.weapon.critMult + bonus("critDamage");
 
-  const extra = Math.round(gun.weapon.damage * (mult - 1));
+  // Native shot queries use zero magnitude; commit the scaled matchup once, before death.
+  const extra = Math.round((baseDamage ?? gun.weapon.damage) * mult);
+  let killed = result.lethal;
   if (extra !== 0) {
-    ctx.scene.entity.effect({ from, to: targetId, effect: "damage", via: { amount: extra } });
+    const extras = ctx.scene.entity.effect({ from, to: targetId, effect: "damage", via: { item: gun.id, amount: extra } });
+    killed ||= extras.some((hit) => hit.lethal);
+    shieldHit ||= extras.some((hit) => hit.applied.some((delta) => delta.statId === "shield" && delta.delta < 0));
   }
   if (crit) {
     ctx.scene.entity.floatText({ instanceId: targetId, text: "CRITICAL!", kind: "warn" });
   }
-  const killed = (ctx.scene.entity.stats.get(targetId, "health")?.current ?? 1) <= 0;
-  noteHit(nowMs, crit, killed);
-  playHit(ctx, ctx.scene.entity.get(targetId)?.position ?? [0, 0, 0], crit);
+  killed ||= (ctx.scene.entity.stats.get(targetId, "health")?.current ?? 1) <= 0;
+  noteHit(nowMs, crit, killed, shieldHit, shieldHit && (ctx.scene.entity.stats.get(targetId, "shield")?.current ?? 0) <= 0);
+  playHit(ctx, targetEntity.position, crit);
   applyElementalProc(ctx, combatRng, gun, from, targetId, nowMs);
+}
+
+/** Native settlement owns splash membership and LoS; the published area helper owns falloff. */
+function splashScales(ctx: GameContext, settled: Extract<SettleResult, { status: "settled" }>, radius: number): Map<string, number> {
+  const ids = settled.hits.map((hit) => hit.instanceId);
+  const targets = resolveAreaTargets({
+    inRadius: () => ids,
+    positionOf: (id) => ctx.scene.entity.get(id)?.position,
+    hasLineOfSight: () => true,
+  }, { at: settled.at, radius, falloff: "linear", los: false });
+  return new Map(targets.map((target) => [target.instanceId, target.scale]));
+}
+
+function finishGunShot(ctx: GameContext, from: string, gunId: string, settled: SettleResult, nowMs: number): void {
+  if (settled.status !== "settled") return;
+  const gun = gunById(gunId);
+  if (gun === undefined) return;
+  const scales = gun.weapon.explosion ? splashScales(ctx, settled, gun.weapon.explosion.radius) : null;
+  for (const hit of settled.hits) {
+    applyHitModifiers(ctx, from, hit.instanceId, gunId, nowMs, hit, gun.weapon.damage * (scales?.get(hit.instanceId) ?? 1));
+  }
 }
 
 const fireGun: ItemUseHandler<GameContext> = {
@@ -78,16 +116,18 @@ const fireGun: ItemUseHandler<GameContext> = {
     const gun = gunById(input.itemId);
     if (gun === undefined) return { state: ctx, error: "unknown-gun" };
     const nowMs = ctx.time.now() * 1000;
-    if (isReloading(ctx, gun)) return { state: ctx };
-
-    const gateKey = `${input.from}:${gun.id}`;
-    const readyAt = lastFiredAt.get(gateKey) ?? 0;
-    if (nowMs < readyAt) return { state: ctx };
+    if (!canTrigger(ctx, gun)) return { state: ctx };
+    if (isReloading(ctx, gun)) {
+      // Loaded rounds are still in the weapon: interrupt a tactical top-up to answer a threat.
+      if (magLoaded(ctx, gun) < gun.ammoPerShot) return { state: ctx };
+      cancelReload(ctx, gun);
+    }
 
     if (magLoaded(ctx, gun) < gun.ammoPerShot) {
       if (!startReload(ctx, gun)) warn(ctx, input.from, `NO ${AMMO_LABELS[gun.ammo].toUpperCase()} AMMO`);
       return { state: ctx };
     }
+    if (!spendShotCadence(ctx, gun)) return { state: ctx };
     // Free-shot refund: roll before spending so a refunded shot leaves the mag untouched (the old code
     // spent the round then added it back). The `combatRng()` draw stays gated behind `ammoRefund > 0` and
     // happens once per fired shot, so the shared proc/crit rng stream keeps the same order.
@@ -96,51 +136,32 @@ const fireGun: ItemUseHandler<GameContext> = {
     } else {
       consumeRound(ctx, gun);
     }
-    lastFiredAt.set(gateKey, nowMs + Math.round(gun.weapon.fireIntervalMs / (1 + bonus("fireRate"))));
     noteShot(nowMs, gun.family);
     playShot(ctx, gun.family);
     cameraShake(Math.min(0.3, 0.05 + gun.weapon.damage / 400), 6);
 
-    const aim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
+    const rawAim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
+    const aim = "yaw" in rawAim ? handledAim(gun, handlingView(ctx), rawAim, aimRng) : rawAim;
+    noteHandledShot(ctx, gun);
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: gun.id },
+      via: { item: gun.id, amount: 0 },
       aim,
       effect: "damage",
     });
 
     if (gun.weapon.projectile !== undefined && gun.weapon.explosion !== undefined) {
-      const explosion = gun.weapon.explosion;
       ctx.time.after(gun.weapon.projectile.fuseTime, () => {
         const settled = ctx.scene.entity.settleProjectile(shotId);
         if (settled.status !== "settled") return;
         cameraShake(0.45);
-        ctx.scene.entity.effect({
-          from: input.from,
-          at: settled.at,
-          radius: explosion.radius,
-          effect: "damage",
-          via: { amount: Math.round(gun.weapon.damage * gunDamageMult()) },
-        });
+        finishGunShot(ctx, input.from, gun.id, settled, ctx.time.now() * 1000);
       });
       return { state: ctx };
     }
 
     const settled = ctx.scene.entity.settleProjectile(shotId);
-    if (settled.status === "settled") {
-      for (const hit of settled.hits) {
-        applyHitModifiers(ctx, input.from, hit.instanceId, gun.id, nowMs);
-      }
-      if (settled.hits.length > 0 && gun.weapon.explosion !== undefined) {
-        ctx.scene.entity.effect({
-          from: input.from,
-          at: settled.at,
-          radius: gun.weapon.explosion.radius,
-          effect: "damage",
-          via: { amount: Math.round(gun.weapon.damage * 0.5) },
-        });
-      }
-    }
+    finishGunShot(ctx, input.from, gun.id, settled, nowMs);
     return { state: ctx };
   },
 };
@@ -161,7 +182,7 @@ const throwGrenade: ItemUseHandler<GameContext> = {
     const aim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: "frag_grenade" },
+      via: { item: "frag_grenade", amount: 0 },
       aim,
       effect: "damage",
     });
@@ -169,13 +190,13 @@ const throwGrenade: ItemUseHandler<GameContext> = {
       const settled = ctx.scene.entity.settleProjectile(shotId);
       if (settled.status !== "settled") return;
       cameraShake(0.5);
-      ctx.scene.entity.effect({
-        from: input.from,
-        at: settled.at,
-        radius: GRENADE.radius,
-        effect: "damage",
-        via: { amount: Math.round(GRENADE.damage * (1 + bonus("grenadeDamage"))) },
-      });
+      const scales = splashScales(ctx, settled, GRENADE.radius);
+      for (const hit of settled.hits) {
+        const amount = Math.round(GRENADE.damage * (1 + bonus("grenadeDamage")) * (scales.get(hit.instanceId) ?? 0));
+        const committed = amount > 0 ? ctx.scene.entity.effect({ from: input.from, to: hit.instanceId, effect: "damage", via: { item: "frag_grenade", amount } }) : [];
+        const shieldHit = committed.some((entry) => entry.applied.some((delta) => delta.statId === "shield" && delta.delta < 0));
+        noteHit(ctx.time.now() * 1000, false, committed.some((entry) => entry.lethal), shieldHit, shieldHit && (ctx.scene.entity.stats.get(hit.instanceId, "shield")?.current ?? 0) <= 0);
+      }
     });
     return { state: ctx };
   },

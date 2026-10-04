@@ -2,6 +2,10 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 
 import type { BlackMarketCounts } from "./commands";
 import type { ReservePhase } from "./handroll";
+import type { GunDef } from "./handroll/guns";
+import type { ProgressionState } from "./progression";
+import type { StatValueMap } from "@jgengine/core/scene/entityStats";
+import type { EntityPosition, EntityRole } from "@jgengine/core/scene/entityStore";
 
 export const selectedSlotStore = defineStore<number>("selectedSlot", 0);
 
@@ -33,6 +37,31 @@ export const skillsOpenStore = defineStore<boolean>("skillsOpen", false);
 export const characterIdStore = defineStore<string | null>("characterId", null);
 
 export const talentRanksStore = defineStore<Record<string, number>>("talentRanks", () => ({}));
+
+export const progressionStore = defineStore<ProgressionState>("scrap.progression", () => ({ contractGun: null, shieldProfile: "balanced", gunDrought: 0 }));
+
+export const gunCatalogStore = defineStore<Record<string, GunDef>>("scrap.gunCatalog", () => ({}));
+
+export interface ShieldRecoveryState {
+  quietMs: number;
+  shield: number;
+  health: number;
+  max: number;
+}
+
+export const shieldRecoveryStore = defineStore<Record<string, ShieldRecoveryState>>("scrap.shieldRecovery", () => ({}));
+
+export interface PendingChassis {
+  catalogId: string;
+  position: EntityPosition;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+  role: EntityRole;
+  stats: StatValueMap;
+}
+
+export const pendingChassisStore = defineStore<PendingChassis | null>("scrap.pendingChassis", null);
 
 export const reactorOpenStore = defineStore<{ atMs: number } | null>("reactorOpen", null);
 

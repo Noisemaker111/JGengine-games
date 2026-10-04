@@ -4,6 +4,11 @@ import { AMMO_STAT_IDS } from "./ammo";
 import { pickCharacter, resetCharacterState, talentTree } from "./characters";
 import {
   consumeRound,
+  cancelReload,
+  magazineStateStore,
+  reloadFraction,
+  resetMagazines,
+  toggleReload,
   effectiveMagSize,
   type GunDef,
   isReloading,
@@ -21,7 +26,9 @@ function makeCtx(reserves: Partial<Record<string, number>>): {
   for (const [statId, value] of Object.entries(reserves)) {
     stats.set(statId, { current: value ?? 0, max: 9999 });
   }
+  const store = new Map<string, unknown>();
   const ctx = {
+    game: { store },
     player: { userId: "p1" },
     scene: {
       entity: {
@@ -137,5 +144,49 @@ describe("magazine adoption onto createMagazine", () => {
     expect(startReload(ctx, gun)).toBe(true);
     tickReloads(ctx, 1.0);
     expect(magLoaded(ctx, gun)).toBe(12);
+  });
+});
+
+
+describe("Scrap Signal tactical reloads and saves", () => {
+  test("cancel preserves partial magazine and shared reserve, including weapon stow", () => {
+    const { ctx, reserve } = makeCtx({ [AMMO]: 7 });
+    const gun = testGun();
+    consumeRound(ctx, gun);
+    consumeRound(ctx, gun);
+    expect(toggleReload(ctx, gun)).toBe(true);
+    tickReloads(ctx, 1);
+    expect(reloadFraction(ctx, gun)).toBeCloseTo(0.5);
+    expect(cancelReload(ctx, gun)).toBe(true);
+    tickReloads(ctx, 10);
+    expect(magLoaded(ctx, gun)).toBe(3);
+    expect(reserve(AMMO)).toBe(7);
+    expect(isReloading(ctx, gun)).toBe(false);
+  });
+
+  test("save/load resumes reload progress without duplicating a shared reserve", () => {
+    const { ctx, reserve } = makeCtx({ [AMMO]: 9 });
+    const first = testGun({ id: "first" });
+    const second = testGun({ id: "second" });
+    consumeRound(ctx, first);
+    consumeRound(ctx, second);
+    consumeRound(ctx, second);
+    startReload(ctx, first);
+    tickReloads(ctx, 0.75);
+    const saved = structuredClone(magazineStateStore.read(ctx));
+    tickReloads(ctx, 2);
+    expect(reserve(AMMO)).toBe(8);
+    // Native world load restores entity pools first; magazine snapshots are not reserve authorities.
+    ctx.scene.entity.stats.delta("p1", AMMO, 1);
+    magazineStateStore.write(ctx, saved);
+    resetMagazines(ctx);
+    expect(magLoaded(ctx, first)).toBe(4);
+    expect(magLoaded(ctx, second)).toBe(3);
+    expect(reloadFraction(ctx, first)).toBeCloseTo(0.375);
+    expect(reserve(AMMO)).toBe(9);
+    tickReloads(ctx, 1.25);
+    expect(magLoaded(ctx, first)).toBe(5);
+    expect(reserve(AMMO)).toBe(8);
+    expect(magLoaded(ctx, second)).toBe(3);
   });
 });

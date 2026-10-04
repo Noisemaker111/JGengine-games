@@ -4,6 +4,7 @@ import { createGameContext, type GameContext } from "@jgengine/core/runtime/game
 import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 
 import { registerCommands } from "./commands";
+import { inventories } from "./inventories";
 
 function bootContext(): GameContext {
   const ctx = createGameContext({
@@ -12,6 +13,7 @@ function bootContext(): GameContext {
       assets: createAssetCatalog(),
       multiplayer: "off",
       features: { quest: true, trade: true },
+      inventories,
     }),
     content: {},
     player: { userId: "p1", isNew: true },

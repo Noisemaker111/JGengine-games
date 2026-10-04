@@ -71,7 +71,7 @@ export function CharacterSelect() {
         ))}
       </div>
       <div className="max-w-[34rem] text-center text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-        WASD move · mouse fire · R reload · E interact · G grenade · Q heal · K skill tree · 1-4 weapons
+        WASD move · Shift sprint · click / F trigger · V aim · C brace · R reload · E interact · G grenade · Q heal · K talents · 1–4 weapons · Esc pause
       </div>
     </div>
   );

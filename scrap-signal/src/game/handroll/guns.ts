@@ -167,6 +167,37 @@ export const LEGENDARY_NAMES: Record<GunFamily, readonly (readonly [string, stri
   launcher: [["Scrapjack", "Kaboom"], ["Voltek", "Starfall"], ["Detonic", "Aftershock"]],
 };
 
+export interface LegendaryTuning {
+  damage?: number;
+  interval?: number;
+  range?: number;
+  mag?: number;
+  reload?: number;
+  ammoPerShot?: number;
+  pellets?: number;
+}
+
+export const LEGENDARY_TUNING: Readonly<Record<string, LegendaryTuning>> = {
+  Ravager: { damage: 1.5, ammoPerShot: 2, mag: 0.75, reload: 1.2 },
+  Endless: { damage: 0.7, interval: 0.75, mag: 2, reload: 1.5 },
+  Sixgun: { damage: 1.65, interval: 1.3, mag: 0.6, reload: 1.15 },
+  Cinder: { damage: 0.85, range: 0.7, interval: 0.8, reload: 0.8 },
+  Fluxer: { damage: 0.7, mag: 1.5, reload: 1.4 },
+  Chatterbox: { damage: 1.2, interval: 1.2, range: 1.3, mag: 0.75 },
+  Broadcast: { damage: 0.85, pellets: 12, range: 0.65, reload: 0.85 },
+  Flakcannon: { damage: 1.4, pellets: 5, ammoPerShot: 2, range: 1.5 },
+  Sledgehammer: { damage: 1.4, interval: 1.35, mag: 0.55, reload: 1.25 },
+  Shredder: { damage: 0.75, interval: 0.85, range: 0.75, mag: 1.4 },
+  Piledriver: { damage: 1.45, interval: 1.5, mag: 0.6, range: 1.25 },
+  Vandal: { damage: 0.9, range: 1.4, mag: 0.7, reload: 0.7 },
+  Longshot: { damage: 0.8, interval: 0.8, mag: 1.6, reload: 1.25 },
+  Ashfall: { damage: 1.2, range: 0.7, reload: 0.8, mag: 0.6 },
+  Skullsplit: { damage: 1.6, interval: 1.4, mag: 0.5, reload: 1.25 },
+  Kaboom: { damage: 0.8, interval: 0.75, mag: 1.5, reload: 1.4 },
+  Starfall: { damage: 1.25, range: 1.4, mag: 0.65, reload: 1.3 },
+  Aftershock: { damage: 1.5, ammoPerShot: 2, interval: 1.3, reload: 1.2 },
+};
+
 export const ELEMENTS: readonly GunElement[] = ["incendiary", "shock", "corrosive", "flux"];
 
 export const ELEMENT_PREFIX: Record<GunElement, string> = {

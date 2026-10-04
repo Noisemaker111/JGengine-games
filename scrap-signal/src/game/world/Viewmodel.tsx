@@ -6,7 +6,8 @@ import { WeatherLayer } from "@jgengine/shell/weather";
 import { airAt, gust } from "./air";
 import { zoneAt } from "./zones";
 import { equippedGun, gameNow, muzzleFlashVisible, recoilAt } from "../feel";
-import { gunById, isReloading, type GunDef, type GunFamily } from "../handroll";
+import { gunById, isReloading, reloadFraction, type GunDef, type GunFamily } from "../handroll";
+import { HANDLING, handlingView } from "../combatFeel";
 import { ELEMENT_COLORS } from "../palette";
 import { SalvageRelay } from "./Relay";
 
@@ -370,21 +371,25 @@ export function FerralonViewmodel() {
     const moving = Math.min(1, speed / 6);
     bobTime.current += dt * (4 + moving * 6);
 
-    const recoil = recoilAt(nowMs);
+    const handling = handlingView(ctx);
+    const recoil = recoilAt(nowMs) * (gun ? HANDLING[gun.family].kick : 1);
+    const braced = handling.aiming;
+    const bobScale = braced ? 0.25 : 1;
 
     let reloadDip = 0;
     let reloadSpin = 0;
     if (gun !== undefined && isReloading(ctx, gun)) {
-      reloadDip = 0.16;
-      reloadSpin = Math.sin(state.clock.elapsedTime * 9) * 0.35;
+      const progress = reloadFraction(ctx, gun);
+      reloadDip = Math.sin(progress * Math.PI) * 0.21;
+      reloadSpin = Math.sin(progress * Math.PI * 2) * 0.4;
     }
 
     group.position.copy(camera.position);
     group.quaternion.copy(camera.quaternion);
-    group.translateX(0.24 + Math.sin(bobTime.current) * 0.006 * (0.4 + moving));
-    group.translateY(-0.24 - reloadDip + Math.abs(Math.cos(bobTime.current)) * 0.009 * (0.4 + moving) + recoil * 0.02);
-    group.translateZ(-0.5 + recoil * 0.07);
-    group.rotateX(recoil * 0.09 - reloadSpin * 0.6);
+    group.translateX((braced ? 0.07 : 0.24) + Math.sin(bobTime.current) * 0.006 * (0.4 + moving) * bobScale);
+    group.translateY((braced ? -0.17 : -0.24) - reloadDip - (handling.sprinting ? 0.15 : 0) + Math.abs(Math.cos(bobTime.current)) * 0.009 * (0.4 + moving) * bobScale + recoil * 0.02);
+    group.translateZ((braced ? -0.42 : -0.5) + recoil * 0.07);
+    group.rotateX(recoil * 0.09 - reloadSpin * 0.6 - (handling.sprinting ? 0.25 : 0));
     group.rotateZ(reloadSpin * 0.12);
 
     if (flash.current) {

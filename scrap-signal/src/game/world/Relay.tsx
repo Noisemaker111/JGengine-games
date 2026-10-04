@@ -34,6 +34,10 @@ export function SalvageRelay() {
       <mesh position={[0, -0.7, 0]}><boxGeometry args={[1.5, 0.22, 0.25]} /><meshStandardMaterial color="#dd9b55" metalness={0.55} roughness={0.38} /></mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.95, 0.035, 8, 48, Math.PI * 1.7]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} /></mesh>
     </group>
+    <mesh position={[0, 8.5, 0]}>
+      <cylinderGeometry args={[0.055, 0.12, 9, 8]} />
+      <meshBasicMaterial color={color} transparent opacity={live ? 0.65 : 0.22} depthWrite={false} />
+    </mesh>
     <group position={[0, 0.95, 1.25]} rotation={[-0.35, 0, 0]}>
       <mesh castShadow><boxGeometry args={[1.2, 0.65, 0.22]} /><meshStandardMaterial color="#28383e" metalness={0.4} roughness={0.7} /></mesh>
       <mesh position={[0, 0, 0.12]}><planeGeometry args={[0.85, 0.34]} /><meshBasicMaterial color={color} /></mesh>
