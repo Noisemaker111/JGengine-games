@@ -6,4 +6,9 @@ export const keybinds: ActionCodesMap = {
   buildTower3: ["Digit3"],
   upgradeTower: ["KeyU"],
   sellTower: ["KeyX"],
+  beginWave: ["Space"],
+  togglePause: ["KeyP"],
+  rally: ["KeyR"],
+  saveRun: ["KeyK"],
+  loadRun: ["KeyL"],
 };

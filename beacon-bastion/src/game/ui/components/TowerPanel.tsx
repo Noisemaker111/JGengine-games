@@ -1,79 +1,122 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { actionLabel } from "@jgengine/core/input/actionBindings";
-import { HudLabel } from "@/components/ui/hud-label";
-import { MenuButton } from "@/components/ui/menu-button";
-
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
 import { editorLayers } from "../../../editorLayers";
 import { towerDef } from "../../entities/towers/catalog";
-import { MAX_TOWER_LEVEL, sellValue, towerStats, upgradeCost } from "../../entities/towers/progression";
-import { keybinds } from "../../keybinds";
+import {
+  MAX_TOWER_LEVEL,
+  sellValue,
+  towerStats,
+  upgradeCost,
+} from "../../entities/towers/progression";
 import { session } from "../../session";
-
-const statStyle = {
-  fontFamily: "var(--jg-font-numeric)",
-  fontSize: 12,
-  color: "var(--jg-text-dim)",
-} as const;
-
 export function TowerPanel() {
   const { commands } = useGame();
-  const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
-  const inspectedId = useGameStore(() => session.inspectedTowerId);
-  const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
-  const tower = inspectedId === null ? undefined : session.towers.get(inspectedId);
-  if (tower === undefined || level === 0) return null;
-
-  const def = towerDef(tower.catalogId, editorLayers);
-  const stats = towerStats(def, tower.level);
-  const cost = upgradeCost(def, tower.level);
-  const refund = sellValue(def, tower.level);
-  const canUpgrade = cost !== null && gold >= cost;
+  const gold = useGameStore((ctx) =>
+    ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY),
+  );
+  const id = useGameStore(() => session.inspectedTowerId);
+  useGameStore(() => {
+    const t = id ? session.towers.get(id) : null;
+    return [t?.level, t?.branch, t?.priority, session.paused].join("|");
+  });
+  const tower = id ? session.towers.get(id) : null;
+  if (!tower) return null;
+  const def = towerDef(tower.catalogId, editorLayers),
+    stats = towerStats(def, tower.level, tower.branch),
+    cost = upgradeCost(def, tower.level),
+    refund = sellValue(def, tower.level);
 
   return (
-    <div
+    <section
+      className="bb-frame bb-tower"
       data-jg="tower-panel"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        minWidth: 200,
-        padding: "10px 12px",
-        borderRadius: 6,
-        border: "1px solid var(--jg-edge-bright)",
-        background: "color-mix(in srgb, var(--jg-surface) 88%, transparent)",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
-        pointerEvents: "auto",
-      }}
+      aria-label={`${def.label} orders`}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-        <HudLabel>{def.label}</HudLabel>
-        <span style={{ ...statStyle, color: "var(--jg-accent)" }}>
-          Level {tower.level} / {MAX_TOWER_LEVEL}
-        </span>
+      <h2>{def.label}</h2>
+      <p>
+        Level {tower.level}/{MAX_TOWER_LEVEL} ·{" "}
+        {tower.branch ?? "Unspecialized"}
+      </p>
+      <p>
+        Damage {Math.round(stats.damage)} · Range {stats.range.toFixed(1)}
+        <br />
+        Rate {stats.fireRateHz.toFixed(2)}/s{" "}
+        {stats.splashRadius > 0
+          ? `· Splash ${stats.splashRadius.toFixed(1)}`
+          : ""}
+      </p>
+      <label className="bb-priority">
+        Target priority{" "}
+        <select
+          value={tower.priority ?? "first"}
+          onChange={(e) =>
+            commands.run("setTargetPriority", {
+              instanceId: tower.instanceId,
+              priority: e.target.value,
+            })
+          }
+        >
+          <option value="first">First · stop leaks</option>
+          <option value="last">Last · thin arrivals</option>
+          <option value="strongest">Strongest · break armor</option>
+        </select>
+      </label>
+      <div className="bb-actions">
+        <button
+          disabled={cost === null || gold < (cost ?? 0)}
+          onClick={() =>
+            commands.run("upgradeTower", { instanceId: tower.instanceId })
+          }
+        >
+          {cost === null ? "Maximum level" : `Upgrade · ${cost}g [U]`}
+        </button>
+        <button
+          onClick={() =>
+            commands.run("sellTower", { instanceId: tower.instanceId })
+          }
+        >
+          Sell · {refund}g [X]
+        </button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14, rowGap: 2 }}>
-        <span style={statStyle}>Damage {Math.round(stats.damage)}</span>
-        <span style={statStyle}>Range {stats.range.toFixed(1)}</span>
-        <span style={statStyle}>Rate {stats.fireRateHz.toFixed(2)}/s</span>
-        {stats.splashRadius > 0 ? <span style={statStyle}>Splash {stats.splashRadius.toFixed(1)}</span> : null}
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <MenuButton
-          label={cost === null ? "Max level" : `Upgrade ${cost}g`}
-          keybind={cost === null ? undefined : actionLabel(keybinds, "upgradeTower") ?? undefined}
-          variant={canUpgrade ? "primary" : "ghost"}
-          onActivate={() => {
-            if (canUpgrade) commands.run("upgradeTower", { instanceId: tower.instanceId });
-          }}
-        />
-        <MenuButton
-          label={`Sell ${refund}g`}
-          keybind={actionLabel(keybinds, "sellTower") ?? undefined}
-          variant="danger"
-          onActivate={() => commands.run("sellTower", { instanceId: tower.instanceId })}
-        />
-      </div>
-    </div>
+      {!tower.branch && (
+        <>
+          <p>
+            Permanent specialization · choose once
+            <br />
+            <small>
+              {tower.level < 2
+                ? "Upgrade to level 2 first."
+                : "Choose your role before the next raid."}
+            </small>
+          </p>
+          <div className="bb-branches">
+            <button
+              disabled={tower.level < 2}
+              onClick={() =>
+                commands.run("specializeTower", {
+                  instanceId: tower.instanceId,
+                  branch: "power",
+                })
+              }
+            >
+              <strong>Power</strong>
+              <small>+70% damage · −15% range · −20% rate</small>
+            </button>
+            <button
+              disabled={tower.level < 2}
+              onClick={() =>
+                commands.run("specializeTower", {
+                  instanceId: tower.instanceId,
+                  branch: "reach",
+                })
+              }
+            >
+              <strong>Reach</strong>
+              <small>+40% range · −20% damage</small>
+            </button>
+          </div>
+        </>
+      )}
+    </section>
   );
 }

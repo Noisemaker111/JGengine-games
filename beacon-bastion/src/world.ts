@@ -23,10 +23,10 @@ export const world: WorldFeature = environment({
     radius: 240,
     fog: { color: "#c2d3cb", near: 110, far: 230 },
   }),
-  // Ground-hugging grass tufts, denser and multi-toned so the meadow reads as living turf.
+  // Keep the full-board view within the flat rendering budget.
   vegetation: grass({
     area: { w: 76, d: 76 },
-    density: 5,
+    density: 1.4,
     bladeHeight: [0.35, 0.8],
     windStrength: 0.5,
     colors: ["#39561f", "#5c8a33", "#7ba548", "#93b256"],

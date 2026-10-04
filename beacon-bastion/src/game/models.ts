@@ -1,5 +1,8 @@
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
-import { resolveModelPlan, type ModelPick } from "@jgengine/shell/render/resolveModel";
+import {
+  resolveModelPlan,
+  type ModelPick,
+} from "@jgengine/shell/render/resolveModel";
 
 import { assets } from "./assets";
 import { BASE_CATALOG_ID } from "./entities/base/catalog";
@@ -29,29 +32,29 @@ function raiderPick(def: CreepDef): ModelPick {
 
 const TOWER_PLAN: Record<string, ModelPick> = {
   tower_archer: {
-    model: `${DUNGEON}/wall_archedwindow_gated`,
+    model: `${DUNGEON}/pillar_decorated`,
     fallbackModel: `${DUNGEON}/wall_pillar`,
-    style: { targetHeight: 2.1 },
+    style: { targetHeight: 4, material: { color: "#c39b59" } },
   },
   tower_cannon: {
-    model: `${DUNGEON}/wall_scaffold`,
-    fallbackModel: `${DUNGEON}/wall_arched`,
-    style: { targetHeight: 1.55 },
+    model: `${DUNGEON}/pillar_decorated`,
+    fallbackModel: `${DUNGEON}/pillar_decorated`,
+    style: { targetHeight: 3.6, material: { color: "#a86239" } },
   },
   tower_frost: {
-    model: `${DUNGEON}/wall_corner_gated`,
+    model: `${DUNGEON}/pillar`,
     fallbackModel: `${DUNGEON}/pillar_decorated`,
     style: {
-      targetHeight: 2,
-      material: { emissive: "#3fb9d1", emissiveIntensity: 0.5 },
+      targetHeight: 5,
+      material: { emissive: "#3fb9d1", emissiveIntensity: 0.8 },
     },
   },
 };
 
 const KEEP_PLAN: ModelPick = {
-  model: `${DUNGEON}/wall_arched`,
+  model: `${DUNGEON}/pillar_decorated`,
   fallbackModel: `${VILLAGE}/Wall_UnevenBrick_Straight`,
-  style: { scale: 1.6 },
+  style: { targetHeight: 7, material: { color: "#b5b6a8" } },
 };
 
 function buildEntityModels(): Record<string, ModelConfig> {
@@ -69,7 +72,11 @@ export const entityModels: Record<string, ModelConfig> = buildEntityModels();
 
 /** Scatter palette item → catalog id when live; else InstancedScatter stylized proxy. */
 export const scatterModels: Record<string, string> = {};
-for (const id of [`${NATURE}/Pine_1`, `${NATURE}/Pine_2`, "nature/tree_pine"] as const) {
+for (const id of [
+  `${NATURE}/Pine_1`,
+  `${NATURE}/Pine_2`,
+  "nature/tree_pine",
+] as const) {
   if (assets.resolve(id) !== null) {
     scatterModels.pine = id;
     break;

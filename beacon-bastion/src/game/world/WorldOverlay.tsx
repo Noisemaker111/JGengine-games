@@ -15,18 +15,34 @@ import { BUILD_PLOTS, SPAWN_POINT } from "./path";
 function BuildPlots() {
   const ctx = useGameContext();
   useGameStore((c) => c.game.economy.balance(c.player.userId, GOLD_CURRENCY));
-  const selectedId = session.selectedTowerId;
-  const cost = selectedId === null ? 0 : towerDef(selectedId, editorLayers).cost;
+  const selectedId = useGameStore(() => session.selectedTowerId);
+  useGameStore(() =>
+    [...session.plotOccupant.entries()]
+      .map(([id, value]) => `${id}:${value}`)
+      .join("|"),
+  );
+  const cost =
+    selectedId === null ? 0 : towerDef(selectedId, editorLayers).cost;
   const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
   return (
     <>
       {BUILD_PLOTS.map((plot) => {
-        const occupied = session.plotOccupant.get(plot.id) !== null;
-        if (occupied) return null;
+        const occupant = session.plotOccupant.get(plot.id);
+        const pending = occupant != null && !session.towers.has(occupant);
+        if (occupant != null && !pending) return null;
         const affordable = selectedId !== null && gold >= cost;
-        const color = selectedId === null ? "#4a5a44" : affordable ? "#5fbf6a" : "#8a4a4a";
+        const color = pending
+          ? "#e8bd5e"
+          : selectedId === null
+            ? "#4a5a44"
+            : affordable
+              ? "#5fbf6a"
+              : "#8a4a4a";
         return (
-          <group key={plot.id} position={[plot.position[0], plot.position[1], plot.position[2]]}>
+          <group
+            key={plot.id}
+            position={[plot.position[0], plot.position[1], plot.position[2]]}
+          >
             {/* Prepared stone foundation — an empty plot reads as masonry waiting for a tower. */}
             <mesh position-y={0.12} receiveShadow castShadow>
               <cylinderGeometry args={[1.35, 1.5, 0.24, 8]} />
@@ -39,7 +55,14 @@ function BuildPlots() {
             {/* Affordability halo */}
             <mesh position-y={0.31} rotation={[-Math.PI / 2, 0, 0]}>
               <ringGeometry args={[1.12, 1.44, 24]} />
-              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.45} roughness={0.6} transparent opacity={0.9} />
+              <meshStandardMaterial
+                color={color}
+                emissive={color}
+                emissiveIntensity={0.45}
+                roughness={0.6}
+                transparent
+                opacity={0.9}
+              />
             </mesh>
           </group>
         );
@@ -51,21 +74,44 @@ function BuildPlots() {
 /** Selection ring plus the live firing radius of the tower whose sell/upgrade panel is open. */
 function InspectedTower() {
   const inspectedId = useGameStore(() => session.inspectedTowerId);
-  const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
-  const tower = inspectedId === null ? undefined : session.towers.get(inspectedId);
+  const level = useGameStore(() =>
+    inspectedId === null ? 0 : (session.towers.get(inspectedId)?.level ?? 0),
+  );
+  useGameStore(() =>
+    inspectedId === null ? "" : (session.towers.get(inspectedId)?.branch ?? ""),
+  );
+  const tower =
+    inspectedId === null ? undefined : session.towers.get(inspectedId);
   if (tower === undefined || level === 0) return null;
   const plot = BUILD_PLOTS.find((candidate) => candidate.id === tower.plotId);
   if (plot === undefined) return null;
-  const range = towerStats(towerDef(tower.catalogId, editorLayers), tower.level).range;
+  const range = towerStats(
+    towerDef(tower.catalogId, editorLayers),
+    tower.level,
+    tower.branch,
+  ).range;
   return (
     <group position={[plot.position[0], plot.position[1], plot.position[2]]}>
       <mesh position-y={0.33} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.75, 32]} />
-        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.8} roughness={0.5} />
+        <meshStandardMaterial
+          color="#f4d35e"
+          emissive="#f4d35e"
+          emissiveIntensity={0.8}
+          roughness={0.5}
+        />
       </mesh>
       <mesh position-y={0.2} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[range - 0.12, range, 64]} />
-        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.5} transparent opacity={0.55} side={THREE.DoubleSide} depthWrite={false} />
+        <meshStandardMaterial
+          color="#f4d35e"
+          emissive="#f4d35e"
+          emissiveIntensity={0.5}
+          transparent
+          opacity={0.55}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );
@@ -88,12 +134,21 @@ function SpawnGate() {
       </mesh>
       <mesh position={[0, 1.75, 0.02]}>
         <planeGeometry args={[1.5, 1.3]} />
-        <meshStandardMaterial color="#7a2320" roughness={0.6} side={THREE.DoubleSide} />
+        <meshStandardMaterial
+          color="#7a2320"
+          roughness={0.6}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       {[-1.5, 1.5].map((dx) => (
         <mesh key={`brazier-${dx}`} position={[dx, 2.35, 0]}>
           <sphereGeometry args={[0.22, 10, 8]} />
-          <meshStandardMaterial color="#ff8b3a" emissive="#ff5a1e" emissiveIntensity={1.4} roughness={0.4} />
+          <meshStandardMaterial
+            color="#ff8b3a"
+            emissive="#ff5a1e"
+            emissiveIntensity={1.4}
+            roughness={0.4}
+          />
         </mesh>
       ))}
     </group>
@@ -116,7 +171,11 @@ function ProjectileBolts() {
         return (
           <mesh key={bolt.id} position={[x, y, z]}>
             <sphereGeometry args={[0.14, 8, 8]} />
-            <meshStandardMaterial color={bolt.color} emissive={bolt.color} emissiveIntensity={0.9} />
+            <meshStandardMaterial
+              color={bolt.color}
+              emissive={bolt.color}
+              emissiveIntensity={0.9}
+            />
           </mesh>
         );
       })}
