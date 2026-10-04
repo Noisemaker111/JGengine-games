@@ -3,8 +3,258 @@
   "provider": "drift-foundry",
   "declarations": [
     {
-      "provenance": { "kind": "runtime", "providerId": "drift-foundry", "instanceId": "corridor-world" },
-      "reason": "Corridor survival racer whose yard — zone terrain bands, frontage building rows, scattered wrecks, lamps, gates, and the advancing compactor — is regenerated every run from the zone catalog and run seed. There is no static placement to author: the world is a function of run state, and pickups/barricades move with the compactor."
+      "provenance": {
+        "kind": "runtime",
+        "providerId": "drift-foundry",
+        "instanceId": "corridor-world"
+      },
+      "reason": "Zone terrain, frontage rows, and seeded debris remain generated from the run catalog. The advancing compactor and destructible barricades follow simulation state. Static lamps, towers, approach cues, and the open exit gantry are authored in editor.scene.json."
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "player_spawn"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-0"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-1"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-2"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-3"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-4"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-5"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-6"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-7"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-8"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-9"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-10"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-11"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-12"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "lamp-13"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "tower-0"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "tower-1"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "tower-2"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "tower-3"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "tower-4"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_canyon_plow-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_canyon_plow-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_canyon_jump-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_canyon_jump-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "cue-gate_canyon_jump"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_plow_1-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_plow_1-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_jump-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_jump-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "cue-gate_flats_jump"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_plow_2-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_flats_plow_2-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_jump_1-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_jump_1-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "cue-gate_gantry_jump_1"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_plow-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_plow-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_jump_2-left"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "post-gate_gantry_jump_2-right"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "cue-gate_gantry_jump_2"
+      }
+    },
+    {
+      "provenance": {
+        "kind": "authored",
+        "documentId": "exit-gate"
+      }
     }
   ]
 }

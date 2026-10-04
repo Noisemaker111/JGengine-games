@@ -1,0 +1,580 @@
+{
+  "version": 1,
+  "markers": [
+    {
+      "id": "player_spawn",
+      "kind": "player_spawn",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 4
+      },
+      "label": "Row Six chassis",
+      "meta": {}
+    },
+    {
+      "id": "lamp-0",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 18
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-1",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 52
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-2",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 86
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-3",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 120
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-4",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 154
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-5",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 188
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-6",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 222
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-7",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 256
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-8",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 290
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-9",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 324
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-10",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 358
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-11",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 392
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "lamp-12",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -23.5,
+        "y": 0,
+        "z": 426
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 0
+    },
+    {
+      "id": "lamp-13",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 23.5,
+        "y": 0,
+        "z": 460
+      },
+      "label": "Corridor floodlight",
+      "meta": {
+        "catalogId": "prop_yard_lamp"
+      },
+      "rotationY": 3.141592653589793
+    },
+    {
+      "id": "tower-0",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -58,
+        "y": 0,
+        "z": 74
+      },
+      "label": "Yard water tower",
+      "meta": {
+        "catalogId": "prop_yard_tower"
+      }
+    },
+    {
+      "id": "tower-1",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 62,
+        "y": 0,
+        "z": 168
+      },
+      "label": "Yard water tower",
+      "meta": {
+        "catalogId": "prop_yard_tower"
+      }
+    },
+    {
+      "id": "tower-2",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -64,
+        "y": 0,
+        "z": 262
+      },
+      "label": "Yard water tower",
+      "meta": {
+        "catalogId": "prop_yard_tower"
+      }
+    },
+    {
+      "id": "tower-3",
+      "kind": "yard_landmark",
+      "position": {
+        "x": 56,
+        "y": 0,
+        "z": 352
+      },
+      "label": "Yard water tower",
+      "meta": {
+        "catalogId": "prop_yard_tower"
+      }
+    },
+    {
+      "id": "tower-4",
+      "kind": "yard_landmark",
+      "position": {
+        "x": -56,
+        "y": 0,
+        "z": 438
+      },
+      "label": "Yard water tower",
+      "meta": {
+        "catalogId": "prop_yard_tower"
+      }
+    },
+    {
+      "id": "post-gate_canyon_plow-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 92
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_canyon_plow"
+      }
+    },
+    {
+      "id": "post-gate_canyon_plow-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 92
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_canyon_plow"
+      }
+    },
+    {
+      "id": "post-gate_canyon_jump-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 132
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_canyon_jump"
+      }
+    },
+    {
+      "id": "post-gate_canyon_jump-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 132
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_canyon_jump"
+      }
+    },
+    {
+      "id": "cue-gate_canyon_jump",
+      "kind": "gate_cue",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 140
+      },
+      "label": "Hop launch chevrons",
+      "meta": {
+        "catalogId": "jump_cue",
+        "gateId": "gate_canyon_jump",
+        "verticalOffset": 0.03
+      }
+    },
+    {
+      "id": "post-gate_flats_plow_1-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 192
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_flats_plow_1"
+      }
+    },
+    {
+      "id": "post-gate_flats_plow_1-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 192
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_flats_plow_1"
+      }
+    },
+    {
+      "id": "post-gate_flats_jump-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 232
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_flats_jump"
+      }
+    },
+    {
+      "id": "post-gate_flats_jump-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 232
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_flats_jump"
+      }
+    },
+    {
+      "id": "cue-gate_flats_jump",
+      "kind": "gate_cue",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 240
+      },
+      "label": "Hop launch chevrons",
+      "meta": {
+        "catalogId": "jump_cue",
+        "gateId": "gate_flats_jump",
+        "verticalOffset": 0.03
+      }
+    },
+    {
+      "id": "post-gate_flats_plow_2-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 282
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_flats_plow_2"
+      }
+    },
+    {
+      "id": "post-gate_flats_plow_2-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 282
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_flats_plow_2"
+      }
+    },
+    {
+      "id": "post-gate_gantry_jump_1-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 332
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_gantry_jump_1"
+      }
+    },
+    {
+      "id": "post-gate_gantry_jump_1-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 332
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_gantry_jump_1"
+      }
+    },
+    {
+      "id": "cue-gate_gantry_jump_1",
+      "kind": "gate_cue",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 340
+      },
+      "label": "Hop launch chevrons",
+      "meta": {
+        "catalogId": "jump_cue",
+        "gateId": "gate_gantry_jump_1",
+        "verticalOffset": 0.03
+      }
+    },
+    {
+      "id": "post-gate_gantry_plow-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 382
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_gantry_plow"
+      }
+    },
+    {
+      "id": "post-gate_gantry_plow-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 382
+      },
+      "label": "Plow approach",
+      "meta": {
+        "catalogId": "route_plow_post",
+        "gateId": "gate_gantry_plow"
+      }
+    },
+    {
+      "id": "post-gate_gantry_jump_2-left",
+      "kind": "gate_cue",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 422
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_gantry_jump_2"
+      }
+    },
+    {
+      "id": "post-gate_gantry_jump_2-right",
+      "kind": "gate_cue",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 422
+      },
+      "label": "Hop approach",
+      "meta": {
+        "catalogId": "route_jump_post",
+        "gateId": "gate_gantry_jump_2"
+      }
+    },
+    {
+      "id": "cue-gate_gantry_jump_2",
+      "kind": "gate_cue",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 430
+      },
+      "label": "Hop launch chevrons",
+      "meta": {
+        "catalogId": "jump_cue",
+        "gateId": "gate_gantry_jump_2",
+        "verticalOffset": 0.03
+      }
+    },
+    {
+      "id": "exit-gate",
+      "kind": "finish_landmark",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 470
+      },
+      "label": "Row Six open exit gantry",
+      "meta": {
+        "catalogId": "exit_gate_arch"
+      }
+    }
+  ],
+  "volumes": [],
+  "paths": [],
+  "annotations": [],
+  "prefabs": [],
+  "collections": [],
+  "catalogs": []
+}

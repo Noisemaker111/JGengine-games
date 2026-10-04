@@ -1,5 +1,8 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
+import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import { actionContextStack } from "@jgengine/core/game/controlGate";
+import { keybinds } from "./game/keybinds";
 
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
@@ -11,11 +14,13 @@ import { placeExitGate, placeGateBarricades, placePickupMarkers, placeZoneDressi
 
 export const lifecycle: LifecycleConfig<RunSession> = {
   store: runSessionStore,
-  start(session) {
+  start(session, ctx) {
+    driveInputStore.peek(ctx)?.reset();
     session.start();
     return session;
   },
-  restart(session) {
+  restart(session, ctx) {
+    driveInputStore.peek(ctx)?.reset();
     session.restart();
     return session;
   },
@@ -38,6 +43,10 @@ export function onInit(ctx: GameContext): void {
 
   const input = createDriveInput();
   driveInputStore.write(ctx, input);
+  // Published shell 0.18.1 freezes its tracker at boot. Keep the codes registered
+  // while the menu gate blocks driving; starting removes that gate normally.
+  setGamePhase(ctx, "menu");
+  actionContextStack(ctx).push({ id: "menu", codes: keybinds, passthrough: false });
 }
 
 export function onNewPlayer(ctx: GameContext): void {
@@ -59,7 +68,6 @@ export function onTick(ctx: GameContext, dt: number): void {
     placeGateBarricades(ctx);
     placePickupMarkers(ctx);
     worldRuntimeStore.write(ctx, createWorldRuntime(rows));
-    input.reset();
   }
   const currentWorld = worldRuntimeStore.peek(ctx)!;
 

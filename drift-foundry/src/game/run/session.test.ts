@@ -86,6 +86,28 @@ describe("drift-foundry run session", () => {
     expect(snapshot.tuning.jumpPower).toBeGreaterThan(0);
   });
 
+  test("keeping the truck motor changes the escape build and time without skipping required parts", () => {
+    const automatic = createRunSession();
+    automatic.start();
+    driveStraight(automatic, PAR_SECONDS);
+    const retained = createRunSession();
+    retained.start();
+    for (let frame = 0; frame < 6000 && retained.snapshot().phase === "running"; frame++) {
+      if (!retained.snapshot().keepEngine && retained.snapshot().installed.engine?.id === "truck_engine") retained.toggleKeepEngine();
+      retained.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: shouldJump(retained), plowBracing: false });
+    }
+    const result = retained.snapshot();
+    expect(result.phase).toBe("won");
+    expect(result.installed.engine?.id).toBe("truck_engine");
+    expect(automatic.snapshot().installed.engine?.id).toBe("ev_conversion");
+    expect(result.outcome!.time).toBeLessThan(automatic.snapshot().outcome!.time);
+    expect(result.tuning.turnRate).toBeLessThan(automatic.snapshot().tuning.turnRate);
+    expect(result.clearedGateIds.size).toBe(8);
+    expect(result.collectedIds.has("pickup_ev_conversion")).toBe(true);
+    retained.restart();
+    expect(retained.snapshot().keepEngine).toBe(false);
+  });
+
   test("a kart that skips the plow/jump drops is walled in at the first barricade and gets crushed", () => {
     // Drive fast but steer hard to the corridor edge to dodge the centerline part drops. With no plow
     // and no jump the first barricade is an impassable wall, so the compactor eats the kart short of the exit.

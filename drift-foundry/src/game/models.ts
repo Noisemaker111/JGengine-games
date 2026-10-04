@@ -1,7 +1,7 @@
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
 import { assets } from "./assets";
-import { buggyModel, jumpBarrierModel, jumpCueModel, stationModels, upgradeModels } from "./art/models";
+import { buggyModel, exitGantryModel, jumpBarrierModel, jumpCueModel, routeCueModels, stationModels, upgradeModels } from "./art/models";
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./entities/catalog";
 import {
   EXIT_GATE_ARCH,
@@ -325,22 +325,6 @@ function gateBarricade(requirement: "plow" | "jump"): ModelConfig {
   });
 }
 
-function exitGateArch(): ModelConfig {
-  return modelWith("kaykit-dungeon/wall_arched", {
-    scale: 9.5,
-    material: { color: SCRAP_STEEL, roughness: 0.4, metalness: 0.5 },
-    parts: [
-      {
-        model: modelWith("kaykit-dungeon/banner_patternA_white", {
-          material: { emissive: WELD_WHITE, emissiveIntensity: 0.8 },
-        }),
-        position: [0, 8.4, 0],
-        scale: 4,
-      },
-    ],
-  });
-}
-
 /** A token standing in a pylon: a bare flat disc at this scale reads as a glowing smear head-on. */
 function pickupMarker(): ModelConfig {
   return modelWith("kaykit-dungeon/column", {
@@ -380,6 +364,7 @@ export const objectModels: Record<string, ModelConfig> = {
   [GATE_BARRICADE_JUMP]: jumpBarrierModel,
   [JUMP_CUE]: jumpCueModel,
   ...stationModels,
+  ...routeCueModels,
   [PICKUP_MARKER]: pickupMarker(),
-  [EXIT_GATE_ARCH]: exitGateArch(),
+  [EXIT_GATE_ARCH]: exitGantryModel,
 };
