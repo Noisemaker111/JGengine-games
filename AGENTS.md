@@ -1,6 +1,12 @@
 # Agent instructions
 
-Playable probe games built on the published `@jgengine/*` packages; [`README.md`](./README.md) owns the game list, dev commands and engine-version rules.
+## Project purpose
+
+These playable reference games develop and test JGengine's shared framework. Playing and inspecting different games exposes gaps in layout, input, rendering, asset placement and physics. Resolve reusable causes upstream so one correction benefits every applicable game; a fix copied into each game is unfinished framework work.
+
+Before changing a game, distinguish a broken or missing SDK contract, incorrect adoption and a game-specific design choice using actual code and play evidence. An obstructed HUD does not automatically justify local CSS, and apparent sinking does not justify a guessed model offset. Games retain their own rules, content, art direction and composition; shared behavior stays configurable.
+
+The games use published `@jgengine/*` packages; [`README.md`](./README.md) owns the game list, dev commands and engine-version rules.
 
 - Games depend on published `@jgengine/*`, never on the engine monorepo's source.
 - A probe game is not a template; do not copy one game to start another.
@@ -13,7 +19,7 @@ Every interaction, feature, bugfix and visual pass should improve or adopt JGeng
 2. If reusable behavior is missing or broken, fix or extend the upstream package with the game as its first adopter. Keep policy configurable and respect engine layering. Recipes wire APIs; they do not substitute for shared implementations.
 3. Verify packaged exports and the actual game, coordinating a differently composed second consumer when applicable. Do not edit another session's owned files or duplicate its upstream work.
 4. SDK versions belong to the root workspace catalog and lockfile, as described in [README.md](README.md#engine-version). A beta engine merge does not update installed games. Prepare a reviewable adopter patch until the required package is published; never use source aliases or per-game version edits to bypass this boundary.
-5. Remove superseded algorithms, listeners and resource management after adoption. Delivery evidence names the shared owner, the consumer cleanup and behavior verified. Preserve each game's identity and observable play.
+5. Remove superseded algorithms, listeners and resource management after adoption. Delivery evidence names the framework gap resolved, shared owner, consumer cleanup and actual behavior verified, with remaining gaps stated separately. Preserve each game's identity and observable play.
 
 Repeated generic glue is framework friction or adoption debt, even if the game works. Track any necessary fallback with its upstream issue and removal path; do not count it as a completed framework improvement. World placement, terrain, paths, zones and foliage are editor-authored data consumed through shared SDK primitives, not hardcoded runtime coordinate arrays.
 
