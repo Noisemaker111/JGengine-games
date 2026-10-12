@@ -40,7 +40,7 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.over = true;
     session.victory = true;
     hudStore.set({ phase: "won" });
-    recordOutcome(true, session.elapsed);
+    recordOutcome(ctx, true, session.elapsed);
     ctx.time.pause();
     setGamePhase(ctx, "ended");
     return;
@@ -49,7 +49,7 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.over = true;
     session.victory = false;
     hudStore.set({ phase: "lost" });
-    recordOutcome(false, session.elapsed);
+    recordOutcome(ctx, false, session.elapsed);
     ctx.time.pause();
     setGamePhase(ctx, "ended");
     return;

@@ -1,3 +1,4 @@
+import { useGameContext } from "@jgengine/react/provider";
 import { useSyncExternalStore } from "react";
 import { useDialogBehavior } from "@jgengine/react";
 import { useDomEvent, useGame, type DomEventTarget } from "@jgengine/react/hooks";
@@ -23,7 +24,8 @@ export function battleTime(seconds: number): string {
 }
 export function MatchFrontEnd() {
   const hud = useSyncExternalStore(hudStore.subscribe, hudStore.get, hudStore.get);
-  const prefs = useSyncExternalStore(preferences.subscribe, preferences.get, preferences.get);
+  const store = preferences(useGameContext());
+  const prefs = useSyncExternalStore(store.subscribe, store.get, store.get);
   const { commands } = useGame();
   const router = useMenuRouter<"main" | "settings" | "credits">("main", { escapeToBack: false });
   const live = hud.phase === "playing";
@@ -51,7 +53,7 @@ export function MatchFrontEnd() {
         <p>Preferences are saved on this device.</p>
         <div className="ec-settings">
           {([ ["largeText", "Larger HUD text", "Enlarge command labels and field reports."], ["highContrast", "High contrast", "Opaque panels and brighter borders."], ["reducedMotion", "Reduce UI motion", "Remove animated menu flourishes."] ] as const).map(([key, label, hint]) =>
-            <label key={key}><span><strong>{label}</strong><small>{hint}</small></span><input type="checkbox" checked={prefs[key]} onChange={(e) => preferences.set({ [key]: e.target.checked })} /></label>)}
+            <label key={key}><span><strong>{label}</strong><small>{hint}</small></span><input type="checkbox" checked={prefs[key]} onChange={(e) => store.set({ [key]: e.target.checked })} /></label>)}
         </div>
         <button type="button" className="ec-primary" onClick={() => router.back()}>Back to field desk</button>
       </> : router.current === "credits" ? <>
