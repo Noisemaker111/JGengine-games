@@ -1,15 +1,15 @@
+import { editorLayers } from "./editorLayers";
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
 import {
   building,
   environment,
-  grass,
-  pad,
   sky,
   terrain,
   type WorldFeature,
 } from "@jgengine/core/world/features";
 
 export const world: WorldFeature = environment({
+  sculpt: editorLayers.terrain,
   terrain: terrain({
     bounds: { w: 220, d: 220 },
     height: 0,
@@ -29,17 +29,6 @@ export const world: WorldFeature = environment({
     sunIntensity: 1.35,
     ambientIntensity: 0.7,
   }),
-  vegetation: grass({
-    area: { w: 130, d: 130 },
-    density: 0.3,
-    bladeHeight: [0.08, 0.18],
-    colors: ["#79a383", "#a9c6a0", "#699471"],
-    seed: "brightway-park",
-  }),
-  pads: [
-    pad({ center: [0, 54], size: [16, 8], height: 0.06, color: "#cbb78c" }),
-    pad({ center: [0, 8], size: { radius: 7 }, height: 0.05, color: "#c7b389" }),
-  ],
   structures: [
     building({
       count: 6,

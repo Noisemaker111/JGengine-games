@@ -65,12 +65,12 @@ export function Operations() {
   const active = relay.phase === "defend" || relay.phase === "upload";
   const result = relay.phase === "won" || relay.phase === "lost";
   return <>
-    <HudPanel id="dead-air" anchor="top-left" compact="keep" interactive={false}>
+    <HudPanel id="dead-air" anchor="top-left" compact="keep" interactive>
       <div className="signal-contract">
         <div className="signal-eyebrow">{relay.rewarded ? "Carrier restored" : "Optional salvage contract"}</div>
         <strong>DEAD AIR <span>{active ? `${relay.wave}/3` : "↗"}</span></strong>
         <p>{active ? relay.phase === "defend" ? `Clear the ambush · ${relay.enemies.length} hostiles` : distance > RELAY.radius ? "Return to the copper ring to upload" : "Hold position · uploading carrier" : `Copper-ring relay · ${Math.round(distance)} m · north of crash site`}</p>
-        {active ? <><div className="signal-meter"><i style={{ width: `${relay.phase === "upload" ? Math.min(100, relay.upload / RELAY.uploadSeconds * 100) : 0}%` }} /></div><small>{Math.ceil(relay.remaining)}s carrier window · R reload · Q heal</small></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
+        {active ? <><div className="signal-meter"><i style={{ width: `${Math.min(100, relay.upload / RELAY.uploadSeconds * 100)}%` }} /></div><small>{Math.ceil(relay.remaining)}s window · {relay.upload.toFixed(1)}/6s signal banked</small><button className="signal-button signal-small" aria-pressed={relay.overclock === true} onClick={() => commands.run("relay.overclock", {})}>V · {relay.overclock ? "Overclock ON — reserve shield" : "Clear first — enable overclock"}</button><small>{relay.overclock ? "Inside ring: bank signal during combat, costs 6 shield/sec. Stops at 10 shield. Still clear every hostile." : "Clear first keeps your shield. Overclock trades protection for up to 6s less upload per wave."}</small></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
       </div>
     </HudPanel>
     <HudPanel id="pause-operation" anchor="top-right" order={-2} compact="keep" interactive>

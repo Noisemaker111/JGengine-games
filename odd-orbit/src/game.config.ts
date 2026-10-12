@@ -8,6 +8,7 @@ import { renderEntity } from "./game/render/renderEntity";
 import { CaptureReadiness } from "./game/render/CaptureReadiness";
 import { GameUI } from "./game/ui/GameUI";
 import { loop } from "./loop";
+import { editorLayers } from "./editorLayers";
 import { DAY_LENGTH, physics, terrainField, world } from "./world";
 
 export const game = defineGame({
@@ -22,6 +23,8 @@ export const game = defineGame({
   loop,
   GameUI,
   assets,
+  editorLayers,
+  scenePlacement: false,
   objectModels,
   renderEntity,
   WorldOverlay: CaptureReadiness,

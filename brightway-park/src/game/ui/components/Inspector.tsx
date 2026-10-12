@@ -3,6 +3,7 @@ import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
 import { coasterThrill } from "../../sim/rating";
+import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -53,6 +54,10 @@ export function Inspector() {
       <div className="flex flex-col gap-1">
         <Row label="Appeal" value={appeal.toFixed(1)} />
         <Row label="Upkeep / day" value={`$${def.upkeep}`} />
+        {def.ride !== undefined ? <>
+          <Row label="Intensity" value={rideThrill(def.id, tracks).toFixed(1)} />
+          {["guest_a", "guest_c", "guest_d"].map(kind => <Row key={kind} label={guestRidePreference(kind).label + " fit"} value={`${Math.round(rideFit(kind, def.id, tracks) * 100)}%`} />)}
+        </> : null}
         {def.id === "ride_coaster" ? <Row label="Track pieces" value={`${tracks}`} /> : null}
         {def.stall !== undefined && stock !== null ? (
           <Row label="Stock" value={`${stock}/${def.stall.stock}`} />

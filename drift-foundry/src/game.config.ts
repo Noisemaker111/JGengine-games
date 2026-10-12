@@ -1,4 +1,5 @@
 import { defineGame } from "@jgengine/shell/defineGame";
+import { editorLayers } from "./editorLayers";
 
 import { assets } from "./game/assets";
 import { content } from "./game/content";
@@ -11,6 +12,7 @@ import { physics, world } from "./world";
 export const game = defineGame({
   name: "Drift Foundry",
   world,
+  editorLayers,
   physics,
   input: keybinds,
   assets,

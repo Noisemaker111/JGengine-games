@@ -10,6 +10,7 @@ import {
 } from "../../objects/catalog";
 import { MILESTONES } from "../../catalog";
 import { session } from "../../session";
+import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
 
 function unlockLabel(requires: string): string {
   const m = MILESTONES.find((x) => x.unlock === requires);
@@ -21,6 +22,7 @@ export function BuildBar() {
   const { commands } = useGame();
   const cash = useGameStore(() => session.cash);
   const selected = useGameStore(() => session.selectedTool);
+  const tracks = useGameStore(() => [...session.placed.values()].filter(obj => obj.catalogId === "track_piece").length);
   const unlocked = useGameStore((ctx) =>
     (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
   );
@@ -28,6 +30,7 @@ export function BuildBar() {
   useEffect(()=>{ if(selected&&BUILDABLES[selected]) setCategory(BUILDABLES[selected]!.category); },[selected]);
 
   const items = Object.values(BUILDABLES).filter((d) => d.category === category);
+  const blueprint = selected === null ? undefined : BUILDABLES[selected];
 
   return (
     <div className="park-catalog">
@@ -84,6 +87,14 @@ export function BuildBar() {
           );
         })}
       </div>
+
+      {blueprint !== undefined ? <div className="pointer-events-auto max-w-[92vw] rounded-lg bg-slate-900/95 px-3 py-2 text-xs text-slate-200" role="status">
+        <div>{blueprint.label} · ${blueprint.cost} to build · ${blueprint.upkeep} / day{cash < blueprint.cost ? " · Not enough cash" : ""}</div>
+        {blueprint.ride !== undefined ? <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+          <span>Intensity {rideThrill(blueprint.id, tracks).toFixed(1)}</span>
+          {["guest_a", "guest_c", "guest_d"].map(kind => <span key={kind}>{guestRidePreference(kind).label}: {Math.round(rideFit(kind, blueprint.id, tracks) * 100)}% fit</span>)}
+        </div> : null}
+      </div> : null}
 
       <div className="park-build-hint">
         {selected ? <><span>Place {BUILDABLES[selected]?.label} · green plots are buildable</span><button onClick={()=>commands.run("build.clear", {})}>Cancel ×</button></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}

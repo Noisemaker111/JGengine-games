@@ -4,7 +4,7 @@ import type { Lifestyle, MemberState } from "../session/types";
 
 export const LIFESTYLES: ReadonlyArray<{ id: Lifestyle; label: string; window: string; blurb: string }> = [
   { id: "yield", label: "Yield career", window: "08–14", blurb: "20 seconds at a console earns 100 credits. Buy rations and leave time to recover." },
-  { id: "bloom", label: "Bloom keeper", window: "14–18", blurb: "20 seconds tending earns four rations and 48 credits. Friends harvest an extra ration." },
+  { id: "bloom", label: "Bloom keeper", window: "14–18", blurb: "20 seconds tending a pantry or export crop earns food and credits. Friends improve the harvest." },
 ];
 export const SHIFT_SECONDS = 20;
 export const FLEX_AFTER_SHIFTS = 3;

@@ -33,6 +33,10 @@ owns the discovery, upstream implementation, adoption and verification workflow.
 
 See [the genre roadmap](./CLASSICS.md) for planned mechanics and [content provenance](./CONTENT-PROVENANCE.md) for source and asset attribution.
 
+## Improve the games
+
+[The individual improvement plans](https://github.com/Noisemaker111/JGengine-games/issues/52) cover all eight games: identity, interacting decisions, progression and recovery, authored space, terrain and art, feedback, and complete-session testing. Use the engine's [game-improvement skill](https://github.com/Noisemaker111/jgengine/blob/beta/.claude/skills/game-improvement/SKILL.md) with the existing domain skills. Keep verified rules, playing experience and presentation separate; a passing test suite does not establish a finished game.
+
 ## Develop
 
 ```sh
@@ -67,7 +71,7 @@ versions; game and shared workspace manifests use `catalog:` and never own SDK
 versions. Change the root catalog and regenerate `bun.lock` for an intentional
 SDK update. The CLI `jgengine` keeps its separate version cadence.
 
-The current catalog installs SDK 0.21.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
+The current catalog installs SDK 0.22.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

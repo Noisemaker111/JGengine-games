@@ -27,14 +27,16 @@ export interface Dive {
   channel: { id: string; remaining: number; anchor: Point } | null;
 }
 export function newHome(): Home { return { version: 2, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null }; }
-export function depart(home: Home): Home {
+export function depart(home: Home, rifleUid: string | null = null): Home {
   if (home.reprintPending) throw new Error("Acknowledge the reprint before departing");
   if (home.activeDive !== null) throw new Error("A dive is already outstanding");
-  return { ...home, revision: home.revision + 1, activeDive: home.nextDive, nextDive: home.nextDive + 1 };
+  if (rifleUid !== null && !home.stash.some(item => item.uid === rifleUid && item.kind === "service-rifle")) throw new Error("That service rifle is no longer banked");
+  return { ...home, stash: rifleUid === null ? home.stash : home.stash.filter(item => item.uid !== rifleUid), revision: home.revision + 1, activeDive: home.nextDive, nextDive: home.nextDive + 1 };
 }
-export function newDive(id: number, home: Pick<Home, "refits"> = { refits: [] }): Dive {
+export function newDive(id: number, home: Pick<Home, "refits"> = { refits: [] }, rifle: Item | null = null): Dive {
+  if (rifle !== null && rifle.kind !== "service-rifle") throw new Error("Only a service rifle can be prepared for departure");
   const tankSeconds = home.refits.includes("tank") ? 145 : TANK_SECONDS;
-  return { id, elapsed: 0, tankSeconds, oxygen: tankSeconds, health: 100, cache: [], collected: [], hand: "sidearm", magazine: 6, reserve: home.refits.includes("reserve") ? 30 : 18, reload: 0, shotCooldown: 0, flash: 0, hurt: 0,
+  return { id, elapsed: 0, tankSeconds, oxygen: tankSeconds, health: 100, cache: rifle === null ? [] : [pack([], rifle)!], collected: [], hand: rifle === null ? "sidearm" : "service-rifle", magazine: 6, reserve: home.refits.includes("reserve") ? 30 : 18, reload: 0, shotCooldown: 0, flash: 0, hurt: 0,
     print: { at: PRINT_SPAWN, health: 80, mode: "route", attack: 0, cooldown: 0, drop: null }, channel: null };
 }
 export function footprint(item: Pick<PackedItem, "kind" | "rotated">): { w: number; h: number } {

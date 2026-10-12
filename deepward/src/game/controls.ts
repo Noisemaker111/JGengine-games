@@ -18,10 +18,11 @@ export const keybinds: ActionCodesMap = {
 export interface View {
   home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked" | "reprinting";
   panel: "stash" | "cache" | null; paused: boolean; hint: string; error: string;
+  rifleUid: string | null;
   pending: { kind: Result["kind"]; reason: string } | null;
   trace: { from: Point; to: Point; remaining: number } | null;
 }
-export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null }));
+export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null, rifleUid: null }));
 const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator() }));
 const message = (e: unknown): string => e instanceof Error ? e.message : String(e);
 export function setAim(ctx: GameContext, direction: Point): void { runtime(ctx).aim = direction; }
@@ -86,10 +87,11 @@ function begin(ctx: GameContext): void {
   const v = viewStore.read(ctx), at = playerAt(ctx), save = runtime(ctx).save;
   if (!playable(ctx) || v.mode !== "home" || at === null || distance(at, GARAGE) > GARAGE_REACH || save === null) return;
   try {
-    const home = depart(v.home);
+    const rifle = v.rifleUid === null ? null : v.home.stash.find(item => item.uid === v.rifleUid && item.kind === "service-rifle") ?? null;
+    const home = depart(v.home, v.rifleUid);
     save.commit(home); // A failed departure never enters the vault.
-    const dive = newDive(home.activeDive!, home);
-    viewStore.write(ctx, { ...v, home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, hint: "Bellwether / last shift. The rail behind you is the only way home." });
+    const dive = newDive(home.activeDive!, home, rifle);
+    viewStore.write(ctx, { ...v, home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, rifleUid: null, hint: rifle === null ? "Bellwether / salvage shift. Empty cache; issue sidearm. The rail behind you is the only way home." : "Bellwether / armed shift. Your banked rifle is now at risk and takes three cache squares. Return it by rail to keep it." });
     teleport(ctx, VAULT_SPAWN);
     clearLoot(ctx);
     for (const loot of SALVAGE) spawnLoot(ctx, loot.id, loot.kind, loot.at, dive.id);
@@ -186,6 +188,14 @@ function toggleCache(ctx: GameContext): void {
 }
 export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define("deepward.depart", { apply: begin });
+  ctx.game.commands.define<{ uid: string | null }>("deepward.prepareRifle", { apply(state, input) {
+    const v = viewStore.read(state);
+    if (v.mode !== "home" || v.panel !== "stash") return;
+    if (input.uid !== null && !v.home.stash.some(item => item.uid === input.uid && item.kind === "service-rifle")) {
+      viewStore.update(state, s => ({ ...s, error: "That service rifle is no longer banked" })); return;
+    }
+    viewStore.write(state, { ...v, rifleUid: input.uid, error: "", hint: input.uid === null ? "Salvage shift selected. The rifle stays safe in Marrow; all twelve cache squares are available." : "Armed shift selected. The rifle leaves the stash only when departure is saved. It costs three cache squares and is lost with your Life." });
+  } });
   ctx.game.commands.define<{ id: RefitId }>("deepward.refit", { apply(state, input) {
     const v = viewStore.read(state), save = runtime(state).save;
     if (v.mode !== "home" || v.panel !== "stash" || save === null) return;

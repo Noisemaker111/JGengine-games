@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "markers": [],
+  "volumes": [
+    {
+      "id": "launch_apron",
+      "kind": "soil",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "halfExtents": {
+        "x": 7,
+        "y": 0,
+        "z": 16
+      },
+      "label": "launch apron",
+      "meta": {
+        "baseColor": "#93806a",
+        "crackScale": 1.5,
+        "crackColor": "#584735",
+        "crackIntensity": 0.16,
+        "mossCoverage": 0,
+        "seed": "launch_apron"
+      }
+    },
+    {
+      "id": "left_worn_shoulder",
+      "kind": "soil",
+      "shape": "box",
+      "center": {
+        "x": -11,
+        "y": 0,
+        "z": 24
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 0,
+        "z": 26
+      },
+      "label": "left worn shoulder",
+      "meta": {
+        "baseColor": "#685b4d",
+        "crackScale": 1.5,
+        "crackColor": "#584735",
+        "crackIntensity": 0.16,
+        "mossCoverage": 0,
+        "seed": "left_worn_shoulder"
+      }
+    },
+    {
+      "id": "right_worn_shoulder",
+      "kind": "soil",
+      "shape": "box",
+      "center": {
+        "x": 11,
+        "y": 0,
+        "z": 24
+      },
+      "halfExtents": {
+        "x": 2.5,
+        "y": 0,
+        "z": 26
+      },
+      "label": "right worn shoulder",
+      "meta": {
+        "baseColor": "#685b4d",
+        "crackScale": 1.5,
+        "crackColor": "#584735",
+        "crackIntensity": 0.16,
+        "mossCoverage": 0,
+        "seed": "right_worn_shoulder"
+      }
+    }
+  ],
+  "paths": [],
+  "annotations": [],
+  "prefabs": [],
+  "collections": [],
+  "catalogs": []
+}

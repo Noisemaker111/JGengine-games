@@ -260,175 +260,291 @@
     {
       "id": "placed_car_muscle_neon_8",
       "kind": "vehicle_spawn",
-      "position": { "x": 60, "y": 0, "z": -60 },
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -60
+      },
       "rotationY": 0,
       "color": "#d64545",
       "label": "Bandolero",
-      "meta": { "assetId": "car_muscle" }
+      "meta": {
+        "assetId": "car_muscle"
+      }
     },
     {
       "id": "placed_car_compact_ocean_9",
       "kind": "vehicle_spawn",
-      "position": { "x": -180, "y": 0, "z": -30 },
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": -30
+      },
       "rotationY": 0,
       "color": "#f2c14e",
       "label": "Pico",
-      "meta": { "assetId": "car_compact" }
+      "meta": {
+        "assetId": "car_compact"
+      }
     },
     {
       "id": "placed_car_suv_heights_10",
       "kind": "vehicle_spawn",
-      "position": { "x": 60, "y": 0, "z": -180 },
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -180
+      },
       "rotationY": 0,
       "color": "#3d5a45",
       "label": "Vagabond",
-      "meta": { "assetId": "car_suv" }
+      "meta": {
+        "assetId": "car_suv"
+      }
     },
     {
       "id": "placed_car_muscle_port_11",
       "kind": "vehicle_spawn",
-      "position": { "x": 180, "y": 0, "z": 120 },
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": 120
+      },
       "rotationY": 0,
       "color": "#7a3b3b",
       "label": "Bandolero",
-      "meta": { "assetId": "car_muscle" }
+      "meta": {
+        "assetId": "car_muscle"
+      }
     },
     {
       "id": "placed_car_compact_midtown_12",
       "kind": "vehicle_spawn",
-      "position": { "x": 60, "y": 0, "z": 60 },
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": 60
+      },
       "rotationY": 0,
       "color": "#4e88c7",
       "label": "Pico",
-      "meta": { "assetId": "car_compact" }
+      "meta": {
+        "assetId": "car_compact"
+      }
     },
     {
       "id": "placed_car_sport_downtown_13",
       "kind": "vehicle_spawn",
-      "position": { "x": 0, "y": 0, "z": 0 },
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
       "rotationY": 1.5708,
       "color": "#33c1b1",
       "label": "Cicada GT",
-      "meta": { "assetId": "car_sport" }
+      "meta": {
+        "assetId": "car_sport"
+      }
     },
     {
       "id": "placed_car_compact_beach_14",
       "kind": "vehicle_spawn",
-      "position": { "x": -180, "y": 0, "z": 120 },
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": 120
+      },
       "rotationY": 0,
       "color": "#e0843c",
       "label": "Pico",
-      "meta": { "assetId": "car_compact" }
+      "meta": {
+        "assetId": "car_compact"
+      }
     },
     {
       "id": "placed_car_muscle_villa_15",
       "kind": "vehicle_spawn",
-      "position": { "x": 60, "y": 0, "z": -240 },
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -240
+      },
       "rotationY": 3.14159,
       "color": "#333844",
       "label": "Bandolero",
-      "meta": { "assetId": "car_muscle" }
+      "meta": {
+        "assetId": "car_muscle"
+      }
     },
     {
       "id": "bounty_marina",
       "kind": "bounty",
-      "position": { "x": -150, "y": 0, "z": 90 },
+      "position": {
+        "x": -150,
+        "y": 0,
+        "z": 90
+      },
       "label": "The marina"
     },
     {
       "id": "bounty_plaza",
       "kind": "bounty",
-      "position": { "x": 12, "y": 0, "z": -8 },
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": -8
+      },
       "label": "Mainsail plaza"
     },
     {
       "id": "bounty_wharf",
       "kind": "bounty",
-      "position": { "x": 166, "y": 0, "z": 214 },
+      "position": {
+        "x": 166,
+        "y": 0,
+        "z": 214
+      },
       "label": "Carmine wharf"
     },
     {
       "id": "bounty_ridge",
       "kind": "bounty",
-      "position": { "x": 44, "y": 0, "z": -256 },
+      "position": {
+        "x": 44,
+        "y": 0,
+        "z": -256
+      },
       "label": "Sunset ridge"
     },
     {
       "id": "bounty_canal",
       "kind": "bounty",
-      "position": { "x": 100, "y": 0, "z": -20 },
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": -20
+      },
       "label": "Canal district"
     },
     {
       "id": "stash_pier",
       "kind": "stash",
-      "position": { "x": 168, "y": 0, "z": 232 },
+      "position": {
+        "x": 168,
+        "y": 0,
+        "z": 232
+      },
       "label": "Pier's end"
     },
     {
       "id": "stash_beach",
       "kind": "stash",
-      "position": { "x": -172, "y": 0, "z": -56 },
+      "position": {
+        "x": -172,
+        "y": 0,
+        "z": -56
+      },
       "label": "Under the boardwalk"
     },
     {
       "id": "stash_alley",
       "kind": "stash",
-      "position": { "x": 12, "y": 0, "z": -32 },
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": -32
+      },
       "label": "Neon back-alley"
     },
     {
       "id": "stash_villa",
       "kind": "stash",
-      "position": { "x": 100, "y": 0, "z": -256 },
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": -256
+      },
       "label": "Villa poolside"
     },
     {
       "id": "stash_dock",
       "kind": "stash",
-      "position": { "x": 114, "y": 0, "z": 208 },
+      "position": {
+        "x": 114,
+        "y": 0,
+        "z": 208
+      },
       "label": "Container stack"
     },
     {
       "id": "stash_promenade",
       "kind": "stash",
-      "position": { "x": -40, "y": 0, "z": 96 },
+      "position": {
+        "x": -40,
+        "y": 0,
+        "z": 96
+      },
       "label": "Midtown promenade"
     },
     {
       "id": "stash_marina",
       "kind": "stash",
-      "position": { "x": -148, "y": 0, "z": 44 },
+      "position": {
+        "x": -148,
+        "y": 0,
+        "z": 44
+      },
       "label": "Marina lockup"
     },
     {
       "id": "stash_eastlot",
       "kind": "stash",
-      "position": { "x": 148, "y": 0, "z": -64 },
+      "position": {
+        "x": 148,
+        "y": 0,
+        "z": -64
+      },
       "label": "East side lot"
     },
     {
       "id": "stash_hilltop",
       "kind": "stash",
-      "position": { "x": 44, "y": 0, "z": -204 },
+      "position": {
+        "x": 44,
+        "y": 0,
+        "z": -204
+      },
       "label": "Palm Heights overlook"
     },
     {
       "id": "stash_midstrip",
       "kind": "stash",
-      "position": { "x": -48, "y": 0, "z": 152 },
+      "position": {
+        "x": -48,
+        "y": 0,
+        "z": 152
+      },
       "label": "Midtown strip roof"
     },
     {
       "id": "stash_canalside",
       "kind": "stash",
-      "position": { "x": 108, "y": 0, "z": 104 },
+      "position": {
+        "x": 108,
+        "y": 0,
+        "z": 104
+      },
       "label": "Canalside"
     },
     {
       "id": "stash_overlook",
       "kind": "stash",
-      "position": { "x": -152, "y": 0, "z": -104 },
+      "position": {
+        "x": -152,
+        "y": 0,
+        "z": -104
+      },
       "label": "Ocean overlook"
     }
   ],
@@ -480,6 +596,294 @@
       },
       "radius": 90,
       "label": "Palm Heights"
+    },
+    {
+      "id": "dispatch_dune_north",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -224,
+        "y": 0,
+        "z": 82
+      },
+      "halfExtents": {
+        "x": 9,
+        "y": 0,
+        "z": 22
+      },
+      "label": "dispatch dune north",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.26,
+        "colorBase": "#8e8850",
+        "colorTip": "#b8ad72",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "dispatch_dune_north",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "dispatch_dune_south",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -225,
+        "y": 0,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 8,
+        "y": 0,
+        "z": 20
+      },
+      "label": "dispatch dune south",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.24,
+        "colorBase": "#8e8850",
+        "colorTip": "#b8ad72",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "dispatch_dune_south",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "coastal_dune_upper",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -224,
+        "y": 0,
+        "z": 210
+      },
+      "halfExtents": {
+        "x": 9,
+        "y": 0,
+        "z": 55
+      },
+      "label": "coastal dune upper",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.28,
+        "colorBase": "#8e8850",
+        "colorTip": "#b8ad72",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "coastal_dune_upper",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "coastal_dune_lower",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -224,
+        "y": 0,
+        "z": -180
+      },
+      "halfExtents": {
+        "x": 9,
+        "y": 0,
+        "z": 80
+      },
+      "label": "coastal dune lower",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.28,
+        "colorBase": "#8e8850",
+        "colorTip": "#b8ad72",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "coastal_dune_lower",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "park_central",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0,
+        "z": 60
+      },
+      "halfExtents": {
+        "x": 33,
+        "y": 0,
+        "z": 33
+      },
+      "label": "park central",
+      "meta": {
+        "density": 24,
+        "bladeHeight": 0.24,
+        "colorBase": "#53734a",
+        "colorTip": "#819064",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "park_central",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "park_west",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -120,
+        "y": 0,
+        "z": -60
+      },
+      "halfExtents": {
+        "x": 33,
+        "y": 0,
+        "z": 33
+      },
+      "label": "park west",
+      "meta": {
+        "density": 24,
+        "bladeHeight": 0.24,
+        "colorBase": "#53734a",
+        "colorTip": "#819064",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "park_west",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "park_east",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": 120,
+        "y": 0,
+        "z": -60
+      },
+      "halfExtents": {
+        "x": 33,
+        "y": 0,
+        "z": 33
+      },
+      "label": "park east",
+      "meta": {
+        "density": 24,
+        "bladeHeight": 0.24,
+        "colorBase": "#53734a",
+        "colorTip": "#819064",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "park_east",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "park_south",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0,
+        "z": -180
+      },
+      "halfExtents": {
+        "x": 33,
+        "y": 0,
+        "z": 33
+      },
+      "label": "park south",
+      "meta": {
+        "density": 24,
+        "bladeHeight": 0.24,
+        "colorBase": "#53734a",
+        "colorTip": "#819064",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "park_south",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "park_northeast",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": 120,
+        "y": 0,
+        "z": 60
+      },
+      "halfExtents": {
+        "x": 33,
+        "y": 0,
+        "z": 33
+      },
+      "label": "park northeast",
+      "meta": {
+        "density": 24,
+        "bladeHeight": 0.24,
+        "colorBase": "#53734a",
+        "colorTip": "#819064",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "park_northeast",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
     }
   ],
   "paths": [
@@ -640,13 +1044,41 @@
       "id": "boardwalk",
       "kind": "promenade",
       "points": [
-        { "x": -207, "y": 0, "z": -286 },
-        { "x": -204, "y": 0, "z": -186 },
-        { "x": -209, "y": 0, "z": -84 },
-        { "x": -205, "y": 0, "z": 16 },
-        { "x": -210, "y": 0, "z": 118 },
-        { "x": -205, "y": 0, "z": 214 },
-        { "x": -208, "y": 0, "z": 288 }
+        {
+          "x": -207,
+          "y": 0,
+          "z": -286
+        },
+        {
+          "x": -204,
+          "y": 0,
+          "z": -186
+        },
+        {
+          "x": -209,
+          "y": 0,
+          "z": -84
+        },
+        {
+          "x": -205,
+          "y": 0,
+          "z": 16
+        },
+        {
+          "x": -210,
+          "y": 0,
+          "z": 118
+        },
+        {
+          "x": -205,
+          "y": 0,
+          "z": 214
+        },
+        {
+          "x": -208,
+          "y": 0,
+          "z": 288
+        }
       ],
       "label": "Mainsail Boulevard boardwalk"
     },
@@ -654,10 +1086,26 @@
       "id": "heights_drive",
       "kind": "promenade",
       "points": [
-        { "x": 8, "y": 0, "z": -256 },
-        { "x": 62, "y": 0, "z": -268 },
-        { "x": 118, "y": 0, "z": -252 },
-        { "x": 146, "y": 0, "z": -212 }
+        {
+          "x": 8,
+          "y": 0,
+          "z": -256
+        },
+        {
+          "x": 62,
+          "y": 0,
+          "z": -268
+        },
+        {
+          "x": 118,
+          "y": 0,
+          "z": -252
+        },
+        {
+          "x": 146,
+          "y": 0,
+          "z": -212
+        }
       ],
       "label": "Palm Heights villa row"
     },

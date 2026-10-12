@@ -98,20 +98,15 @@ describe("scrap-signal world", () => {
     expect(new Set(midfield.map((piece) => piece.catalogId)).size).toBeGreaterThanOrEqual(3);
   });
 
-  test("scrub covers the middle distance, not only the ground the player stands on", () => {
-    const ringed = summary.vegetation.filter((patch) => {
-      const [x, z] = patch.area.position ?? [0, 0];
-      const distance = Math.hypot(x - PLAYER_SPAWN[0], z - PLAYER_SPAWN[2]);
-      return distance > 35 && distance < 110;
-    });
-    // Blades stop rendering past 150 m, so 35–110 m is the whole band a desert horizon shot has to
-    // fill. Six zone-wide clumps spread over that band left most of it bare sand.
-    expect(ringed.length).toBeGreaterThanOrEqual(6);
-    // Two tiers by design: dense ground scrub carries coverage; sparse tall accent stands only ever
-    // sit inside a scrub patch, so they may be thin without the field reading as bare.
-    const dense = summary.vegetation.filter((patch) => patch.density >= 4);
-    expect(dense.length).toBeGreaterThanOrEqual(summary.vegetation.length / 2);
-    for (const patch of summary.vegetation) expect(patch.density).toBeGreaterThanOrEqual(1.5);
+  test("authored opening scrub leaves the spawn and relay approach clear", () => {
+    const patches = authoredScene.volumes.filter((volume) => volume.kind === "grass_field");
+    expect(patches.length).toBeGreaterThanOrEqual(3);
+    for (const patch of patches) {
+      const half = patch.halfExtents!;
+      const containsSpawn = Math.abs(patch.center.x - PLAYER_SPAWN[0]) < half.x && Math.abs(patch.center.z - PLAYER_SPAWN[2]) < half.z;
+      expect(containsSpawn).toBe(false);
+      expect(patch.meta?.bladeHeight).toBeLessThanOrEqual(0.3);
+    }
   });
 
   test("every settlement zone contributes a structure group", () => {

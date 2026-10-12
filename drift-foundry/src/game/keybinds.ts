@@ -7,6 +7,7 @@ export const keybinds: ActionCodesMap = {
   steerRight: ["KeyD", "ArrowRight"],
   jumpHop: ["Space"],
   plowBrace: ["ShiftLeft", "ShiftRight"],
+  salvageSwap: { hold: ["KeyE"] },
   restart: ["KeyR"],
   startRun: ["Enter"],
   pauseRun: ["KeyP"],

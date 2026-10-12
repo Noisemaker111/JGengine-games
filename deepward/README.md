@@ -28,6 +28,15 @@ starts each departure with 30 reserve rounds. Both need the same copper: buying
 one leaves the other short until you bring another spool home. Installed refits
 survive death; purchases consume exact saved items before confirmation.
 
+Recovered service rifles can be prepared at the stash bench for the next shift.
+Travel light to keep banked rifles safe and all twelve cache squares free, or
+bring one for 30 damage per shot instead of 20. It takes three cache squares.
+Preparation does not spend the rifle; verified departure removes its exact
+instance from the stash. Return banks it again, while death or dive reload loses
+it. Existing saves need no schema change. Save and command tests cover failed
+departure writes, returned rifles and interrupted departures; native play of
+this new preparation choice remains unverified.
+
 A lost Life now stops at Halloway's reprint screen. The loss is already saved;
 accept the next Life before moving or departing again. Reloading at this screen
 keeps the acknowledgement pending. The pause menu offers an explicit reload /

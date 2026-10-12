@@ -1,4 +1,5 @@
 import { defineGame } from "@jgengine/shell/defineGame";
+import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
 import { audio } from "./game/audio/catalog";
 import { content } from "./game/content";
@@ -17,6 +18,9 @@ export const game = defineGame({
   assets,
   audio,
   world,
+  editorLayers,
+  scenePlacement: false,
+  scenePathKinds: [],
   physics,
   inventories,
   input: keybinds,

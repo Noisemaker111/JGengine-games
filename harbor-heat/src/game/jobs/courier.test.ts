@@ -6,7 +6,7 @@ import { game } from "../../game.config";
 import { loop, normalizeAfterRestore } from "../../loop";
 import { content } from "../content";
 import { registerCommands, startedStore } from "../commands";
-import { courierStore, DELIVERY_ROUTES, DISPATCH, setupCourierLandmarks, tickCourier } from "./courier";
+import { cargoCondition, courierStore, DELIVERY_ROUTES, DISPATCH, setupCourierLandmarks, tickCourier } from "./courier";
 
 function boot(backend = memorySaveBackend()) {
   const ctx = createGameContext({ definition: game.game, content, player: { userId: "courier-test", isNew: true }, save: { backend, mode: "manual", key: "courier-test" } });
@@ -17,6 +17,46 @@ function boot(backend = memorySaveBackend()) {
 }
 
 describe("Mainsail courier operation", () => {
+  test("rush requires a lesson and bond; expiry leaves free recovery available", () => {
+    const ctx = boot();
+    ctx.game.commands.run("courier.accept", { service: "rush" });
+    expect(courierStore.read(ctx).phase).toBe("idle");
+    courierStore.write(ctx, { ...courierStore.read(ctx), completed: 1 });
+    ctx.game.commands.run("courier.accept", { service: "rush" });
+    expect(courierStore.read(ctx).phase).toBe("idle");
+    ctx.game.economy.grant(ctx.player.userId, "cash", 100);
+    const before = ctx.game.economy.balance(ctx.player.userId, "cash");
+    ctx.game.commands.run("courier.accept", { service: "rush" });
+    expect(ctx.game.economy.balance(ctx.player.userId, "cash")).toBe(before - 60);
+    expect(courierStore.read(ctx).remaining).toBe(34);
+    tickCourier(ctx, 35);
+    expect(courierStore.read(ctx).phase).toBe("lost");
+    ctx.game.commands.run("courier.dismiss", {});
+    ctx.game.commands.run("courier.accept", {});
+    expect(courierStore.read(ctx).service).toBe("standard");
+    expect(ctx.game.economy.balance(ctx.player.userId, "cash")).toBe(before - 60);
+  });
+  test("careful versus reckless cargo value differs; restored rush preserves stakes", async () => {
+    expect(cargoCondition(100, 10, 35, 0)).toBe(100);
+    expect(cargoCondition(100, 10, 65, 0)).toBe(64);
+    expect(cargoCondition(100, 10, 35, 20)).toBe(60);
+    const backend = memorySaveBackend();
+    const ctx = boot(backend);
+    courierStore.write(ctx, { ...courierStore.read(ctx), completed: 1 });
+    ctx.game.economy.grant(ctx.player.userId, "cash", 100);
+    ctx.game.commands.run("courier.accept", { service: "rush" });
+    ctx.scene.entity.stats.delta(ctx.player.userId, "health", -20);
+    tickCourier(ctx, 2);
+    await ctx.game.save!.save();
+    const restored = boot(backend);
+    await restored.game.save!.load();
+    expect(courierStore.read(restored).service).toBe("rush");
+    expect(courierStore.read(restored).condition).toBe(60);
+    const [x,z] = DELIVERY_ROUTES[1].position;
+    restored.scene.entity.setPose(restored.player.userId, { position: [x, restored.world.groundHeightAt(x,z), z] });
+    restored.game.commands.run("courier.deliver", {});
+    expect(courierStore.read(restored).reward).toBe(532);
+  });
   test("delivery requires the real drop-off and pays exactly once", () => {
     const ctx = boot();
     ctx.game.commands.run("courier.accept", {});

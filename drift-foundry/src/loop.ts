@@ -67,7 +67,7 @@ export function onTick(ctx: GameContext, dt: number): void {
   const axis = input.sample(dt, ctx.input, before.phase === "running" && !before.paused);
   const jumpPressed = input.consumeJump() || ctx.input.justPressed("jumpHop");
   const plowBracing = ctx.input.isDown("plowBrace") || input.isDown("plowBrace");
-  session.tick(dt, axis, { jumpPressed, plowBracing });
+  session.tick(dt, axis, { jumpPressed, plowBracing, salvageSwap: ctx.input.isDown("salvageSwap") || input.isDown("salvageSwap") });
 
   const snapshot = session.snapshot();
   for (const burst of impactBursts(before, snapshot)) {

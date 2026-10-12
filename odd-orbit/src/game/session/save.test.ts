@@ -192,3 +192,20 @@ test("an interrupted reciprocal activity reload releases the partner without awa
   expect(after.household.members[b.id]!.assignedByPlayer).toBe(false);
   expect(after.household.relationships[pairKey(a.id, b.id)]).toBeLessThanOrEqual(before.household.relationships[pairKey(a.id, b.id)]!);
 });
+
+
+test("legacy v1 households retain pantry crops while new export choices roundtrip", () => {
+  const first = boot();
+  const legacy = captureOrbitSave(first);
+  expect(validOrbitSave(legacy)).toBe(true);
+  const second = boot();
+  restoreOrbitSave(second, legacy);
+  expect(householdStore.read(second).members["alien:1"]!.bloomCrop ?? "pantry").toBe("pantry");
+  householdStore.read(second).members["alien:1"]!.bloomCrop = "export";
+  const current = captureOrbitSave(second);
+  expect(validOrbitSave(current)).toBe(true);
+  restoreOrbitSave(first, current);
+  expect(householdStore.read(first).members["alien:1"]!.bloomCrop).toBe("export");
+  (current.household.members["alien:1"] as any).bloomCrop = "free-money";
+  expect(validOrbitSave(current)).toBe(false);
+});

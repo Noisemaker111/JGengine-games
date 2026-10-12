@@ -26,8 +26,13 @@ export function GameUI() {
   const [selected, setSelected] = useState<string | null>(null);
   const [credits, setCredits] = useState(false);
   const settings = useSettings();
-  const creditsRef = useDialogBehavior({ open: credits, onClose: () => setCredits(false) });
   const command = (name: string, input: unknown = {}) => ctx.game.commands.run(`deepward.${name}`, input);
+  const shiftDialogRef = useDialogBehavior({
+    open: view.panel !== null || view.paused || view.mode === "reprinting" || view.mode === "saving" || view.mode === "blocked",
+    focusKey: view.panel ?? view.mode,
+    onClose: view.mode === "home" || view.mode === "dive" ? () => command("close") : undefined,
+  });
+  const creditsRef = useDialogBehavior({ open: credits, onClose: () => setCredits(false) });
   useEffect(() => {
     if (view.panel === null && !view.paused && (view.mode === "home" || view.mode === "dive")) {
       document.querySelector("canvas")?.closest<HTMLElement>("[tabindex]")?.focus({ preventScroll: true });
@@ -39,17 +44,10 @@ export function GameUI() {
   });
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
-      if (event.code === "Tab") {
-        const v = viewStore.read(ctx);
-        const control = event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]");
-        if (v.panel !== null || v.paused || control || (v.mode !== "home" && v.mode !== "dive")) {
-          // Native focus traversal belongs to menus; it must not toggle the carried cache.
-          event.stopImmediatePropagation();
-        } else event.preventDefault();
-      }
       if (event.code !== "Escape" || event.repeat || settings.isOpen) return;
+      const current = viewStore.read(ctx);
+      if (credits || current.panel !== null || current.paused || (current.mode !== "home" && current.mode !== "dive")) return;
       event.preventDefault(); event.stopImmediatePropagation();
-      if (credits) { setCredits(false); return; }
       ctx.game.commands.run("deepward.pause", {});
     };
     const storage = (event: StorageEvent) => { if (event.key === SAVE_KEY || event.key === null) storageChanged(ctx); };
@@ -67,6 +65,7 @@ export function GameUI() {
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: Math.floor(i / CACHE.w) }));
   const close = () => { command("close"); grab(); };
   return <div style={shiftThemeStyle} className={`dw-ui ${low ? "dw-low" : ""}`} onKeyDown={event => {
+    if (event.code === "Tab") event.stopPropagation();
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
     <header className="dw-top">
@@ -104,6 +103,7 @@ export function GameUI() {
       <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
       <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
       <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death or dive reload loses carried items.</p>
+      <p className="dw-note">Next departure: {view.rifleUid === null ? "issue sidearm · 12 free cache squares" : "banked service rifle · 9 free cache squares · rifle at risk"}. Prepare a rifle at the stash bench.</p>
       {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
     </aside>}
     <footer className="dw-bottom">
@@ -113,12 +113,14 @@ export function GameUI() {
 
       {view.error && view.mode !== "saving" && view.mode !== "blocked" && <p role="alert" className="dw-error">{view.error}</p>}
     </footer>
-    {view.panel === "stash" && <div className="dw-modal"><section data-hud-window className="dw-sheet" aria-label="Marrow stash">
+    {view.panel === "stash" && <div className="dw-modal"><section ref={shiftDialogRef} data-hud-window className="dw-sheet" aria-label="Marrow stash" role="dialog" aria-modal="true" tabIndex={-1}>
       <button className="dw-sheet-close" onClick={close}>Close bench ×</button>
       <span className="dw-eyebrow">Permanent / saved on return</span><h2>Marrow's stash</h2>
       <p>These exact item instances survived the rail journey. They remain here through deaths and reloads.</p>
+      <h3>Choose the next shift</h3><p>Travel light with the issue sidearm and twelve free cache squares, or risk a recovered rifle for 30 damage per shot instead of 20. A rifle fills three squares and is lost on death or dive reload. Returning banks the same rifle again.</p>
+      <button aria-pressed={view.rifleUid === null} onClick={() => command("prepareRifle", { uid: null })}>Travel light / keep rifles safe</button>
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.uid}>
-        <ItemMark kind={item.kind} size={38} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small></div>
+        <ItemMark kind={item.kind} size={38} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small>{item.kind === "service-rifle" && <button aria-pressed={view.rifleUid === item.uid} onClick={() => command("prepareRifle", { uid: item.uid })}>{view.rifleUid === item.uid ? "Prepared / three squares at risk" : "Prepare this rifle / risk next shift"}</button>}</div>
       </article>)}</div>}
       <h3>Refit the next departure</h3><p>Both refits need a copper spool. Spending it here means another rail journey for the other refit. Installed refits survive every Life.</p>
       {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article className="dw-refit" key={id}>
@@ -130,7 +132,7 @@ export function GameUI() {
       <p role="status">{view.hint}</p>{view.error && <p role="alert">{view.error}</p>}
       <div className="dw-actions"><button onClick={close}>Back to Marrow</button><button onClick={() => window.location.reload()}>Reload saved stash</button></div>
     </section></div>}
-    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><section data-hud-window className="dw-sheet" aria-label="Carried cache">
+    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><section ref={shiftDialogRef} data-hud-window className="dw-sheet" aria-label="Carried cache" role="dialog" aria-modal="true" tabIndex={-1}>
       <button className="dw-sheet-close" onClick={close}>Close cache ×</button>
       <span className="dw-eyebrow">Carried cache / 4 × 3 / equipment capacity</span><h2>What fits comes home.</h2><p className="dw-error">The tank and prints keep moving while you pack.</p>
       <div className="dw-cache-grid">
@@ -144,8 +146,8 @@ export function GameUI() {
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><button aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</button><button aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</button></div>}
       <button onClick={() => { command("cache"); grab(); }}>Close cache / Tab</button>
     </section></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={settings.open}>Settings & controls</button><button onClick={() => setCredits(true)}>Credits</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
-    {view.mode === "reprinting" && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alert">
+    {view.paused && view.panel === null && <div className="dw-modal"><section ref={shiftDialogRef} role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={settings.open}>Settings & controls</button><button onClick={() => setCredits(true)}>Credits</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
+    {view.mode === "reprinting" && <div className="dw-modal"><section ref={shiftDialogRef} data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
       <p>Halloway has printed Life {view.home.life}. This loss is already saved; reloading cannot restore the expedition.</p>
@@ -153,7 +155,7 @@ export function GameUI() {
       <button onClick={() => { command("acknowledgeReprint"); if (viewStore.read(ctx).mode === "home") grab(); }}>Accept reprint / return to Marrow</button>
       <button onClick={() => window.location.reload()}>Reload saved Marrow</button>
     </section></div>}
-    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause" role="alert">
+    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><section ref={shiftDialogRef} data-hud-window className="dw-sheet dw-pause" role="alertdialog" aria-label="Marrow save boundary" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Marrow / save boundary</span><h2>{view.mode === "saving" ? "Return pending" : "Marrow is unavailable"}</h2><p>{view.error}</p>
       <p>{view.mode === "saving" ? "The simulation is stopped. This return has not been acknowledged; retry or reload the saved record." : "The saved record has been preserved. No new dive can begin."}</p>
       {view.mode === "saving" && <button onClick={() => command("retrySave")}>Retry saving this return</button>}

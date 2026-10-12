@@ -4,7 +4,7 @@ import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
 import { sessionStore } from "../../session";
-import { courierStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
+import { courierStore, courierDeadline, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 import { startedStore } from "../../commands";
 
 const ignoreSaveChanges = () => () => {};
@@ -41,8 +41,8 @@ export function SessionUI() {
     return <div data-jg-menu className="hh-overlay"><section role="dialog" aria-modal="true" aria-labelledby="hh-result-title" className="hh-modal">
       <div className="hh-eyebrow">{delivery ? "Mainsail express / dispatch receipt" : "Harbor Heat / recovery"}</div>
       <h2 id="hh-result-title">{delivery ? won ? "Signed. Sealed. Paid." : "Missed the tide." : "Back on your feet."}</h2>
-      <p>{delivery ? won ? `${route.recipient} received the parcel. Another route is waiting at dispatch.` : "The deadline expired. Your parcel returned to dispatch; no cash was lost." : session.notice}</p>
-      {delivery && won && <div className="hh-payout">+${courier.reward}<small>includes time bonus · +15 cred</small></div>}
+      <p>{delivery ? won ? `${route.recipient} received the parcel.${courier.service === "rush" ? ` Cargo condition ${Math.round(courier.condition ?? 100)}%; pay and bond refund scale with condition.` : " Another route is waiting at dispatch."}` : courier.service === "rush" ? "Rush expired; $60 bond forfeited. A free standard delivery can get you earning again." : "The deadline expired. Your parcel returned to dispatch; no cash was lost." : session.notice}</p>
+      {delivery && won && <div className="hh-payout">+${courier.reward}<small>{courier.service === "rush" ? "includes condition-based bond refund" : "includes time bonus"} · +15 cred</small></div>}
       <button autoFocus type="button" className="hh-button hh-button-primary" onClick={() => commands.run(delivery ? "courier.dismiss" : "session.dismiss", {})}>Keep exploring ↗</button>
     </section></div>;
   }
@@ -63,11 +63,12 @@ export function CourierHud() {
   const { commands } = useGame();
   const route = DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!;
   const running = courier.phase === "running";
+  const offer = DELIVERY_ROUTES[courier.completed % DELIVERY_ROUTES.length]!;
   const distance = position === null ? 0 : Math.round(Math.hypot(position[0] - DISPATCH[0], position[2] - DISPATCH[1]));
   return <section className={`hh-courier ${running && courier.remaining < 15 ? "hh-urgent" : ""}`} aria-label="Courier dispatch">
     <div className="hh-courier-label">{running ? "Parcel on board" : "Mainsail express"}<span>{running ? `${Math.ceil(courier.remaining)}s` : `${courier.completed} delivered`}</span></div>
     <strong>{running ? route.label : "Take a coastal delivery"}</strong>
     <p>{running ? `${route.recipient} · ${courier.distance} m` : `Teal booth by the shore · ${distance} m`}</p>
-    {running ? <><progress max={route.seconds} value={courier.remaining} aria-label="Delivery time remaining" /><small>{route.hint} Slow to a stop, then press E / Use at the tower.</small></> : <><small>Walk or drive. Earn cash + cred. No entry fee.</small>{distance < 9 && <button type="button" className="hh-inline-action" onClick={() => commands.run("courier.accept", {})}>Take parcel · E ↗</button>}</>}
+    {running ? <><progress max={courierDeadline(route.seconds, courier.service === "rush")} value={courier.remaining} aria-label="Delivery time remaining" />{courier.service === "rush" && <><b>FRAGILE RUSH · cargo {Math.round(courier.condition ?? 100)}%</b><small>Above 35 km/h and taking damage spoil cargo; wage and bond refund fall with condition.</small></>}<small>{route.hint} Slow to a stop, then press E / Use at the tower.</small></> : <><small>{offer.label} · Standard ${offer.payout}+ · {offer.seconds}s · no fee or failure cost.</small>{distance < 9 && <><button type="button" className="hh-inline-action" onClick={() => commands.run("courier.accept", {})}>Take standard parcel · E ↗</button>{courier.completed > 0 && <><small>Fragile rush ${Math.floor(offer.payout * 1.8)}+ at 100% condition · {courierDeadline(offer.seconds, true)}s. $60 bond; condition scales wage/refund, expiry loses bond. Keep below 35 km/h; avoid damage.</small><button type="button" className="hh-inline-action" onClick={() => commands.run("courier.accept", { service: "rush" })}>Commit $60 bond · fragile rush ↗</button></>}</>}</>}
   </section>;
 }

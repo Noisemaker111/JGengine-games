@@ -225,16 +225,9 @@ const scrubClumps = (
   return clumps;
 };
 
-const rustflat = ZONES[0]!;
-
+// Opening scrub is editor-owned. Remote zones retain their legacy generation until their pass.
 const vegetation: readonly GrassEnvironmentDescriptor[] = [
-  ...scrubClumps(rustflat.center.x + 18, rustflat.center.z + 34, 18, 4, "scrap-scrub-spawn"),
-  // The 40–110 m band of the opening view. Zone clumps alone spread six patches over a 90 m radius,
-  // which leaves the whole middle distance bare sand — the layer that separates foreground scrub
-  // from the ridgeline was simply missing. Wider patches, because at this range a 9 m clump is a
-  // smudge, and inside the 150 m where blades still render at all.
-  ...scrubClumps(rustflat.center.x + 18, rustflat.center.z + 34, 70, 5, "scrap-scrub-spawn-midfield", [16, 8]),
-  ...ZONES.flatMap((zone) => scrubClumps(zone.center.x, zone.center.z, zone.flattenRadius * 1.3, 5, `scrap-scrub-${zone.id}`, [12, 6])),
+  ...ZONES.slice(1).flatMap((zone) => scrubClumps(zone.center.x, zone.center.z, zone.flattenRadius * 1.3, 5, `scrap-scrub-${zone.id}`, [12, 6])),
   ...SIDE_POIS.flatMap((poi) => scrubClumps(poi.x, poi.z, poi.radius, 3, `scrap-scrub-${poi.id}`)),
 ];
 

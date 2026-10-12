@@ -1,6 +1,7 @@
 import { useCurrency, useQuestJournal } from "@jgengine/react/hooks";
 import { quests } from "../../quests/catalog";
 import { FERRALON } from "../../palette";
+import { enemies } from "../../entities/enemies/catalog";
 
 export function MissionTracker() {
   const journal = useQuestJournal();
@@ -22,9 +23,10 @@ export function MissionTracker() {
             <div className="text-xs font-black uppercase tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
               {def.title}
             </div>
+            <p className="mb-1 text-[11px] leading-snug text-stone-300">{def.description}</p>
             {entry.objectives.map((objective) => (
               <div key={objective.id} className="flex justify-between text-[11px] font-semibold text-stone-200">
-                <span>{objective.id}</span>
+                <span>Defeat {enemies.find((enemy) => enemy.id === def.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
                 <span className="tabular-nums">
                   {Math.min(objective.progress, objective.count)} / {objective.count}
                 </span>
