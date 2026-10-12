@@ -73,10 +73,10 @@ describe("ember-command run phase", () => {
     expect(ctx.game.economy.balance("p1", "gold")).toBe(250);
     expect(ctx.scene.entity.list().length).toBe(startingRoster);
     expect(gamePhase(ctx)).toBe("playing");
-    const wins = preferences.get().wins;
+    const wins = preferences(ctx).get().wins;
     killKeep(ctx, "keep_enemy");
     killKeep(ctx, "keep_enemy");
-    expect(preferences.get().wins).toBe(wins + 1);
+    expect(preferences(ctx).get().wins).toBe(wins + 1);
     ctx.game.commands.run("match.title", {});
     expect(gamePhase(ctx)).toBe("menu");
     expect(ctx.time.isPaused()).toBe(true);
