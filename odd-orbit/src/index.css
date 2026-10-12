@@ -167,3 +167,11 @@ html, body, #root {
 .orbit-ui.orbit-landscape .orbit-inspector { width:340px; max-height:calc(100dvh - 90px); }
 .orbit-ui.orbit-landscape .orbit-drawer { width:560px; max-width:calc(100vw - 36px); max-height:calc(100dvh - 140px); }
 .orbit-ui.orbit-landscape .orbit-actions button { padding:10px 8px; }
+
+/* Concrete care and crop decisions stay readable in the household logbook. */
+.orbit-ui .orbit-care { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.orbit-ui .orbit-care button { min-height:48px; padding:8px 4px; font-size:13px; }
+.orbit-ui .orbit-care button small { display:block; font-size:11px; line-height:1.4; margin-top:4px; }
+.orbit-ui .orbit-inspector .orbit-fine,.orbit-ui .orbit-lifestyles button span { font-size:12px; line-height:1.5; }
+.orbit-ui .orbit-paid-action { min-height:44px; font-size:13px; padding:10px; background:#474d34; border-color:#bbd690; }
+.orbit-ui .orbit-inspector button:focus-visible { outline:3px solid #e1ffab; outline-offset:2px; }

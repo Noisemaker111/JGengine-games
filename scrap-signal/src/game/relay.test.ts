@@ -30,6 +30,44 @@ function clearWave(ctx: ReturnType<typeof boot>) {
   }
 }
 
+test("overclock spends shield to bank time, cannot skip hostiles, and restores its choice", async () => {
+  const backend = memorySaveBackend();
+  const ctx = boot(backend);
+  ctx.game.commands.run("relay.start", {});
+  ctx.game.commands.run("relay.overclock", {});
+  const shield = ctx.scene.entity.stats.get("reclaimer", "shield")!.current;
+  tickRelay(ctx, 6);
+  expect(relayStore.read(ctx).upload).toBe(6);
+  expect(relayStore.read(ctx).phase).toBe("defend");
+  expect(relayStore.read(ctx).wave).toBe(1);
+  expect(ctx.scene.entity.stats.get("reclaimer", "shield")!.current).toBe(shield - 36);
+  await ctx.game.save!.save();
+  const restored = boot(backend);
+  await restored.game.save!.load();
+  expect(relayStore.read(restored).overclock).toBe(true);
+  expect(relayStore.read(restored).upload).toBe(6);
+  clearWave(restored);
+  tickRelay(restored, 0.1);
+  expect(relayStore.read(restored).wave).toBe(2);
+  expect(relayStore.read(restored).upload).toBe(0);
+});
+test("low shield and retreat limit overclock; clear-first keeps protective resource", () => {
+  const ctx = boot();
+  ctx.game.commands.run("relay.start", {});
+  const shield = ctx.scene.entity.stats.get("reclaimer", "shield")!.current;
+  tickRelay(ctx, 2);
+  expect(ctx.scene.entity.stats.get("reclaimer", "shield")!.current).toBe(shield);
+  ctx.scene.entity.stats.delta("reclaimer", "shield", 16 - shield);
+  ctx.game.commands.run("relay.overclock", {});
+  tickRelay(ctx, 3);
+  expect(relayStore.read(ctx).upload).toBe(1);
+  expect(ctx.scene.entity.stats.get("reclaimer", "shield")!.current).toBe(10);
+  ctx.scene.entity.update("reclaimer", { position: [RELAY.x + 30, 0, RELAY.z] });
+  ctx.scene.entity.stats.delta("reclaimer", "shield", 50);
+  tickRelay(ctx, 3);
+  expect(relayStore.read(ctx).upload).toBe(1);
+  expect(ctx.scene.entity.stats.get("reclaimer", "shield")!.current).toBe(60);
+});
 test("contract requires console proximity and live controls; enemies block uploads and pause preserves its window", () => {
   const ctx = boot();
   ctx.scene.entity.update("reclaimer", { position: [0, 0, 0] });

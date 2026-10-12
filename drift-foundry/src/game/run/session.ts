@@ -66,7 +66,7 @@ export interface RunSession {
   returnToTitle(): void;
   togglePause(): void;
   suspend(value: boolean): void;
-  tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean }): void;
+  tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean; salvageSwap?: boolean }): void;
 }
 
 export const runSessionStore = defineStore<RunSession>("runSession", () => createRunSession());
@@ -126,9 +126,12 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     return result;
   }
 
-  function applyPickup(): void {
+  function applyPickup(consent: boolean): void {
     const found: PickupDef | null = nearestUncollected(pose.position, collected);
     if (found === null) return;
+    const incoming = partById(found.partId);
+    // Preserve safe route-capability lessons; engine/frame swaps are commitments.
+    if (incoming !== null && (incoming.category === "engine" || incoming.category === "frame") && partInSlotId(installed, incoming.category) !== null && !consent) return;
     const grant = grantPickup(found, installed, collected);
     if (grant.status !== "accepted") return;
     const { part, ejected } = grant;
@@ -261,7 +264,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
       const tuning = tuningFrom(installed);
       pose = vehicle.tick(dt, axis, tuning, input, groundHeightAt);
 
-      applyPickup();
+      applyPickup(input.salvageSwap === true);
       announceGates();
       toastQueue.prune(runTime);
 

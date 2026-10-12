@@ -72,3 +72,7 @@
 @media (max-height:600px) { .df-overlay { align-items:flex-start; } .df-card { margin:auto 0; padding:20px; } .df-ui h1 { font-size:38px; margin:12px 0; } .df-title-art { max-width:30vw; } .df-controls-legend { margin:12px 0; gap:5px; } .df-ui p { margin:10px 0; } .df-actions { margin-top:14px; } .df-result-grid { padding:12px 0; } }
 @media (pointer:coarse) and (max-width:760px) { .df-hud-bottom { bottom:78px; } .df-toast { bottom:155px; } }
 @media (prefers-reduced-motion:reduce) { .df-ui * { transition:none!important; animation:none!important; } }
+.df-salvage-choice { position:absolute; right:18px; top:145px; width:min(310px,40vw); padding:12px; font-size:12px; border-left:4px solid #f1cd69; }
+.df-salvage-choice p { margin:6px 0; font-size:12px; }
+.df-salvage-choice b { font-size:12px; color:#f1cd69; }
+@media (max-width:760px) { .df-salvage-choice { top:140px; right:10px; width:42vw; padding:8px; font-size:11px; } .df-salvage-choice p,.df-salvage-choice b { font-size:11px; } }

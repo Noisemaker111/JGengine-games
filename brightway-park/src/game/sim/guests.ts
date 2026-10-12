@@ -4,7 +4,8 @@ import { ENTRANCE, PARK_HALF, guestCap } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
 import { nextGuestId, session, type GuestState, type PlacedObject } from "../session";
-import { coasterThrill, demand } from "./rating";
+import { demand } from "./rating";
+import { rideFit, rideHappiness } from "./rideExperience";
 
 const HUNGER_RATE = 1.2;
 const THIRST_RATE = 1.5;
@@ -39,8 +40,7 @@ export function targetScore(
   }
   if (def.ride !== undefined) {
     if (obj.occupants >= def.ride.capacity) return -1;
-    const thrill = def.appeal + (def.id === "ride_coaster" ? coasterThrill(tracks) : 0);
-    return (1.5 + thrill * 0.9) * proximity;
+    return (1.5 + def.appeal * 0.9) * rideFit(guest.kind, def.id, tracks) * proximity;
   }
   return -1;
 }
@@ -135,7 +135,7 @@ function releaseOccupant(guest: GuestState): void {
   if (obj !== undefined && obj.occupants > 0) obj.occupants -= 1;
 }
 
-function finishInteraction(guest: GuestState): void {
+function finishInteraction(guest: GuestState, tracks: number): void {
   const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
   if (obj !== undefined) {
     const def = buildableDef(obj.catalogId);
@@ -150,7 +150,7 @@ function finishInteraction(guest: GuestState): void {
       else guest.souvenir = 0;
       guest.happy = Math.min(100, guest.happy + 5);
     } else if (def.ride !== undefined) {
-      guest.happy = Math.min(100, guest.happy + 6 + def.appeal * 0.8);
+      guest.happy = Math.max(0, Math.min(100, guest.happy + rideHappiness(guest.kind, def.id, tracks)));
     } else if (def.stall !== undefined) {
       guest.happy = Math.max(0, guest.happy - 6);
     }
@@ -210,7 +210,7 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
 
     if (guest.phase === "busy") {
       guest.busy -= dt;
-      if (guest.busy <= 0) finishInteraction(guest);
+      if (guest.busy <= 0) finishInteraction(guest, tracks);
       continue;
     }
 

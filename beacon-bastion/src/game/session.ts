@@ -32,6 +32,10 @@ export interface SessionState {
   selectedTowerId: string | null;
   /** The placed tower whose sell/upgrade panel is open; set by clicking its plot. */
   inspectedTowerId: string | null;
+  /** The player releases each wave; living raiders may still be on the approach. */
+  waveReady: boolean;
+  waveStarted: boolean;
+  lastWaveBonus: number;
   gameOver: boolean;
   victory: boolean;
   creepSeq: number;
@@ -49,6 +53,9 @@ function freshState(): SessionState {
     plotOccupant,
     selectedTowerId: null,
     inspectedTowerId: null,
+    waveReady: true,
+    waveStarted: false,
+    lastWaveBonus: 0,
     gameOver: false,
     victory: false,
     creepSeq: 0,

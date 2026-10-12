@@ -2,53 +2,18 @@ import { editorMarkerXZ, seedEditorCatalogs, type EditorLayersInput } from "@jge
 import { normalizeEditorLayers, type EditorDocument } from "@jgengine/shell/gameKit";
 import type { AvoidZone } from "@jgengine/core/world/geometry";
 import { clearanceZonesFrom } from "@jgengine/core/world/scatterRegion";
-import { createEditableTerrain, migrateTerrainSnapshot, type TerraformSnapshot } from "@jgengine/core/world/terraform";
 
 import { editorCatalogs } from "./editorCatalogs";
 import sceneJson from "./editor.scene.json";
 
 type Vec2 = readonly [number, number];
 
-const BOUNDS = { minX: -42, minZ: -42, maxX: 42, maxZ: 42 };
-
-/**
- * Sculpted arena relief. Authored with the terraform API (equivalent to editor brush strokes); the
- * clearance zones flatten their own spots on top, so the mounds add relief everywhere gameplay isn't.
- */
-function buildSculpt(): TerraformSnapshot {
-  const terrain = createEditableTerrain({ bounds: BOUNDS, cellSize: 2 });
-  const mounds: readonly [number, number, number, number][] = [
-    [-32, 26, 12, 2.4],
-    [-16, 34, 9, 1.5],
-    [-38, 4, 9, 1.4],
-    [32, -26, 12, 2.4],
-    [16, -34, 9, 1.5],
-    [38, -4, 9, 1.4],
-    [-34, -34, 8, 1.2],
-    [34, 34, 8, 1.2],
-  ];
-  for (const [cx, cz, radius, strength] of mounds) {
-    terrain.apply({ mode: "raise", center: [cx, cz], radius, strength, falloff: "smooth" });
-  }
-  return migrateTerrainSnapshot(terrain.snapshot());
-}
-
-/**
- * The game's scene — the `editor.scene.json` authored in the 3D editor (creep path, build plots,
- * spawn/keep, arena foliage) plus the sculpted terrain. Everything downstream (enemy pathing, plot
- * placement, path + foliage rendering) reads from this one document; nothing is hardcoded in game
- * code. Open F2+E to edit it live and Ctrl+S to save it back.
- */
-/** The sculpted heightfield layered into the runtime ground via `environment({ sculpt })`. */
-export const TERRAIN_SCULPT: TerraformSnapshot = buildSculpt();
-
 export const editorLayers: EditorDocument = seedEditorCatalogs(
-  {
-    ...normalizeEditorLayers(sceneJson as unknown as EditorLayersInput),
-    terrain: TERRAIN_SCULPT,
-  },
+  normalizeEditorLayers(sceneJson as unknown as EditorLayersInput),
   editorCatalogs,
 );
+
+export const TERRAIN_SCULPT = editorLayers.terrain;
 
 /** Clearance discs derived from the authored gameplay spots — flattened into the runtime ground. */
 export const CLEARINGS: readonly AvoidZone[] = clearanceZonesFrom(editorLayers);

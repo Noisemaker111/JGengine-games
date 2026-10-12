@@ -2,6 +2,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { PositionedPrompt } from "@jgengine/core/interaction/proximityPrompt";
 import type { RarityStyle } from "@jgengine/core/game/worldItem";
 import { defineGame } from "@jgengine/shell/defineGame";
+import { buildScrapSignalEditorLayers } from "./editorLayers";
 
 import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
@@ -161,9 +162,14 @@ export const game = defineGame({
   audio,
   objectSounds,
   world,
+  editorLayers: buildScrapSignalEditorLayers(),
+  scenePlacement: false,
+  scenePathKinds: [],
   physics,
   inventories,
   input: keybinds,
+  // The context-specific relay button lives beside its stakes and progress.
+  touch: { hidden: ["relay.overclock"] },
   server: { mode: "campaign" },
   save: "none",
   persist: true,

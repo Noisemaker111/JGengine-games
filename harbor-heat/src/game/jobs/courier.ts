@@ -20,6 +20,14 @@ interface CourierState {
   reward: number;
   distance: number;
   heading: number;
+  service?: "standard" | "rush";
+  condition?: number;
+  lastHealth?: number;
+}
+export const RUSH_BOND = 60;
+export function courierDeadline(seconds: number, rush: boolean): number { return rush ? Math.ceil(seconds * 0.35) : seconds; }
+export function cargoCondition(condition: number, dt: number, speedKmh: number, healthLost: number): number {
+  return Math.max(0, condition - Math.max(0, speedKmh - 35) * Math.max(0, dt) * 0.12 - Math.max(0, healthLost) * 2);
 }
 export const courierStore = defineStore<CourierState>("harbor.courier", () => ({ phase: "idle", route: 0, remaining: 0, completed: 0, reward: 0, distance: 0, heading: 0 }));
 
@@ -36,7 +44,9 @@ export function finishCourier(ctx: GameContext, won: boolean): void {
   const current = courierStore.read(ctx);
   if (current.phase !== "running") return;
   const route = DELIVERY_ROUTES[current.route % DELIVERY_ROUTES.length]!;
-  const reward = won ? route.payout + Math.floor(current.remaining * 2) : 0;
+  const rush = current.service === "rush";
+  const condition = current.condition ?? 100;
+  const reward = won ? rush ? Math.floor(route.payout * 1.8 * condition / 100) + Math.floor(current.remaining * 2) + Math.floor(RUSH_BOND * condition / 100) : route.payout + Math.floor(current.remaining * 2) : 0;
   courierStore.write(ctx, { ...current, phase: won ? "won" : "lost", reward, completed: current.completed + (won ? 1 : 0) });
   if (won) {
     ctx.game.economy.grant(ctx.player.userId, "cash", reward);
@@ -44,18 +54,23 @@ export function finishCourier(ctx: GameContext, won: boolean): void {
   }
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
   syncSession(ctx, true);
-  ctx.game.feed.push("harbor.log", { text: won ? `Parcel delivered to ${route.recipient}. $${reward} paid.` : "Delivery expired. The parcel returned to dispatch; no cash lost." });
+  ctx.game.feed.push("harbor.log", { text: won ? `Parcel delivered to ${route.recipient}. $${reward} paid.${rush ? ` Cargo ${Math.round(condition)}%; bond refund included.` : ""}` : rush ? "Rush expired. The $60 bond was forfeited; free standard jobs remain available." : "Delivery expired. The parcel returned to dispatch; no cash lost." });
   void ctx.game.save?.checkpoint();
 }
 
 export function registerCourier(ctx: GameContext): void {
-  ctx.game.commands.define("courier.accept", { apply(state) {
+  ctx.game.commands.define<{ service?: string }>("courier.accept", { apply(state, input) {
     const current = courierStore.read(state);
     if (current.phase === "running" || !near(state, DISPATCH, 9)) return;
+    const rush = input?.service === "rush";
+    if (rush && (current.completed < 1 || state.game.economy.charge(state.player.userId, "cash", RUSH_BOND) !== null)) {
+      state.scene.entity.floatText({ instanceId: state.player.userId, text: current.completed < 1 ? "COMPLETE A STANDARD DELIVERY FIRST" : "RUSH NEEDS $60 BOND — STANDARD IS FREE", kind: "warn" });
+      return;
+    }
     const routeIndex = current.completed % DELIVERY_ROUTES.length;
     const route = DELIVERY_ROUTES[routeIndex]!;
     const position = courierPosition(state)!;
-    courierStore.write(state, { ...current, phase: "running", route: routeIndex, remaining: route.seconds, reward: 0,
+    courierStore.write(state, { ...current, phase: "running", route: routeIndex, remaining: courierDeadline(route.seconds, rush), reward: 0, service: rush ? "rush" : "standard", condition: 100, lastHealth: state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 100,
       distance: Math.round(Math.hypot(position[0] - route.position[0], position[2] - route.position[1])) });
     void state.game.save?.checkpoint();
   } });
@@ -85,9 +100,11 @@ export function tickCourier(ctx: GameContext, dt: number): void {
   const route = DELIVERY_ROUTES[current.route % DELIVERY_ROUTES.length]!;
   const position = courierPosition(ctx);
   const remaining = Math.max(0, current.remaining - dt);
+  const health = ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? 100;
+  const condition = current.service === "rush" ? cargoCondition(current.condition ?? 100, dt, handrollOf(ctx).carSpeedKmh(), (current.lastHealth ?? health) - health) : 100;
   const dx = route.position[0] - (position?.[0] ?? DISPATCH[0]);
   const dz = route.position[1] - (position?.[2] ?? DISPATCH[1]);
-  courierStore.write(ctx, { ...current, remaining, distance: Math.round(Math.hypot(dx, dz)), heading: Math.atan2(dx, dz) });
+  courierStore.write(ctx, { ...current, remaining, condition, lastHealth: health, distance: Math.round(Math.hypot(dx, dz)), heading: Math.atan2(dx, dz) });
   if (remaining <= 0) finishCourier(ctx, false);
 }
 

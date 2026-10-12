@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useState, useSyncExternalStore } from "react";
 import { ExperienceBar, HealthBar, ManaBar, barTokens } from "@jgengine/react/bars";
 import { useEntityStat, useGame } from "@jgengine/react/hooks";
+import { ScrollRail } from "@jgengine/react/scrollRail";
 
 import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
@@ -240,9 +241,9 @@ function CommandGrid() {
         <Slot icon="peasant" hotkey="1" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
           tip={{ title: "Train Peasant", desc: "Worker — mines gold, cuts lumber, and raises buildings.", chips: costChips(TRAINABLE.peasant!.cost.gold, TRAINABLE.peasant!.cost.lumber) }} />
         <Slot icon="footman" hotkey="2" foot={barracksFoot("footman")} tone={trainTone(hud, "footman")} setTip={setTip} onClick={() => commands.run("train.footman", {})}
-          tip={{ title: "Train Footman", desc: "Sturdy frontline melee. Requires a Barracks.", chips: costChips(TRAINABLE.footman!.cost.gold, TRAINABLE.footman!.cost.lumber) }} />
+          tip={{ title: "Train Footman", desc: "Frontline screen. Deals 50% more damage to armored Reavers; holds raiders away from rifles. Requires a Barracks.", chips: costChips(TRAINABLE.footman!.cost.gold, TRAINABLE.footman!.cost.lumber) }} />
         <Slot icon="rifleman" hotkey="3" foot={barracksFoot("rifleman")} tone={trainTone(hud, "rifleman")} setTip={setTip} onClick={() => commands.run("train.rifleman", {})}
-          tip={{ title: "Train Rifleman", desc: "Ranged marksman — soft, but strikes from afar. Requires a Barracks.", chips: costChips(TRAINABLE.rifleman!.cost.gold, TRAINABLE.rifleman!.cost.lumber) }} />
+          tip={{ title: "Train Rifleman", desc: "Full firepower beyond 3m; weak at close range and against armored Reavers. Strong against the warcamp. Requires a Barracks.", chips: costChips(TRAINABLE.rifleman!.cost.gold, TRAINABLE.rifleman!.cost.lumber) }} />
         <Slot icon="attackMove" hotkey="R" tone={hud.phase === "playing" ? (hud.attackMoveArmed ? "active" : "ready") : "locked"} setTip={setTip} onClick={() => commands.run("unit.attackMove", {})}
           tip={{ title: "Attack-Move", desc: "Arm, then right-click a destination — the group fights anything it meets on the way.", chips: [] }} />
 
@@ -293,27 +294,25 @@ function HeroPanel() {
           </div>
         ) : null}
         <div className="mt-0.5 flex items-center gap-3 text-[11px] font-bold text-slate-200">
-          <span className="flex items-center gap-1"><Icon name="footman" className="h-3.5 w-3.5 text-amber-300/90" />{dmg - 3}-{dmg + 6}</span>
+          <span className="flex items-center gap-1"><Icon name="footman" className="h-3.5 w-3.5 text-amber-300/90" />{dmg}</span>
           <span className="flex items-center gap-1"><Icon name="shield" className="h-3.5 w-3.5 text-sky-300/90" />{armor}</span>
-          <span className="flex items-center gap-1"><Icon name="boots" className="h-3.5 w-3.5 text-emerald-300/90" />1.0</span>
+          <span className="flex items-center gap-1"><Icon name="boots" className="h-3.5 w-3.5 text-emerald-300/90" />{COMBATANTS.hero?.walkSpeed ?? 4.3}</span>
         </div>
       </div>
     </div>
   );
 }
 
-/** The army row: a live crest + health bar per fielded unit, capped with a +N overflow. */
+/** Every fielded unit stays reachable in the shared horizontal rail. */
 function ArmyRow() {
   const hud = useHud();
-  const shown = hud.army.slice(0, 10);
-  const overflow = hud.army.length - shown.length;
   if (hud.army.length === 0) {
     return <div className="flex h-full items-center px-2 text-[11px] italic text-slate-500">No troops afield — train Footmen (2)</div>;
   }
   return (
-    <div className="flex flex-wrap content-center gap-1">
-      {shown.map((u: ArmyUnit) => (
-        <div key={u.id} className="flex w-9 flex-col items-center gap-0.5">
+    <ScrollRail label="army units" gap={4} style={{ height: "100%", width: "100%" }}>
+      {hud.army.map((u: ArmyUnit) => (
+        <div key={u.id} className="flex w-9 shrink-0 flex-col items-center gap-0.5" title={`${u.kind} · ${Math.ceil(u.hp)}/${u.max} health`}>
           <div className="flex h-9 w-9 items-center justify-center rounded border border-amber-700/50 bg-gradient-to-b from-[#20242c] to-[#0b0d11]">
             <Icon name={UNIT_ICON[u.kind] ?? "footman"} className="h-6 w-6 text-amber-200/90" />
           </div>
@@ -322,8 +321,7 @@ function ArmyRow() {
           </div>
         </div>
       ))}
-      {overflow > 0 ? <div className="flex h-9 items-center px-1 text-[11px] font-bold text-amber-200">+{overflow}</div> : null}
-    </div>
+    </ScrollRail>
   );
 }
 
@@ -378,7 +376,7 @@ function Console() {
         <Corners />
         <HeroPanel />
         <div className="h-px w-full bg-slate-500/20" />
-        <div className="ec-army h-[46px] w-[19rem]"><ArmyRow /></div>
+        <div className="ec-army h-[62px] w-[19rem]"><ArmyRow /></div>
         <ProductionLine />
       </div>
 

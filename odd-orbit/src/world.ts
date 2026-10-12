@@ -1,16 +1,18 @@
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
-import { resolveTerrainField, type TerrainField } from "@jgengine/core/world/terrain";
+import { environmentContentFromDocument } from "@jgengine/core/editor/environment";
+import { resolveEnvironmentField, type TerrainField } from "@jgengine/core/world/terrain";
 import { environment, sky, terrain, type WorldFeature } from "@jgengine/core/world/features";
 
-import { HABITAT_FLOOR_MATERIAL } from "./game/assets";
+import { editorLayers } from "./editorLayers";
 import { HABITAT } from "./game/palette";
 
 export const WORLD_SEED = "odd-orbit-habitat-2026";
 export const DAY_LENGTH = 210;
 export const PLOT = { minX: -26, maxX: 26, minZ: -26, maxZ: 26 } as const;
+const authored = environmentContentFromDocument(editorLayers, { minBounds: { w: 240, d: 240 } });
 
 const terrainDescriptor = terrain({
-  bounds: { w: 240, d: 240 },
+  bounds: authored.bounds,
   seed: WORLD_SEED,
   material: "rock",
   height: 14,
@@ -18,26 +20,21 @@ const terrainDescriptor = terrain({
   octaves: 4,
   colors: { low: HABITAT.groundLow, high: HABITAT.groundHigh, waterline: HABITAT.flora },
   flatten: [{ center: [0, 0], radius: 46 }],
-  materialRegions: [
-    {
-      shape: "circle",
-      center: [0, 0],
-      radius: 22,
-      falloff: 9,
-      material: "rock",
-      colors: { low: "#8a80a8", high: "#9d93bd" },
-    },
-  ],
-  segments: 120,
+  segments: 240,
   detail: {
     rockColor: HABITAT.rock,
-    material: { maps: HABITAT_FLOOR_MATERIAL, repeat: 6, strength: 0.85 },
+    roughness: 0.96,
+    strength: 0.2,
+    waterLevel: -30,
+    snowHeight: 60,
+    sweeps: { dry: [1.04, 1.02, 1], wet: [0.95, 0.96, 1] },
   },
 });
 
 export const world: WorldFeature = environment({
   terrain: terrainDescriptor,
-  sky: sky({
+  sculpt: authored.sculpt,
+  sky: sky(authored.sky ?? {
     preset: "dusk",
     timeOfDay: true,
     horizonColor: HABITAT.horizon,
@@ -48,6 +45,6 @@ export const world: WorldFeature = environment({
   }),
 });
 
-export const terrainField: TerrainField = resolveTerrainField(terrainDescriptor);
+export const terrainField: TerrainField = resolveEnvironmentField(world);
 
 export const physics: PhysicsConfig = { gravity: -24 };

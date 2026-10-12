@@ -14,6 +14,8 @@ export type MemberAction =
   | { kind: "use"; goal: NeedId | "work"; objId: string }
   | { kind: "social"; withId: string };
 
+export type BloomCrop = "pantry" | "export";
+
 export type Lifestyle = "yield" | "bloom";
 
 export interface MemberState {
@@ -26,6 +28,8 @@ export interface MemberState {
   assignedByPlayer: boolean;
   actionUntil: number;
   lifestyle: Lifestyle;
+  /** Absent in legacy v1 saves: pantry crops preserve their original harvest. */
+  bloomCrop?: BloomCrop;
   stress: number;
   recovering: boolean;
   workToday: number;

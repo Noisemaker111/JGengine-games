@@ -34,7 +34,7 @@ test("real installs replace the spawned model identity and restart removes all w
   const seen = new Set<string>();
   let maximumVisible = 0;
   for (let i = 0; i < 350; i++) {
-    session.tick(1 / 30, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    session.tick(1 / 30, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false, salvageSwap: true });
     const bodies = upgradeBodies("racer", session.snapshot());
     binding.sync(bodies, 1 / 30);
     for (const body of bodies) seen.add(body.kind);

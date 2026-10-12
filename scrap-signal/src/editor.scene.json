@@ -8052,6 +8052,166 @@
         "zoneId": "cores_blight",
         "radius": 8
       }
+    },
+    {
+      "id": "crash_scrub_left",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -524,
+        "y": 0,
+        "z": 579
+      },
+      "halfExtents": {
+        "x": 5,
+        "y": 0,
+        "z": 8
+      },
+      "label": "crash scrub left",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.21,
+        "colorBase": "#897344",
+        "colorTip": "#b49a61",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "crash_scrub_left",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "crash_scrub_right",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -492,
+        "y": 0,
+        "z": 572
+      },
+      "halfExtents": {
+        "x": 7,
+        "y": 0,
+        "z": 9
+      },
+      "label": "crash scrub right",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.23,
+        "colorBase": "#897344",
+        "colorTip": "#b49a61",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "crash_scrub_right",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "relay_scrub_flank",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -522,
+        "y": 0,
+        "z": 613
+      },
+      "halfExtents": {
+        "x": 6,
+        "y": 0,
+        "z": 6
+      },
+      "label": "relay scrub flank",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.24,
+        "colorBase": "#897344",
+        "colorTip": "#b49a61",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "relay_scrub_flank",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "ridge_scrub_west",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -554,
+        "y": 0,
+        "z": 549
+      },
+      "halfExtents": {
+        "x": 10,
+        "y": 0,
+        "z": 6
+      },
+      "label": "ridge scrub west",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.3,
+        "colorBase": "#897344",
+        "colorTip": "#b49a61",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "ridge_scrub_west",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
+    },
+    {
+      "id": "ridge_scrub_east",
+      "kind": "grass_field",
+      "shape": "box",
+      "center": {
+        "x": -448,
+        "y": 0,
+        "z": 556
+      },
+      "halfExtents": {
+        "x": 11,
+        "y": 0,
+        "z": 8
+      },
+      "label": "ridge scrub east",
+      "meta": {
+        "density": 18,
+        "bladeHeight": 0.3,
+        "colorBase": "#897344",
+        "colorTip": "#b49a61",
+        "colorVariation": 0.18,
+        "windStrength": 0.16,
+        "roughness": 0.95,
+        "seed": "ridge_scrub_east",
+        "bladeWidthMin": 0.014,
+        "bladeWidthMax": 0.03,
+        "bladeBendMin": 0.015,
+        "bladeBendMax": 0.09,
+        "tuftRadius": 0.09,
+        "normalLift": 0.45
+      }
     }
   ],
   "paths": [

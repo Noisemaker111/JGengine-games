@@ -10,14 +10,13 @@ const SCIFI = "quaternius-modular-scifi";
 const NATURE = "quaternius-stylized-nature";
 const FURN = "kaykit-furniture";
 const SPACE = "kaykit-space-base";
-const CHAR = "kaykit-adventurers";
 
 /** Art plan: preferred catalog ids. Soft-resolve; missing → shell primitives. */
 const FURNITURE_PLAN: Record<string, ModelPick> = {
   nutrient_font: { model: `${FURN}/table_medium`, fallbackModel: `${FURN}/table_small` },
   sleep_pod: { model: `${FURN}/bed_double_A`, fallbackModel: `${FURN}/bed_single_A` },
   chat_ring: { model: `${FURN}/couch`, fallbackModel: `${FURN}/armchair` },
-  holo_arcade: { model: `${SCIFI}/Prop_Computer`, fallbackModel: `${SCIFI}/Prop_AccessPoint` },
+  holo_arcade: { model: `${SCIFI}/Prop_AccessPoint`, fallbackModel: `${SCIFI}/Prop_Computer` },
   bloom_planter: { model: `${FURN}/cactus_medium_A`, fallbackModel: `${NATURE}/Plant_1` },
   work_console: { model: `${SCIFI}/Prop_Computer`, fallbackModel: `${SCIFI}/Prop_ItemHolder` },
 };
@@ -44,7 +43,7 @@ function furniturePick(def: FurnitureDef): ModelPick | null {
     ...base,
     style: {
       targetHeight: def.height,
-      material: { color: def.color, metalness: 0.2, roughness: 0.5, emissive: def.color, emissiveIntensity: 0.12 },
+      material: { color: def.color, metalness: 0.12, roughness: 0.8, emissive: def.color, emissiveIntensity: 0.04 },
     },
   };
 }
@@ -56,7 +55,7 @@ function decorPick(def: DecorDef): ModelPick | null {
     ...base,
     style: {
       targetHeight: def.height,
-      material: { color: def.color, emissive: def.color, emissiveIntensity: 0.22 },
+      material: { color: def.color, roughness: 0.9, emissive: def.color, emissiveIntensity: def.id === "decor_crystal" ? 0.16 : 0.02 },
     },
   };
 }
@@ -68,7 +67,7 @@ function structurePick(def: StructureDef): ModelPick | null {
     ...base,
     style: {
       targetHeight: def.kind === "gate" ? 3 : HAB_WALL_HEIGHT,
-      material: { color: "#9d93bd", metalness: 0.35, roughness: 0.45 },
+      material: { color: "#b8c5c8", metalness: 0.15, roughness: 0.82 },
     },
   };
 }
@@ -94,12 +93,9 @@ export const objectModels: Record<string, ModelConfig> = buildObjectModels();
 
 /** Preferred character meshes for aliens — first live id wins at runtime. */
 export const ALIEN_MESH_IDS: readonly string[] = [
-  `${CHAR}/Rogue`,
-  `${CHAR}/Mage`,
-  `${CHAR}/Knight`,
-  `${CHAR}/Barbarian`,
-  `${CHAR}/Rogue_Hooded`,
   `${SCIFI}/Alien_Cyclop`,
+  `${SCIFI}/Alien_Oculichrysalis`,
+  `${SCIFI}/Alien_Scolitex`,
 ];
 
 export function alienMeshUrl(id: string): string | null {

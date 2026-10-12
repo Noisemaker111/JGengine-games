@@ -219,11 +219,12 @@ test("earned friendship changes the payoff of tending together for both beings",
     m.assignedByPlayer = true;
     ctx.scene.entity.setPose(m.id, { position: [...planter.position] });
   }
+  a.bloomCrop = "export";
   advance(ctx, 20);
-  expect(a.harvestToday).toBe(5);
+  expect(a.harvestToday).toBe(2);
   expect(b.harvestToday).toBe(5);
-  expect(householdStore.read(ctx).dayHarvest).toBe(10);
-  expect(householdStore.read(ctx).dayIncome).toBe(120);
+  expect(householdStore.read(ctx).dayHarvest).toBe(7);
+  expect(householdStore.read(ctx).dayIncome).toBe(132);
 });
 
 test("slow rendered frames preserve three days of shifts, food and nightly settlement", () => {
@@ -278,4 +279,47 @@ test("unpaid upkeep becomes debt without deleting the household; later savings r
   expect(recovering.debt).toBe(97);
   expect(recovering.credits).toBe(63);
   expect(recovering.lastDay!.bill).toBe(137);
+});
+
+
+test("Bloom crops exchange food for liquidity, lock on tending, and target the garden", () => {
+  const results: { harvest:number; income:number }[] = [];
+  for (const crop of ["pantry", "export"] as const) {
+    const ctx = boot();
+    const state = householdStore.read(ctx);
+    const member = state.members[state.order[1]!]!;
+    ctx.time.hydrate({ ...ctx.time.snapshot(), now: DAY_LENGTH * 14 / 24 });
+    member.needs = { hunger:95, energy:95, social:95, fun:70 };
+    ctx.game.commands.run("member.bloomCrop", { id:member.id, crop });
+    ctx.game.commands.run("member.direct", { id:member.id, goal:"play" });
+    expect(member.action).toEqual({ kind:"seek", goal:"fun", objId:"starter:holo_arcade" });
+    ctx.game.commands.run("member.direct", { id:member.id, goal:"tend" });
+    expect(member.action).toEqual({ kind:"seek", goal:"fun", objId:"starter:bloom_planter" });
+    const planter = ctx.scene.object.get("starter:bloom_planter")!;
+    ctx.scene.entity.setPose(member.id, { position:[...planter.position] });
+    // Other household members are resting; their income cannot disguise the chosen payout.
+    for (const id of state.order) if (id !== member.id) {
+      const other = state.members[id]!;
+      other.action = { kind:"use", goal:"energy", objId:"starter:sleep_pod" };
+      other.actionUntil = ctx.time.now() + 40;
+    }
+    state.nextLifeEventAt = ctx.time.now() + 38;
+    advance(ctx, 1);
+    expect(member.shiftProgress).toBeGreaterThan(0);
+    ctx.game.commands.run("member.bloomCrop", { id:member.id, crop:crop === "pantry" ? "export" : "pantry" });
+    expect(member.bloomCrop).toBe(crop);
+    advance(ctx, 20);
+    const after = householdStore.read(ctx);
+    expect(member.completedShifts).toBe(1);
+    results.push({ harvest:member.harvestToday, income:after.dayIncome });
+  }
+  expect(results).toEqual([{ harvest:4, income:48 },{ harvest:1, income:60 }]);
+});
+
+test("directed paid shifts explain closed windows instead of silently cancelling", () => {
+  const ctx = boot();
+  const member = householdStore.read(ctx).members["alien:1"]!;
+  ctx.game.commands.run("member.direct", { id:member.id, goal:"tend" });
+  expect(member.concern).toContain("window is closed");
+  expect(member.action.kind).toBe("idle");
 });

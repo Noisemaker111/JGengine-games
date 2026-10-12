@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { world } from "./world";
 import { editorLayers } from "./editorLayers";
 import { combatantDef, DECOR, isNode } from "./game/catalog";
 
@@ -44,5 +45,16 @@ describe("authored skirmish scene", () => {
       const stance = (marker.meta as { stance?: string } | undefined)?.stance;
       expect(stance === "guard" || stance === "assault").toBe(true);
     }
+  });
+
+  test("the world consumes editor terrain with a distinct clear circulation surface and one grass owner", () => {
+    expect(world.kind === "environment" ? world.sculpt : undefined).toBe(editorLayers.terrain);
+    expect(world.kind === "environment" ? world.vegetation : undefined).toBeUndefined();
+    expect(editorLayers.volumes.filter(volume => volume.kind === "grass_field").length).toBe(1);
+    const painted = editorLayers.terrain!;
+    const surfaceAt = (x: number, z: number) => painted.surfaces[Math.floor((z - painted.bounds.minZ) / painted.cellSize) * painted.cols + Math.floor((x - painted.bounds.minX) / painted.cellSize)];
+    expect(surfaceAt(0, 12)).toBe("dirt");
+    expect(surfaceAt(0, 36)).toBe("gravel");
+    expect(surfaceAt(14, -16)).toBe("grass");
   });
 });

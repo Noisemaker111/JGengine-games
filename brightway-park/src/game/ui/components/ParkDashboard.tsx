@@ -31,7 +31,7 @@ export function ParkDashboard() {
         <Goal done={session.day>1&&net>=0} label={session.day>1?`Last day net · ${net<0?"−":"+"}$${Math.abs(Math.round(net))}`:"Finish a profitable day"}/>
         <Goal done={session.happinessAvg>=50&&session.litter<=40} label="Happy 50%+ · clean 60%+"/>
       </div>
-      <p>{session.litter>25?"Hire a janitor before litter takes over.":m.stalls<3?"Add refreshments to keep visitors smiling.":"A new ride and a tidy midway will draw a bigger crowd."}</p>
+      <p>{session.litter>25?"Hire a janitor before litter takes over.":m.stalls<3?"Add refreshments to keep visitors smiling.":"Mix gentle rides and thrills: families and thrill seekers want different days out."}</p>
       {next&&<div className="park-unlock"><span>Next: {next.label} · {next.rating} ★</span><progress max={next.rating} value={session.rating}/></div>}
       <div className="park-ledger"><span>Daily upkeep</span><strong>${m.dailyUpkeep}</strong><span>Today’s sales</span><strong>${Math.round(session.revenueToday)}</strong></div>
     </aside>

@@ -16,7 +16,7 @@ export function GameUI() {
   return (
     <HudCanvas layout={layout} className="z-20 font-sans text-stone-100">
       <Operations />
-      <HudPanel id="missions" anchor="left" compact="hide" interactive={false}>
+      <HudPanel id="missions" anchor="left" compact="keep" interactive={false}>
         <MissionTracker />
       </HudPanel>
 

@@ -17,6 +17,8 @@ export interface RelayState {
   upload: number;
   rewarded: boolean;
   reason: string;
+  /** Optional so pre-uplink saves restore the clear-first strategy. */
+  overclock?: boolean;
 }
 export const relayStore = defineStore<RelayState>("scrap.deadAir", () => ({ phase: "idle", wave: 0, enemies: [], remaining: RELAY.seconds, upload: 0, rewarded: false, reason: "" }));
 
@@ -68,15 +70,28 @@ export function tickRelay(ctx: GameContext, dt: number): void {
   if (reservePhase(ctx) !== "up") { finish(ctx, state, false, "Your chassis went down before the relay could lock."); return; }
   const remaining = Math.max(0, state.remaining - dt);
   if (remaining === 0) { finish(ctx, state, false, "The carrier window closed. Clear the ambushes and stay inside the copper ring to upload."); return; }
-  const upload = state.phase === "upload" && relayDistance(ctx) <= RELAY.radius ? state.upload + dt : state.upload;
+  const inside = relayDistance(ctx) <= RELAY.radius;
+  const shield = ctx.scene.entity.stats.get(ctx.player.userId, "shield")?.current ?? 0;
+  // Fighting remains mandatory. Overclock buys the later upload time with the
+  // same protective resource enemies damage; retreating stops transmission.
+  const channelSeconds = state.phase === "defend" && state.overclock && inside
+    ? Math.min(dt, Math.max(0, (shield - 10) / 6), Math.max(0, RELAY.uploadSeconds - state.upload)) : 0;
+  if (channelSeconds > 0) ctx.scene.entity.stats.delta(ctx.player.userId, "shield", -channelSeconds * 6);
+  const upload = Math.min(RELAY.uploadSeconds, state.upload + (state.phase === "upload" && inside ? dt : channelSeconds));
   const next = { ...state, remaining, upload };
-  if (upload >= RELAY.uploadSeconds) {
+  if (state.phase === "upload" && inside && upload >= RELAY.uploadSeconds) {
     if (state.wave === WAVES.length) finish(ctx, next, true, "Coretown hears you. The salvage carrier is back on the air.");
     else spawnWave(ctx, next, state.wave + 1);
   } else relayStore.write(ctx, next);
 }
 
 export function registerRelay(ctx: GameContext, reconstruct: (ctx: GameContext) => void): void {
+  ctx.game.commands.define("relay.overclock", { apply(state: GameContext) {
+    const current = relayStore.read(state);
+    if (gamePhase(state) !== "playing" || !["defend", "upload"].includes(current.phase)) return;
+    relayStore.write(state, { ...current, overclock: !current.overclock });
+    state.scene.entity.floatText({ instanceId: state.player.userId, text: current.overclock ? "SHIELD RESERVED — CLEAR FIRST" : "OVERCLOCK — SHIELD POWERS UPLINK", kind: "warn" });
+  } });
   ctx.game.commands.define("relay.start", { apply(state: GameContext) {
     const current = relayStore.read(state);
     if (gamePhase(state) !== "playing" || activeCharacter() === null || reservePhase(state) !== "up" || relayDistance(state) > 3.8 || ["defend", "upload"].includes(current.phase)) return;

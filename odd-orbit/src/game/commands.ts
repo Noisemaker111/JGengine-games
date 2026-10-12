@@ -5,9 +5,9 @@ import { PLOT } from "../world";
 import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalog";
 import { householdStore } from "./session/store";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
-import { canChangeLifestyle } from "./sim/schedule";
+import { canChangeLifestyle, shiftIsOpen } from "./sim/schedule";
 import { releaseMember, startConversation } from "./sim/simulate";
-import type { Lifestyle } from "./session/types";
+import type { BloomCrop, Lifestyle } from "./session/types";
 import { pushEvent } from "./session/types";
 
 export interface PointerInput {
@@ -201,6 +201,23 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
 }
 
 function registerHouseholdCommands(ctx: GameContext): void {
+  ctx.game.commands.define<{ id: string; crop: BloomCrop }>("member.bloomCrop", {
+    apply(gameCtx, { id, crop }) {
+      if (gamePhase(gameCtx) !== "playing" || (crop !== "pantry" && crop !== "export")) return;
+      const state = householdStore.read(gameCtx);
+      const member = state.members[id];
+      if (member === undefined || member.lifestyle !== "bloom") return;
+      if (member.shiftProgress > 0 || member.harvestToday > 0) {
+        member.concern = "Today's crop is committed; choose another crop tomorrow";
+      } else {
+        member.bloomCrop = crop;
+        member.concern = null;
+        pushEvent(state, `${member.name} chose ${crop === "pantry" ? "pantry crops: 4 rations and 48 credits" : "export crops: 1 ration and 60 credits"}.`, gameCtx.time.now());
+      }
+      householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+      checkpoint(gameCtx);
+    },
+  });
   ctx.game.commands.define<{ id: string; lifestyle: Lifestyle }>("member.lifestyle", {
     apply(gameCtx, { id, lifestyle }) {
       if (gamePhase(gameCtx) !== "playing" || (lifestyle !== "yield" && lifestyle !== "bloom")) return;
@@ -245,7 +262,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       checkpoint(gameCtx);
     },
   });
-  ctx.game.commands.define<{ id: string; goal: FurnitureRole | "auto" }>("member.direct", {
+  ctx.game.commands.define<{ id: string; goal: FurnitureRole | "auto" | "tend" | "play" }>("member.direct", {
     apply(gameCtx, { id, goal }) {
       if (gamePhase(gameCtx) !== "playing") return;
       const state = householdStore.read(gameCtx);
@@ -253,15 +270,28 @@ function registerHouseholdCommands(ctx: GameContext): void {
       if (member === undefined) return;
       if (goal === "auto") releaseMember(member);
       else {
+        if (!["hunger", "energy", "social", "fun", "work", "tend", "play"].includes(goal)) return;
+        const role = goal === "tend" || goal === "play" ? "fun" : goal;
+        if (goal === "tend" && member.lifestyle !== "bloom") return;
+        if ((goal === "work" || goal === "tend") && (!shiftIsOpen(member, gameCtx.time.now()) || member.recovering || member.shiftDay === state.day)) {
+          member.concern = member.recovering ? "Recover before taking a paid shift" : member.shiftDay === state.day ? "Today's paid shift is finished or its window closed" : "Paid shift window is closed; care and reconnect until it opens";
+          householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+          return;
+        }
         const from = gameCtx.scene.entity.get(id)?.position;
         if (from === undefined) return;
-        const objects = gameCtx.scene.object.list().filter((obj) => FURNITURE_BY_ID[obj.catalogId]?.role === goal);
+        const objects = gameCtx.scene.object.list().filter((obj) => FURNITURE_BY_ID[obj.catalogId]?.role === role && (goal !== "tend" || obj.catalogId === "bloom_planter") && (goal !== "play" || obj.catalogId !== "bloom_planter"));
         objects.sort((a, b) => Math.hypot(a.position[0] - from[0], a.position[2] - from[2]) - Math.hypot(b.position[0] - from[0], b.position[2] - from[2]));
         const obj = objects[0];
-        if (obj === undefined) return;
+        if (obj === undefined) {
+          member.concern = `No ${goal === "tend" ? "Bloom Planter" : role} station; add one with Furnish`;
+          householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+          return;
+        }
+        member.concern = null;
         const current = member.action;
-        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== goal || current.objId !== obj.instanceId) {
-          member.action = { kind: "seek", goal, objId: obj.instanceId };
+        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
+          member.action = { kind: "seek", goal: role, objId: obj.instanceId };
         }
         member.assignedByPlayer = true;
         member.actionUntil = gameCtx.time.now() + 12;

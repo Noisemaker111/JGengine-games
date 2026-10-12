@@ -66,3 +66,27 @@ describe("combat integration (real context)", () => {
     expect(ctx.scene.entity.get("e1")!.position[2]).toBeGreaterThan(startZ);
   });
 });
+
+
+describe("roster positioning and target choices", () => {
+  function hit(attacker: string, target: string, distance: number): number {
+    resetSession();
+    const ctx = bootContext();
+    spawn(ctx, attacker, "attacker", [0, 0, 0], "player", { kind: "attack", targetId: "target" });
+    spawn(ctx, target, "target", [distance, 0, 0], "enemy", { kind: "hold" });
+    const before = health(ctx, "target");
+    tickUnits(ctx, 0.1);
+    return before - health(ctx, "target");
+  }
+
+  test("rifles win a normal ranged exchange, footmen win the armored matchup", () => {
+    expect(hit("rifleman", "grunt", 6)).toBeGreaterThan(hit("footman", "grunt", 1.5));
+    expect(hit("footman", "reaver", 1.5)).toBeGreaterThan(hit("rifleman", "reaver", 6));
+  });
+
+  test("letting a grunt through the screen cuts rifle damage, without cutting footman damage", () => {
+    const ranged = hit("rifleman", "grunt", 6);
+    expect(hit("rifleman", "grunt", 1.5)).toBeLessThan(ranged / 2);
+    expect(hit("footman", "grunt", 1.5)).toBeGreaterThan(hit("rifleman", "grunt", 1.5));
+  });
+});

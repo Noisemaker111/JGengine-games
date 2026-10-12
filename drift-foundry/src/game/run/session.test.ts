@@ -38,12 +38,47 @@ function driveCollectingPickups(session: RunSession, seconds: number): void {
     const target = PICKUPS.find((p) => !snap.collectedIds.has(p.id) && p.position[2] > snap.pose.position[2] - 6);
     const targetX = target?.position[0] ?? 0;
     const steer = steerTowardX(snap.pose.heading, targetX - snap.pose.position[0]);
-    session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false });
+    session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false, salvageSwap: true });
     elapsed += DT;
   }
 }
 
 describe("drift-foundry run session", () => {
+  test("later EV decision reverses the earlier tradeoff: give up truck speed for steering", () => {
+    const truck = createRunSession();
+    const electric = createRunSession();
+    for (const [session, takeElectric] of [[truck, false], [electric, true]] as const) {
+      session.start();
+      for (let i = 0; i < 3000 && session.snapshot().phase === "running" && session.snapshot().pose.position[2] < 190; i++) {
+        session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: shouldJump(session), plowBracing: false, salvageSwap: session.snapshot().pose.position[2] < 70 || takeElectric });
+      }
+    }
+    expect(truck.snapshot().installed.engine?.id).toBe("truck_engine");
+    expect(electric.snapshot().installed.engine?.id).toBe("ev_conversion");
+    expect(electric.snapshot().tuning.topSpeed).toBeLessThan(truck.snapshot().tuning.topSpeed);
+    expect(electric.snapshot().tuning.turnRate).toBeGreaterThan(truck.snapshot().tuning.turnRate);
+    // Midair swaps retain momentum. The speed cost becomes tangible after
+    // braking for an obstacle, rather than inventing an instantaneous slowdown.
+    for (const session of [truck, electric]) {
+      for (let i=0;i<60;i++) session.tick(DT, { throttle: 0, brake: 1, steer: 0 }, { jumpPressed: false, plowBracing: false });
+      for (let i=0;i<60;i++) session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    }
+    expect(truck.snapshot().pose.speedKmh).toBeGreaterThan(electric.snapshot().pose.speedKmh);
+  });
+  test("passing keeps the engine; holding swap commits faster, less nimble truck", () => {
+    const keep = createRunSession();
+    const swap = createRunSession();
+    for (const [session, consent] of [[keep, false], [swap, true]] as const) {
+      session.start();
+      for (let i = 0; i < 1500 && session.snapshot().pose.position[2] < 60; i++) session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false, salvageSwap: consent });
+    }
+    expect(keep.snapshot().installed.engine?.id).toBe("salvage_v6");
+    expect(swap.snapshot().installed.engine?.id).toBe("truck_engine");
+    expect(swap.snapshot().tuning.topSpeed).toBeGreaterThan(keep.snapshot().tuning.topSpeed);
+    expect(swap.snapshot().tuning.turnRate).toBeLessThan(keep.snapshot().tuning.turnRate);
+    expect(keep.snapshot().collectedIds.has("pickup_truck_engine")).toBe(false);
+    expect(swap.snapshot().collectedIds.has("pickup_truck_engine")).toBe(true);
+  });
   test("holding throttle without jumping stops at the tire stack and loses", () => {
     const session = createRunSession();
     session.start();
@@ -159,7 +194,7 @@ describe("drift-foundry run session", () => {
       const target = PICKUPS.find((p) => !snap.collectedIds.has(p.id) && p.position[2] > snap.pose.position[2] - 6);
       const targetX = target?.position[0] ?? 0;
       const steer = steerTowardX(snap.pose.heading, targetX - snap.pose.position[0]);
-      session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false });
+      session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: false, salvageSwap: true });
       armElapsed += DT;
     }
     const armed = session.snapshot();

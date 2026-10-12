@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 import { TERRAIN_MATERIAL_PALETTES } from "@jgengine/core/world/terrain";
 
+import { editorLayers } from "../editorLayers";
 import { world } from "../world";
 import { TERRAIN } from "./world/terrain";
 
@@ -16,9 +17,12 @@ describe("beacon-bastion world", () => {
     expect(summary.isEmpty).toBe(false);
   });
 
-  test("declares terrain and vegetation", () => {
+  test("declares one authored grass field without an overlapping runtime grass layer", () => {
     expect(summary.counts.terrain).toBe(1);
-    expect(summary.counts.vegetationFields).toBe(1);
+    expect(summary.counts.vegetationFields).toBe(0);
+    const grass = editorLayers.volumes.filter(volume => volume.kind === "grass_field");
+    expect(grass.length).toBe(1);
+    expect(grass[0]!.meta?.bladeWidthMax).toBeGreaterThan(grass[0]!.meta?.bladeWidthMin as number);
   });
 
   test("terrain has finite relief", () => {
@@ -32,8 +36,16 @@ describe("beacon-bastion world", () => {
     expect(summary.terrain?.palette).not.toEqual(TERRAIN_MATERIAL_PALETTES.highland);
   });
 
-  test("terrain declares a textured detail surface and painted regions", () => {
+  test("authored terrain survives the adapter and keeps approach and foundation surfaces distinct", () => {
     expect(TERRAIN.detail).toBeDefined();
-    expect(TERRAIN.materialRegions?.length ?? 0).toBeGreaterThan(0);
+    expect(world.kind === "environment" ? world.sculpt : undefined).toBe(editorLayers.terrain);
+    const painted = editorLayers.terrain!;
+    const surfaceAt = (x: number, z: number) => painted.surfaces[Math.floor((z - painted.bounds.minZ) / painted.cellSize) * painted.cols + Math.floor((x - painted.bounds.minX) / painted.cellSize)];
+    expect(surfaceAt(-30, -12)).toBe("dirt");
+    expect(surfaceAt(-36, -15.2)).toBe("gravel");
+    expect(surfaceAt(-32, 26)).toBe("rock");
+    expect(surfaceAt(0, -30)).toBe("grass");
+    expect(Math.max(...painted.offsets)).toBeCloseTo(2.4);
+    expect(painted.offsets.filter(value => value !== 0).length).toBe(548);
   });
 });

@@ -11,6 +11,7 @@ import { chooseDesire, isIdleish, SOCIAL_RANGE, SOCIAL_SECONDS, USE_FULL, type R
 import { advanceLifeEvents } from "./events";
 import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
 import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWindow } from "./schedule";
+import { bloomHarvest } from "./bloom";
 import { crossedMilestones, REL_BOUNDS } from "./social";
 
 const EVENT_TTL = 90;
@@ -257,14 +258,13 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
           return position !== null && Math.hypot(position[0] - obj.position[0], position[2] - obj.position[2]) <= def.useRadius
             && ((other.action.kind === "use" && other.action.objId === obj.instanceId) || other.harvestToday > 0);
         });
-        const harvest = friend ? 5 : 4;
-        const income = friend ? 60 : 48;
+        const { rations: harvest, credits: income } = bloomHarvest(member.bloomCrop ?? "pantry", friend);
         member.harvestToday = harvest;
         state.pantry = Math.min(PANTRY_CAP, state.pantry + harvest);
         state.dayHarvest += harvest;
         state.credits = creditAmount(state.credits + income);
         state.dayIncome = creditAmount(state.dayIncome + income);
-        pushEvent(state, `${member.name} harvested ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, now, "good");
+        pushEvent(state, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, now, "good");
         finishShift(state, member, now);
         releaseMember(member);
       }

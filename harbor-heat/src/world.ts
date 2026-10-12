@@ -1,7 +1,6 @@
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
 import {
   environment,
-  grass,
   ocean,
   rain,
   road,
@@ -74,15 +73,6 @@ const beachRegions: TerrainMaterialRegion[] = [
     falloff: 9,
     colors: { low: "#a89269", high: "#c4a878", waterline: "#3ec6cf" },
   },
-];
-
-/** Block interiors kept green — the city grid's lungs, and what stops a wide shot reading as one slab. */
-const PARK_BLOCKS: readonly (readonly [number, number])[] = [
-  [0, 60],
-  [-120, -60],
-  [120, -60],
-  [0, -180],
-  [120, 60],
 ];
 
 const cityFlatten = DISTRICTS.map((d) => ({
@@ -174,37 +164,8 @@ export const world: EnvironmentWorldFeature = environment({
       waveSpeed: 0.5,
     }),
   ],
-  vegetation: [
-    // Sea oats along the dunes: the fore-to-mid transition between the boulevard and the water.
-    grass({
-      area: { w: 62, d: 600, position: [SHORE_X - 8, 0] },
-      density: 1.2,
-      bladeHeight: [0.3, 0.95],
-      bladeWidth: 0.045,
-      windStrength: 0.6,
-      colors: ["#b9ad6c", "#d7c98a", "#8fa257"],
-      seed: "harbor-dunes",
-    }),
-    // Watered lawns inside the residential hills and the two big inland blocks.
-    grass({
-      area: { w: 170, d: 170, position: [70, -240] },
-      density: 1.4,
-      bladeHeight: [0.22, 0.7],
-      windStrength: 0.4,
-      colors: ["#4f8f43", "#77b053", "#3f7a3a"],
-      seed: "harbor-palms",
-    }),
-    ...PARK_BLOCKS.map((block, index) =>
-      grass({
-        area: { w: 74, d: 74, position: block },
-        density: 1.2,
-        bladeHeight: [0.2, 0.62],
-        windStrength: 0.35,
-        colors: ["#57964a", "#7fb857", "#46813d"],
-        seed: `harbor-park-${index}`,
-      }),
-    ),
-  ],
+  // Vegetation footprints and appearance are authored grass_field scene volumes.
+
   // The city's buildings are authored at runtime as collidable, street-facing scene-object lots (see
   // `game/world/setup.ts` → `placeBuildings`, driven by the engine's `deriveBuildingLots` frontage
   // engine). The old `structures: [building(...)]` clusters were rendered and blocked NPC navigation

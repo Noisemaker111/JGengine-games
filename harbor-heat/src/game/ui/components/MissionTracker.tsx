@@ -3,6 +3,7 @@ import { useStore } from "@jgengine/react/store";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { MISSION_HINTS, QUESTS } from "../../quests/catalog";
 import { BOUNTY_SPOTS } from "../../world/districts";
+import { courierStore } from "../../jobs/courier";
 
 function BountyCard() {
   const bounty = useStore(bountyStore, (v) => v);
@@ -23,6 +24,8 @@ function BountyCard() {
 
 export function MissionTracker() {
   const journal = useQuestJournal();
+  const courier = useStore(courierStore);
+  if (courier.completed === 0 || courier.phase === "running") return null;
   const active = journal.find((q) => q.status === "active");
   if (active === undefined) {
     const allDone = journal.filter((q) => q.status === "completed").length >= QUESTS.length;

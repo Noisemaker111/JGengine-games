@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 import type { SceneEntity } from "@jgengine/core/scene/entityStore";
 import { sharedGltfLoader } from "@jgengine/shell/render/modelLoad";
-import { cloneModelScene, disposeClonedMaterials, standardMaterialsOf } from "@jgengine/shell/render/modelRender";
+import { cloneModelScene, disposeClonedMaterials, modelPlacementTransform, standardMaterialsOf } from "@jgengine/shell/render/modelRender";
 import { useModelAnimation } from "@jgengine/shell/render/useModelAnimation";
 import { useStore } from "@jgengine/react/store";
 
@@ -70,11 +70,8 @@ function AlienModel({
 
   const scene = useMemo(() => cloneModelScene(gltf.scene), [gltf]);
   const materials = useMemo(() => standardMaterialsOf(scene), [scene]);
-  const normalizedScale = useMemo(() => {
-    const box = new THREE.Box3().setFromObject(scene);
-    const height = box.max.y - box.min.y;
-    return Number.isFinite(height) && height > 0 ? ALIEN_HEIGHT / height : 1;
-  }, [scene]);
+  const nativeColors = useMemo(() => materials.map(material => material.color.clone()), [materials]);
+  const placement = useMemo(() => modelPlacementTransform(scene, { url: meshUrl, targetHeight: ALIEN_HEIGHT }), [scene, meshUrl]);
 
   useEffect(() => () => disposeClonedMaterials(scene), [scene]);
 
@@ -83,16 +80,19 @@ function AlienModel({
   useModelAnimation(scene, gltf.animations, { auto: true, clock: "game" }, instanceId);
 
   useEffect(() => {
-    for (const material of materials) {
-      material.color.set(color);
+    const tint = new THREE.Color(color);
+    for (const [index, material] of materials.entries()) {
+      material.color.copy(nativeColors[index]!).lerp(tint, 0.22);
       material.emissive.set(emissive);
       material.emissiveIntensity = emissiveIntensity;
     }
-  }, [materials, color, emissive, emissiveIntensity]);
+  }, [materials, nativeColors, color, emissive, emissiveIntensity]);
 
   return (
-    <group scale={[normalizedScale * scale[0], normalizedScale * scale[1], normalizedScale * scale[2]]}>
-      <primitive object={scene} />
+    <group scale={scale}>
+      <group scale={placement.scale} position={placement.position}>
+        <primitive object={scene} />
+      </group>
     </group>
   );
 }
@@ -119,7 +119,7 @@ export function AlienMesh({ entity }: { entity: SceneEntity }): ReactNode {
 
   const color = bodyColor(plan, 58);
   const emissive = mood !== null ? MOOD_COLORS[mood.tier] : "#000000";
-  const emissiveIntensity = mood !== null ? 0.1 + (mood.score / 100) * 0.35 : 0.08;
+  const emissiveIntensity = mood !== null ? 0.025 + (mood.score / 100) * 0.06 : 0.025;
   const scale = bodyScale(plan);
   const eyeHeight = ALIEN_HEIGHT * 0.92;
   const eyeR = ALIEN_HEIGHT * 0.045;
@@ -154,7 +154,7 @@ export function AlienMesh({ entity }: { entity: SceneEntity }): ReactNode {
           <meshStandardMaterial color={color} emissive={emissive} emissiveIntensity={emissiveIntensity} />
         </mesh>
       )}
-      {eyes}
+      {meshUrl === null ? eyes : null}
     </group>
   );
 }

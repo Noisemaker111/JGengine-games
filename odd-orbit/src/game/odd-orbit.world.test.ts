@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 import { createGameContext, type GameContext } from "@jgengine/core/runtime/gameContext";
+import { editableTerrainFromSnapshot } from "@jgengine/core/world/terraform";
+import { editorLayers } from "../editorLayers";
 
 import { world } from "../world";
 import { game } from "../game.config";
@@ -26,6 +28,20 @@ describe("odd-orbit world", () => {
     const summary = summarizeEnvironment(world);
     expect(summary.isEmpty).toBe(false);
     expect(summary.terrain).toBeDefined();
+  });
+
+  test("authored home and garden surfaces reach the world without moving starter content or ground", () => {
+    if (world.kind !== "environment" || world.sculpt === undefined) throw new Error("expected authored ground");
+    expect(world.sculpt).toBe(editorLayers.terrain);
+    const paint = editableTerrainFromSnapshot(world.sculpt);
+    expect(paint.surfaceAt(0, -2)).toBe("grass");
+    expect(paint.surfaceAt(8, 4)).toBe("sand");
+    expect(paint.surfaceAt(26, 20)).toBe("rock");
+    expect(world.sculpt.offsets.every(offset => offset === 0)).toBe(true);
+    expect(world.sky?.timeOfDay).toBe(false);
+    expect(editorLayers.markers).toHaveLength(32);
+    const starter = editorLayers.markers.find(marker => marker.id === "starter:bloom_planter");
+    expect(starter?.position).toEqual({ x: 0, y: 0, z: -2 });
   });
 
   test("setup seeds the household and furnishes the habitat", () => {
