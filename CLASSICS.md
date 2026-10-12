@@ -22,7 +22,7 @@ Status: ✅ shipped · 🔨 in flight · W2/W3 queued wave.
 | Gin Rummy | W3 | |
 | Spades | W3 | |
 | Cribbage | W3 | |
-| Deckbuilder roguelike | ✅ | `wayfarer-deck` |
+| Deckbuilder roguelike | ❌ | |
 
 ## Grid logic
 

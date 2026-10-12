@@ -136,32 +136,6 @@
         "vite": "^6.2.2",
       },
     },
-    "field-station": {
-      "name": "@games/field-station",
-      "version": "0.1.0",
-      "dependencies": {
-        "@jgengine-examples/studios": "workspace:*",
-        "@jgengine/core": "catalog:",
-        "@jgengine/editor": "catalog:",
-        "@jgengine/react": "catalog:",
-        "@jgengine/shell": "catalog:",
-        "@react-three/fiber": "^9.5.0",
-        "react": "19.2.3",
-        "react-dom": "19.2.3",
-        "three": "^0.182.0",
-      },
-      "devDependencies": {
-        "@react-three/drei": "^10.7.7",
-        "@tailwindcss/vite": "^4.0.15",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "@types/three": "^0.182.0",
-        "@vitejs/plugin-react": "^4.3.4",
-        "tailwindcss": "^4.0.15",
-        "typescript": "^5",
-        "vite": "^6.2.2",
-      },
-    },
     "harbor-heat": {
       "name": "@games/harbor-heat",
       "version": "0.1.0",
@@ -172,30 +146,6 @@
         "@jgengine/react": "catalog:",
         "@jgengine/shell": "catalog:",
         "@jgengine/ws": "catalog:",
-        "@react-three/fiber": "^9.5.0",
-        "react": "19.2.3",
-        "react-dom": "19.2.3",
-        "three": "^0.182.0",
-      },
-      "devDependencies": {
-        "@tailwindcss/vite": "^4.0.15",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "@types/three": "^0.182.0",
-        "@vitejs/plugin-react": "^4.3.4",
-        "tailwindcss": "^4.0.15",
-        "typescript": "^5",
-        "vite": "^6.2.2",
-      },
-    },
-    "lantern-reach": {
-      "name": "@games/lantern-reach",
-      "version": "0.1.0",
-      "dependencies": {
-        "@jgengine/core": "catalog:",
-        "@jgengine/editor": "catalog:",
-        "@jgengine/react": "catalog:",
-        "@jgengine/shell": "catalog:",
         "@react-three/fiber": "^9.5.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",
@@ -248,32 +198,6 @@
         "@types/react": "^19",
       },
     },
-    "resonant-crossing": {
-      "name": "@games/resonant-crossing",
-      "version": "0.1.0",
-      "dependencies": {
-        "@jgengine/assets": "catalog:",
-        "@jgengine/core": "catalog:",
-        "@jgengine/editor": "catalog:",
-        "@jgengine/react": "catalog:",
-        "@jgengine/shell": "catalog:",
-        "@react-three/fiber": "^9.5.0",
-        "react": "19.2.3",
-        "react-dom": "19.2.3",
-        "three": "^0.182.0",
-      },
-      "devDependencies": {
-        "@react-three/drei": "^10.7.7",
-        "@tailwindcss/vite": "^4.0.15",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "@types/three": "^0.182.0",
-        "@vitejs/plugin-react": "^4.3.4",
-        "tailwindcss": "^4.0.15",
-        "typescript": "^5",
-        "vite": "^6.2.2",
-      },
-    },
     "scrap-signal": {
       "name": "@games/scrap-signal",
       "version": "0.1.0",
@@ -313,30 +237,6 @@
         "@types/react": "^19",
         "@types/three": "^0.182.0",
         "typescript": "^5",
-      },
-    },
-    "wayfarer-deck": {
-      "name": "@games/wayfarer-deck",
-      "version": "0.1.0",
-      "dependencies": {
-        "@jgengine/core": "catalog:",
-        "@jgengine/editor": "catalog:",
-        "@jgengine/react": "catalog:",
-        "@jgengine/shell": "catalog:",
-        "@react-three/fiber": "^9.5.0",
-        "react": "19.2.3",
-        "react-dom": "19.2.3",
-        "three": "^0.182.0",
-      },
-      "devDependencies": {
-        "@tailwindcss/vite": "^4.0.15",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "@types/three": "^0.182.0",
-        "@vitejs/plugin-react": "^4.3.4",
-        "tailwindcss": "^4.0.15",
-        "typescript": "^5",
-        "vite": "^6.2.2",
       },
     },
   },
@@ -465,21 +365,13 @@
 
     "@games/ember-command": ["@games/ember-command@workspace:ember-command"],
 
-    "@games/field-station": ["@games/field-station@workspace:field-station"],
-
     "@games/harbor-heat": ["@games/harbor-heat@workspace:harbor-heat"],
 
     "@games/hud-components": ["@games/hud-components@workspace:registry"],
 
-    "@games/lantern-reach": ["@games/lantern-reach@workspace:lantern-reach"],
-
     "@games/odd-orbit": ["@games/odd-orbit@workspace:odd-orbit"],
 
-    "@games/resonant-crossing": ["@games/resonant-crossing@workspace:resonant-crossing"],
-
     "@games/scrap-signal": ["@games/scrap-signal@workspace:scrap-signal"],
-
-    "@games/wayfarer-deck": ["@games/wayfarer-deck@workspace:wayfarer-deck"],
 
     "@gltf-transform/core": ["@gltf-transform/core@4.2.1", "", { "dependencies": { "property-graph": "^3.0.0" } }, "sha512-qKhrQ29KJ9K6sz7xGoGRllqPBlROjPJMQPvCLBOfgMPH3S/Ph5E0e6fD5WmwTY5QPyBsDMRqKd1Vl0ncThTXGw=="],
 

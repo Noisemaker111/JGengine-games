@@ -8,9 +8,12 @@ That change is merged upstream but is absent from installed published core 0.18.
 whose building palette values are strings. No facade API casts or source aliases
 are used here, and #1's head is not part of this integration's ancestry.
 
-## Reproducible setup
+## Historical setup
 
-Run `bun install --frozen-lockfile` from the repository root. The lock installs
+The commands and package versions in this section describe the historical integration,
+not the current checkout. For current setup, use [README.md](README.md#develop).
+
+At that revision, run `bun install --frozen-lockfile` from the repository root. The lock installs
 published core/react/shell/assets 0.18.1 and pins editor 0.18.0: editor 0.18.1
 requires unpublished navbake. The declared TypeScript native-preview development
 dependency supplies the games' existing `tsgo` scripts.

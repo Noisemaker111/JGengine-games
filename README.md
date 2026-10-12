@@ -22,13 +22,9 @@ owns the discovery, upstream implementation, adoption and verification workflow.
 
 | Game | Id | Description |
 | --- | --- | --- |
-| Lantern Reach | `lantern-reach` | Lantern-lit frontier adventure |
-| Resonant Crossing | `resonant-crossing` | Co-op puzzle |
 | Ember Command | `ember-command` | Highland command skirmish |
 | Brightway Park | `brightway-park` | Park-builder tycoon |
-| Wayfarer Deck | `wayfarer-deck` | Deckbuilder |
 | Odd Orbit | `odd-orbit` | Alien household sim |
-| Field Station | `field-station` | Environment studios showcase |
 | Scrap Signal | `scrap-signal` | Looter-shooter |
 | Beacon Bastion | `beacon-bastion` | Tower defense |
 | Deepward | `deepward` | First-person extraction slice: salvage, pack, return and bank |
@@ -49,21 +45,20 @@ Run the published assets CLI from the repository root for each source, writing
 into that game's public directory:
 
 ```sh
-bun node_modules/@jgengine/assets/dist/cli/pull.js pull <source> --dir <game-id>/public
+bun <game-id>/node_modules/@jgengine/assets/dist/cli/pull.js pull <source> --dir <game-id>/public
 bun run dev:harbor-heat   # or another playable game id
 ```
 
-Wayfarer Deck uses authored interface artwork and does not need downloaded 3D
-packs. Deepward uses original procedural industrial geometry and needs no downloaded
+Deepward uses original procedural industrial geometry and needs no downloaded
 asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).
 
 Each playable game is a standalone Vite harness: `index.html` loads
 `src/main.tsx`, and `vite.config.ts` resolves published packages. Run commands from
 the repository root, or run `bun run dev` inside the target game's directory.
 
-See [published-package verification](GAME-PR-VERIFICATION.md) for the Brightway Park,
-Field Station and Scrap Signal dependency pin, asset provisioning, checks and remaining
-playtest limits.
+See [historical published-package verification](GAME-PR-VERIFICATION.md) for earlier
+Brightway Park and Scrap Signal asset provisioning, checks and playtest limits.
+The root catalog below owns the current SDK version.
 
 ## Engine version
 
