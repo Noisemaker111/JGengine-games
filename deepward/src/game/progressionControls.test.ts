@@ -1,10 +1,24 @@
 import { expect, test } from "bun:test";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
+import { gamePhase } from "@jgengine/core/game/gamePhase";
 import { GARAGE, physics, world } from "../world";
 import { captureProbe, initialize, keybinds, seatPlayer, tick, viewStore } from "./controls";
 import { SAVE_KEY } from "./save";
 import { depart, newDive, newHome, settle, takeLoot } from "./state";
+
+test("overlapping browser suspension intents stay paused until an explicit resume", () => {
+  const ctx = createGameContext({ definition: defineGameDefinition({ name: "Suspension boundary", world, physics, input: keybinds, persist: false, lifecycle: "always-live" }), player: { userId: "diver", isNew: true } });
+  initialize(ctx);
+  viewStore.update(ctx, view => ({ ...view, mode: "home", panel: null }));
+  ctx.game.commands.run("deepward.pause", { paused: true });
+  ctx.game.commands.run("deepward.pause", { paused: true });
+  expect(viewStore.read(ctx).paused).toBe(true);
+  expect(gamePhase(ctx)).toBe("paused");
+  ctx.game.commands.run("deepward.pause", {});
+  expect(viewStore.read(ctx).paused).toBe(false);
+  expect(gamePhase(ctx)).toBe("playing");
+});
 
 test("real command/context boundary applies refits on departure and acknowledges loss across a fresh context", () => {
   const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");

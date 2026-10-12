@@ -52,8 +52,8 @@ function Slot({
           commands.run("spellbook.assign", { abilityId: data.slice(8), slot: index });
         }
       }}
-      onClick={() => {
-        const result = commands.run(`castSlot${index + 1}`, {});
+      onClick={async () => {
+        const result = await commands.run(`castSlot${index + 1}`, {});
         setNotice(result.status === "rejected" ? result.reason : null);
       }}
       aria-label={`${ability.name}${locked ? `, unlocks at level ${ability.levelReq}` : ""}`}

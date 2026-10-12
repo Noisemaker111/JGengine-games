@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
+import { CreditsScreen } from "@jgengine/react/creditsScreen";
+import { useSettings } from "@jgengine/react/settings";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { useGameStore } from "@jgengine/react/hooks";
@@ -21,17 +24,20 @@ export function GameUI() {
   const at = useGameStore(state => state.scene.entity.get(state.player.userId)?.position ?? [0, 0, 14] as const);
   const target = useGameStore(nearby);
   const [selected, setSelected] = useState<string | null>(null);
+  const [credits, setCredits] = useState(false);
+  const settings = useSettings();
+  const creditsRef = useDialogBehavior({ open: credits, onClose: () => setCredits(false) });
   const command = (name: string, input: unknown = {}) => ctx.game.commands.run(`deepward.${name}`, input);
   useEffect(() => {
     if (view.panel === null && !view.paused && (view.mode === "home" || view.mode === "dive")) {
       document.querySelector("canvas")?.closest<HTMLElement>("[tabindex]")?.focus({ preventScroll: true });
     }
   }, [view.panel, view.paused, view.mode]);
+  useBrowserSuspension(() => {
+    const v = viewStore.read(ctx);
+    if (!v.paused && v.panel === null && (v.mode === "home" || v.mode === "dive")) ctx.game.commands.run("deepward.pause", { paused: true });
+  });
   useEffect(() => {
-    const pauseIfLive = () => {
-      const v = viewStore.read(ctx);
-      if (!v.paused && v.panel === null && (v.mode === "home" || v.mode === "dive")) ctx.game.commands.run("deepward.pause", {});
-    };
     const key = (event: KeyboardEvent) => {
       if (event.code === "Tab") {
         const v = viewStore.read(ctx);
@@ -41,27 +47,19 @@ export function GameUI() {
           event.stopImmediatePropagation();
         } else event.preventDefault();
       }
-      if (event.code !== "Escape" || event.repeat) return;
+      if (event.code !== "Escape" || event.repeat || settings.isOpen) return;
       event.preventDefault(); event.stopImmediatePropagation();
+      if (credits) { setCredits(false); return; }
       ctx.game.commands.run("deepward.pause", {});
     };
-    let locked = document.pointerLockElement !== null;
-    const lock = () => { const next = document.pointerLockElement !== null; if (locked && !next) pauseIfLive(); locked = next; };
-    const visibility = () => { if (document.hidden) pauseIfLive(); };
     const storage = (event: StorageEvent) => { if (event.key === SAVE_KEY || event.key === null) storageChanged(ctx); };
     window.addEventListener("keydown", key, true);
-    window.addEventListener("blur", pauseIfLive);
     window.addEventListener("storage", storage);
-    document.addEventListener("pointerlockchange", lock);
-    document.addEventListener("visibilitychange", visibility);
     return () => {
       window.removeEventListener("keydown", key, true);
-      window.removeEventListener("blur", pauseIfLive);
       window.removeEventListener("storage", storage);
-      document.removeEventListener("pointerlockchange", lock);
-      document.removeEventListener("visibilitychange", visibility);
     };
-  }, [ctx]);
+  }, [ctx, credits, settings.isOpen]);
   const dive = view.dive;
   const low = dive !== null && dive.oxygen <= 25;
   const weapon = dive?.hand === "service-rifle" ? RIFLE : SIDEARM;
@@ -75,6 +73,14 @@ export function GameUI() {
       <div><span className="dw-eyebrow">Halloway municipal print service / 06</span><h1>DEEPWARD<span> / {dive === null ? "MARROW" : "BELLWETHER"}</span></h1>
         <p>{roomAt(at, dive === null ? "home" : "vault")} · Life {view.home.life}</p></div>
       <button disabled={view.mode !== "home" && view.mode !== "dive"} onClick={() => command("pause")} className="dw-small">Pause / Esc</button>
+      <button className="dw-small" onClick={() => {
+        if (!view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive")) command("pause");
+        settings.open();
+      }}>Settings & controls</button>
+      <button className="dw-small" onClick={() => {
+        if (!view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive")) command("pause");
+        setCredits(true);
+      }}>Credits</button>
     </header>
     {dive !== null && <>
       <section className="dw-air" aria-label="Oxygen tank">
@@ -138,7 +144,7 @@ export function GameUI() {
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><button aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</button><button aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</button></div>}
       <button onClick={() => { command("cache"); grab(); }}>Close cache / Tab</button>
     </section></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
+    {view.paused && view.panel === null && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><button onClick={() => { command("pause"); grab(); }}>Resume / Esc</button><button onClick={settings.open}>Settings & controls</button><button onClick={() => setCredits(true)}>Credits</button><button onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</button></section></div>}
     {view.mode === "reprinting" && <div className="dw-modal"><section data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alert">
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
@@ -152,6 +158,14 @@ export function GameUI() {
       <p>{view.mode === "saving" ? "The simulation is stopped. This return has not been acknowledged; retry or reload the saved record." : "The saved record has been preserved. No new dive can begin."}</p>
       {view.mode === "saving" && <button onClick={() => command("retrySave")}>Retry saving this return</button>}
       <button onClick={() => window.location.reload()}>Reload saved Marrow</button>
+    </section></div>}
+    {credits && <div className="dw-modal"><section ref={creditsRef} data-hud-window className="dw-sheet" role="dialog" aria-modal="true" aria-label="Deepward credits" tabIndex={-1}>
+      <h2>Deepward / credits</h2>
+      <CreditsScreen document={{ sections: [
+        { heading: "Original Deepward artwork", entries: [{ label: "Deepward", detail: "Original vault geometry, machinery, Fitter rig, signage, item art and synthesized mechanical sound cues." }] },
+        { heading: "Technology", entries: [{ label: "JGengine", detail: "Apache-2.0", href: "https://jgengine.com" }, { label: "React", detail: "MIT" }, { label: "Three.js", detail: "MIT" }] },
+      ] }} />
+      <button onClick={() => setCredits(false)}>Back to shift</button>
     </section></div>}
   </div>;
 }

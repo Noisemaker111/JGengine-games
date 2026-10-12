@@ -23,7 +23,7 @@ function humanoid(file: string, tint?: string): ModelConfig {
   return {
     url: `${PLAYERS}/${file}.glb`,
     targetHeight: HUMANOID_H,
-    animation: { states: { ...KAYKIT_CLIPS } },
+    animation: { states: { ...KAYKIT_CLIPS }, clock: "game" },
     ...(tint === undefined ? {} : { material: { color: tint } }),
   };
 }
@@ -32,7 +32,7 @@ function skeleton(file: string, height = 2.5): ModelConfig {
   return {
     url: `${ENEMIES}/${file}.glb`,
     targetHeight: height,
-    animation: { states: { ...KAYKIT_CLIPS } },
+    animation: { states: { ...KAYKIT_CLIPS }, clock: "game" },
   };
 }
 
@@ -45,10 +45,10 @@ function creature(
     url: `${CREATURES}/${file}.glb`,
     targetHeight: height,
     ...(CREATURE_ANIMATIONS[file] !== undefined
-      ? { animation: CREATURE_ANIMATIONS[file] }
+      ? { animation: { ...CREATURE_ANIMATIONS[file], clock: "game" } }
       : clips === null
-      ? { animation: { clip: "Flying_Idle" } }
-      : { animation: { states: { ...clips } } }),
+      ? { animation: { clip: "Flying_Idle", clock: "game" } }
+      : { animation: { states: { ...clips }, clock: "game" } }),
   };
 }
 

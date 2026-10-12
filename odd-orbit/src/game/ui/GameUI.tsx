@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { HudCanvas, HudPanel, useHudLayout, hudTheme, hudThemeVars, useDisplayProfile, usePanels } from "@jgengine/react";
+import { useEffect, useState, type ReactNode } from "react";
+import { HudCanvas, HudPanel, useHudLayout, hudTheme, hudThemeVars, useDisplayProfile, usePanels, useDialogBehavior } from "@jgengine/react";
 import { useMenuRouter } from "@jgengine/react/menuRouter";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
 import { StartScreen, ControlsList } from "@jgengine/react/startScreen";
@@ -32,19 +32,9 @@ function readPreferences() {
   catch { return { calm:false, contrast:false }; }
 }
 function OrbitScreen({ title, label, children }: { title:string; label:string; children:ReactNode }) {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    ref.current?.querySelector<HTMLElement>("button:not(:disabled), input")?.focus();
-    return () => previous?.focus();
-  }, []);
-  return <StartScreen className="orbit-veil"><section ref={ref} data-hud-window="orbit-menu" className="orbit-screen" role="dialog" aria-modal="true" aria-label={title} onKeyDown={event => {
+  const ref = useDialogBehavior<HTMLElement>({ open: true, focusKey: title });
+  return <StartScreen className="orbit-veil"><section ref={ref} data-hud-window="orbit-menu" className="orbit-screen" role="dialog" aria-modal="true" tabIndex={-1} aria-label={title} onKeyDown={event => {
     if (["Tab"," ","Enter"].includes(event.key)) event.stopPropagation();
-    if (event.key !== "Tab") return;
-    const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input, a") ?? []);
-    const first = controls[0], last = controls.at(-1);
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   }}><p className="orbit-eyebrow">{label}</p><h1>{title}</h1>{children}</section></StartScreen>;
 }
 

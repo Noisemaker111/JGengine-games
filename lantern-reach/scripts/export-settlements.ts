@@ -2,8 +2,8 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join as pathJoin } from "node:path";
-import { pathToFileURL } from "node:url";
+import { join as pathJoin, posix } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const check = process.argv.includes("--check");
 const game = new URL("../", import.meta.url);
@@ -28,7 +28,7 @@ const { NodeIO, Document } = await import(pathToFileURL(pathJoin(tools, "node_mo
 const { mergeDocuments, dedup, join, flatten, weld, getBounds, unpartition } = await import(pathToFileURL(pathJoin(tools, "node_modules/@gltf-transform/functions/dist/functions.modern.js")).href);
 const io = new NodeIO();
 // Encode directly: generic SDK packing strips image directories. These GLBs must
-// retain the manifest's full shared-map URLs, rather than duplicate large textures.
+// retain relative shared-map URLs, rather than duplicate large textures.
 function encodeGlb(json: any, binary: Uint8Array): Buffer {
   delete json.buffers[0].uri;
   const text = Buffer.from(JSON.stringify(json));
@@ -55,7 +55,7 @@ for (const asset of authored) {
     const file = new URL(`public/models/lantern-reach/${model.path}`, game);
     const bytes = await readFile(file);
     if (bytes.length !== model.bytes || hash(bytes) !== model.sha256) throw new Error(`Provision or verify ${model.path} before export`);
-    const source = await io.read(file.pathname);
+    const source = await io.read(fileURLToPath(file));
     const map = mergeDocuments(document, source);
     const rotation = part.rotationY ?? 0;
     const pivot = document.createNode(part.id).setTranslation([part.position.x, part.position.y + (part.meta?.verticalOffset ?? 0), part.position.z]).setRotation([0, Math.sin(rotation / 2), 0, Math.cos(rotation / 2)]);
@@ -72,7 +72,7 @@ for (const asset of authored) {
     if (!map) throw new Error(`Unpinned material image ${name}`);
     const bytes = await readFile(new URL(`public/models/lantern-reach/${map.path}`, game));
     if (bytes.length !== map.bytes || hash(bytes) !== map.sha256) throw new Error(`Unverified material image ${name}`);
-    texture.setURI(`/models/lantern-reach/${map.path}`);
+    texture.setURI(posix.relative(posix.dirname(asset.path), map.path));
   }
   const output = await io.writeJSON(document);
   const bytes = encodeGlb(output.json, output.resources[output.json.buffers[0].uri]);

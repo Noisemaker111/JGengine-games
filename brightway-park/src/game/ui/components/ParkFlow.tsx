@@ -1,21 +1,12 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import { SettingsTrigger } from "@jgengine/react";
+import { type ReactNode } from "react";
+import { SettingsTrigger, useDialogBehavior } from "@jgengine/react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
 import { session } from "../../session";
 
 export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:string;children:ReactNode;onClose?:()=>void;blockGameKeys?:boolean}) {
-  const ref=useRef<HTMLDivElement>(null);
-  useEffect(()=>{ const previous=document.activeElement as HTMLElement|null; ref.current?.focus(); return ()=>previous?.focus(); },[]);
+  const ref=useDialogBehavior({open:true,onClose,initialFocus:"root",focusKey:title});
   return <div className="park-modal-scrim" onPointerDown={e=>e.stopPropagation()}><div ref={ref} tabIndex={-1} className="park-dialog park-surface" role="dialog" aria-modal="true" aria-label={title} onKeyDown={e=>{
     if(blockGameKeys)e.stopPropagation();
-    if(e.key==="Escape"&&onClose){e.preventDefault();e.stopPropagation();onClose();}
-    if(e.key==="Tab"){
-      const nodes=ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,a[href],[tabindex="0"]');
-      if(!nodes?.length){e.preventDefault();return;}
-      const first=nodes[0]!,last=nodes[nodes.length-1]!;
-      if(e.shiftKey&&(document.activeElement===first||document.activeElement===ref.current)){e.preventDefault();last.focus();}
-      else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===ref.current)){e.preventDefault();first.focus();}
-    }
   }}>{children}</div></div>;
 }
 

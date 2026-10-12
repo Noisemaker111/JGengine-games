@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "../../style.css";
 import { useGame } from "@jgengine/react/hooks";
-import { hudTheme, hudThemeVars, KeyHint, StartScreen, usePanels } from "@jgengine/react";
+import { hudTheme, hudThemeVars, KeyHint, StartScreen, usePanels, useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
 import { useMenuRouter } from "@jgengine/react/menuRouter";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
 import type { CardData } from "../cards";
@@ -79,20 +79,10 @@ function Hand({ children, count, reducedMotion }: { children: ReactNode; count: 
   </>;
 }
 function Dialog({ title, eyebrow, children }: { title: string; eyebrow: string; children: ReactNode }) {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    ref.current?.querySelector<HTMLElement>("button:not(:disabled), input, a[href]")?.focus();
-    return () => previous?.focus();
-  }, []);
-  return <StartScreen className="road-overlay"><section ref={ref} className="road-dialog" role="dialog" aria-modal="true" aria-label={title} onKeyDown={event => {
+  const ref = useDialogBehavior<HTMLElement>({ open: true, focusKey: title });
+  return <StartScreen className="road-overlay"><section ref={ref} className="road-dialog" role="dialog" aria-modal="true" tabIndex={-1} aria-label={title} onKeyDown={event => {
     // Keep native dialog navigation and activation out of shell pointer-lock shortcuts.
     if (event.key === "Tab" || event.key === " " || event.key === "Enter") event.stopPropagation();
-    if (event.key !== "Tab") return;
-    const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input, a[href]") ?? []);
-    const first = controls[0], last = controls.at(-1);
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   }}><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{children}</section></StartScreen>;
 }
 export function GameUI() {
@@ -130,6 +120,9 @@ export function GameUI() {
   const pause = () => command("pauseRun");
   const resume = () => { menu.reset(); panels.close("pack"); command("resumeRun"); };
   const newRun = () => { menu.reset(); panels.close("pack"); command("startNewRun"); };
+  useBrowserSuspension(() => {
+    if (run.screen === null) pause();
+  }, { blur: false, pointerLockLost: false });
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
@@ -148,9 +141,8 @@ export function GameUI() {
         if (entry && entry.card.cost <= s.energy.current) { event.preventDefault(); play(entry); }
       }
     };
-    const onHide = () => { if (document.hidden && run.screen === null) pause(); };
-    window.addEventListener("keydown", onKey); document.addEventListener("visibilitychange", onHide);
-    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("visibilitychange", onHide); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [run.screen, active, s.hand, s.energy.current, menu.current, commands]);
   const setPreference = (key: "largeText" | "reducedMotion", value: boolean) => {
     const next = {...prefs, [key]: value}; setPrefs(next);

@@ -41,24 +41,19 @@ function maps(sourceId: string) {
   return material.maps;
 }
 
-/**
- * `MaterialMaps` types every role as a required URL, but ambientCG's whole `Metal` family ships
- * without an ambient-occlusion map — so spreading a resolved material wholesale requests a file that
- * is not there and the 404 takes the game down on boot. `ModelMaterialMaps` roles are all optional,
- * so a model-side material names only the roles its pack actually pulled.
- */
-function modelMaps(sourceId: string, roles: readonly ("color" | "normal" | "roughness" | "ao")[]) {
-  const resolved = maps(sourceId);
-  const out: { color?: string; normal?: string; roughness?: string; ao?: string } = {};
-  for (const role of roles) out[role] = resolved[role];
-  return out;
+/** The shared material catalog includes only maps supplied by each source. */
+export const GROUND_MAPS = maps(MATERIAL_SOURCES.ground);
+
+/** Models accept surface maps; terrain displacement remains a terrain-only input. */
+function modelMaps(sourceId: string) {
+  const source = maps(sourceId);
+  return Object.fromEntries(Object.entries(source).filter(([role]) =>
+    role === "color" || role === "normal" || role === "roughness" || role === "ao"));
 }
 
-/** Terrain requires the full map set, so only complete materials may drive it. */
-export const GROUND_MAPS = maps(MATERIAL_SOURCES.ground);
-export const CLIFF_MAPS = modelMaps(MATERIAL_SOURCES.cliff, ["color", "normal", "roughness", "ao"]);
-export const SCRAP_METAL_MAPS = modelMaps(MATERIAL_SOURCES.scrapMetal, ["color", "normal", "roughness"]);
-export const PANEL_MAPS = modelMaps(MATERIAL_SOURCES.panel, ["color", "normal", "roughness", "ao"]);
+export const CLIFF_MAPS = modelMaps(MATERIAL_SOURCES.cliff);
+export const SCRAP_METAL_MAPS = modelMaps(MATERIAL_SOURCES.scrapMetal);
+export const PANEL_MAPS = modelMaps(MATERIAL_SOURCES.panel);
 
 /**
  * Chassis finish per enemy family. Every entry is a machine hue (see {@link MACHINE}) —

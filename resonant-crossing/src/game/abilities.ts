@@ -52,12 +52,13 @@ export function registerCommands(ctx: GameContext): void {
       startRun(state, index);
     },
   });
-  ctx.game.commands.define("pause", {
-    apply(state) {
+  ctx.game.commands.define<{ paused?: boolean }>("pause", {
+    apply(state, input) {
       const status = duetStore.read(state).status;
       if (status !== "playing" && status !== "paused") return;
-      duetStore.update(state, s => ({ ...s, status: status === "paused" ? "playing" : "paused" }));
-      setGamePhase(state, status === "paused" ? "playing" : "paused");
+      const next = (input.paused ?? status !== "paused") ? "paused" : "playing";
+      duetStore.update(state, s => ({ ...s, status: next }));
+      setGamePhase(state, next);
     },
   });
   ctx.game.commands.define("duet.step", {

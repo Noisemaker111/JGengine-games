@@ -95,6 +95,7 @@ function begin(ctx: GameContext): void {
     for (const loot of SALVAGE) spawnLoot(ctx, loot.id, loot.kind, loot.at, dive.id);
     syncPrint(ctx, dive);
     syncPlayer(ctx, dive);
+    ctx.game.audio.play("rail");
   } catch (error) { viewStore.update(ctx, s => ({ ...s, error: message(error) })); }
 }
 function finish(ctx: GameContext, kind: Result["kind"], reason: string): void {
@@ -118,6 +119,7 @@ function finish(ctx: GameContext, kind: Result["kind"], reason: string): void {
     viewStore.write(ctx, { ...v, home, dive: null, mode: "home", pending: null, paused: false, panel: null, error: "", trace: null,
       hint: kind === "extracted" ? `Haul committed to Marrow / ${home.last!.count} items. Walk left to the stash.` : "Halloway: the printer has you. Your old stash is safe; that Life's haul is gone." });
     run(ctx);
+    if (kind === "extracted") ctx.game.audio.play("banked");
   } catch (error) {
     viewStore.update(ctx, s => ({ ...s, error: message(error), hint: "Return has not been acknowledged. Retry or reload the saved record." }));
   }
@@ -128,6 +130,7 @@ function interact(ctx: GameContext): void {
   if (target === null) return;
   if (target.id === "garage") { begin(ctx); return; }
   if (target.id === "stash") {
+    ctx.game.audio.play("terminal");
     viewStore.update(ctx, s => ({ ...s, panel: "stash" })); freeze(ctx); return;
   }
   if (target.id === "exit") {
@@ -149,6 +152,7 @@ function fire(ctx: GameContext): void {
   if (!playable(ctx) || v.mode !== "dive" || dive === null || at === null || dive.health <= 0 || dive.reload > 0 || dive.shotCooldown > 0) return;
   if (dive.magazine === 0) { viewStore.update(ctx, s => ({ ...s, hint: "Empty magazine / R to reload." })); return; }
   const weapon = dive.hand === "sidearm" ? SIDEARM : RIFLE;
+  ctx.game.audio.play("shot");
   const direction = runtime(ctx).aim;
   const from: Point = [at[0], 1.62, at[2]], enemy: Point = [dive.print.at[0], 1.1, dive.print.at[2]];
   const delta = [enemy[0] - from[0], enemy[1] - from[1], enemy[2] - from[2]];
@@ -166,7 +170,11 @@ function fire(ctx: GameContext): void {
 }
 function reload(ctx: GameContext): void {
   const v = viewStore.read(ctx);
-  if (playable(ctx) && v.mode === "dive" && v.dive !== null) viewStore.write(ctx, { ...v, dive: reloadWeapon(v.dive) });
+  if (playable(ctx) && v.mode === "dive" && v.dive !== null) {
+    const next = reloadWeapon(v.dive);
+    if (next.reload > v.dive.reload) ctx.game.audio.play("reload");
+    viewStore.write(ctx, { ...v, dive: next });
+  }
 }
 function toggleCache(ctx: GameContext): void {
   const v = viewStore.read(ctx);
@@ -214,12 +222,13 @@ export function registerControls(ctx: GameContext): void {
     viewStore.write(state, { ...v, panel: null, paused: false });
     if (v.mode === "home" || v.mode === "dive") run(state);
   } });
-  ctx.game.commands.define("deepward.pause", { apply(state) {
+  ctx.game.commands.define<{ paused?: boolean }>("deepward.pause", { apply(state, input) {
     const v = viewStore.read(state);
     if (v.mode !== "home" && v.mode !== "dive") return;
     if (v.panel !== null) { state.game.commands.run("deepward.close", {}); return; }
-    viewStore.write(state, { ...v, paused: !v.paused, dive: v.dive === null ? null : { ...v.dive, channel: null } });
-    if (v.paused) run(state); else freeze(state);
+    const paused = input.paused ?? !v.paused;
+    viewStore.write(state, { ...v, paused, dive: v.dive === null ? null : { ...v.dive, channel: null } });
+    if (paused) freeze(state); else run(state);
   } });
   ctx.game.commands.define("deepward.retrySave", { apply(state) {
     const v = viewStore.read(state);
