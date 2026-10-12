@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HudPanel } from "@jgengine/react";
+import { HudPanel, useBrowserSuspension } from "@jgengine/react";
 import { useGame, useGamePhase, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
@@ -32,10 +32,11 @@ export function Operations() {
     else ctx.time.play();
   }, [ctx, character, paused, phase]);
 
+  useBrowserSuspension((reason) => {
+    if (reason === "pointer-lock-lost" && modal) return;
+    if (gamePhase(ctx) === "playing") { ctx.time.pause(); setGamePhase(ctx, "paused"); setManual(true); }
+  });
   useEffect(() => {
-    const pause = () => {
-      if (gamePhase(ctx) === "playing") { ctx.time.pause(); setGamePhase(ctx, "paused"); setManual(true); }
-    };
     const key = (event: KeyboardEvent) => {
       if (event.code !== "Escape" || settings.isOpen || character === null || phase === "ended") return;
       event.preventDefault();
@@ -46,22 +47,9 @@ export function Operations() {
       else if (market) commands.run("blackmarket.close", {});
       else setManual((value) => !value);
     };
-    const visibility = () => { if (document.hidden) pause(); };
-    let locked = document.pointerLockElement !== null;
-    const lock = () => {
-      const next = document.pointerLockElement !== null;
-      if (locked && !next && !modal) pause();
-      locked = next;
-    };
     window.addEventListener("keydown", key, true);
-    window.addEventListener("blur", pause);
-    document.addEventListener("visibilitychange", visibility);
-    document.addEventListener("pointerlockchange", lock);
     return () => {
       window.removeEventListener("keydown", key, true);
-      window.removeEventListener("blur", pause);
-      document.removeEventListener("visibilitychange", visibility);
-      document.removeEventListener("pointerlockchange", lock);
     };
   }, [ctx, commands, character, phase, vendor, travel, skills, market, settings.isOpen, modal]);
 

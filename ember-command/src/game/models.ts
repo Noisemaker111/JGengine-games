@@ -14,7 +14,7 @@ const warriors = new Set(["peasant", "footman", "rifleman", "hero", "grunt", "re
 export const entityModels: Record<string, ModelConfig> = Object.fromEntries(
   Object.entries(authoredModels).map(([id, url]) => [id, {
     url, targetHeight: heights[id as keyof typeof heights],
-    ...(warriors.has(id) ? { animation: { states: { idle: "Idle", walk: "Walking_A", walkSpeed: .1 } } } : {}),
+    ...(warriors.has(id) ? { animation: { states: { idle: "Idle", walk: "Walking_A", walkSpeed: .1 }, clock: "game" } } : {}),
   }]),
 );
 // The authored forest ring uses the SDK's instanced vegetation meshes.

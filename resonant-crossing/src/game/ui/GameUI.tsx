@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HEROES } from "../entities/players/catalog";
@@ -21,10 +22,10 @@ export function GameUI() {
   const [settings, setSettings] = useState(false);
   const [hint, setHint] = useState(false);
   const [saveAvailable, setSaveAvailable] = useState(true);
-  const modalRef = useRef<HTMLDivElement>(null);
   const room = ROOMS[state.roomIndex] ?? ROOMS[0]!;
   const hero = HEROES[state.active];
   const modal = state.status === "ready" || state.status === "paused" || state.status === "complete";
+  const modalRef = useDialogBehavior({ open: modal, focusKey: `${state.status}:${settings}` });
   const run = (name: string, input: object = {}) => { commands.run(name, input); };
 
   useEffect(() => { run("duet.motion", { reduced: preferences.reducedMotion }); }, [commands, preferences.reducedMotion]);
@@ -37,10 +38,11 @@ export function GameUI() {
   }, [state.roomIndex, state.status]);
   useEffect(() => {
     if (!modal) { setSettings(false); return; }
-    modalRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
   }, [modal, state.status, settings]);
+  useBrowserSuspension(() => {
+    if (state.status === "playing") commands.run("pause", { paused: true });
+  }, { hidden: false, pointerLockLost: false });
   useEffect(() => {
-    const blur = () => { if (state.status === "playing") commands.run("pause", {}); };
     const pauseKey = (event: KeyboardEvent) => {
       if (event.repeat || (event.code !== "Escape" && event.code !== "KeyP")) return;
       if (state.status !== "playing" && state.status !== "paused") return;
@@ -48,9 +50,8 @@ export function GameUI() {
       event.preventDefault();
       commands.run("pause", {});
     };
-    window.addEventListener("blur", blur);
     window.addEventListener("keydown", pauseKey);
-    return () => { window.removeEventListener("blur", blur); window.removeEventListener("keydown", pauseKey); };
+    return () => window.removeEventListener("keydown", pauseKey);
   }, [commands, state.status]);
 
   const updatePreference = (name: keyof typeof preferences, value: boolean) => {
@@ -95,14 +96,7 @@ export function GameUI() {
           <button className="rc-right" aria-label="Move east" onClick={() => run("duet.step", { dir: "east" })}>→</button></div>
       </div>
     </footer>}
-    {modal && <div className="rc-overlay"><div className="rc-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label={settings ? "Settings" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Paused" : "Duet complete"}
-      onKeyDown={e => {
-        if (e.key !== "Tab") return;
-        const focusable = [...e.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), input")];
-        const first = focusable[0], last = focusable.at(-1);
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
-      }}>
+    {modal && <div className="rc-overlay"><div className="rc-modal" ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1} aria-label={settings ? "Settings" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Paused" : "Duet complete"}>
       <div className="rc-emblem" aria-hidden="true"><span>✦</span><span>◆</span></div>
       <span className="rc-eyebrow">{state.status === "complete" ? "Four chambers · one harmony" : "A two-hero puzzle expedition"}</span>
       <h2>{settings ? "Your observatory" : state.status === "ready" ? "Resonant Crossing" : state.status === "paused" ? "Take a breath." : "Two keys, one door."}</h2>

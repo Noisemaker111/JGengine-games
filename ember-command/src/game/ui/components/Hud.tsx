@@ -48,7 +48,7 @@ function TopBar() {
   const hud = useHud();
   const foodTone = hud.foodUsed + hud.foodReserved >= hud.foodCap ? "text-rose-400" : "text-emerald-300";
   return (
-    <div className={"ec-stock pointer-events-none absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 px-4 py-2 font-serif text-slate-100 " + FRAME}>
+    <div className={"ec-stock pointer-events-none absolute top-3 z-20 flex items-center gap-3 px-4 py-2 font-serif text-slate-100 " + FRAME}>
       <Corners />
       <ResourceChip icon="gold" value={String(hud.gold)} tone="text-amber-300" />
       <ResourceChip icon="lumber" value={String(hud.lumber)} tone="text-orange-300" />

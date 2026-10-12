@@ -83,7 +83,9 @@ describe("authored settlement asset integrity", () => {
       expect(count).toBe(asset.draws);
       expect(count).toBeLessThanOrEqual(12);
       for (const image of gltf.images) {
-        expect(provenance.models.some((entry) => `/models/lantern-reach/${entry.path}` === image.uri)).toBe(true);
+        expect(image.uri.startsWith("/")).toBe(false);
+        const resolved = new URL(image.uri, `https://assets.invalid/models/lantern-reach/${asset.path}`).pathname;
+        expect(provenance.models.some((entry) => `/models/lantern-reach/${entry.path}` === resolved)).toBe(true);
       }
       draws += count;
     }

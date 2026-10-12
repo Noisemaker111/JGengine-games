@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "../../style.css";
-import { SettingsTrigger } from "@jgengine/react";
+import { SettingsTrigger, useBrowserSuspension } from "@jgengine/react";
 import { useSettings } from "@jgengine/react/settings";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
@@ -51,6 +51,7 @@ export function GameUI() {
     document.addEventListener("visibilitychange", suspend);
     return () => document.removeEventListener("visibilitychange", suspend);
   }, [ctx, session, settings.isOpen, drive]);
+  useBrowserSuspension(() => drive?.reset(), { hidden: false, pointerLockLost: false });
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (event.repeat || settings.isOpen || event.ctrlKey || event.metaKey || event.altKey || (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]"))) return;
@@ -63,10 +64,8 @@ export function GameUI() {
     };
     window.addEventListener("keydown", key);
     const release = (event: KeyboardEvent) => drive?.keyUp(event.code);
-    const blur = () => drive?.reset();
     window.addEventListener("keyup", release);
-    window.addEventListener("blur", blur);
-    return () => { window.removeEventListener("keydown", key); window.removeEventListener("keyup", release); window.removeEventListener("blur", blur); };
+    return () => { window.removeEventListener("keydown", key); window.removeEventListener("keyup", release); };
   }, [ctx, session, commands, settings.isOpen, credits, drive]);
   if (!snapshot || !session) return null;
   const togglePause = () => { session.togglePause(); publishSession(ctx, session); drive?.reset(); };

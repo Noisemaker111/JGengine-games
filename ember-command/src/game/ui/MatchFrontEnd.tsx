@@ -1,4 +1,5 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
+import { useDialogBehavior } from "@jgengine/react";
 import { useDomEvent, useGame, type DomEventTarget } from "@jgengine/react/hooks";
 import { useMenuRouter } from "@jgengine/react/menuRouter";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
@@ -25,11 +26,10 @@ export function MatchFrontEnd() {
   const prefs = useSyncExternalStore(preferences.subscribe, preferences.get, preferences.get);
   const { commands } = useGame();
   const router = useMenuRouter<"main" | "settings" | "credits">("main", { escapeToBack: false });
-  const panel = useRef<HTMLElement>(null);
   const live = hud.phase === "playing";
-  useEffect(() => { if (!live) panel.current?.querySelector<HTMLButtonElement>("button")?.focus(); }, [live, hud.phase, router.current]);
+  const panel = useDialogBehavior<HTMLElement>({ open: !live, focusKey: `${hud.phase}:${router.current}` });
   useDomEvent<KeyboardEvent>(() => window as unknown as DomEventTarget, "keydown", (event) => {
-    if (event.code !== "Escape" || event.repeat) return;
+    if (event.defaultPrevented || event.code !== "Escape" || event.repeat) return;
     event.preventDefault();
     if (!router.atRoot) { router.back(); return; }
     if (live) {
@@ -41,13 +41,8 @@ export function MatchFrontEnd() {
   if (live) return <button type="button" className="ec-pause" onClick={() => run("match.pause")} aria-label="Pause battle">Ⅱ <span>Pause</span></button>;
   const ready = hud.phase === "ready", paused = hud.phase === "paused", won = hud.phase === "won";
   return <div className="ec-curtain" onContextMenu={(e) => e.preventDefault()}>
-    <section ref={panel} className="ec-front" role="dialog" aria-modal="true" aria-labelledby="ec-front-title" onKeyDown={(event) => {
-      if (event.key !== "Tab") return;
-      const elements = panel.current?.querySelectorAll<HTMLElement>("button:not(:disabled), input, a[href]");
-      if (!elements?.length) return;
-      const first = elements[0], last = elements[elements.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    <section ref={panel} className="ec-front" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="ec-front-title" onKeyDown={(event) => {
+      if (["Tab", " ", "Enter"].includes(event.key)) event.stopPropagation();
     }}>
       <div className="ec-seal"><Icon name={ready || paused ? "helm" : won ? "medal" : "skull"} /></div>
       <p className="ec-eyebrow">The Highland Vale · Commander's field desk</p>

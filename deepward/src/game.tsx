@@ -19,6 +19,7 @@ import { captureProbe, initialize, keybinds, seatPlayer, setAim, tick, viewStore
 import { ITEMS } from "./game/state";
 import { StationStructure, StationBatch } from "./game/stationArt";
 import { GameUI } from "./game/ui/GameUI";
+import { audio } from "./game/audio";
 
 function Block({ at, size, color = C.panel, glow = false, surface }: { at: Triple; size: Triple; color?: string; glow?: boolean; surface?: IndustrialSurface }) {
   return <IndustrialBox at={at} size={size} color={color} surface={surface ?? (glow ? "lamp" : color === C.steel ? "steel" : color === C.brass ? "brass" : "paint")} emission={glow ? 0.8 : 0} />;
@@ -216,8 +217,9 @@ const content: GameContextContent = {
 };
 export const credit = { text: "Original Deepward vault geometry, signage and item art", handle: "Deepward" };
 export const game = defineGame({
-  name: "Deepward", assets: stationAssets, world, physics, content, input: keybinds, editorLayers,
+  name: "Deepward", assets: stationAssets, world, physics, content, input: keybinds, editorLayers, audio,
   server: { mode: "campaign" }, save: "none", persist: false,
+  settings: {},
   presentation: "3d", scenePlacement: false, touch: false,
   // Engine records own acquisition; the vault's authored meshes own presentation.
   worldItem: { filter: [{ id: "authored-salvage", when: {}, hide: true }] },

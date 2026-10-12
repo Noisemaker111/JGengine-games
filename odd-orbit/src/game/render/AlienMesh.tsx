@@ -80,7 +80,7 @@ function AlienModel({
 
   // Engine animation driver: derives idle/walk clips from the GLB's own clip names and
   // crossfades from the entity's live movement — no game-side mixer or clip strings.
-  useModelAnimation(scene, gltf.animations, "auto", instanceId);
+  useModelAnimation(scene, gltf.animations, { auto: true, clock: "game" }, instanceId);
 
   useEffect(() => {
     for (const material of materials) {

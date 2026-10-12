@@ -877,8 +877,8 @@
     {
       "path": "settlements/settlement-0.glb",
       "authoredFile": "../src/art/settlement-0.glb",
-      "bytes": 395136,
-      "sha256": "9fe3f0ad0153bf0235a1e710333dfb6b306654b9be7623be2e7c657c4668b413",
+      "bytes": 394836,
+      "sha256": "fb95a4fb0fc6794e22cfe8906420c199209ee645cd5823282ba9c8fa2017b768",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -900,8 +900,8 @@
     {
       "path": "settlements/settlement-1.glb",
       "authoredFile": "../src/art/settlement-1.glb",
-      "bytes": 338124,
-      "sha256": "af127180cef68a41ea00267081158709b37c46cef902e8c437ae94e1182730ef",
+      "bytes": 337820,
+      "sha256": "41b9e92a181270f10b0f332c2d3149a8c48695ed097792444313c1722a654c10",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -923,8 +923,8 @@
     {
       "path": "settlements/settlement-2.glb",
       "authoredFile": "../src/art/settlement-2.glb",
-      "bytes": 679688,
-      "sha256": "9a0f98e982f1e606faa320f6c05a0446d955eb3a8b4632b96d8dfe51b7e9a99e",
+      "bytes": 679384,
+      "sha256": "faae155887ff9c3387cb65481925f6a7d7ff6998b345450cc7d6b83bd98ac15d",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -946,8 +946,8 @@
     {
       "path": "settlements/settlement-3.glb",
       "authoredFile": "../src/art/settlement-3.glb",
-      "bytes": 492688,
-      "sha256": "ba6a77d65e88e224c67402c0751d150a9bff69fbd97b5a6c49138c7722573f98",
+      "bytes": 492328,
+      "sha256": "6a460957e7de3e1b6755280cc5af19ebdbedf9e0f7168c52737f336294e1adc1",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -969,8 +969,8 @@
     {
       "path": "settlements/settlement-4.glb",
       "authoredFile": "../src/art/settlement-4.glb",
-      "bytes": 409592,
-      "sha256": "7392a2a6c944bc794039635b77a5d8487fe44bdf3f7ffaf15ebc5718f25fb7d1",
+      "bytes": 409292,
+      "sha256": "3c556f87dcba5a7cebee705751aeec0e0876b800a262d63554b60e65e6b97187",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -992,8 +992,8 @@
     {
       "path": "settlements/settlement-5.glb",
       "authoredFile": "../src/art/settlement-5.glb",
-      "bytes": 663016,
-      "sha256": "9b2033d216d2b0233ca9fcf83e2d47c8f2dd55916ae8afae463c5e8273f19d69",
+      "bytes": 662716,
+      "sha256": "28ccfd855e78ab663f5e761167623709347df46016369ec19ab7664775c484ac",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1015,8 +1015,8 @@
     {
       "path": "settlements/settlement-6.glb",
       "authoredFile": "../src/art/settlement-6.glb",
-      "bytes": 395128,
-      "sha256": "6e37917ec13e383d1b57f0eedb2ace4d3258a56386996dfb80eb1fd5eb3c2ca0",
+      "bytes": 394828,
+      "sha256": "6e39f7a3786164890bf347a5aab657be5bf90025214517f4bbb34c8027e5ccfb",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1038,8 +1038,8 @@
     {
       "path": "settlements/settlement-7.glb",
       "authoredFile": "../src/art/settlement-7.glb",
-      "bytes": 492684,
-      "sha256": "774e3f42bc1506c2ba11014da57165177c3c4a2931fd7d5d3e6cad2580307641",
+      "bytes": 492324,
+      "sha256": "f3d907e9b8be0ef0a7f476387867fd15ccb8d87eeb6876e6e7cefcdfb0a7e677",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1061,8 +1061,8 @@
     {
       "path": "settlements/settlement-8.glb",
       "authoredFile": "../src/art/settlement-8.glb",
-      "bytes": 679736,
-      "sha256": "8e0bfe47eba5a8a90d9e4598e9647e0e11736e6053df2b57e6f66c0dea756523",
+      "bytes": 679436,
+      "sha256": "42554f61811f8bdcaa894d0acccdf072d1740d58efc12b0426482f1273e60608",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1084,8 +1084,8 @@
     {
       "path": "settlements/settlement-9.glb",
       "authoredFile": "../src/art/settlement-9.glb",
-      "bytes": 492688,
-      "sha256": "afd4102f9c41a29e4a669c14faef09389d5cdbb57f3aac075079b7c454614b09",
+      "bytes": 492328,
+      "sha256": "a4d6fe8d419e70106b9b6c25c4d967dd7cfc8cace9e384dae3ae1061125d0053",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1107,8 +1107,8 @@
     {
       "path": "settlements/settlement-10.glb",
       "authoredFile": "../src/art/settlement-10.glb",
-      "bytes": 409596,
-      "sha256": "19621842558c89903b7b6eca5f9927bb7fcbcc5b29a7ae90a338f3d47c623d1b",
+      "bytes": 409296,
+      "sha256": "db74059d2531af20d4592992ef5d2ade38c127d5953dea30b725aacba54b3bde",
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "dims": {
@@ -1193,8 +1193,8 @@
       "author": "Lantern Reach, from Quaternius CC0 parts",
       "pack": "quaternius-medieval-village",
       "sourcePrefabId": "street:market-cobbles",
-      "bytes": 16272,
-      "sha256": "6487ad0774ffdefe57910cf497914bcb064561268c312450d233e2bb3af5d737",
+      "bytes": 16216,
+      "sha256": "8b9bcbcccf77da7d6a42ceef7d4aed935fce2a416f6390799d979e2b5837a5dc",
       "sourcePrefabSha256": "144149fd4661fc0046a92a505e705548fddb09bf26030e3762de2cb3e5226628",
       "draws": 1,
       "dims": {

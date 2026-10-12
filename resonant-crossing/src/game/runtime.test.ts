@@ -15,6 +15,16 @@ function boot() {
   return ctx;
 }
 describe("observable run boundaries", () => {
+  test("repeated browser pause intents do not resume a puzzle", () => {
+    const ctx = boot();
+    ctx.game.commands.run("duet.start", {});
+    ctx.game.commands.run("pause", { paused: true });
+    ctx.game.commands.run("pause", { paused: true });
+    expect(duetStore.read(ctx).status).toBe("paused");
+    expect(gamePhase(ctx)).toBe("paused");
+    ctx.game.commands.run("pause", {});
+    expect(gamePhase(ctx)).toBe("playing");
+  });
   test("title gates controls; paused commands cannot mutate a puzzle; restart exits ended phase", () => {
     const ctx = boot();
     expect(gamePhase(ctx)).toBe("menu");
