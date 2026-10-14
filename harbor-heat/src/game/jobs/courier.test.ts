@@ -6,7 +6,13 @@ import { game } from "../../game.config";
 import { loop, normalizeAfterRestore } from "../../loop";
 import { content } from "../content";
 import { registerCommands, startedStore } from "../commands";
+import { handrollOf } from "../handroll";
+import { sessionStore } from "../session";
 import { cargoCondition, courierStore, DELIVERY_ROUTES, DISPATCH, setupCourierLandmarks, tickCourier } from "./courier";
+
+function harborLog(ctx: ReturnType<typeof boot>): string[] {
+  return ctx.game.feed.recent("harbor.log").map((entry) => (entry.data as { text: string }).text);
+}
 
 function boot(backend = memorySaveBackend()) {
   const ctx = createGameContext({ definition: game.game, content, player: { userId: "courier-test", isNew: true }, save: { backend, mode: "manual", key: "courier-test" } });
@@ -90,6 +96,44 @@ describe("Mainsail courier operation", () => {
     tickCourier(ctx, 70);
     expect(courierStore.read(ctx).phase).toBe("lost");
     expect(ctx.game.economy.balance(ctx.player.userId, "cash")).toBe(cash);
+  });
+
+  test("a wasted standard run keeps its forfeit in the recovery notice and never reads as a rush expiry", () => {
+    const ctx = boot();
+    ctx.game.commands.run("courier.accept", {});
+    ctx.scene.entity.stats.set(ctx.player.userId, "health", { current: 0 });
+    loop.onTick(ctx, 0.1);
+    expect(courierStore.read(ctx).phase).toBe("lost");
+    const notice = sessionStore.read(ctx).notice;
+    expect(notice).toContain("Clinic discharge");
+    expect(notice).toContain("Wasted mid-run. The parcel returned to dispatch; no courier cash lost.");
+    expect(harborLog(ctx)).toContain("Wasted mid-run. The parcel returned to dispatch; no courier cash lost.");
+    expect(harborLog(ctx).some((text) => text.includes("Rush"))).toBe(false);
+  });
+
+  test("an arrest on a rush run keeps the bond forfeit in the recovery notice", () => {
+    const ctx = boot();
+    courierStore.write(ctx, { ...courierStore.read(ctx), completed: 1 });
+    ctx.game.economy.grant(ctx.player.userId, "cash", 100);
+    ctx.game.commands.run("courier.accept", { service: "rush" });
+    // Deterministic line of sight and a cop on top of the player make the arrest clock run.
+    ctx.scene.entity.hasLineOfSight = () => true;
+    handrollOf(ctx).addHeat(ctx, 150);
+    ctx.scene.entity.spawn("cop_patrol", { id: "cop_arrest", position: [DISPATCH[0] + 0.5, 0, DISPATCH[1]], role: "npc" });
+    for (let i = 0; i < 3; i += 1) loop.onTick(ctx, 0.5);
+    expect(courierStore.read(ctx).phase).toBe("lost");
+    const notice = sessionStore.read(ctx).notice;
+    expect(notice).toMatch(/^Busted · \$\d+ fine\. You are free to go at HHPD\./);
+    expect(notice).toContain("Busted mid-run. The $60 bond was forfeited; free standard jobs remain available.");
+    expect(harborLog(ctx)).toContain("Busted mid-run. The $60 bond was forfeited; free standard jobs remain available.");
+  });
+
+  test("a recovery with no live parcel carries no courier receipt", () => {
+    const ctx = boot();
+    ctx.scene.entity.stats.set(ctx.player.userId, "health", { current: 0 });
+    loop.onTick(ctx, 0.1);
+    expect(sessionStore.read(ctx).notice).toContain("Clinic discharge");
+    expect(sessionStore.read(ctx).notice).not.toContain("mid-run");
   });
 
   test("reload preserves an in-flight parcel, time and landmarks without duplication", async () => {
