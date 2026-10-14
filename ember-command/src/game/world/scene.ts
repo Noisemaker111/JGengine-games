@@ -4,6 +4,7 @@ import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { editorLayers } from "../../editorLayers";
+import { CUE } from "../audio";
 import { BUILDINGS, combatantDef, DECOR, isNode, NODES } from "../catalog";
 import { grantHeroXp, heroXpFor } from "../hero";
 import { registerCommands } from "../commands";
@@ -54,6 +55,7 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     setGamePhase(ctx, "ended");
     return;
   }
+  if (def.faction === "player" && def.kind === "unit") ctx.game.audio.play(CUE.unitLost);
   if (def.faction === "enemy" && def.kind === "unit") {
     if (def.bounty > 0) ctx.game.economy.grant(ctx.player.userId, GOLD, def.bounty);
     grantHeroXp(ctx, heroXpFor(event.catalogId)); // the hero champions the kill

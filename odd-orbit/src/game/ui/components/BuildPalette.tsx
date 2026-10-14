@@ -3,10 +3,10 @@ import { useStore } from "@jgengine/react/store";
 import { NEED_DEFS } from "../../needs/needs";
 import { FURNITURE, FURNITURE_BY_ID } from "../../objects/catalog";
 import { creditsText } from "./bits";
-import { householdStore } from "../../session/store";
+import { householdStore, shallowEqual } from "../../session/store";
 
 export function BuildPalette({ onChoose }: { onChoose?: () => void }) {
-  const household = useStore(householdStore);
+  const household = useStore(householdStore, state => ({ credits: state.credits, buildTool: state.buildTool }), shallowEqual);
   const { commands } = useGame();
   const objects = useSceneObjects().filter(object => FURNITURE_BY_ID[object.catalogId]);
   return <section className="orbit-build"><h2>Make room for life</h2><p className="orbit-fine">Choose a furnishing, then select open ground. Placing spends credits and increases nightly upkeep.</p><div className="orbit-build-options">{FURNITURE.map(def => {

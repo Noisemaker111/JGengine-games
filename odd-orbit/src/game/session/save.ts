@@ -15,6 +15,8 @@ import { householdStore } from "./store";
 import { pairKey, type HouseholdState } from "./types";
 
 export const ORBIT_SAVE_KEY = "odd-orbit.household-save.v1";
+/** One copy of an unreadable or newer save, kept before a checkpoint replaces it. */
+export const ORBIT_SAVE_BACKUP_KEY = "odd-orbit.household-save.v1.backup";
 const SAVE_LIMIT = 256 * 1024;
 const MAX_TIME = DAY_LENGTH * 1_000_000;
 export interface OrbitSave {
@@ -111,6 +113,11 @@ export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   ctx.hydrate({ objects: detached.objects, entities: detached.entities, stats: detached.stats });
   householdStore.write(ctx, detached.household);
 }
+function parseOrbitSave(raw: string): OrbitSave | null {
+  if (raw.length > SAVE_LIMIT) return null;
+  try { const value: unknown = JSON.parse(raw); return validOrbitSave(value) ? value : null; }
+  catch { return null; }
+}
 export function readOrbitSave(storage: KeyValueStorage | null = defaultKeyValueStorage()): { save: OrbitSave | null; damaged: boolean; unavailable: boolean } {
   if (storage === null) return { save: null, damaged: false, unavailable: true };
   let damaged = false;
@@ -119,19 +126,25 @@ export function readOrbitSave(storage: KeyValueStorage | null = defaultKeyValueS
     key: ORBIT_SAVE_KEY, initial: null,
     storage: { getItem(key) { try { return storage.getItem(key); } catch { unavailable = true; return null; } }, setItem: (key, raw) => storage.setItem(key, raw), removeItem: key => storage.removeItem(key) },
     deserialize(raw) {
-      if (raw.length > SAVE_LIMIT) { damaged = true; return null; }
-      try { const value: unknown = JSON.parse(raw); if (validOrbitSave(value)) return value; }
-      catch {}
-      damaged = true; return null;
+      const save = parseOrbitSave(raw);
+      if (save === null) damaged = true;
+      return save;
     },
   });
   return { save: cell.get(), damaged, unavailable };
+}
+/** Before a checkpoint replaces an unreadable or newer save, keep its raw text in the backup slot. False means it could not be inspected or kept, so it must not be overwritten. */
+function keepReplacedSave(storage: KeyValueStorage): boolean {
+  let raw: string | null;
+  try { raw = storage.getItem(ORBIT_SAVE_KEY); } catch { return false; }
+  if (raw === null || parseOrbitSave(raw) !== null) return true;
+  try { storage.setItem(ORBIT_SAVE_BACKUP_KEY, raw); return true; } catch { return false; }
 }
 export function writeOrbitSave(ctx: GameContext, storage: KeyValueStorage | null = defaultKeyValueStorage()): boolean {
   if (storage === null) return false;
   let save: OrbitSave;
   try { save = captureOrbitSave(ctx); } catch { return false; }
-  if (!validOrbitSave(save)) return false;
+  if (!validOrbitSave(save) || !keepReplacedSave(storage)) return false;
   let written = false;
   createKeyValueStore<OrbitSave | null>({ key: ORBIT_SAVE_KEY, initial: null,
     storage: { getItem: () => null, removeItem: key => storage.removeItem(key), setItem(key, raw) { if (raw.length <= SAVE_LIMIT) { storage.setItem(key, raw); written = true; } } },

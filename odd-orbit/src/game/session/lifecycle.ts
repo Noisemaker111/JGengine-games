@@ -21,6 +21,11 @@ export const orbitSession = defineStore<OrbitSession>("odd-orbit.session", () =>
   screen: "menu", canContinue: false, saveStatus: "ready", initialClock: null, lastSavedAt: 0,
 }));
 
+/** A stored save, readable or not, is replaced only after confirmation. Unavailable storage skips the prompt because checkpoints refuse to overwrite what they cannot read. */
+export function replacesStoredHousehold(session: Pick<OrbitSession, "canContinue" | "saveStatus">): boolean {
+  return session.canContinue || session.saveStatus === "damaged";
+}
+
 export function checkpointOrbit(ctx: GameContext): void {
   const session = orbitSession.read(ctx);
   if (!session.canContinue || ctx.player.userId === "ui-preview") return;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useGameContext } from "@jgengine/react/provider";
@@ -100,28 +100,41 @@ function SpawnGate() {
   );
 }
 
+const BOLT_GEOMETRY = new THREE.SphereGeometry(0.14, 8, 8);
+
+/** Bolts are pooled and moved in the frame callback, so flight never re-renders React. */
 function ProjectileBolts() {
   const ctx = useGameContext();
-  const [, setTick] = useState(0);
-  useFrame(() => setTick((value) => value + 1));
-  const now = ctx.time.now();
-  const bolts = activeProjectiles(now);
-  return (
-    <>
-      {bolts.map((bolt) => {
-        const t = Math.min(1, (now - bolt.spawnedAt) / bolt.travelSeconds);
-        const x = bolt.from[0] + (bolt.to[0] - bolt.from[0]) * t;
-        const y = bolt.from[1] + 0.9 + (bolt.to[1] - bolt.from[1]) * t;
-        const z = bolt.from[2] + (bolt.to[2] - bolt.from[2]) * t;
-        return (
-          <mesh key={bolt.id} position={[x, y, z]}>
-            <sphereGeometry args={[0.14, 8, 8]} />
-            <meshStandardMaterial color={bolt.color} emissive={bolt.color} emissiveIntensity={0.9} />
-          </mesh>
-        );
-      })}
-    </>
-  );
+  const root = useRef<THREE.Group>(null);
+  const pool = useRef<THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial>[]>([]);
+  useEffect(() => () => {
+    for (const mesh of pool.current) mesh.material.dispose();
+  }, []);
+  useFrame(() => {
+    const group = root.current;
+    if (group === null) return;
+    const now = ctx.time.now();
+    const bolts = activeProjectiles(now);
+    while (pool.current.length < bolts.length) {
+      const mesh = new THREE.Mesh(BOLT_GEOMETRY, new THREE.MeshStandardMaterial({ emissiveIntensity: 0.9 }));
+      pool.current.push(mesh);
+      group.add(mesh);
+    }
+    pool.current.forEach((mesh, index) => {
+      const bolt = bolts[index];
+      mesh.visible = bolt !== undefined;
+      if (bolt === undefined) return;
+      const t = Math.min(1, (now - bolt.spawnedAt) / bolt.travelSeconds);
+      mesh.position.set(
+        bolt.from[0] + (bolt.to[0] - bolt.from[0]) * t,
+        bolt.from[1] + 0.9 + (bolt.to[1] - bolt.from[1]) * t,
+        bolt.from[2] + (bolt.to[2] - bolt.from[2]) * t,
+      );
+      mesh.material.color.set(bolt.color);
+      mesh.material.emissive.set(bolt.color);
+    });
+  });
+  return <group ref={root} />;
 }
 
 /** VFX-only overlay — the authored scene (draped creep path + instanced foliage) is auto-mounted

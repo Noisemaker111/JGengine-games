@@ -295,6 +295,11 @@ function tickRaceEconomy(ctx: GameContext): void {
   if (ctx.time.now() >= mission(ctx).raceClearAt) raceStore.clear(ctx);
 }
 
+/** Recovery copy replaces the courier notice, so an interrupted run's receipt is appended to keep it visible. */
+function setRecoveryNotice(ctx: GameContext, recovery: string, parcel: string): void {
+  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: parcel === "" ? recovery : `${recovery} ${parcel}` });
+}
+
 /** A cop on top of an on-foot wanted player for a sustained beat makes the arrest. */
 function tickBusted(ctx: GameContext, dt: number): void {
   const stars = handrollOf(ctx).wanted().stars;
@@ -322,8 +327,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   ctx.game.feed.push("harbor.log", { text: `Busted. HHPD released you for $${fine}.` });
-  finishCourier(ctx, false);
-  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
+  setRecoveryNotice(ctx, `Busted · $${fine} fine. You are free to go at HHPD.`, finishCourier(ctx, false, "busted"));
   syncPhase(ctx);
 }
 
@@ -353,8 +357,7 @@ function tickWasted(ctx: GameContext): void {
   ctx.game.feed.push("harbor.log", {
     text: fee > 0 ? `Wasted. The clinic took $${fee}.` : "Wasted. The clinic took pity.",
   });
-  finishCourier(ctx, false);
-  sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
+  setRecoveryNotice(ctx, `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.`, finishCourier(ctx, false, "wasted"));
   syncPhase(ctx);
 }
 

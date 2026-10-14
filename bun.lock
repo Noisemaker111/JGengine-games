@@ -207,6 +207,7 @@
         "@jgengine/editor": "catalog:",
         "@jgengine/react": "catalog:",
         "@jgengine/shell": "catalog:",
+        "@react-three/drei": "catalog:",
         "@react-three/fiber": "^9.5.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",

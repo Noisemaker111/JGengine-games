@@ -1,4 +1,4 @@
-import { useCurrency, useGame, useGameStore } from "@jgengine/react/hooks";
+import { useCurrency, useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { BLACK_MARKET_UPGRADES, upgradeCost } from "../../commands";
 import { QUEST_ECHOES } from "../../quests/catalog";
@@ -13,15 +13,12 @@ import {
 } from "../../stores";
 import { TRAVEL_STATIONS } from "../../world/sites";
 import { FERRALON } from "../../palette";
-
-function useNowMs(): number {
-  return useGameStore((ctx) => ctx.time.now() * 1000);
-}
+import { useTimedWindow } from "./frameClock";
 
 export function ZoneBanner() {
-  const nowMs = useNowMs();
   const zone = useStore(currentZoneStore);
-  if (zone === null || nowMs - zone.atMs > 4000) return null;
+  const open = useTimedWindow(currentZoneStore, 4000);
+  if (zone === null || !open) return null;
   return (
     <div key={zone.name} className="scrap-banner pointer-events-none flex flex-col items-center">
       <span className="border-b-2 border-amber-400 px-6 pb-1 text-3xl font-black uppercase tracking-[0.3em] text-stone-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
@@ -35,9 +32,9 @@ export function ZoneBanner() {
 }
 
 export function EchoBox() {
-  const nowMs = useNowMs();
   const echo = useStore(echoStore);
-  if (echo === null || nowMs - echo.atMs > 9000) return null;
+  const open = useTimedWindow(echoStore, 9000);
+  if (echo === null || !open) return null;
   const line = QUEST_ECHOES[echo.questId];
   if (line === undefined) return null;
   return (
@@ -162,8 +159,8 @@ export function BlackMarketPanel() {
 
 export function ReactorEnding() {
   const reactor = useStore(reactorOpenStore);
-  const nowMs = useNowMs();
-  if (reactor === null || nowMs - reactor.atMs > 16000) return null;
+  const open = useTimedWindow(reactorOpenStore, 16000);
+  if (reactor === null || !open) return null;
   return (
     <div className="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center">
       <div className="absolute inset-0" style={{ boxShadow: `inset 0 0 220px 80px ${FERRALON.hudAmber}44` }} />

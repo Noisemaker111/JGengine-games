@@ -2,6 +2,7 @@ import { defineSystem, type SystemDefinition } from "@jgengine/core/game/defineS
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { activeJobs, jobProgress, queuedJobs, tick as tickQueue } from "@jgengine/core/gameplay";
 
+import { CUE } from "./audio";
 import { tickUnits } from "./ai/units";
 import { tickTowers } from "./ai/towers";
 import { nextWaveEta, tickEnemyWaves } from "./ai/director";
@@ -84,7 +85,9 @@ const productionSystem: SystemDefinition = defineSystem({
     const result = tickQueue(session.production, TRAINING_CONFIG, dt);
     session.production = result.state;
     for (const event of result.events) {
-      if (event.type === "completed") spawnTrained(ctx, event.output.unitId);
+      if (event.type !== "completed") continue;
+      spawnTrained(ctx, event.output.unitId);
+      ctx.game.audio.play(CUE.trained);
     }
   },
 });
@@ -119,7 +122,9 @@ const constructionSystem: SystemDefinition = defineSystem({
     const result = tickQueue(session.buildQueue, BUILD_CONFIG, dt);
     session.buildQueue = result.state;
     for (const event of result.events) {
-      if (event.type === "completed") raiseBuilding(ctx, event.output);
+      if (event.type !== "completed") continue;
+      raiseBuilding(ctx, event.output);
+      ctx.game.audio.play(CUE.built);
     }
   },
 });

@@ -40,9 +40,16 @@ function near(ctx: GameContext, target: readonly [number, number], radius: numbe
   return position !== null && Math.hypot(position[0] - target[0], position[2] - target[1]) < radius && Math.abs(position[1] - ctx.world.groundHeightAt(target[0], target[1])) < 3;
 }
 
-export function finishCourier(ctx: GameContext, won: boolean): void {
+/** Arrest and wreck end a run through the same forfeit terms as an expired clock. */
+export type CourierInterrupt = "busted" | "wasted";
+
+/**
+ * Settle the live run and return its receipt ("" when no run is live). The caller folds an
+ * interrupted run's receipt into its own recovery notice: a notice written afterwards would replace it.
+ */
+export function finishCourier(ctx: GameContext, won: boolean, interrupt?: CourierInterrupt): string {
   const current = courierStore.read(ctx);
-  if (current.phase !== "running") return;
+  if (current.phase !== "running") return "";
   const route = DELIVERY_ROUTES[current.route % DELIVERY_ROUTES.length]!;
   const rush = current.service === "rush";
   const condition = current.condition ?? 100;
@@ -54,8 +61,12 @@ export function finishCourier(ctx: GameContext, won: boolean): void {
   }
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
   syncSession(ctx, true);
-  ctx.game.feed.push("harbor.log", { text: won ? `Parcel delivered to ${route.recipient}. $${reward} paid.${rush ? ` Cargo ${Math.round(condition)}%; bond refund included.` : ""}` : rush ? "Rush expired. The $60 bond was forfeited; free standard jobs remain available." : "Delivery expired. The parcel returned to dispatch; no cash lost." });
+  const cause = interrupt === "busted" ? "Busted mid-run." : interrupt === "wasted" ? "Wasted mid-run." : rush ? "Rush expired." : "Delivery expired.";
+  const forfeit = rush ? "The $60 bond was forfeited; free standard jobs remain available." : "The parcel returned to dispatch; no courier cash lost.";
+  const receipt = won ? `Parcel delivered to ${route.recipient}. $${reward} paid.${rush ? ` Cargo ${Math.round(condition)}%; bond refund included.` : ""}` : `${cause} ${forfeit}`;
+  ctx.game.feed.push("harbor.log", { text: receipt });
   void ctx.game.save?.checkpoint();
+  return receipt;
 }
 
 export function registerCourier(ctx: GameContext): void {

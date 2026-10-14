@@ -1,5 +1,6 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
+import { CUE } from "../audio";
 import { ENTRANCE, PARK_HALF, guestCap } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
@@ -88,6 +89,7 @@ function spawnGuest(ctx: GameContext): void {
   session.cash += session.ticketPrice;
   session.revenueToday += session.ticketPrice;
   session.guestsToday += 1;
+  ctx.game.audio.play(CUE.ticketSold);
 }
 
 export function seedGuests(ctx: GameContext, count: number): void {

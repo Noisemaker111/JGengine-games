@@ -2,6 +2,7 @@ import { defineGame } from "@jgengine/shell/defineGame";
 import { editorLayers } from "./editorLayers";
 
 import { assets } from "./game/assets";
+import { audio } from "./game/audio/catalog";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
@@ -16,6 +17,7 @@ export const game = defineGame({
   physics,
   input: keybinds,
   assets,
+  audio,
   content,
   loop: { onInit, onNewPlayer, onTick },
   lifecycle,

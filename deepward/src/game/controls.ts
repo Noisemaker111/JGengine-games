@@ -1,5 +1,6 @@
 import type { ActionCodesMap } from "@jgengine/core/input/actionBindings";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { ControlHint } from "@jgengine/react/startScreen";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
@@ -15,6 +16,17 @@ export const keybinds: ActionCodesMap = {
   sprint: ["ShiftLeft"],
   deepwardInteract: ["KeyE"], deepwardFire: ["mouse0"], deepwardReload: ["KeyR"], deepwardCache: ["Tab"],
 };
+/** Glyphs come from `keybinds` by action name; literal rows cover pointer and pause input outside the map. */
+export const controlLegend: readonly ControlHint[] = [
+  { action: ["moveForward", "moveLeft", "moveBack", "moveRight"], label: "walk (arrows too)" },
+  { action: "sprint", label: "sprint" },
+  { action: "deepwardInteract", label: "interact / search / return" },
+  { action: "deepwardFire", label: "fire" },
+  { action: "deepwardReload", label: "reload" },
+  { action: "deepwardCache", label: "cache" },
+  { keys: "Mouse", label: "look" },
+  { keys: "Esc", label: "pause" },
+];
 export interface View {
   home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked" | "reprinting";
   panel: "stash" | "cache" | null; paused: boolean; hint: string; error: string;
@@ -283,6 +295,12 @@ export function seatPlayer(ctx: GameContext): void {
   syncPlayer(ctx, null);
   run(ctx);
   if (viewStore.read(ctx).mode === "blocked" || viewStore.read(ctx).mode === "reprinting") freeze(ctx);
+}
+/** Reloading mid-dive settles the Life as lost, so the caller attaches this only while that can happen. */
+export function guardDiveExit(target: Pick<EventTarget, "addEventListener" | "removeEventListener">): () => void {
+  const warn = (event: Event) => { event.preventDefault(); (event as BeforeUnloadEvent).returnValue = ""; };
+  target.addEventListener("beforeunload", warn);
+  return () => target.removeEventListener("beforeunload", warn);
 }
 /** Called only by a storage change event, never by a polling loop. */
 export function storageChanged(ctx: GameContext): void {

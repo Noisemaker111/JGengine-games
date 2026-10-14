@@ -2,10 +2,11 @@ import { defineGame } from "@jgengine/shell/defineGame";
 
 import { editorCatalogs } from "./editorCatalogs";
 import { editorLayers } from "./editorLayers";
+import { audio } from "./game/audio";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
-import { entityModels } from "./game/models";
+import { entityModels, scatterModels } from "./game/models";
 import { isPlayerSelectable } from "./game/session";
 import { systems } from "./game/systems";
 import { GameUI } from "./game/ui/GameUI";
@@ -55,6 +56,9 @@ export const game = defineGame({
   editorLayers,
   editorCatalogs,
   scenePlacement: false,
+  sceneScatterModels: scatterModels,
+  // Procedural feedback cues (training, construction, losses); see game/audio.ts.
+  audio,
   // Faction-coloured health bars (green Vanguard / red Marauders) live in the world overlay so
   // friend/foe reads at a glance — the shell's built-in world bars are always red.
   WorldOverlay: EmberCommandWorldOverlay,

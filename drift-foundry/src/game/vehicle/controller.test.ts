@@ -98,6 +98,7 @@ function createLegacyController(spawn: { position: readonly [number, number, num
         position: [x, groundY + airOffset, z],
         heading,
         speedKmh: Math.abs(forwardSpeed) * METERS_PER_SECOND_TO_KMH,
+        slip,
         airborne: airOffset > 0,
         blockedByGate,
       };
@@ -150,6 +151,7 @@ describe("createVehicleController — parity with the hand-rolled integrator", (
       expect(a.heading).toBeCloseTo(b.heading, 6);
       expect(a.airborne).toBe(b.airborne);
       expect(a.speedKmh).toBeCloseTo(b.speedKmh, 6);
+      expect(a.slip).toBeCloseTo(b.slip, 6);
       // The script must never reach the wall, or the comparison silently stops meaning anything.
       expect(Math.abs(a.position[0])).toBeLessThan(CORRIDOR_DRIVE_HALF_WIDTH - 0.5);
     }

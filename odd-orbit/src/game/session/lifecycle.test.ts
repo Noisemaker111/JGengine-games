@@ -4,8 +4,8 @@ import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { game } from "../../game.config";
 import { onInit, onTick } from "../../loop";
 import { DAY_LENGTH } from "../../world";
-import { checkpointOrbit, orbitSession } from "./lifecycle";
-import { ORBIT_SAVE_KEY, validOrbitSave } from "./save";
+import { checkpointOrbit, orbitSession, replacesStoredHousehold } from "./lifecycle";
+import { ORBIT_SAVE_BACKUP_KEY, ORBIT_SAVE_KEY, validOrbitSave } from "./save";
 import { householdStore } from "./store";
 
 function boot() {
@@ -62,12 +62,21 @@ test("title and pause freeze the household; Continue restores a furnished timed 
     const damaged = boot();
     expect(orbitSession.read(damaged).saveStatus).toBe("damaged");
     expect(records.get(ORBIT_SAVE_KEY)).toBe("broken");
+    expect(replacesStoredHousehold(orbitSession.read(damaged))).toBe(true);
     damaged.game.commands.run("orbit.continue", {});
     expect(gamePhase(damaged)).toBe("menu");
     damaged.game.commands.run("orbit.new", {});
+    expect(records.get(ORBIT_SAVE_BACKUP_KEY)).toBe("broken");
     expect(validOrbitSave(JSON.parse(records.get(ORBIT_SAVE_KEY)!))).toBe(true);
   } finally {
     if (original) Object.defineProperty(globalThis, "localStorage", original);
     else Reflect.deleteProperty(globalThis, "localStorage");
   }
+});
+
+test("only a stored save asks for confirmation before a new household", () => {
+  expect(replacesStoredHousehold({ canContinue: true, saveStatus: "saved" })).toBe(true);
+  expect(replacesStoredHousehold({ canContinue: false, saveStatus: "damaged" })).toBe(true);
+  expect(replacesStoredHousehold({ canContinue: false, saveStatus: "ready" })).toBe(false);
+  expect(replacesStoredHousehold({ canContinue: false, saveStatus: "unavailable" })).toBe(false);
 });

@@ -5,8 +5,9 @@ import { useSettings } from "@jgengine/react/settings";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { useGameStore } from "@jgengine/react/hooks";
+import { ControlsList } from "@jgengine/react/startScreen";
 import { distance, EXIT, roomAt } from "../../world";
-import { nearby, storageChanged, viewStore } from "../controls";
+import { controlLegend, guardDiveExit, keybinds, nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
 import { ItemMark, shiftThemeStyle } from "./ItemMark";
@@ -38,6 +39,10 @@ export function GameUI() {
       document.querySelector("canvas")?.closest<HTMLElement>("[tabindex]")?.focus({ preventScroll: true });
     }
   }, [view.panel, view.paused, view.mode]);
+  useEffect(() => {
+    if (view.mode !== "dive" && view.mode !== "saving") return;
+    return guardDiveExit(window);
+  }, [view.mode]);
   useBrowserSuspension(() => {
     const v = viewStore.read(ctx);
     if (!v.paused && v.panel === null && (v.mode === "home" || v.mode === "dive")) ctx.game.commands.run("deepward.pause", { paused: true });
@@ -108,6 +113,7 @@ export function GameUI() {
     </aside>}
     <footer className="dw-bottom">
       <div className="dw-radio"><span>MARROW / RADIO</span><p role="status">{view.hint}</p></div>
+      {view.mode === "home" && view.panel === null && <ControlsList className="dw-keys" bindings={keybinds} controls={controlLegend} renderRow={({ keys, label }, index) => <span>{index > 0 && " · "}{keys.join(" ")} {label}</span>} />}
       {dive?.channel !== null && dive?.channel !== undefined ? <div className="dw-prompt"><strong>Searching / keep still</strong><progress max={1.4} value={1.4 - dive.channel.remaining} /><small>E to cancel · movement or damage interrupts</small></div>
         : target !== null && view.panel === null && !view.paused ? <button className="dw-prompt" onClick={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }}>{target.label}</button> : null}
 

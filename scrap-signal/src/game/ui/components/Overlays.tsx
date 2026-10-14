@@ -7,10 +7,14 @@ import { FERRALON } from "../../palette";
 import { reserveStore, ruskDownStore, vendorOpenStore } from "../../stores";
 
 export function ReserveOverlay() {
-  const nowMs = useGameStore((ctx) => ctx.time.now() * 1000);
-  const reserve = useStore(reserveStore);
-  if (reserve.phase !== "downed") return null;
-  const secondsLeft = Math.max(0, (reserve.untilMs - nowMs) / 1000);
+  // Only the countdown's displayed tenth of a second is subscribed to, so the overlay re-renders on
+  // each visible tick instead of every frame, and not at all while the player is up.
+  const secondsLeft = useGameStore((ctx) => {
+    const reserve = reserveStore.read(ctx);
+    if (reserve.phase !== "downed") return null;
+    return Math.max(0, (reserve.untilMs - ctx.time.now() * 1000) / 1000).toFixed(1);
+  });
+  if (secondsLeft === null) return null;
   return (
     <div className="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center">
       <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 180px 60px rgba(160, 20, 10, 0.75)" }} />
@@ -18,7 +22,7 @@ export function ReserveOverlay() {
         Reboot Window!
       </span>
       <span className="mt-2 text-lg font-bold text-stone-100">
-        Get a kill for a Power Surge — {secondsLeft.toFixed(1)}s
+        Get a kill for a Power Surge — {secondsLeft}s
       </span>
     </div>
   );

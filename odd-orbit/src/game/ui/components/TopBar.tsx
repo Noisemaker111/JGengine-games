@@ -1,6 +1,6 @@
 import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-import { householdStore } from "../../session/store";
+import { householdStore, shallowEqual } from "../../session/store";
 import { nextBill } from "../../sim/economy";
 import { creditsText } from "./bits";
 import { householdPhase } from "../../sim/schedule";
@@ -8,7 +8,7 @@ import { householdPhase } from "../../sim/schedule";
 export function TopBar() {
   const clock = useGameClock();
   const { commands } = useGame();
-  const household = useStore(householdStore);
+  const household = useStore(householdStore, state => ({ credits: state.credits, pantry: state.pantry, debt: state.debt }), shallowEqual);
   const objects = useSceneObjects();
   const cal = clock.calendar;
   const hour = Math.floor(cal.hour);

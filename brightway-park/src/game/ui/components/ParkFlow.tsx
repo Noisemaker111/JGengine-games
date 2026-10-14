@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { SettingsTrigger, useDialogBehavior } from "@jgengine/react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
 import { session } from "../../session";
+import { FreshStart } from "./FreshStart";
 
 export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:string;children:ReactNode;onClose?:()=>void;blockGameKeys?:boolean}) {
   const ref=useDialogBehavior({open:true,onClose,initialFocus:"root",focusKey:title});
@@ -28,10 +29,10 @@ export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion
     <p>Turn a quiet coastal fair into a blue ribbon park. Build three rides, reach 220 stars, close a profitable day, and keep your visitors happy and the midway clean.</p>
     <div className="park-start-cards"><div><b>01</b><strong>Build with character</strong><span>Pick a ride, then click an open plot.</span></div><div><b>02</b><strong>Care for the crowd</strong><span>Refreshments and a janitor keep the smiles coming.</span></div><div><b>03</b><strong>Balance the books</strong><span>Ticket sales pay for upkeep at midnight.</span></div></div>
     <button className="park-button primary" onClick={()=>commands.run("park.start", {})}>{session.hasSave?`Continue day ${session.day}`:"Open Brightway Park"}</button>
-    {session.hasSave&&<button className="park-button" onClick={()=>commands.run("park.new", {})}>Start fresh · archive current save</button>}
+    {session.hasSave&&<FreshStart idleLabel="Start fresh · archive current save" confirmLabel="Archive and start fresh" onConfirm={()=>commands.run("park.new", {})}/>}
     <small className="park-save-note">{session.saveStatus}. P pauses · WASD pans · scroll zooms.</small>
   </ParkDialog>;
-  if(session.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(session.rating)} stars in {session.day-1} days.</p><p>Next time, keep an eye on nightly upkeep and give guests somewhere to eat and drink.</p><button className="park-button primary" onClick={()=>commands.run("park.new", {})}>Reopen a new park · archive this save</button></ParkDialog>;
+  if(session.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(session.rating)} stars in {session.day-1} days.</p><p>Next time, keep an eye on nightly upkeep and give guests somewhere to eat and drink.</p><FreshStart primary idleLabel="Reopen a new park · archive this save" confirmLabel="Archive and reopen" onConfirm={()=>commands.run("park.new", {})}/></ParkDialog>;
   if(session.won&&!session.winDismissed) return <ParkDialog title="Blue ribbon awarded">{logo}<div className="park-ribbon">★</div><div className="park-section-label">BRIGHT DAYS AHEAD</div><h1>Your first blue ribbon!</h1><p>Three rides, a profitable day, and a happy, tidy park. Brightway has become a seaside favorite.</p><button className="park-button primary" onClick={()=>commands.run("park.continue", {})}>Keep building in free play</button><small className="park-save-note">Your award and park are saved.</small></ParkDialog>;
   if(clock.paused) return <ParkDialog title="Park paused" onClose={()=>commands.run("pauseToggle", {})}><div className="park-section-label">TAKE A BREATHER</div><h1>The midway can wait</h1><p>Your visitors and finances are paused. Resume to keep the park moving.</p><button className="park-button primary" onClick={()=>commands.run("pauseToggle", {})}>Resume park</button><button className="park-button" onClick={()=>commands.run("park.save", {})}>Save park</button><small className="park-save-note" role="status">{session.saveStatus}</small></ParkDialog>;
   return null;

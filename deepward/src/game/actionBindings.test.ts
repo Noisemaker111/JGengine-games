@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { physics, VAULT_SPAWN, world } from "../world";
-import { keybinds, registerControls, tick, viewStore } from "./controls";
+import { controlLegend, keybinds, registerControls, tick, viewStore } from "./controls";
 import { newDive, RIFLE, SIDEARM, takeLoot } from "./state";
 
 function diveContext() {
@@ -29,6 +29,11 @@ function advanceFrames(ctx: ReturnType<typeof diveContext>, count: number): void
   // Fixed simulated frames, not a wall-clock wait or an input-dispatch substitute.
   for (let frame = 0; frame < count; frame++) ctx.sim.advance(0.05, dt => tick(ctx, dt));
 }
+
+test("the start legend names every bound action", () => {
+  const named = controlLegend.flatMap(row => row.action === undefined ? [] : typeof row.action === "string" ? [row.action] : [...row.action]);
+  for (const action of Object.keys(keybinds)) expect(named).toContain(action);
+});
 
 test("actual Deepward bindings register action commands and preserve discrete keys", () => {
   const ctx = diveContext();

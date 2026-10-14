@@ -8,7 +8,7 @@ import { placeObject } from "../build/placement";
 import { buildableDef } from "../objects/catalog";
 import { seedGuests } from "../sim/guests";
 import { resetSession, session } from "../session";
-import { restorePark, savePark } from "../persistence";
+import { restorePark, saveOnHide, savePark } from "../persistence";
 import { traceNative, tracePark } from "../evidence";
 
 const TRACK_PATH_ID = "coaster-track";
@@ -75,7 +75,7 @@ export function setupWorld(ctx: GameContext): void {
   if (typeof window !== "undefined") {
     const abort = new AbortController();
     cleanups.set(ctx, () => abort.abort());
-    window.addEventListener("pagehide", () => savePark(ctx), { signal: abort.signal });
+    saveOnHide(ctx, { window, document }, abort.signal);
     if (import.meta.env.DEV && import.meta.env.VITE_PARK_EVIDENCE === "1") {
       tracePark(ctx,"boot");
       window.addEventListener("keydown",e=>traceNative("keyboard",{code:e.code,key:e.key,target:(e.target as HTMLElement)?.tagName}),{capture:true,signal:abort.signal});

@@ -39,6 +39,8 @@ export interface VehiclePose {
   position: readonly [number, number, number];
   heading: number;
   speedKmh: number;
+  /** Lateral slip ratio from the grip curve; the run raises its tire-slip cue off it. */
+  slip: number;
   airborne: boolean;
   blockedByGate: boolean;
 }
@@ -143,6 +145,7 @@ export function createVehicleController(spawn: {
         position: drive.pose.position,
         heading: drive.step.heading,
         speedKmh: Math.abs(drive.step.forwardSpeed) * METERS_PER_SECOND_TO_KMH,
+        slip: drive.step.slip,
         airborne: drive.step.airborne,
         blockedByGate,
       };
