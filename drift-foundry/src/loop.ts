@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
 
+import { RUN_CUE_SOUND } from "./game/audio/catalog";
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
 import { impactBursts } from "./game/impact";
@@ -73,6 +74,7 @@ export function onTick(ctx: GameContext, dt: number): void {
   for (const burst of impactBursts(before, snapshot)) {
     ctx.particles.burst(burst.config, burst.count, burst.blending);
   }
+  for (const cue of snapshot.cues) ctx.game.audio.play(RUN_CUE_SOUND[cue]);
 
   ctx.scene.entity.bind("racers").sync(
     [

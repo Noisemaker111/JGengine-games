@@ -3,9 +3,11 @@ import { describe, expect, test } from "bun:test";
 import { steerToward } from "@jgengine/core/movement/steering";
 
 import { EXIT_Z } from "./constants";
+import { COMPACTOR_SURGES } from "../compactor/schedule";
 import { ROUTE_GATES } from "../route/gates";
+import type { RecordStorage } from "./records";
 import { PICKUPS } from "./pickups";
-import { createRunSession, type RunSession } from "./session";
+import { createRunSession, type RunCue, type RunSession } from "./session";
 
 const DT = 1 / 30;
 const PAR_SECONDS = 100;
@@ -220,4 +222,85 @@ describe("drift-foundry run session", () => {
     }
     expect(session.snapshot().phase).toBe("crushed");
   });
+
+  test("back to pit refuses while the buggy is moving, then parks the run once it stops", () => {
+    const session = createRunSession(undefined, memoryStorage());
+    session.start();
+    for (let i = 0; i < 60; i++) session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    session.togglePause();
+    const moving = session.snapshot();
+    expect(moving.pose.speedKmh).toBeGreaterThan(0.1);
+    expect(moving.parkedRun).toBeNull();
+    session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    expect(session.snapshot().cues).toEqual([]);
+
+    session.returnToTitle();
+    const refused = session.snapshot();
+    expect(refused.phase).toBe("running");
+    expect(refused.paused).toBe(true);
+    expect(refused.runTime).toBe(moving.runTime);
+    expect(refused.toast?.body).toBe("BRAKE TO A STOP TO PARK THIS RUN");
+
+    session.togglePause();
+    for (let i = 0; i < 600 && session.snapshot().pose.speedKmh > 0.1; i++) {
+      const brake = session.snapshot().pose.speedKmh > 5 ? 1 : 0;
+      session.tick(DT, { throttle: 0, brake, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    }
+    expect(session.snapshot().pose.speedKmh).toBeLessThanOrEqual(0.1);
+    session.togglePause();
+    session.returnToTitle();
+    const parked = session.snapshot();
+    expect(parked.phase).toBe("start");
+    expect(parked.parkedRun).not.toBeNull();
+  });
+
+  test("a full run voices every barricade and each compactor surge once", () => {
+    const session = createRunSession();
+    session.start();
+    const voiced: RunCue[] = [];
+    let elapsed = 0;
+    while (elapsed < PAR_SECONDS && session.snapshot().phase === "running") {
+      session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: shouldJump(session), plowBracing: false });
+      voiced.push(...session.snapshot().cues);
+      elapsed += DT;
+    }
+    const snapshot = session.snapshot();
+    expect(snapshot.phase).toBe("won");
+    expect(snapshot.clearedGateIds.size).toBeGreaterThan(0);
+    expect(voiced.filter(cue => cue === "gate")).toHaveLength(snapshot.clearedGateIds.size);
+    const surgesReached = COMPACTOR_SURGES.filter(surge => surge.startT <= snapshot.runTime).length;
+    expect(surgesReached).toBeGreaterThan(0);
+    expect(voiced.filter(cue => cue === "surge")).toHaveLength(surgesReached);
+  });
+
+  test("a hard turn-in at speed voices one tire slip, a held lock repeats nothing, a snap voices again, and standing still voices none", () => {
+    const session = createRunSession();
+    session.start();
+    const tick = (steer: number) => session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: false, plowBracing: false });
+    for (let i = 0; i < 120; i++) tick(0);
+    const slipCues = () => session.snapshot().cues.filter(cue => cue === "slip").length;
+
+    let heard = 0;
+    for (let i = 0; i < 60; i++) { tick(-1); heard += slipCues(); }
+    expect(session.snapshot().pose.speedKmh).toBeGreaterThan(15);
+    expect(heard).toBe(1);
+    for (let i = 0; i < 60; i++) { tick(-1); heard += slipCues(); }
+    expect(heard).toBe(1);
+    for (let i = 0; i < 60; i++) { tick(1); heard += slipCues(); }
+    expect(heard).toBe(2);
+
+    const still = createRunSession();
+    still.start();
+    let stillHeard = 0;
+    for (let i = 0; i < 60; i++) {
+      still.tick(DT, { throttle: 0, brake: 0, steer: i % 10 < 5 ? 1 : -1 }, { jumpPressed: false, plowBracing: false });
+      stillHeard += still.snapshot().cues.filter(cue => cue === "slip").length;
+    }
+    expect(stillHeard).toBe(0);
+  });
 });
+
+function memoryStorage(): RecordStorage {
+  const data = new Map<string, string>();
+  return { getItem: (key) => data.get(key) ?? null, setItem: (key, value) => { data.set(key, value); } };
+}

@@ -18,5 +18,12 @@ export const CRUSH_BUFFER = 1.5;
 export const NEAR_MISS_ENTER = 16;
 export const NEAR_MISS_EXIT = 24;
 export const ARMOR_SAVE_BUMP = 9;
+/**
+ * Tire-slip cue: a hard turn-in at speed crosses ENTER and re-arms once slip falls back below EXIT. A held
+ * lock settles near 0.2–0.26 and gentle route steering stays near 0.03, so only real turn-ins voice it.
+ */
+export const SLIP_CUE_ENTER = 0.22;
+export const SLIP_CUE_EXIT = 0.12;
+export const SLIP_CUE_MIN_KMH = 15;
 
 export const RUN_SEED = "drift-foundry-run";

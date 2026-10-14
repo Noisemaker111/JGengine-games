@@ -10,12 +10,14 @@ import { partById, PART_SLOTS, type PartSlotId, type DriftFoundryPartDef } from 
 import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
 import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
-import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SPAWN_Z } from "./constants";
+import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SLIP_CUE_ENTER, SLIP_CUE_EXIT, SLIP_CUE_MIN_KMH, SPAWN_Z } from "./constants";
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
 import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
 
 export type RunPhase = "start" | "running" | "won" | "crushed";
+/** Sound-worthy moments from the latest tick: a compactor surge, a cleared gate, or a tire slip starting. */
+export type RunCue = "surge" | "gate" | "slip";
 
 export interface RadioLine {
   id: number;
@@ -57,6 +59,8 @@ export interface SessionSnapshot {
   armorSavesUsed: number;
   outcome: RunOutcome | null;
   collectedIds: ReadonlySet<string>;
+  /** Cues raised by the most recent tick; empty while paused or stopped. */
+  cues: readonly RunCue[];
 }
 
 export interface RunSession {
@@ -93,7 +97,9 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   let armorSavesUsed = 0;
   let nearMissCount = 0;
   let wasNear = false;
+  let wasSliding = false;
   let closestGap = Number.POSITIVE_INFINITY;
+  let cues: RunCue[] = [];
   const toastQueue = createToastQueue<string>({ cap: 1, ttlSeconds: TOAST_HOLD_SECONDS });
   const radioFeed = createGameFeed({ limit: TICKER_LIMIT });
   let radioCounter = 0;
@@ -104,6 +110,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     position: SPAWN_POSITION,
     heading: SPAWN_HEADING,
     speedKmh: 0,
+    slip: 0,
     airborne: false,
     blockedByGate: false,
   };
@@ -152,6 +159,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
       if (!gateSatisfied(gate, tuning)) continue;
       gateAnnounced.add(gate.id);
       pushRadio(gate.radioLine);
+      cues.push("gate");
     }
   }
 
@@ -167,19 +175,26 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     armorSavesUsed = 0;
     nearMissCount = 0;
     wasNear = false;
+    wasSliding = false;
+    cues = [];
     closestGap = Number.POSITIVE_INFINITY;
     toastQueue.clear();
     radioFeed.hydrate({});
     outcome = null;
     personalBest = "unchanged";
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
-    pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, airborne: false, blockedByGate: false };
+    pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, airborne: false, blockedByGate: false };
   }
 
   reset();
 
+  // Checkpoints restore at rest, so only a kart stopped on the ground may park.
+  function atStandstill(): boolean {
+    return !pose.airborne && pose.speedKmh <= 0.1;
+  }
+
   function parkRun(): void {
-    if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
+    if (phase !== "running" || !atStandstill() || runTime <= 0) return;
     const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
     if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; pushToast("PARKED RUN SAVED — CONTINUE FROM THE PIT"); }
     else pushToast("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN");
@@ -221,6 +236,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
         armorSavesUsed,
         outcome,
         collectedIds: collected,
+        cues,
       };
     },
     start() {
@@ -238,7 +254,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
           wasNear = checkpoint.wasNear;
           announcedSurge = checkpoint.announcedSurge;
           vehicle.resetTo(checkpoint.position, checkpoint.heading);
-          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, airborne: false, blockedByGate: false };
+          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, slip: 0, airborne: false, blockedByGate: false };
           pushRadio("PARKED RUN RESTORED — YOUR BUILD IS STILL BOLTED ON");
         }
         phase = "running";
@@ -252,10 +268,16 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
       phase = "running";
       pushRadio("BOLT IT ON, GO GO");
     },
-    returnToTitle() { parkRun(); reset(); },
+    returnToTitle() {
+      // Leaving on the move would discard the run, so refuse with a visible reason instead.
+      if (phase === "running" && !atStandstill()) { pushToast("BRAKE TO A STOP TO PARK THIS RUN"); return; }
+      parkRun();
+      reset();
+    },
     togglePause() { if (phase === "running") { if (!paused) parkRun(); paused = !paused; } },
     suspend(value) { suspended = value; },
     tick(dt, axis, input) {
+      cues = [];
       if (phase !== "running" || paused || suspended) return;
       // A resumed/background tab cannot advance the crusher by a large wall-clock delta.
       dt = Math.max(0, Math.min(dt, 0.05));
@@ -273,7 +295,12 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
       if (surge !== null && surge.id !== announcedSurge) {
         announcedSurge = surge.id;
         pushRadio(surge.label);
+        cues.push("surge");
       }
+
+      const sliding = pose.speedKmh >= SLIP_CUE_MIN_KMH && pose.slip >= (wasSliding ? SLIP_CUE_EXIT : SLIP_CUE_ENTER);
+      if (sliding && !wasSliding) cues.push("slip");
+      wasSliding = sliding;
 
       const gap = compactorGap(pose.position[2], compactorZ);
       if (gap < closestGap) closestGap = gap;
