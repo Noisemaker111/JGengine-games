@@ -1,4 +1,5 @@
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
+import { assets } from "./assets";
 import { authoredModels } from "./authoredModels";
 
 // Ember Command's own stone-and-copper miniature set; bundled through Vite so both
@@ -17,5 +18,20 @@ export const entityModels: Record<string, ModelConfig> = Object.fromEntries(
     ...(warriors.has(id) ? { animation: { states: { idle: "Idle", walk: "Walking_A", walkSpeed: .1 }, clock: "game" } } : {}),
   }]),
 );
-// The authored forest ring uses the SDK's instanced vegetation meshes.
-export const scatterModels: Record<string, string> = {};
+// Forest fill instances real nature GLBs. Each height matches the stylized proxy it replaces, so the
+// authored woods keep their tuned spacing and density. Provision the pack before launch (root README).
+const NATURE = "quaternius-stylized-nature";
+function natureScatter(file: string, targetHeight: number): ModelConfig {
+  const ref = assets.resolve(`${NATURE}/${file}`);
+  if (ref === null) throw new Error(`[ember-command] scatter model "${NATURE}/${file}" is not in the asset catalog`);
+  return { url: ref.url, dims: ref.dims, targetHeight };
+}
+/** Keyed by the scatter palette item the authored forest paths name (see models.test.ts). */
+export const scatterModels: Record<string, ModelConfig> = {
+  pine: natureScatter("Pine_1", 2.8),
+  tree: natureScatter("CommonTree_1", 2.6),
+  oak: natureScatter("CommonTree_4", 2.3),
+  bush: natureScatter("Bush_Common", 0.9),
+  rock: natureScatter("Rock_Medium_1", 0.7),
+  stone: natureScatter("Pebble_Round_1", 0.5),
+};
