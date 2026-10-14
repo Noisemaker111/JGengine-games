@@ -2,6 +2,7 @@ import { defineGame } from "@jgengine/shell/gameKit";
 
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
+import { audio } from "./game/audio/catalog";
 import { content } from "./game/content";
 import { GOLD_CURRENCY } from "./game/entities/base/catalog";
 import { currentWaveNumber, session } from "./game/session";
@@ -27,6 +28,7 @@ export const game = defineGame({
   settings: {
     variant: "panel",
   },
+  audio,
   entityModels,
   // Draped creep path + instanced foliage render from the document; towers/creeps/props spawn as
   // entities in the loop, so object placement stays off — no double render.

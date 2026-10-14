@@ -3,6 +3,7 @@ import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { registerBuildCommands } from "../build/commands";
+import { ENEMY_KILLED_CUE } from "../audio/catalog";
 import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_GOLD } from "../entities/base/catalog";
 import { creepDef, CREEP_CATALOG } from "../entities/enemies/catalog";
 import { resetSession, session } from "../session";
@@ -20,6 +21,7 @@ function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.creeps.delete(event.instanceId);
     const beneficiary = event.reason.kind === "player_kill" ? event.reason.killerUserId : ctx.player.userId;
     ctx.game.economy.grant(beneficiary, GOLD_CURRENCY, creepDef(event.catalogId).bounty);
+    ctx.game.audio.play(ENEMY_KILLED_CUE);
   }
 }
 

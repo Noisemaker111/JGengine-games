@@ -3,6 +3,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { advanceSpawnDirector, advanceWave } from "@jgengine/core/ai/spawnDirector";
 import { advancePathFollow, createPathFollow } from "@jgengine/core/nav/pathFollow";
 
+import { ENEMY_LEAKED_CUE } from "../audio/catalog";
 import { BASE_ENTITY_ID, GOLD_CURRENCY } from "../entities/base/catalog";
 import { creepDef } from "../entities/enemies/catalog";
 import { gameClockMs, session, nextCreepInstanceId, newSpeedStats } from "../session";
@@ -67,6 +68,7 @@ function leakCreep(ctx: GameContext, instanceId: string, catalogId: string): voi
   });
   ctx.scene.entity.despawn(instanceId);
   session.creeps.delete(instanceId);
+  ctx.game.audio.play(ENEMY_LEAKED_CUE);
 }
 
 export function tickWaves(ctx: GameContext, dt: number): void {
