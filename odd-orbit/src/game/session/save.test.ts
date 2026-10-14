@@ -11,7 +11,7 @@ import { advanceLifeEvents, LIFE_EVENT_SECONDS } from "../sim/events";
 import { simulateHousehold } from "../sim/simulate";
 import { pairKey } from "./types";
 import { householdStore } from "./store";
-import { captureOrbitSave, ORBIT_SAVE_KEY, readOrbitSave, restoreOrbitSave, validOrbitSave, writeOrbitSave, type OrbitSave } from "./save";
+import { captureOrbitSave, ORBIT_SAVE_BACKUP_KEY, ORBIT_SAVE_KEY, readOrbitSave, restoreOrbitSave, validOrbitSave, writeOrbitSave, type OrbitSave } from "./save";
 
 function boot() {
   const ctx = createGameContext({ definition: game.game, content, player: { userId: "orbit-save-test", isNew: true } });
@@ -79,6 +79,35 @@ test("corrupt and newer saves are preserved, denied storage stays truthful", () 
   expect(readOrbitSave(denied)).toEqual({ save: null, damaged: false, unavailable: true });
   expect(writeOrbitSave(boot(), denied)).toBe(false);
   expect(writeOrbitSave(boot(), null)).toBe(false);
+});
+
+test("overwrite guard keeps one backup of an unreadable or newer save before checkpoint replaces it", () => {
+  const newer = JSON.stringify({ ...captureOrbitSave(boot()), version: 2 });
+  for (const raw of ["broken", newer]) {
+    const { storage, values } = memory(raw);
+    const ctx = boot();
+    expect(writeOrbitSave(ctx, storage)).toBe(true);
+    expect(values.get(ORBIT_SAVE_BACKUP_KEY)).toBe(raw);
+    expect(readOrbitSave(storage)).toEqual({ save: captureOrbitSave(ctx), damaged: false, unavailable: false });
+  }
+  const valid = memory();
+  expect(writeOrbitSave(boot(), valid.storage)).toBe(true);
+  expect(writeOrbitSave(boot(), valid.storage)).toBe(true);
+  expect(valid.values.has(ORBIT_SAVE_BACKUP_KEY)).toBe(false);
+
+  const writes: string[] = [];
+  const unreadable: KeyValueStorage = { getItem() { throw new Error("denied"); }, setItem: (_key, value) => { writes.push(value); }, removeItem() {} };
+  expect(writeOrbitSave(boot(), unreadable)).toBe(false);
+  expect(writes).toEqual([]);
+
+  const quota = memory("broken");
+  const failingBackup: KeyValueStorage = { getItem: key => quota.values.get(key) ?? null, removeItem: key => { quota.values.delete(key); }, setItem(key, value) {
+    if (key === ORBIT_SAVE_BACKUP_KEY) throw new Error("quota");
+    quota.values.set(key, value);
+  } };
+  expect(writeOrbitSave(boot(), failingBackup)).toBe(false);
+  expect(quota.values.get(ORBIT_SAVE_KEY)).toBe("broken");
+  expect(quota.values.has(ORBIT_SAVE_BACKUP_KEY)).toBe(false);
 });
 
 test("bounded needs, relationships, economy, schedules and world reject atomically", () => {

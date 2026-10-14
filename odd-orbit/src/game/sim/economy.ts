@@ -27,7 +27,7 @@ export function dailyUpkeep(objects: readonly SceneObject[]): number {
   return HABITAT_UPKEEP + objects.reduce((sum, obj) => sum + (FURNITURE_BY_ID[obj.catalogId]?.runningCost ?? 0), 0);
 }
 
-export function nextBill(state: HouseholdState, objects: readonly SceneObject[]): number {
+export function nextBill(state: Pick<HouseholdState, "debt">, objects: readonly SceneObject[]): number {
   return dailyUpkeep(objects) + Math.min(state.debt, 40);
 }
 
