@@ -8,6 +8,7 @@ import { BUILDABLES } from "../objects/catalog";
 import { archiveSave, savePark } from "../persistence";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
+import { CUE } from "../audio";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -42,6 +43,7 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const def = buildableDef(toolId);
   if (!affordable(toolId)) {
     pushToast(`Not enough cash for ${def.label}`, "bad", ctx.time.now());
+    ctx.game.audio.play(CUE.purchaseRefused);
     return;
   }
   if (!Array.isArray(input.point) || input.point.length !== 3 || !input.point.every(Number.isFinite)) return;
@@ -54,6 +56,7 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const placed = placeObject(ctx, toolId, x, z);
   if (placed === null) return;
   session.cash -= def.cost;
+  if (def.category === "ride") ctx.game.audio.play(CUE.rideBuilt);
   savePark(ctx);
 }
 

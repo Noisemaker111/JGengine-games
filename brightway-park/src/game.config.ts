@@ -1,6 +1,7 @@
 import { defineGame } from "@jgengine/shell/defineGame";
 
 import { assets } from "./game/assets";
+import { audio } from "./game/audio";
 import { DAY_LENGTH } from "./game/catalog";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
@@ -15,6 +16,7 @@ export const game = defineGame({
   world,
   physics,
   assets,
+  audio,
   input: keybinds,
   server: { mode: "solo" },
   save: "none",

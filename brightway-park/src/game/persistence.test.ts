@@ -5,7 +5,7 @@ import { loop } from "../loop";
 import { content } from "./content";
 import { DAY_LENGTH } from "./catalog";
 import { session } from "./session";
-import { archiveSave, decodeSave, SAVE_KEY, snapshotPark } from "./persistence";
+import { archiveSave, decodeSave, SAVE_KEY, saveOnHide, snapshotPark } from "./persistence";
 import { economyDayTick } from "./sim/economy";
 
 const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
@@ -112,5 +112,64 @@ describe("park saves and real command boundaries", () => {
     live.ui.invoke("pickCarousel");
     expect(session.cash).toBe(cash);
     expect(session.selectedTool).toBe("staff_janitor");
+  });
+});
+
+class FakeDocument extends EventTarget {
+  hidden = false;
+  readonly pointerLockElement = null;
+}
+const savedCash = () => JSON.parse(records.get(SAVE_KEY)!).stats.cash as number;
+
+describe("save on hide", () => {
+  test("hiding the page saves sales made since the last explicit save; visible changes do not", () => {
+    const live = runner();
+    live.ui.invoke("park.start");
+    const windowTarget = new EventTarget(), doc = new FakeDocument(), abort = new AbortController();
+    saveOnHide(live.ctx, { window: windowTarget, document: doc }, abort.signal);
+    session.cash += 250;
+    doc.dispatchEvent(new Event("visibilitychange"));
+    expect(savedCash()).not.toBe(session.cash);
+    doc.hidden = true;
+    doc.dispatchEvent(new Event("visibilitychange"));
+    expect(savedCash()).toBe(session.cash);
+    session.cash += 40;
+    windowTarget.dispatchEvent(new Event("pagehide"));
+    expect(savedCash()).toBe(session.cash);
+    abort.abort();
+    const cashAfterAbort = session.cash;
+    session.cash += 1;
+    doc.hidden = true;
+    doc.dispatchEvent(new Event("visibilitychange"));
+    windowTarget.dispatchEvent(new Event("pagehide"));
+    expect(savedCash()).toBe(cashAfterAbort);
+  });
+
+  test("a menu that has not started never writes a save on hide", () => {
+    const menu = runner();
+    const doc = new FakeDocument(), abort = new AbortController();
+    saveOnHide(menu.ctx, { window: new EventTarget(), document: doc }, abort.signal);
+    doc.hidden = true;
+    doc.dispatchEvent(new Event("visibilitychange"));
+    expect(records.has(SAVE_KEY)).toBe(false);
+    abort.abort();
+  });
+
+  test("a storage failure during a hide is recorded and never thrown", () => {
+    const live = runner();
+    live.ui.invoke("park.start");
+    const doc = new FakeDocument(), abort = new AbortController();
+    saveOnHide(live.ctx, { window: new EventTarget(), document: doc }, abort.signal);
+    const storage = globalThis.localStorage as unknown as { setItem: (key: string, value: string) => void };
+    const setItem = storage.setItem;
+    storage.setItem = () => { throw new Error("quota exceeded"); };
+    try {
+      doc.hidden = true;
+      expect(() => doc.dispatchEvent(new Event("visibilitychange"))).not.toThrow();
+      expect(session.saveStatus).toContain("unavailable");
+    } finally {
+      storage.setItem = setItem;
+      abort.abort();
+    }
   });
 });

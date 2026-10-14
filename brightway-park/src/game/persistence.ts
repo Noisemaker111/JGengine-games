@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { ClockSnapshot } from "@jgengine/core/time/simClock";
 import { rngStateOf, restoreRng } from "@jgengine/core/random/rng";
+import { observeBrowserSuspension, type BrowserSuspensionSources } from "@jgengine/react/browserLifecycle";
 import { BUILDABLES, buildableDef } from "./objects/catalog";
 import { GUEST_KINDS } from "./entities/guests/catalog";
 import { blockCenter, footprintCells } from "./build/placement";
@@ -77,6 +78,19 @@ export function savePark(ctx: GameContext): void {
     session.hasSave = true;
     session.saveStatus = `Saved · day ${session.day}, $${Math.round(session.cash).toLocaleString()}`;
   } catch { session.saveStatus = "Save unavailable — browser storage is full or disabled"; }
+}
+
+/**
+ * Saves when the page is hidden or unloaded. Mobile browsers can end a hidden tab without firing
+ * pagehide, so the hidden event is the reliable save point; pagehide covers unload.
+ */
+export function saveOnHide(ctx: GameContext, sources: BrowserSuspensionSources, signal: AbortSignal): void {
+  const save = (): void => {
+    try { savePark(ctx); } catch { /* Lifecycle events must never surface an error to the browser. */ }
+  };
+  sources.window.addEventListener("pagehide", save, { signal });
+  const stopObserving = observeBrowserSuspension(save, { blur: false, pointerLockLost: false }, sources);
+  signal.addEventListener("abort", stopObserving, { once: true });
 }
 
 export function restorePark(ctx: GameContext): boolean {
