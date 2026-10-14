@@ -19,7 +19,11 @@ export function Operations() {
   const travel = useStore(travelOpenStore);
   const skills = useStore(skillsOpenStore);
   const market = useStore(blackMarketOpenStore);
-  const distance = useGameStore(relayDistance);
+  // Re-render only when the displayed metres or the inside-the-ring check change, not on every step.
+  const distance = useGameStore(
+    relayDistance,
+    (previous, next) => Math.round(previous) === Math.round(next) && (previous > RELAY.radius) === (next > RELAY.radius),
+  );
   const [manual, setManual] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const modal = vendor !== null || travel || skills || market || settings.isOpen;

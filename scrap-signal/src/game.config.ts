@@ -268,4 +268,7 @@ export const game = defineGame({
     frustum: { far: 4200 },
   },
   orientation: "landscape",
+  // The HUD is authored at 9-11 px, so the SDK's 1600x900 default shrank it to ~5 px at 800x450.
+  // Designing at 720p keeps it unscaled from 1280x720 up and shrinks it only below that.
+  hudFit: { designSize: { width: 1280, height: 720 } },
 });

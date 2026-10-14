@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "bun:test";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 import { terrainField, world } from "../../world";
-import { MAIN_QUEST_IDS, quests } from "../quests/catalog";
+import { MAIN_QUEST_IDS, QUEST_ZONE_GUIDES, quests } from "../quests/catalog";
 import { SETTLEMENT_KITS } from "./buildingKit";
 import { AUTHORED_PIECES, ROUTES, SPUR_ROUTES, authoredScene } from "./level";
 import { entityModels, objectModels } from "./models";
@@ -187,6 +187,13 @@ describe("campaign chain", () => {
   test("every chained quest id resolves to a registered quest", () => {
     for (const quest of quests) {
       for (const next of quest.rewards?.quests ?? []) expect(byId.has(next)).toBe(true);
+    }
+  });
+
+  test("every quest guide names a registered quest and a zone the world has", () => {
+    for (const [questId, zoneId] of Object.entries(QUEST_ZONE_GUIDES)) {
+      expect(byId.has(questId)).toBe(true);
+      expect(ZONES.some((zone) => zone.id === zoneId)).toBe(true);
     }
   });
 });

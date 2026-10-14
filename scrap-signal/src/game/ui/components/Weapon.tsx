@@ -5,6 +5,7 @@ import { AMMO_LABELS, AMMO_STAT_IDS } from "../../ammo";
 import { gunById, isReloading, magLoaded, type GunDef } from "../../handroll";
 import { ELEMENT_COLORS, RARITY_COLORS } from "../../palette";
 import { lastPickupStore, selectedSlotStore } from "../../stores";
+import { useTimedWindow } from "./frameClock";
 
 export function useSelectedSlot(): number {
   return useStore(selectedSlotStore);
@@ -103,9 +104,9 @@ export function Hotbar() {
 }
 
 export function ItemCard() {
-  const nowMs = useNowMs();
   const pickup = useStore(lastPickupStore);
-  if (pickup === null || nowMs - pickup.atMs > 5000) return null;
+  const open = useTimedWindow(lastPickupStore, 5000);
+  if (pickup === null || !open) return null;
   const gun: GunDef | undefined = gunById(pickup.gunId);
   if (gun === undefined) return null;
   return (

@@ -72,6 +72,11 @@ export const QUEST_ECHOES: Record<string, EchoLine> = {
   },
 };
 
+/** Zone each quest's current step points to in the world; the HUD marker sits on that zone's center. */
+export const QUEST_ZONE_GUIDES: Readonly<Partial<Record<string, string>>> = {
+  [QUEST_IDS.crashRecovery]: "breakwater_shelf",
+};
+
 export const quests: readonly QuestDef[] = [
   {
     id: QUEST_IDS.crashRecovery,

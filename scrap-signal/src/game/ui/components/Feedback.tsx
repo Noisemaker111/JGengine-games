@@ -2,15 +2,14 @@ import { LevelUpFlash } from "@jgengine/react/components";
 import { useEntityStat, useGameStore, usePlayer } from "@jgengine/react/hooks";
 import { lastHit, lastHurtAtMs } from "../../feel";
 
-function useNowMs(): number {
-  return useGameStore((ctx) => ctx.time.now() * 1000);
-}
-
 export function HitMarker() {
-  const nowMs = useNowMs();
-  const hit = lastHit();
-  const age = nowMs - hit.atMs;
-  if (age < 0 || age > 220) return null;
+  // The marker is static while shown, so it re-renders when a hit lands or expires, not every frame.
+  const hit = useGameStore((ctx) => {
+    const current = lastHit();
+    const age = ctx.time.now() * 1000 - current.atMs;
+    return age >= 0 && age <= 220 ? current : null;
+  });
+  if (hit === null) return null;
   const color = hit.kill ? "#e23c2e" : hit.crit ? "#ffb400" : "#f5f0e6";
   const size = hit.crit || hit.kill ? 30 : 22;
   return (
@@ -28,10 +27,12 @@ export function HitMarker() {
 }
 
 export function DamageVignette() {
-  const nowMs = useNowMs();
-  const hurtAt = lastHurtAtMs();
-  const age = nowMs - hurtAt;
-  if (age < 0 || age > 450) return null;
+  // Strength eases with age, so this part does re-render each frame, but only while it is on screen.
+  const age = useGameStore((ctx) => {
+    const elapsed = ctx.time.now() * 1000 - lastHurtAtMs();
+    return elapsed >= 0 && elapsed <= 450 ? elapsed : null;
+  });
+  if (age === null) return null;
   const strength = 1 - age / 450;
   return (
     <div
