@@ -81,7 +81,7 @@ export const quests: readonly QuestDef[] = [
   {
     id: QUEST_IDS.crashRecovery,
     title: "My First Gun",
-    description: "Survive the crash site: smash 5 bruisers in Rustflat Waste, then follow the road south-east.",
+    description: "Survive the crash site: smash 5 bruisers in Rustflat Waste, then follow the road to Breakwater Shelf.",
     objectives: [
       { id: "small_bruisers", kind: "kill", target: "bruiser_brat", count: 3 },
       { id: "bruisers", kind: "kill", target: "bruiser", count: 2 },
