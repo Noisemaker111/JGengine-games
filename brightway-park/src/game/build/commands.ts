@@ -57,6 +57,7 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const placed = placeObject(ctx, toolId, x, z);
   if (placed === null) return;
   session.cash -= def.cost;
+  pushToast(`${def.label} built · -$${def.cost}`, "good", ctx.time.now());
   ctx.game.audio.play("place", [placed.x, 0, placed.z]);
   savePark(ctx);
 }

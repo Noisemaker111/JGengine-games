@@ -8,6 +8,7 @@ import { BUILDABLES } from "../objects/catalog";
 import { canPlace, footprintCells } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
+import { hoverRefusal, setPlacementHint } from "../build/placementHint";
 
 const rotors: Record<string,string> = {
   ride_carousel: new URL("../../../public/art/models/carousel_rotor.glb",import.meta.url).href,
@@ -72,8 +73,10 @@ function Blueprint() {
     return()=>{gl.domElement.removeEventListener("pointermove",move);gl.domElement.removeEventListener("pointerleave",leave);gl.domElement.removeEventListener("pointerdown",inspect);};
   },[gl,camera]);
   const def=selected?BUILDABLES[selected]:null;
+  const refusal=def&&hover?hoverRefusal(canPlace(def.id,...hover),session.cash,def.cost):null;
+  useEffect(()=>{setPlacementHint(refusal);return()=>setPlacementHint(null);},[refusal]);
   if(!def||!hover)return null;
-  const valid=canPlace(def.id,...hover).ok&&session.cash>=def.cost;
+  const valid=refusal===null;
   const color=valid?"#7cf3c8":"#ef7059";
   return <group>{footprintCells(def,...hover).map(key=>{const [x,z]=key.split(",").map(Number);return <mesh key={key} position={[x!,.22,z!]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><planeGeometry args={[GRID-.12,GRID-.12]}/><meshBasicMaterial color={color} transparent opacity={.4} depthWrite={false}/></mesh>;})}</group>;
 }

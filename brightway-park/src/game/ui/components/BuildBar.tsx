@@ -10,6 +10,7 @@ import {
 } from "../../objects/catalog";
 import { MILESTONES } from "../../catalog";
 import { session } from "../../session";
+import { usePlacementHint } from "../../build/placementHint";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
 
 function unlockLabel(requires: string): string {
@@ -22,6 +23,7 @@ export function BuildBar() {
   const { commands } = useGame();
   const cash = useGameStore(() => session.cash);
   const selected = useGameStore(() => session.selectedTool);
+  const refusal = usePlacementHint();
   const tracks = useGameStore(() => [...session.placed.values()].filter(obj => obj.catalogId === "track_piece").length);
   const unlocked = useGameStore((ctx) =>
     (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
@@ -97,7 +99,7 @@ export function BuildBar() {
       </div> : null}
 
       <div className="park-build-hint">
-        {selected ? <><span>Place {BUILDABLES[selected]?.label} · green plots are buildable</span><button onClick={()=>commands.run("build.clear", {})}>Cancel ×</button></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
+        {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><button onClick={()=>commands.run("build.clear", {})}>Cancel ×</button></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
       </div>
     </div>
   );
