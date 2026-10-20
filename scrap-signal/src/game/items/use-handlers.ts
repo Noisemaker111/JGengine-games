@@ -16,6 +16,7 @@ import {
   magLoaded,
   startReload,
 } from "../handroll";
+import type { HitReactionConfig } from "@jgengine/core/combat/hitReaction";
 
 const combatRng = seededRng("scrap-combat-procs");
 const lastFiredAt = new Map<string, number>();
@@ -38,6 +39,12 @@ function warn(ctx: GameContext, from: string, text: string): void {
 
 function gunDamageMult(): number {
   return 1 + bonus("gunDamage");
+}
+
+/** Hit-feel tier for a landed shot: kills read heaviest, crits shove harder, plain hits only flinch. */
+export function hitFeel(crit: boolean, killed: boolean): HitReactionConfig | "enemyKilled" {
+  if (killed) return "enemyKilled";
+  return crit ? { hitstopMs: 30, knockback: 0.35, trauma: 0.08 } : { hitstopMs: 0, knockback: 0.12 };
 }
 
 function applyHitModifiers(
@@ -69,6 +76,9 @@ function applyHitModifiers(
   }
   const killed = (ctx.scene.entity.stats.get(targetId, "health")?.current ?? 1) <= 0;
   noteHit(nowMs, crit, killed);
+  // Body feel through the SDK's shared hit reaction: the target flinches (knockback + shell flinch
+  // animation), crits add a light shake, and kills use the calibrated enemyKilled preset.
+  ctx.scene.entity.hitReaction({ from, to: targetId, config: hitFeel(crit, killed) });
   playHit(ctx, ctx.scene.entity.get(targetId)?.position ?? [0, 0, 0], crit);
   applyElementalProc(ctx, combatRng, gun, from, targetId, nowMs);
 }
