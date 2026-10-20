@@ -115,6 +115,7 @@ export function castThunderClap(ctx: GameContext): void {
   const base = THUNDERCLAP_BASE_DMG + (heroLevel(ctx) - 1) * THUNDERCLAP_DMG_PER_LEVEL;
   const cx = hero.position[0];
   const cz = hero.position[2];
+  ctx.game.audio.play("thunder", hero.position);
   for (const u of session.units.values()) {
     if (!isHostile("player", u.faction) || u.kind === "building") continue;
     const ent = ctx.scene.entity.get(u.id);

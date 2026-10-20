@@ -1,4 +1,5 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
+import { useGameContext } from "@jgengine/react/provider";
 import { actionLabel } from "@jgengine/core/input/actionBindings";
 import { HudLabel } from "@/components/ui/hud-label";
 import { MenuButton } from "@/components/ui/menu-button";
@@ -18,6 +19,7 @@ const statStyle = {
 
 export function TowerPanel() {
   const { commands } = useGame();
+  const gameCtx = useGameContext();
   const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
   const inspectedId = useGameStore(() => session.inspectedTowerId);
   const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
@@ -65,6 +67,7 @@ export function TowerPanel() {
           variant={canUpgrade ? "primary" : "ghost"}
           onActivate={() => {
             if (canUpgrade) commands.run("upgradeTower", { instanceId: tower.instanceId });
+            else gameCtx.game.audio.play("denied");
           }}
         />
         <MenuButton

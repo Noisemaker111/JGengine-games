@@ -1,5 +1,6 @@
 import { defineGame } from "@jgengine/shell/defineGame";
 
+import { ORBIT_SOUNDS } from "./game/audio";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
@@ -26,6 +27,7 @@ export const game = defineGame({
   editorLayers,
   scenePlacement: false,
   objectModels,
+  audio: { sounds: ORBIT_SOUNDS },
   renderEntity,
   WorldOverlay: CaptureReadiness,
   pointer: { moveCommand: "world.pointer" },

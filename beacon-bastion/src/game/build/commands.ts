@@ -53,6 +53,7 @@ function placeTower(ctx: GameContext, plot: BuildPlot): void {
   session.buildQueue = queued.state;
   ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, def.cost);
   session.plotOccupant.set(plot.id, instanceId);
+  ctx.game.audio.play("build", plot.position);
 }
 
 function clickPlot(ctx: GameContext, input: BuildPlaceInput): GameContext {
@@ -89,6 +90,7 @@ function sellTower(ctx: GameContext, input: TowerTargetInput | undefined): GameC
   session.towers.delete(tower.instanceId);
   session.plotOccupant.set(tower.plotId, null);
   if (session.inspectedTowerId === tower.instanceId) session.inspectedTowerId = null;
+  ctx.game.audio.play("sell");
   return ctx;
 }
 
@@ -106,6 +108,7 @@ function upgradeTower(ctx: GameContext, input: TowerTargetInput | undefined): Ga
   const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level)!;
   ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, cost);
   tower.level += 1;
+  ctx.game.audio.play("upgrade");
   return ctx;
 }
 
@@ -113,6 +116,7 @@ function selectTowerCommand(id: string) {
   return {
     apply(state: GameContext): GameContext {
       session.selectedTowerId = session.selectedTowerId === id ? null : id;
+      if (session.selectedTowerId !== null) state.game.audio.play("select");
       return state;
     },
   };

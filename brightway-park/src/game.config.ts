@@ -1,5 +1,6 @@
 import { defineGame } from "@jgengine/shell/defineGame";
 
+import { BRIGHTWAY_SOUNDS } from "./game/audio";
 import { assets } from "./game/assets";
 import { DAY_LENGTH } from "./game/catalog";
 import { content } from "./game/content";
@@ -27,6 +28,7 @@ export const game = defineGame({
   objectModels,
   WorldOverlay: BrightwayParkWorldOverlay,
   worldHealthBars: false,
+  audio: { sounds: BRIGHTWAY_SOUNDS },
   look: "cinematic",
   postProcessing: {
     toneMapping: "aces",

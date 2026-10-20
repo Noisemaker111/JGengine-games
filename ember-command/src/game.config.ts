@@ -3,6 +3,7 @@ import { defineGame } from "@jgengine/shell/defineGame";
 import { editorCatalogs } from "./editorCatalogs";
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
+import { EMBER_SOUNDS } from "./game/audio";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { entityModels } from "./game/models";
@@ -19,6 +20,7 @@ export const game = defineGame({
   world,
   physics,
   input: keybinds,
+  audio: { sounds: EMBER_SOUNDS },
   server: { mode: "single" },
   save: "none",
   content,

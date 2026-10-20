@@ -114,6 +114,7 @@ function canPlaceAt(ctx: GameContext, x: number, z: number): boolean {
 function placeBuilding(ctx: GameContext, type: string, x: number, z: number): boolean {
   if (!canAffordBuilding(ctx, type) || !canPlaceAt(ctx, x, z)) {
     hudStore.set({ notice: "Choose clear ground on your half of the vale, away from buildings and resource nodes." });
+    ctx.game.audio.play("denied");
     return false;
   }
   const result = enqueue(session.buildQueue, BUILD_CONFIG, { type, x, z });
@@ -123,6 +124,7 @@ function placeBuilding(ctx: GameContext, type: string, x: number, z: number): bo
     ctx.game.economy.charge(ctx.player.userId, currency, amount);
   }
   hudStore.set({ notice: `Raising ${type.replaceAll("_", " ")} — construction is underway.` });
+  ctx.game.audio.play("place", [x, 0, z]);
   return true;
 }
 
@@ -146,7 +148,11 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
     return ctx;
   }
   const units = selectedPlayerUnits(input.selection);
-  if (units.length === 0) { hudStore.set({ notice: "Select your troops first: click a unit or drag a box around the formation." }); return ctx; }
+  if (units.length === 0) {
+    hudStore.set({ notice: "Select your troops first: click a unit or drag a box around the formation." });
+    ctx.game.audio.play("denied");
+    return ctx;
+  }
   const armed = session.attackMoveArmed;
   session.attackMoveArmed = false;
 

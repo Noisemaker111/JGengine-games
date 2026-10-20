@@ -159,6 +159,7 @@ function tickUnit(ctx: GameContext, dt: number, u: UnitRuntime): void {
         const base = def.damage + heroAttackBonus(ctx, u.catalogId);
         const amount = resolveDamage(tacticalDamage(base, u.catalogId, target.catalogId, distXZ(self.position, ent.position)), u.faction, target.faction);
         ctx.scene.entity.effect({ from: u.id, to: target.id, effect: "damage", via: { amount } });
+        ctx.game.audio.play("hit", ent.position);
         armPursuit(u, def.attackCooldown);
       }
       return;

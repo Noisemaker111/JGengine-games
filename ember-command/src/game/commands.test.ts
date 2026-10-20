@@ -13,6 +13,7 @@ function ctxWith(positions: Map<string, EntityPosition>, wallet: Record<string, 
     player: { userId: "commander" },
     scene: { entity: { get: (id: string) => (positions.has(id) ? { id, position: positions.get(id)! } : null) } },
     game: {
+      audio: { play: () => {} },
       economy: {
         balance: (_u: string, c: string) => balances[c] ?? 0,
         charge: (_u: string, c: string, a: number) => {

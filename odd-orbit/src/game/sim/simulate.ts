@@ -85,11 +85,13 @@ function concern(state: HouseholdState, member: MemberState, text: string, now: 
   member.concern = text;
 }
 
-function finishShift(state: HouseholdState, member: MemberState, now: number): void {
+function finishShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number): void {
   if (member.shiftDay === state.day) return;
   member.shiftDay = state.day;
   member.completedShifts += 1;
   pushEvent(state, `${member.name} finished a ${member.lifestyle === "yield" ? "Yield" : "Bloom"} shift.`, now, "good");
+  const at = positionOf(ctx, member.id);
+  if (at !== null) ctx.game.audio.play("shift", at);
   if (member.completedShifts === FLEX_AFTER_SHIFTS) pushEvent(state, `${member.name} earned flex hours: paid shifts can now run 08–18.`, now, "milestone");
 }
 
@@ -142,7 +144,9 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   if (Math.floor(now / DAY_LENGTH) > state.day) {
     for (const id of state.order) closeMissedShift(state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001);
   }
+  const dayBefore = state.day;
   settleHouseholdDay(state, objects, now);
+  if (state.day !== dayBefore) ctx.game.audio.play("bill");
   const availability = availabilityFrom(objects);
   for (const id of state.order) {
     const member = state.members[id];
@@ -238,7 +242,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       member.needs.energy = clamp(member.needs.energy - 0.55 * worked);
       member.needs.hunger = clamp(member.needs.hunger - 0.2 * worked);
       member.stress = clamp(member.stress + worked);
-      if (member.workToday >= SHIFT_SECONDS) { finishShift(state, member, now); releaseMember(member); }
+      if (member.workToday >= SHIFT_SECONDS) { finishShift(ctx, state, member, now); releaseMember(member); }
       return;
     }
     const goal = action.goal;
@@ -265,7 +269,8 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         state.credits = creditAmount(state.credits + income);
         state.dayIncome = creditAmount(state.dayIncome + income);
         pushEvent(state, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, now, "good");
-        finishShift(state, member, now);
+        ctx.game.audio.play("harvest", [obj.position[0], obj.position[1], obj.position[2]]);
+        finishShift(ctx, state, member, now);
         releaseMember(member);
       }
       return;
@@ -366,6 +371,7 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
     for (const milestone of crossedMilestones(before, after)) {
       if (state.milestones[key] === milestone.key) continue;
       state.milestones[key] = milestone.key;
+      ctx.game.audio.play("bond");
       pushEvent(state, `${a.name} & ${b.name} ${milestone.label}${milestone.key === "friends" ? "; tending Blooms together now yields more" : ""}.`, now, "milestone");
     }
   }
