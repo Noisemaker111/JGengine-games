@@ -3,7 +3,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
 import { canTrain, orderSelection, trainUnit } from "./commands";
-import { hudStore } from "./hudStore";
+import { hudStore, OPENING_NOTICE } from "./hudStore";
 import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
 import { TRAINING_CONFIG } from "./production";
 import { resetSession, session } from "./session";
@@ -82,6 +82,15 @@ describe("right-click order routing", () => {
     const command = session.units.get("w1")!.command;
     expect(command.kind).toBe("gather");
     expect(command.kind === "gather" && command.resource).toBe("gold");
+  });
+
+  test("an accepted gather order replaces the opening field report", () => {
+    session.units.set("w1", { id: "w1", catalogId: "peasant", faction: "player", kind: "unit", command: { kind: "idle" }, leash: 0, attackCooldown: 0 });
+    session.nodes.set("mine", { id: "mine", resource: "gold", x: 10, z: 10 });
+    hudStore.set({ notice: OPENING_NOTICE });
+    const ctx = ctxWith(new Map<string, EntityPosition>([["w1", [0, 0, 0]]]));
+    orderSelection(ctx, { selection: ["w1"], point: [10, 0, 10] });
+    expect(hudStore.get().notice).toBe("Gathering gold: 1 worker assigned.");
   });
 
   test("a footman right-clicking a node just moves (cannot gather)", () => {
