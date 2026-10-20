@@ -93,7 +93,7 @@ export function GameUI() {
         </div>
       </HudPanel>
       <HudPanel id="credit" anchor="left" compact="hide" interactive={false}>
-        <div className="max-w-40 border-2 border-black bg-[#12141a]/80 px-2 py-1 text-[9px] font-bold uppercase leading-tight text-[#cfd6de]/80 shadow-[2px_2px_0_#000]">
+        <div className="max-w-48 border-2 border-black bg-[#12141a]/85 px-2 py-1 text-[11px] font-bold uppercase leading-tight text-[#e6ecf2] shadow-[2px_2px_0_#000]">
           A coastal city adventure of courier jobs, rival crews, and high-speed escapes
         </div>
       </HudPanel>
