@@ -1,13 +1,14 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { guestCap, MILESTONES } from "../../catalog";
+import { guestCap } from "../../catalog";
 import { session } from "../../session";
 import { currentMetrics } from "../../sim/economy";
+import { nextMilestone, nextStepText } from "../nextStep";
 
 export function ParkDashboard() {
   useGameStore(() => [session.cash,session.rating,session.guests.size,session.happinessAvg,session.litter,session.ticketPrice,session.day,session.open,session.revenueYesterday,session.upkeepYesterday,session.placed.size].join("|"));
   const {commands}=useGame();
   const calendar=useGameStore(ctx=>`${String(ctx.time.calendar().hour).padStart(2,"0")}:${String(ctx.time.calendar().minute).padStart(2,"0")}`);
-  const m=currentMetrics(), next=MILESTONES.find(x=>session.rating<x.rating);
+  const m=currentMetrics(), next=nextMilestone(session.rating), nextStep=nextStepText(session.rating);
   const net=session.revenueYesterday-session.upkeepYesterday;
   return <>
     <header className="park-header park-surface">
@@ -32,7 +33,7 @@ export function ParkDashboard() {
         <Goal done={session.happinessAvg>=50&&session.litter<=40} label="Happy 50%+ · clean 60%+"/>
       </div>
       <p>{session.litter>25?"Hire a janitor before litter takes over.":m.stalls<3?"Add refreshments to keep visitors smiling.":"Mix gentle rides and thrills: families and thrill seekers want different days out."}</p>
-      {next&&<div className="park-unlock"><span>Next: {next.label} · {next.rating} ★</span><progress max={next.rating} value={session.rating}/></div>}
+      {next&&nextStep&&<div className="park-unlock"><span>{nextStep}</span><progress max={next.rating} value={session.rating}/></div>}
       <div className="park-ledger"><span>Daily upkeep</span><strong>${m.dailyUpkeep}</strong><span>Today’s sales</span><strong>${Math.round(session.revenueToday)}</strong></div>
     </aside>
   </>;

@@ -68,7 +68,7 @@ export function BuildBar() {
                 isSelected
                   ? "border-amber-400 bg-amber-400/15"
                   : locked
-                    ? "border-white/5 bg-slate-800/60 opacity-60"
+                    ? "border-white/5 bg-slate-800/60 opacity-80"
                     : "border-white/10 bg-slate-800/80 hover:border-amber-300/60"
               }`}
               onClick={() => commands.run("build.select", { id: def.id })}
@@ -77,7 +77,7 @@ export function BuildBar() {
               <span className="text-2xl leading-none">{locked ? "🔒" : def.icon}</span>
               <span className="text-[11px] font-bold leading-tight text-slate-100">{def.label}</span>
               {locked ? (
-                <span className="text-[9px] font-semibold text-slate-400">{unlockLabel(def.requires!)}</span>
+                <span className="text-[11px] font-semibold text-amber-200">{unlockLabel(def.requires!)}</span>
               ) : (
                 <span
                   className={`font-mono text-[11px] font-bold ${affordable ? "text-emerald-300" : "text-rose-400"}`}
