@@ -31,6 +31,7 @@ html, body, #root {
 .orbit-ui .orbit-brand strong { display:block; font:900 22px 'Trebuchet MS',sans-serif; letter-spacing:.07em; }
 .orbit-ui .orbit-brand small { display:block; color:#f0c2dc; font-size:10px; text-transform:uppercase; letter-spacing:.18em; }
 .orbit-ui .orbit-topbar { display:grid; grid-template-columns:auto auto; gap:8px 16px; background:#291c3bf2; border:1px solid #785977; border-top:3px solid #e99acb; border-radius:3px 3px 18px 3px; padding:10px 16px; min-width:410px; }
+.orbit-ui .orbit-goal { grid-column:1 / -1; margin:0; border-top:1px solid #785977; padding-top:7px; font-size:12px; line-height:1.35; color:#ffe1ad; }
 .orbit-ui .orbit-clock { display:flex; align-items:center; gap:10px; }
 .orbit-ui .orbit-clock strong { color:#ffe1ad; font-size:14px; }
 .orbit-ui .orbit-clock span { font-size:11px; text-transform:capitalize; color:#e4c5df; font-variant-numeric:tabular-nums; }
