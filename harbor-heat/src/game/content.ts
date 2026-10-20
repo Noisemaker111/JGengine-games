@@ -42,10 +42,13 @@ function entityById(catalogId: string): GameContextEntityEntry | null {
   return null;
 }
 
+/** Placed per job and removed on delivery; everything else is fixed city dressing. */
+const TRANSIENT_OBJECTS = new Set(["obj_delivery_1", "obj_delivery_2", "obj_delivery_3"]);
+
 function objectById(catalogId: string): GameContextObjectEntry | null {
   const def = objectDefById(catalogId);
   if (def === undefined) return null;
-  return {};
+  return TRANSIENT_OBJECTS.has(catalogId) ? {} : { scenery: true };
 }
 
 export const content: GameContextContent = { itemById, entityById, objectById };
