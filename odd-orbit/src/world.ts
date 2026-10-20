@@ -25,7 +25,6 @@ const terrainDescriptor = terrain({
     rockColor: HABITAT.rock,
     roughness: 0.96,
     strength: 0.2,
-    waterLevel: -30,
     snowHeight: 60,
     sweeps: { dry: [1.04, 1.02, 1], wet: [0.95, 0.96, 1] },
   },

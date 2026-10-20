@@ -20,7 +20,6 @@ export const TERRAIN: TerrainEnvironmentDescriptor = terrain({
     sandColor: "#8f9f4e",
     rockSlopeStart: 0.66,
     snowHeight: 200,
-    waterLevel: -40,
     detailScale: 3,
     macroScale: 30,
     roughness: 0.95,

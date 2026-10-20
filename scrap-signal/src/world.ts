@@ -127,7 +127,6 @@ const terrainDescriptor = terrain({
     // only geometry steep enough to qualify was the far mesas, so everything walkable was one hue.
     rockSlopeStart: 0.24,
     snowHeight: 999,
-    waterLevel: -999,
     detailScale: 9,
     macroScale: 70,
     roughness: 0.95,

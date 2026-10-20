@@ -15,13 +15,12 @@ export const world: EnvironmentWorldFeature = environment({
     segments: 120,
     material: "highland",
     colors: { low: "#4c6a31", high: "#728b40", waterline: "#3d5a4a" },
-    // Push sand/snow off-world so the detail shader reads as pure grass → rock relief.
+    // Push snow off-world so the detail shader reads as pure grass → rock relief.
     detail: {
       rockColor: "#6b6157",
       sandColor: "#8a7a5a",
       rockSlopeStart: 0.58,
       snowHeight: 400,
-      waterLevel: -80,
       detailScale: 3,
       macroScale: 26,
       roughness: 0.95,
