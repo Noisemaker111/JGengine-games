@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGameStore } from "@jgengine/react/hooks";
+import { useGameContext } from "@jgengine/react/provider";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Group, Mesh, Plane, Raycaster, TextureLoader, Vector2, Vector3 } from "three";
@@ -8,7 +9,7 @@ import { BUILDABLES } from "../objects/catalog";
 import { canPlace, footprintCells } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
-import { hoverRefusal, setPlacementHint } from "../build/placementHint";
+import { hoverRefusal, placementHintStore } from "../build/placementHint";
 
 const rotors: Record<string,string> = {
   ride_carousel: new URL("../../../public/art/models/carousel_rotor.glb",import.meta.url).href,
@@ -54,7 +55,7 @@ function Fence() {
   </group>;
 }
 function Blueprint() {
-  const {gl,camera}=useThree(); const [hover,setHover]=useState<[number,number]|null>(null);
+  const {gl,camera}=useThree(); const ctx=useGameContext(); const [hover,setHover]=useState<[number,number]|null>(null);
   const selected=useGameStore(()=>session.selectedTool);
   useGameStore(()=>`${session.placed.size}:${session.cash}`);
   useEffect(()=>{
@@ -74,7 +75,7 @@ function Blueprint() {
   },[gl,camera]);
   const def=selected?BUILDABLES[selected]:null;
   const refusal=def&&hover?hoverRefusal(canPlace(def.id,...hover),session.cash,def.cost):null;
-  useEffect(()=>{setPlacementHint(refusal);return()=>setPlacementHint(null);},[refusal]);
+  useEffect(()=>{if(placementHintStore.read(ctx)!==refusal)placementHintStore.write(ctx,refusal);return()=>{if(placementHintStore.read(ctx)!==null)placementHintStore.write(ctx,null);};},[ctx,refusal]);
   if(!def||!hover)return null;
   const valid=refusal===null;
   const color=valid?"#7cf3c8":"#ef7059";

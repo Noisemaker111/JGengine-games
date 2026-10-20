@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { hoverRefusal, placementHint, setPlacementHint } from "./placementHint";
+import { hoverRefusal } from "./placementHint";
 
 describe("hoverRefusal", () => {
   test("names the placement rule before the budget", () => {
@@ -10,14 +10,5 @@ describe("hoverRefusal", () => {
   });
   test("is null for a buildable, affordable spot", () => {
     expect(hoverRefusal({ ok: true }, 900, 850)).toBeNull();
-  });
-});
-
-describe("placement hint store", () => {
-  test("holds the latest hint and clears", () => {
-    setPlacementHint("Outside the fence");
-    expect(placementHint()).toBe("Outside the fence");
-    setPlacementHint(null);
-    expect(placementHint()).toBeNull();
   });
 });

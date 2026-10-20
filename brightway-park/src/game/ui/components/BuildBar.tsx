@@ -10,7 +10,8 @@ import {
 } from "../../objects/catalog";
 import { MILESTONES } from "../../catalog";
 import { session } from "../../session";
-import { usePlacementHint } from "../../build/placementHint";
+import { placementHintStore } from "../../build/placementHint";
+import { useStore } from "@jgengine/react/store";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
 
 function unlockLabel(requires: string): string {
@@ -23,7 +24,7 @@ export function BuildBar() {
   const { commands } = useGame();
   const cash = useGameStore(() => session.cash);
   const selected = useGameStore(() => session.selectedTool);
-  const refusal = usePlacementHint();
+  const refusal = useStore(placementHintStore);
   const tracks = useGameStore(() => [...session.placed.values()].filter(obj => obj.catalogId === "track_piece").length);
   const unlocked = useGameStore((ctx) =>
     (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
