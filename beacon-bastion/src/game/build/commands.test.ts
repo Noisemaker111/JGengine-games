@@ -71,6 +71,14 @@ describe("tower.build on plots", () => {
     expect(session.notices.at(-1)?.text).toBe("Pick a tower first");
     expect(session.plotOccupant.get(BUILD_PLOTS[1]!.id)).toBeNull();
   });
+
+  test("a tower the player cannot afford rejects and names the shortfall", () => {
+    runner.ctx.game.economy.charge(runner.ctx.player.userId, GOLD_CURRENCY, gold() - (archer.cost - 15));
+    runner.ui.invoke("buildTower1", {});
+    expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(1) })).toEqual({ status: "rejected", reason: "insufficient-gold" });
+    expect(session.notices.at(-1)?.text).toBe(`${archer.label} needs 15 more gold`);
+    expect(session.plotOccupant.get(BUILD_PLOTS[1]!.id)).toBeNull();
+  });
 });
 
 describe("sellTower", () => {
@@ -117,6 +125,7 @@ describe("upgradeTower", () => {
   test("rejects without enough gold and at max level", () => {
     const id = build(2, 0);
     expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toEqual({ status: "rejected", reason: "insufficient-gold" });
+    expect(session.notices.at(-1)?.text).toMatch(/^Upgrade needs \d+ more gold$/);
     runner.ctx.game.economy.grant(runner.ctx.player.userId, GOLD_CURRENCY, 10_000);
     runner.ui.invoke("upgradeTower", { instanceId: id });
     runner.ui.invoke("upgradeTower", { instanceId: id });

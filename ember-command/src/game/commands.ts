@@ -19,7 +19,8 @@ import { castThunderClap } from "./hero";
 import { hudStore } from "./hudStore";
 
 export interface OrderInput {
-  selection: readonly string[];
+  /** Absent when the shell routes a right-click with nothing selected (`pointer.secondaryCommand`). */
+  selection?: readonly string[];
   point: EntityPosition;
 }
 
@@ -152,7 +153,7 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
     hudStore.set({ notice: "Rally set. New recruits will march to this point." });
     return ctx;
   }
-  const units = selectedPlayerUnits(input.selection);
+  const units = selectedPlayerUnits(input.selection ?? []);
   if (units.length === 0) {
     hudStore.set({ notice: "Select your troops first: click a unit or drag a box around the formation." });
     ctx.game.audio.play("denied");

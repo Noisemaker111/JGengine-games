@@ -29,8 +29,10 @@ export const game = defineGame({
   GameUI,
   entityModels,
   // Selection rings, marquee + click select, and right-click orders are all shell-native: the game
-  // supplies who is selectable and the verb that receives { selection, point }.
-  pointer: { select: true, selectFilter: isPlayerSelectable, orderCommand: "unit.order" },
+  // supplies who is selectable and the verb that receives { selection, point }. With nothing
+  // selected the shell skips `orderCommand`, so the same verb takes the secondary right-click too:
+  // armed buildings and rally points still land, and a bare order says to select troops first.
+  pointer: { select: true, selectFilter: isPlayerSelectable, orderCommand: "unit.order", secondaryCommand: "unit.order" },
   // The three views a reviewer asks about, pinned to authored markers so they frame the same thing
   // after the map moves — `bun run shoot ember-command --view keep-enemy`.
   capture: {

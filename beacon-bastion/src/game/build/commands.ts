@@ -32,10 +32,15 @@ function rejectBuild(ctx: GameContext, input: BuildPlaceInput): { reason: string
     return { reason: "no-tower-selected" };
   }
   const def = towerDef(towerId, editorLayers);
-  if (ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY) < def.cost) {
-    return { reason: "insufficient-gold" };
-  }
+  const shortfall = def.cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  if (shortfall > 0) return denyGold(ctx, `${def.label} needs ${shortfall} more gold`);
   return null;
+}
+
+function denyGold(ctx: GameContext, text: string): { reason: string } {
+  pushNotice(text, ctx.time.now());
+  ctx.game.audio.play("denied");
+  return { reason: "insufficient-gold" };
 }
 
 function placeTower(ctx: GameContext, plot: BuildPlot): void {
@@ -103,7 +108,8 @@ function rejectUpgrade(ctx: GameContext, input: TowerTargetInput | undefined): {
   if (tower === null) return { reason: "no-tower" };
   const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level);
   if (cost === null) return { reason: "max-level" };
-  if (ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY) < cost) return { reason: "insufficient-gold" };
+  const shortfall = cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  if (shortfall > 0) return denyGold(ctx, `Upgrade needs ${shortfall} more gold`);
   return null;
 }
 

@@ -114,6 +114,20 @@ describe("base building", () => {
     expect(ctx.game.economy.balance("commander", "gold")).toBeLessThan(500);
   });
 
+  test("a bare right-click with nothing selected says to select troops", () => {
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
+    orderSelection(ctx, { point: [10, 0, 10] });
+    expect(hudStore.get().notice).toStartWith("Select your troops first");
+  });
+
+  test("the selection-less secondary right-click still places an armed building", () => {
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
+    session.buildArmed = "barracks";
+    orderSelection(ctx, { point: [10, 0, 10] });
+    expect(activeJobs(session.buildQueue).length + queuedJobs(session.buildQueue).length).toBe(1);
+    expect(session.buildArmed).toBeNull();
+  });
+
   test("placement is rejected in the enemy half", () => {
     const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
     session.buildArmed = "farm";
