@@ -1,10 +1,22 @@
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
-import { FURNITURE_BY_ID } from "../objects/catalog";
+import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "../objects/catalog";
 import type { HouseholdState } from "../session/types";
 import { nextBill, RATION_BUNDLE } from "./economy";
 
 /** Rations at or below this count make the pantry the household's most urgent need. */
 const LOW_RATIONS = 4;
+
+/**
+ * Why a being has no station for a goal, pointing at the fix in the same words as `dayGoal`.
+ * `furnished` is true when a matching station exists but is occupied.
+ */
+export function stationShortfall(role: FurnitureRole, planter: boolean, furnished: boolean): string {
+  const name = planter ? "Bloom Planter" : FURNITURE.find(def => def.role === role && def.id !== "bloom_planter")?.name ?? role;
+  const word = planter ? `${name} station` : `${role} station`;
+  return furnished
+    ? `No free ${word} — furnish another ${name} (Furnish menu)`
+    : `No ${word} — furnish a ${name} (Furnish menu)`;
+}
 
 /**
  * The single next thing the household needs, in plain words. Ordered by what stops the

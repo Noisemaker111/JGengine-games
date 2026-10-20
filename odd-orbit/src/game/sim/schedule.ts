@@ -39,6 +39,15 @@ export function scheduleLabel(member: MemberState): string {
 
 export function shiftSeconds(_member: MemberState): number { return SHIFT_SECONDS; }
 
+/** Live Yield shift readout from the member's current action; null when no paid shift is under way. */
+export function yieldShiftLabel(member: MemberState): string | null {
+  if (member.lifestyle !== "yield") return null;
+  const { action } = member;
+  if (action.kind === "seek" && action.goal === "work") return "Heading to Yield Console";
+  if (action.kind === "use" && action.goal === "work") return `On shift · ${Math.max(0, Math.ceil(SHIFT_SECONDS - member.workToday))}s left`;
+  return null;
+}
+
 export function canChangeLifestyle(member: MemberState): boolean {
   return member.workToday === 0 && member.shiftProgress === 0 && member.harvestToday === 0;
 }

@@ -6,6 +6,7 @@ import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalo
 import { householdStore } from "./session/store";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
 import { canChangeLifestyle, shiftIsOpen } from "./sim/schedule";
+import { stationShortfall } from "./sim/goal";
 import { releaseMember, startConversation } from "./sim/simulate";
 import type { BloomCrop, Lifestyle } from "./session/types";
 import { pushEvent } from "./session/types";
@@ -288,7 +289,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
         objects.sort((a, b) => Math.hypot(a.position[0] - from[0], a.position[2] - from[2]) - Math.hypot(b.position[0] - from[0], b.position[2] - from[2]));
         const obj = objects[0];
         if (obj === undefined) {
-          member.concern = `No ${goal === "tend" ? "Bloom Planter" : role} station; add one with Furnish`;
+          member.concern = stationShortfall(role, goal === "tend", false);
           householdStore.write(gameCtx, { ...state, members: { ...state.members } });
           return;
         }
@@ -296,6 +297,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
         const current = member.action;
         if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
           member.action = { kind: "seek", goal: role, objId: obj.instanceId };
+          if (goal === "work") pushEvent(state, `${member.name} started a Yield shift.`, gameCtx.time.now());
         }
         member.assignedByPlayer = true;
         member.actionUntil = gameCtx.time.now() + 12;

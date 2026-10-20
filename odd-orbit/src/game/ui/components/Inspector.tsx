@@ -4,7 +4,7 @@ import { moodOf, NEEDS } from "../../needs/needs";
 import { householdStore } from "../../session/store";
 import { pairKey } from "../../session/types";
 import { activeGoalLabel } from "../../sim/simulate";
-import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle } from "../../sim/schedule";
+import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShiftLabel } from "../../sim/schedule";
 import { bloomHarvest } from "../../sim/bloom";
 import { FURNITURE_BY_ID } from "../../objects/catalog";
 import { shiftIsOpen } from "../../sim/schedule";
@@ -26,6 +26,7 @@ export function Inspector() {
   const care = [{ goal:"hunger", label:"Nourish", detail:"Uses 1 ration" }, { goal:"energy", label:"Rest", detail:"Lowers stress" }, { goal:"fun", label:"Play", detail:"Lowers stress" }] as const;
   const mood = moodOf(member.needs);
   const shiftProgress = member.lifestyle === "yield" ? member.workToday : member.shiftProgress;
+  const shiftLabel = yieldShiftLabel(member);
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
   return <section className="orbit-inspector" aria-label={`${member.name} care and schedule`}>
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><button className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</button></header>
@@ -43,8 +44,8 @@ export function Inspector() {
     <div className="orbit-lifestyles" role="group" aria-label="Daily schedule">{LIFESTYLES.map(lifestyle => <button key={lifestyle.id} disabled={member.lifestyle !== lifestyle.id && !canChangeLifestyle(member)} aria-pressed={member.lifestyle === lifestyle.id} onClick={() => commands.run("member.lifestyle", { id, lifestyle:lifestyle.id })}><strong>{lifestyle.label}</strong><span>{lifestyle.blurb}</span></button>)}</div>
     {!canChangeLifestyle(member) && <p className="orbit-fine">Today’s paid shift is committed. Change rhythm tomorrow.</p>}
     {member.lifestyle === "bloom" && <><h3>Choose today's crop</h3><div className="orbit-lifestyles" role="group" aria-label="Bloom crop">{(["pantry","export"] as const).map(choice => { const output = bloomHarvest(choice,false); return <button key={choice} aria-pressed={crop === choice} disabled={cropLocked && crop !== choice} onClick={() => commands.run("member.bloomCrop", { id, crop:choice })}><strong>{choice === "pantry" ? "Pantry crop" : "Export crop"}</strong><span>{output.rations} rations · {output.credits} credits</span></button>; })}</div><p className="orbit-fine">Export trades 3 rations for 12 extra credits. Friends tending nearby add 1 ration and 12 credits. {cropLocked ? "Crop committed until tomorrow." : "Choose before tending starts."}</p></>}
-    <button className="orbit-paid-action" disabled={paidReason !== null} onClick={() => commands.run("member.direct", { id, goal: member.lifestyle === "bloom" ? "tend" : "work" })}>{member.lifestyle === "bloom" ? `Tend ${crop} crop · ${reward.rations} rations + ${reward.credits} credits` : "Start Yield shift · earn up to 100 credits"}</button>
-    <p className="orbit-fine">{paidReason ?? "20 seconds at the station. Care needs can interrupt your shift."}</p>
+    <button className="orbit-paid-action" disabled={paidReason !== null || shiftLabel !== null} onClick={() => commands.run("member.direct", { id, goal: member.lifestyle === "bloom" ? "tend" : "work" })}>{shiftLabel ?? (member.lifestyle === "bloom" ? `Tend ${crop} crop · ${reward.rations} rations + ${reward.credits} credits` : "Start Yield shift · earn up to 100 credits")}</button>
+    <p className="orbit-fine">{paidReason ?? (shiftLabel !== null ? "Shift under way. Care needs can interrupt it." : "20 seconds at the station. Care needs can interrupt your shift.")}</p>
     <div className="orbit-shift"><span>Shift progress</span><progress max={SHIFT_SECONDS} value={shiftProgress}/><span>{Math.round(shiftProgress)} / {SHIFT_SECONDS}s</span></div>
     <p className="orbit-fine">Today: {member.workToday.toFixed(0)} seconds worked · {member.harvestToday} rations grown</p>
     <button className="orbit-release" onClick={() => commands.run("member.release", { id })}>Release direction · let {member.name.split(" ")[0]} choose</button>

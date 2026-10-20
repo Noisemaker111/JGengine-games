@@ -13,6 +13,7 @@ import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
 import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWindow } from "./schedule";
 import { bloomHarvest } from "./bloom";
 import { crossedMilestones, REL_BOUNDS } from "./social";
+import { stationShortfall } from "./goal";
 
 const EVENT_TTL = 90;
 
@@ -303,7 +304,11 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       member.action = { kind: "seek", goal: role, objId: obj.instanceId };
       member.actionUntil = now + 12;
       member.concern = null;
-    } else concern(state, member, `No free ${bloomTime ? "Bloom Planter" : role} station`, now);
+    } else {
+      const planter = bloomTime && role === "fun";
+      const furnished = objects.some(candidate => FURNITURE_BY_ID[candidate.catalogId]?.role === role && (!planter || candidate.catalogId === "bloom_planter"));
+      concern(state, member, stationShortfall(role, planter, furnished), now);
+    }
   } else if (desire.kind === "socialize") {
     const companion = findIdleCompanion(ctx, state, member);
     if (companion !== null) startConversation(state, member, companion, now, false);

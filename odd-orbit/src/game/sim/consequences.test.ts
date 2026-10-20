@@ -8,6 +8,7 @@ import { content } from "../content";
 import { householdStore } from "../session/store";
 import { pairKey, type Lifestyle } from "../session/types";
 import { nextBill } from "./economy";
+import { shiftIsOpen, yieldShiftLabel } from "./schedule";
 import { setupWorld } from "./setup";
 import { simulateHousehold, startConversation } from "./simulate";
 
@@ -321,5 +322,34 @@ test("directed paid shifts explain closed windows instead of silently cancelling
   const member = householdStore.read(ctx).members["alien:1"]!;
   ctx.game.commands.run("member.direct", { id:member.id, goal:"tend" });
   expect(member.concern).toContain("window is closed");
+  expect(member.action.kind).toBe("idle");
+});
+
+test("starting a Yield shift from the inspector journals it and shows the shift in progress", () => {
+  const ctx = boot();
+  const member = householdStore.read(ctx).members["alien:2"]!;
+  ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  expect(shiftIsOpen(member, ctx.time.now())).toBe(true); // the fresh habitat clock opens at 09:00
+  ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
+  const started = householdStore.read(ctx).events.map(event => event.text);
+  expect(started).toContain(`${member.name} started a Yield shift.`);
+  expect(yieldShiftLabel(member)).toBe("Heading to Yield Console");
+  // Repeating the press keeps the same shift and does not journal it twice.
+  ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
+  expect(householdStore.read(ctx).events.filter(event => event.text.includes("started a Yield shift")).length).toBe(1);
+  const console = ctx.scene.object.get("starter:work_console")!;
+  ctx.scene.entity.setPose(member.id, { position:[...console.position] });
+  advance(ctx, 1);
+  expect(yieldShiftLabel(member)).toMatch(/^On shift · \d+s left$/);
+});
+
+test("a being with no furnished work station is told which furnishing fixes it", () => {
+  const ctx = boot();
+  const member = householdStore.read(ctx).members["alien:3"]!;
+  ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  expect(shiftIsOpen(member, ctx.time.now())).toBe(true);
+  ctx.scene.object.remove("starter:work_console");
+  ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
+  expect(member.concern).toBe("No work station — furnish a Yield Console (Furnish menu)");
   expect(member.action.kind).toBe("idle");
 });
