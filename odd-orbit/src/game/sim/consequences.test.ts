@@ -10,7 +10,7 @@ import { pairKey, type Lifestyle } from "../session/types";
 import { nextBill } from "./economy";
 import { shiftIsOpen, yieldShiftLabel } from "./schedule";
 import { setupWorld } from "./setup";
-import { simulateHousehold, startConversation } from "./simulate";
+import { simulateHousehold, startConversation, waitingForStation } from "./simulate";
 
 function boot(): GameContext {
   const ctx = createGameContext({ definition: game.game, content, player: { userId: "orbit-policy-test", isNew: true } });
@@ -352,4 +352,17 @@ test("a being with no furnished work station is told which furnishing fixes it",
   ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
   expect(member.concern).toBe("No work station — furnish a Yield Console (Furnish menu)");
   expect(member.action.kind).toBe("idle");
+});
+
+test("a second Yield worker sent to a full console reads as waiting, not heading there", () => {
+  const ctx = boot();
+  const state = householdStore.read(ctx);
+  const [first, second] = [state.members["alien:2"]!, state.members["alien:3"]!];
+  for (const member of [first, second]) ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  ctx.game.commands.run("member.direct", { id:first.id, goal:"work" });
+  second.action = { kind:"seek", goal:"work", objId:"starter:work_console" };
+  const objects = ctx.scene.object.list();
+  expect(waitingForStation(state, first, objects)).toBe(false);
+  expect(waitingForStation(state, second, objects)).toBe(true);
+  expect(yieldShiftLabel(second, waitingForStation(state, second, objects))).toBe("Waiting for a free Yield Console");
 });

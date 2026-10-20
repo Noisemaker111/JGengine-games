@@ -43,6 +43,14 @@ function hasRoom(state: HouseholdState, member: MemberState, obj: SceneObject): 
   return index >= 0 ? index < def.capacity : users.length < def.capacity;
 }
 
+/** True while the member is walking to a station whose places are all taken — they will stand and wait. */
+export function waitingForStation(state: HouseholdState, member: MemberState, objects: readonly SceneObject[]): boolean {
+  const { action } = member;
+  if (action.kind !== "seek") return false;
+  const obj = objects.find((candidate) => candidate.instanceId === action.objId);
+  return obj !== undefined && !hasRoom(state, member, obj);
+}
+
 function nearestForRole(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], role: FurnitureRole, catalogId?: string): SceneObject | null {
   const from = positionOf(ctx, member.id) ?? [0, 0, 0];
   let best: SceneObject | null = null;

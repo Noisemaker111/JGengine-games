@@ -3,7 +3,7 @@ import { useStore } from "@jgengine/react/store";
 import { moodOf, NEEDS } from "../../needs/needs";
 import { householdStore } from "../../session/store";
 import { pairKey } from "../../session/types";
-import { activeGoalLabel } from "../../sim/simulate";
+import { activeGoalLabel, waitingForStation } from "../../sim/simulate";
 import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShiftLabel } from "../../sim/schedule";
 import { bloomHarvest } from "../../sim/bloom";
 import { FURNITURE_BY_ID } from "../../objects/catalog";
@@ -26,7 +26,7 @@ export function Inspector() {
   const care = [{ goal:"hunger", label:"Nourish", detail:"Uses 1 ration" }, { goal:"energy", label:"Rest", detail:"Lowers stress" }, { goal:"fun", label:"Play", detail:"Lowers stress" }] as const;
   const mood = moodOf(member.needs);
   const shiftProgress = member.lifestyle === "yield" ? member.workToday : member.shiftProgress;
-  const shiftLabel = yieldShiftLabel(member);
+  const shiftLabel = yieldShiftLabel(member, waitingForStation(household, member, objects));
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
   return <section className="orbit-inspector" aria-label={`${member.name} care and schedule`}>
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><button className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</button></header>
