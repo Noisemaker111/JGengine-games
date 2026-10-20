@@ -3,6 +3,15 @@ import { quests } from "../../quests/catalog";
 import { FERRALON } from "../../palette";
 import { enemies } from "../../entities/enemies/catalog";
 
+/**
+ * The tracker's space is the left HUD column, shared with the contract card and Echo. One full card
+ * carries the current objective; any other active quest collapses to a title line so the column does
+ * not cover the crash-site set dressing.
+ */
+export function splitTrackedQuests<T>(active: readonly T[]): { primary: T | undefined; others: readonly T[] } {
+  return { primary: active[0], others: active.slice(1) };
+}
+
 export function MissionTracker() {
   const journal = useQuestJournal();
   const active = journal.filter((entry) => entry.status === "active");
@@ -13,28 +22,34 @@ export function MissionTracker() {
       </div>
     );
   }
+  const { primary, others } = splitTrackedQuests(active);
+  const primaryDef = quests.find((quest) => quest.id === primary?.questId);
   return (
     <div className="flex max-w-[17rem] flex-col gap-2">
-      {active.slice(0, 2).map((entry) => {
-        const def = quests.find((quest) => quest.id === entry.questId);
-        if (def === undefined) return null;
-        return (
-          <div key={entry.questId} className="border-l-4 border-amber-400 bg-black/60 px-3 py-2">
-            <div className="text-xs font-black uppercase tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              {def.title}
-            </div>
-            <p className="mb-1 text-[13px] leading-snug text-stone-300">{def.description}</p>
-            {entry.objectives.map((objective) => (
-              <div key={objective.id} className="flex justify-between text-[13px] font-semibold text-stone-200">
-                <span>Defeat {enemies.find((enemy) => enemy.id === def.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
-                <span className="tabular-nums">
-                  {Math.min(objective.progress, objective.count)} / {objective.count}
-                </span>
-              </div>
-            ))}
+      {primary !== undefined && primaryDef !== undefined ? (
+        <div key={primary.questId} className="border-l-4 border-amber-400 bg-black/60 px-3 py-2">
+          <div className="text-xs font-black uppercase tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            {primaryDef.title}
           </div>
-        );
-      })}
+          <p className="mb-1 text-[13px] leading-snug text-stone-300">{primaryDef.description}</p>
+          {primary.objectives.map((objective) => (
+            <div key={objective.id} className="flex justify-between text-[13px] font-semibold text-stone-200">
+              <span>Defeat {enemies.find((enemy) => enemy.id === primaryDef.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
+              <span className="tabular-nums">
+                {Math.min(objective.progress, objective.count)} / {objective.count}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {others.length > 0 ? (
+        <div className="flex flex-col gap-1 border-l-4 border-amber-400/60 bg-black/50 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wider text-amber-200/80">
+          {others.map((entry) => {
+            const def = quests.find((quest) => quest.id === entry.questId);
+            return def === undefined ? null : <span key={entry.questId}>+ {def.title}</span>;
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
