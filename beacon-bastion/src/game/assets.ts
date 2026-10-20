@@ -10,5 +10,6 @@ export const assets: AssetCatalog = buildCatalog({
     "kaykit-dungeon",
     "kaykit-adventurers",
     "kaykit-skeletons",
+    "kaykit-medieval-hexagon",
   ],
 });
