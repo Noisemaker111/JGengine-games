@@ -66,8 +66,10 @@ describe("tower.build on plots", () => {
     expect(session.inspectedTowerId).toBeNull();
   });
 
-  test("an empty plot with nothing selected still rejects", () => {
+  test("an empty plot with nothing selected still rejects, and says why", () => {
     expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(1) })).toEqual({ status: "rejected", reason: "no-tower-selected" });
+    expect(session.notices.at(-1)?.text).toBe("Pick a tower first");
+    expect(session.plotOccupant.get(BUILD_PLOTS[1]!.id)).toBeNull();
   });
 });
 

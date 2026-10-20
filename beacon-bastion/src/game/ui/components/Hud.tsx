@@ -8,6 +8,7 @@ import { BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_LIVES } from "../../entities/ba
 import { TOTAL_WAVES } from "../../waves/manifest";
 import { activeCreepCount, currentWaveNumber, session } from "../../session";
 import { waveOverlapBonus } from "../../waves/director";
+import { waveStatusLine } from "../../waves/status";
 
 export function Hud() {
   const { commands } = useGame();
@@ -17,6 +18,7 @@ export function Hud() {
   const lives = useGameStore((ctx) => ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives"));
   const wave = useGameStore(() => currentWaveNumber());
   const remaining = useGameStore(() => activeCreepCount());
+  const releasing = useGameStore(() => !session.waveReady && !session.director.done);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -25,7 +27,10 @@ export function Hud() {
         <HeartRow current={lives?.current ?? 0} max={lives?.max ?? STARTING_LIVES} size={18} />
       </div>
       <WalletCurrencyDisplay currencyId={GOLD_CURRENCY} name="Gold" />
-      <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} remaining={remaining} remainingLabel="raiders" />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} />
+        <HudLabel>{waveStatusLine({ started, releasing, wave: Math.min(wave, TOTAL_WAVES), alive: remaining })}</HudLabel>
+      </div>
       {ready ? <div className="pointer-events-auto max-w-64 rounded border border-amber-400/40 bg-slate-950/95 p-3 text-sm text-amber-50">
         <strong>{started ? "Choose your next assault" : "Prepare the beacon"}</strong>
         <p className="my-2 text-xs">{bonus > 0 ? `Wait for a safer approach, or send the next wave with ${remaining} raiders still alive for +${bonus} gold.` : "Place defenses on the foundation rings, then release the raiders when you are ready."}</p>

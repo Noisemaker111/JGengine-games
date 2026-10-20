@@ -5,6 +5,7 @@ import { fieldkitVars } from "@/components/ui/jg-theme";
 import { BuildBar } from "./components/BuildBar";
 import { EndScreens } from "./components/EndScreens";
 import { Hud } from "./components/Hud";
+import { Notices } from "./components/Notices";
 import { TowerPanel } from "./components/TowerPanel";
 
 function GameUIInner() {
@@ -13,6 +14,9 @@ function GameUIInner() {
     <HudCanvas layout={layout}>
       <HudPanel id="hud" anchor="top-left" inset={{ x: 18, y: 18 }}>
         <Hud />
+      </HudPanel>
+      <HudPanel id="notices" anchor="top" inset={{ x: 0, y: 18 }}>
+        <Notices />
       </HudPanel>
       <HudPanel id="settings" anchor="top-right" inset={{ x: 18, y: 18 }}>
         <SettingsTrigger />

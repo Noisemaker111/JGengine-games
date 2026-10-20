@@ -7,7 +7,7 @@ import { editorLayers } from "../../editorLayers";
 import { TOWER_IDS, towerDef } from "../entities/towers/catalog";
 import { sellValue, upgradeCost } from "../entities/towers/progression";
 import { nearestPlot, type BuildPlot } from "../world/path";
-import { session, nextTowerInstanceId, type TowerRuntime } from "../session";
+import { pushNotice, session, nextTowerInstanceId, type TowerRuntime } from "../session";
 import { towerBuildConfig } from "./construction";
 
 const PLOT_CLICK_RADIUS = 4.5;
@@ -26,7 +26,11 @@ function rejectBuild(ctx: GameContext, input: BuildPlaceInput): { reason: string
   if (plot === null) return session.inspectedTowerId === null ? { reason: "no-plot" } : null;
   if (session.plotOccupant.get(plot.id) !== null) return null;
   const towerId = session.selectedTowerId;
-  if (towerId === null) return { reason: "no-tower-selected" };
+  if (towerId === null) {
+    pushNotice("Pick a tower first", ctx.time.now());
+    ctx.game.audio.play("denied");
+    return { reason: "no-tower-selected" };
+  }
   const def = towerDef(towerId, editorLayers);
   if (ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY) < def.cost) {
     return { reason: "insufficient-gold" };

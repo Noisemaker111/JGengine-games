@@ -1,4 +1,5 @@
 import type { PathFollowState } from "@jgengine/core/nav/pathFollow";
+import { appendFeed } from "@jgengine/core/game/feed";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { createSpawnDirectorState, type SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
 import { createStats, type Stats } from "@jgengine/core/stats/statModifiers";
@@ -23,6 +24,13 @@ export interface TowerRuntime {
   cooldownSeconds: number;
 }
 
+/** A short player-facing line (e.g. why a click was refused) shown briefly over the field. */
+export interface Notice {
+  id: number;
+  text: string;
+  at: number;
+}
+
 export interface SessionState {
   director: SpawnDirectorState;
   buildQueue: WorkQueueState<TowerBuildSpec, TowerReservation>;
@@ -36,6 +44,8 @@ export interface SessionState {
   waveReady: boolean;
   waveStarted: boolean;
   lastWaveBonus: number;
+  notices: Notice[];
+  noticeSeq: number;
   gameOver: boolean;
   victory: boolean;
   creepSeq: number;
@@ -56,6 +66,8 @@ function freshState(): SessionState {
     waveReady: true,
     waveStarted: false,
     lastWaveBonus: 0,
+    notices: [],
+    noticeSeq: 0,
     gameOver: false,
     victory: false,
     creepSeq: 0,
@@ -67,6 +79,12 @@ export let session: SessionState = freshState();
 
 export function resetSession(): void {
   session = freshState();
+}
+
+/** Shows `text` over the field; the feed keeps only the newest few so a click spree cannot pile up. */
+export function pushNotice(text: string, now: number): void {
+  session.noticeSeq += 1;
+  session.notices = appendFeed(session.notices, { id: session.noticeSeq, text, at: now }, { limit: 3 });
 }
 
 export function nextCreepInstanceId(): string {
