@@ -10,7 +10,6 @@ const NATURE = "quaternius-stylized-nature";
 const DUNGEON = "kaykit-dungeon";
 const CHAR = "kaykit-adventurers";
 const SKEL = "kaykit-skeletons";
-const HEX = "kaykit-medieval-hexagon";
 
 const RAIDER_HEIGHT = 1.8;
 
@@ -29,29 +28,29 @@ function raiderPick(def: CreepDef): ModelPick {
 
 const TOWER_PLAN: Record<string, ModelPick> = {
   tower_archer: {
-    model: `${HEX}/building_tower_A_blue`,
-    fallbackModel: `${DUNGEON}/wall_archedwindow_gated`,
-    style: { targetHeight: 4.2 },
+    model: `${DUNGEON}/wall_archedwindow_gated`,
+    fallbackModel: `${DUNGEON}/wall_pillar`,
+    style: { targetHeight: 2.1 },
   },
   tower_cannon: {
-    model: `${HEX}/building_tower_catapult_blue`,
-    fallbackModel: `${DUNGEON}/wall_scaffold`,
-    style: { targetHeight: 3.6 },
+    model: `${DUNGEON}/wall_scaffold`,
+    fallbackModel: `${DUNGEON}/wall_arched`,
+    style: { targetHeight: 1.55 },
   },
   tower_frost: {
-    model: `${HEX}/building_tower_B_blue`,
-    fallbackModel: `${DUNGEON}/wall_corner_gated`,
+    model: `${DUNGEON}/wall_corner_gated`,
+    fallbackModel: `${DUNGEON}/pillar_decorated`,
     style: {
-      targetHeight: 4.4,
-      material: { emissive: "#3fb9d1", emissiveIntensity: 0.35 },
+      targetHeight: 2,
+      material: { emissive: "#3fb9d1", emissiveIntensity: 0.5 },
     },
   },
 };
 
 const KEEP_PLAN: ModelPick = {
-  model: `${HEX}/building_castle_blue`,
-  fallbackModel: `${DUNGEON}/wall_arched`,
-  style: { targetHeight: 6.5 },
+  model: `${DUNGEON}/wall_arched`,
+  fallbackModel: `${VILLAGE}/Wall_UnevenBrick_Straight`,
+  style: { scale: 1.6 },
 };
 
 function buildEntityModels(): Record<string, ModelConfig> {
