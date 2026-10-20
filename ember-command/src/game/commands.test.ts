@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
-import { canTrain, orderSelection } from "./commands";
+import { canTrain, orderSelection, trainUnit } from "./commands";
+import { hudStore } from "./hudStore";
 import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
 import { TRAINING_CONFIG } from "./production";
 import { resetSession, session } from "./session";
@@ -146,3 +147,43 @@ describe("base building", () => {
     expect(canTrain(ctx, "footman")).toBe(true);
   });
 });
+
+describe("order and train feedback", () => {
+  beforeEach(() => {
+    resetSession();
+    session.started = true;
+  });
+
+  test("a refused train order explains itself and plays the denied cue", () => {
+    addKeep();
+    const plays: string[] = [];
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 10 });
+    (ctx.game.audio as { play: (s: string) => void }).play = (s: string) => plays.push(s);
+    trainUnit(ctx, "peasant");
+    expect(hudStore.get().notice).toBe("Not enough gold for Peasant.");
+    expect(plays).toEqual(["denied"]);
+  });
+
+  test("a footman without a Barracks is told what it needs", () => {
+    addKeep();
+    trainUnit(ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 }), "footman");
+    expect(hudStore.get().notice).toBe("Footman needs a Barracks first.");
+  });
+
+  test("an accepted train order confirms what is training and where", () => {
+    addKeep();
+    trainUnit(ctxWith(new Map<string, EntityPosition>(), { gold: 500 }), "peasant");
+    expect(hudStore.get().notice).toBe("Training Peasant at the Town Hall.");
+  });
+
+  test("order notices count units with the right noun", () => {
+    addPlayerUnit("f1");
+    const ctx = ctxWith(new Map<string, EntityPosition>([["f1", [0, 0, 0]]]));
+    orderSelection(ctx, { selection: ["f1"], point: [10, 0, 10] });
+    expect(hudStore.get().notice).toBe("Move ordered: 1 trooper.");
+  });
+});
+
+function addKeep(): void {
+  session.units.set("keep", { id: "keep", catalogId: "keep_player", faction: "player", kind: "building", command: { kind: "idle" }, leash: 0, attackCooldown: 0 });
+}
