@@ -92,11 +92,6 @@ export function GameUI() {
           <GaragePanel />
         </div>
       </HudPanel>
-      <HudPanel id="credit" anchor="left" compact="hide" interactive={false}>
-        <div className="max-w-48 border-2 border-black bg-[#12141a]/85 px-2 py-1 text-[11px] font-bold uppercase leading-tight text-[#e6ecf2] shadow-[2px_2px_0_#000]">
-          A coastal city adventure of courier jobs, rival crews, and high-speed escapes
-        </div>
-      </HudPanel>
       <HudPanel id="loot-toasts" anchor="top-right" order={1} compact="hide" interactive={false}>
         <ToastStack
           action="loot.granted"
