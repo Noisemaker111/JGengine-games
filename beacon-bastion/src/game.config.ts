@@ -61,6 +61,15 @@ export const game = defineGame({
     }),
   },
   shadows: true,
+  // Graded post stack without the cinematic preset's image-based light, which washed the slopes
+  // blue under this world's own golden-hour sky.
+  postProcessing: {
+    toneMapping: "aces",
+    exposure: 0.95,
+    bloom: { strength: 0.16, radius: 0.5, threshold: 0.95 },
+    ao: { intensity: 1.3, radius: 1.4 },
+    grade: { saturation: 1.12, gain: [1.05, 1.02, 0.95], vignette: 0.22 },
+  },
   // Warm low sun rakes the relief so mounds, towers, and the keep cast long readable shadows; a cool
   // hemisphere fill keeps the shadow sides from going muddy black.
   lighting: {

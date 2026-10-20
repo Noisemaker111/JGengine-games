@@ -11,6 +11,7 @@ import {
 } from "@jgengine/core/world/features";
 
 import { YARD_FLOOR_MATERIAL } from "./game/assets";
+import { SALVAGE_FACADE_KIT } from "./game/art/facades";
 import { CORRIDOR_HALF_WIDTH, EXIT_Z } from "./game/run/constants";
 import { ZONES, type ZoneDef } from "./game/zones/catalog";
 
@@ -38,6 +39,7 @@ function nearWall(zone: ZoneDef): BuildingEnvironmentDescriptor {
     palette: zone.palette,
     seed: `drift-foundry-${zone.id}-near`,
     along: { roads: [zoneRoad(zone)], setback: 2, bothSides: true, maxLots: 20 },
+    kit: SALVAGE_FACADE_KIT,
   });
 }
 
@@ -57,6 +59,7 @@ function farWall(zone: ZoneDef): BuildingEnvironmentDescriptor {
       bothSides: true,
       maxLots: 10,
     },
+    kit: SALVAGE_FACADE_KIT,
   });
 }
 

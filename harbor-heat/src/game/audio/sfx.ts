@@ -55,6 +55,23 @@ export const SFX_PATCHES: Record<string, SynthPatch> = {
   shift_click: {
     voices: [{ kind: "tone", freq: 1500, duration: 0.05, gain: 0.09, wave: "square" }],
   },
+  // Courier cues: a quick rising pair when a parcel is taken, a bright two-note chime on a paid
+  // delivery, and a falling tone when a deadline runs out.
+  parcel_take: {
+    voices: [
+      { kind: "tone", freq: 660, duration: 0.09, gain: 0.14, wave: "triangle" },
+      { kind: "tone", freq: 990, duration: 0.12, gain: 0.12, wave: "triangle", slideTo: 1100 },
+    ],
+  },
+  delivery_chime: {
+    voices: [
+      { kind: "tone", freq: 784, duration: 0.22, gain: 0.16, wave: "sine" },
+      { kind: "tone", freq: 1175, duration: 0.34, gain: 0.14, wave: "sine" },
+    ],
+  },
+  delivery_fail: {
+    voices: [{ kind: "tone", freq: 330, duration: 0.3, gain: 0.16, wave: "triangle", slideTo: 196 }],
+  },
 };
 
 /** Ids the shell realises as retained, pitch/gain-controlled loops rather than one-shots. */

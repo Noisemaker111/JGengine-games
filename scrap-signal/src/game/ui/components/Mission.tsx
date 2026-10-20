@@ -8,7 +8,7 @@ export function MissionTracker() {
   const active = journal.filter((entry) => entry.status === "active");
   if (active.length === 0) {
     return (
-      <div className="max-w-[16rem] border-l-4 border-amber-400 bg-black/60 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-stone-300">
+      <div className="max-w-[16rem] border-l-4 border-amber-400 bg-black/60 px-3 py-2 text-[13px] font-bold uppercase tracking-wider text-stone-300">
         All missions complete — Ferralon is (briefly) quiet
       </div>
     );
@@ -23,9 +23,9 @@ export function MissionTracker() {
             <div className="text-xs font-black uppercase tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
               {def.title}
             </div>
-            <p className="mb-1 text-[11px] leading-snug text-stone-300">{def.description}</p>
+            <p className="mb-1 text-[13px] leading-snug text-stone-300">{def.description}</p>
             {entry.objectives.map((objective) => (
-              <div key={objective.id} className="flex justify-between text-[11px] font-semibold text-stone-200">
+              <div key={objective.id} className="flex justify-between text-[13px] font-semibold text-stone-200">
                 <span>Defeat {enemies.find((enemy) => enemy.id === def.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
                 <span className="tabular-nums">
                   {Math.min(objective.progress, objective.count)} / {objective.count}
@@ -53,7 +53,7 @@ export function CashPlate() {
 
 export function CreditBadge() {
   return (
-    <div className="pointer-events-auto flex items-center gap-1.5 rounded-sm bg-black/50 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.3em] text-stone-400">
+    <div className="pointer-events-auto flex items-center gap-1.5 rounded-sm bg-black/50 px-2 py-0.5 text-[11px] font-black uppercase tracking-[0.3em] text-stone-300">
       SCRAP SIGNAL
     </div>
   );

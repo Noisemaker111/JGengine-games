@@ -26,7 +26,7 @@ describe("worker gather economy (real context)", () => {
     // A gold mine a short walk away.
     ctx.scene.entity.spawn("goldmine", { id: "mine", position: [6, 0, 0], role: "npc" });
     session.nodes.set("mine", { id: "mine", resource: "gold", x: 6, z: 0 });
-    initResourceField();
+    initResourceField(() => 0.5);
 
     // A peasant ordered to gather it.
     ctx.scene.entity.spawn("peasant", { id: "p1", position: [1, 0, 0], role: "npc" });
@@ -52,7 +52,7 @@ describe("worker gather economy (real context)", () => {
     resetSession();
     ctx.scene.entity.spawn("goldmine", { id: "mine", position: [0, 0, 0], role: "npc" });
     session.nodes.set("mine", { id: "mine", resource: "gold", x: 0, z: 0 });
-    initResourceField();
+    initResourceField(() => 0.5);
     const field = session.resourceField!;
     let hits = 0;
     for (let i = 0; i < 10000; i++) {

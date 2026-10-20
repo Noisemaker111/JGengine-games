@@ -141,7 +141,7 @@ const terrainDescriptor = terrain({
     // Grain, not repaint: `tint` low keeps the biome palette, the macro sweeps, and the slope-rock
     // blend visible and takes only the map's light and shade. At the default 1 the dirt albedo
     // painted over all of it and every region came out the same flat tan.
-    material: { maps: GROUND_MAPS, repeat: 3.2, strength: 0.9, tint: 0.18 },
+    material: { maps: GROUND_MAPS, repeat: 6, strength: 1, tint: 0.18 },
   },
   flatten: [
     ...ZONES.map((zone) => ({
@@ -160,7 +160,7 @@ const terrainDescriptor = terrain({
 // Roots lifted well off black: the old #6b5526 root meant every side-lit blade rendered as a dark
 // strip against bright sand — the "black cardboard" read. Ochre roots into straw tips keeps the
 // warm-world rule while the whole blade stays in a value the light can actually model.
-const SCRUB_COLORS = ["#7d6434", "#a68a46", "#d8bc6e"] as const;
+const SCRUB_COLORS = ["#6e5a34", "#94794a", "#b9a064"] as const;
 
 const scrubClump = (x: number, z: number, size: number, seed: string): GrassEnvironmentDescriptor =>
   grass({
@@ -179,7 +179,7 @@ const scrubClump = (x: number, z: number, size: number, seed: string): GrassEnvi
     tuftRadius: 0.3,
     // High brightness jitter breaks the repeated-blade read; near-full normal lift stops side-lit
     // blades from going black — the sun models the clump as a soft mound instead of dark planes.
-    colorVariation: 0.45,
+    colorVariation: 0.3,
     normalLift: 0.8,
   });
 

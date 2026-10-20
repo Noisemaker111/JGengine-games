@@ -23,7 +23,9 @@ export interface View {
   trace: { from: Point; to: Point; remaining: number } | null;
 }
 export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null, rifleUid: null }));
-const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator() }));
+const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator(), airBeat: -1 }));
+/** Station bed is muted while the game is frozen; it is a retained loop, so only its gain changes. */
+const BED_GAIN = 0.45;
 const message = (e: unknown): string => e instanceof Error ? e.message : String(e);
 export function setAim(ctx: GameContext, direction: Point): void { runtime(ctx).aim = direction; }
 function playerAt(ctx: GameContext): Point | null { return ctx.scene.entity.get(ctx.player.userId)?.position ?? null; }
@@ -32,8 +34,8 @@ function playable(ctx: GameContext): boolean {
   return !view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive");
 }
 function ungrab(): void { if (typeof document !== "undefined") document.exitPointerLock?.(); }
-function freeze(ctx: GameContext): void { ctx.time.pause(); setGamePhase(ctx, "paused"); ungrab(); }
-function run(ctx: GameContext): void { setGamePhase(ctx, "playing"); ctx.time.play(); }
+function freeze(ctx: GameContext): void { ctx.time.pause(); setGamePhase(ctx, "paused"); ctx.game.audio.setLoop("bed", { gain: 0 }); ungrab(); }
+function run(ctx: GameContext): void { setGamePhase(ctx, "playing"); ctx.game.audio.setLoop("bed", { gain: BED_GAIN }); ctx.time.play(); }
 function teleport(ctx: GameContext, at: Point): void {
   ctx.scene.entity.setPose(ctx.player.userId, { position: at, rotationY: Math.PI, dt: 0 });
 }
@@ -269,6 +271,8 @@ export function registerControls(ctx: GameContext): void {
 }
 export function initialize(ctx: GameContext): void {
   registerControls(ctx);
+  ctx.game.audio.loop("bed", "bed");
+  ctx.game.audio.setLoop("bed", { gain: BED_GAIN });
   try {
     if (typeof localStorage === "undefined") throw new Error("Marrow needs browser local storage before a dive can start.");
     const save = openSave(localStorage);
@@ -300,6 +304,12 @@ export function tick(ctx: GameContext, dt: number): void {
   const steam = v.dive.elapsed % 8 < 3 && inside(at[0], at[2], STEAM);
   let dive = ageDive(v.dive, dt, steam);
   let hint = steam ? "Hot suppressant / leave the striped floor!" : v.hint;
+  // Low-air escalation: one chirp every half second once the tank is under 20 seconds.
+  const runState = runtime(ctx);
+  if (dive.oxygen > 0 && dive.oxygen < 20) {
+    const beat = Math.floor(dive.elapsed * 2);
+    if (beat !== runState.airBeat) { runState.airBeat = beat; ctx.game.audio.play("lowAir"); }
+  } else runState.airBeat = -1;
   let p = { ...dive.print, cooldown: Math.max(0, dive.print.cooldown - dt) };
   if (p.health > 0) {
     const range = distance(at, p.at), sees = range < 12 && at[2] < RECEIVING_BACK_Z && lineOfSight(at, p.at);
@@ -315,7 +325,7 @@ export function tick(ctx: GameContext, dt: number): void {
       }
     } else if (sees || noisy || (p.mode === "calling" && range < 18 && lineOfSight(at, p.at) && at[2] < RECEIVING_BACK_Z)) {
       p.mode = "calling";
-      if (range < 1.9 && p.cooldown === 0) { p.mode = "winding"; p.attack = 0.7; hint = "Fitter raises its rifle / step back!"; }
+      if (range < 1.9 && p.cooldown === 0) { p.mode = "winding"; p.attack = 0.7; hint = "Fitter raises its rifle / step back!"; ctx.game.audio.play("windup"); }
       else if (range >= 1.9) {
         p.at = advanceRoute(runtime(ctx).navigation, p.at, at, Math.min(range - 1.7, dt * 2.5), "vault");
       }

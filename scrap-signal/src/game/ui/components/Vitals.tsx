@@ -41,7 +41,7 @@ export function VitalsPlate() {
           Reclaimer
         </span>
         {(skillPoints?.current ?? 0) > 0 ? (
-          <span className="animate-pulse text-[10px] font-bold uppercase tracking-wider text-lime-300">
+          <span className="animate-pulse text-xs font-bold uppercase tracking-wider text-lime-300">
             [K] +{Math.round(skillPoints?.current ?? 0)} skill pts
           </span>
         ) : null}

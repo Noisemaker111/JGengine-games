@@ -61,6 +61,25 @@ export const game = defineGame({
   // Soft shadows read well but are the dominant cost under software WebGL; a single 1024 map keeps
   // the look affordable. Real-GPU play is nowhere near this budget.
   shadows: true,
+  // Shipped-game presentation: a real day sky + IBL fill the empty horizon, and the post grade is
+  // tuned to the valley's warm ember banners against earthy greens. AO stays off to keep the
+  // populated-wave frame cost affordable under software WebGL.
+  look: "cinematic",
+  postProcessing: {
+    toneMapping: "aces",
+    exposure: 1.0,
+    aa: "smaa",
+    bloom: { strength: 0.22, radius: 0.5, threshold: 0.92 },
+    ao: false,
+    grade: {
+      lift: [0.02, 0.014, 0.012],
+      gain: [1.06, 1.02, 0.96],
+      gamma: 0.97,
+      saturation: 1.1,
+      vignette: 0.22,
+      grain: 0.01,
+    },
+  },
   lighting: {
     ambient: { color: "#b3c0bc", intensity: 0.6 },
     hemisphere: { skyColor: "#bfd9d5", groundColor: "#686747", intensity: 0.65 },
