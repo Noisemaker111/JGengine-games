@@ -29,6 +29,7 @@ export function Inspector() {
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
   return <section className="orbit-inspector" aria-label={`${member.name} care and schedule`}>
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><button className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</button></header>
+    <div className="orbit-inspector-body">
     <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{activeGoalLabel(member)}</span></div>
     <div className="orbit-stress"><span>{member.recovering ? "Burnout recovery" : "Stress"}</span><meter aria-label="Stress" min={0} max={100} value={member.stress}/><b>{Math.round(member.stress)}</b></div>
     {member.recovering && <p className="orbit-warning">Paid work stops during recovery. Reach 50 Nourish and Rest, then reduce stress below 35.</p>}
@@ -51,5 +52,6 @@ export function Inspector() {
     <div className="orbit-bonds">{bonds.map(bond => <div key={bond.id}><span><strong>{bond.name}</strong><small>{relationLabel(bond.value)} · {Math.round(bond.value)}</small></span><button onClick={() => commands.run("member.socialize", { id, withId:bond.id })}>Talk</button></div>)}</div>
     <p className="orbit-fine">Select a furnishing in the habitat to direct this being. A Bond Ring used alone can only restore Social to 55.</p>
     {member.concern && <p role="status" className="orbit-warning">{member.concern}</p>}
+    </div>
   </section>;
 }
