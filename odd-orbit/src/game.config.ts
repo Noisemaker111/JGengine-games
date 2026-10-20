@@ -36,6 +36,26 @@ export const game = defineGame({
     hemisphere: { skyColor: "#c9a6e0", groundColor: "#4a3f66", intensity: 0.7 },
     directional: [{ color: "#ffe6b0", intensity: 1.35, position: [30, 48, 24], castShadow: true }],
   },
+  // Dusk-moon presentation: the world owns its sky, so "cinematic" only fills the unset post stack
+  // (IBL + tone-map/bloom/AO/grade). Lighting above is authored explicitly and wins.
+  look: "cinematic",
+  postProcessing: {
+    toneMapping: "aces",
+    exposure: 0.9,
+    aa: "smaa",
+    // Soft glow on the luminous green gardens and amber Yield console without bleeding the lilac stone.
+    bloom: { strength: 0.3, radius: 0.6, threshold: 0.92 },
+    // Contact creases under furniture and beside the habitat walls, kept modest for the draw budget.
+    ao: { radius: 1.2, intensity: 1.6, distanceFalloff: 2.6 },
+    grade: {
+      lift: [0.02, 0.012, 0.03],
+      gain: [1.04, 1.0, 1.02],
+      gamma: 0.97,
+      saturation: 1.12,
+      vignette: 0.26,
+      grain: 0.008,
+    },
+  },
   camera: {
     rig: "rts",
     followEntityId: null,

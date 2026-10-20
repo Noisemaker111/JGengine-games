@@ -72,6 +72,8 @@ export function onTick(ctx: GameContext, dt: number): void {
   const snapshot = session.snapshot();
   for (const burst of impactBursts(before, snapshot)) {
     ctx.particles.burst(burst.config, burst.count, burst.blending);
+    // Cue ids match impact kinds one-to-one (see game/audio.ts), so each visible impact is also heard.
+    ctx.game.audio.play(burst.kind);
   }
 
   ctx.scene.entity.bind("racers").sync(

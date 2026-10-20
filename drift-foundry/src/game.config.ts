@@ -1,6 +1,7 @@
 import { defineGame } from "@jgengine/shell/defineGame";
 import { editorLayers } from "./editorLayers";
 
+import { DRIFT_SOUNDS } from "./game/audio";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
@@ -46,6 +47,7 @@ export const game = defineGame({
   },
   entityModels,
   objectModels,
+  audio: { sounds: DRIFT_SOUNDS },
   shadows: true,
   // Low warm key over the driver's right wall: the near row is short enough that its shadow stops
   // mid-corridor, so the run is split lit/shadow lengthwise. The cool hemisphere and blue fill keep

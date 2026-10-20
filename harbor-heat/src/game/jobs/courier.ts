@@ -53,6 +53,7 @@ export function finishCourier(ctx: GameContext, won: boolean): void {
     grantCred(ctx, 15);
   }
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
+  ctx.game.audio.play(won ? "delivery_chime" : "delivery_fail");
   syncSession(ctx, true);
   ctx.game.feed.push("harbor.log", { text: won ? `Parcel delivered to ${route.recipient}. $${reward} paid.${rush ? ` Cargo ${Math.round(condition)}%; bond refund included.` : ""}` : rush ? "Rush expired. The $60 bond was forfeited; free standard jobs remain available." : "Delivery expired. The parcel returned to dispatch; no cash lost." });
   void ctx.game.save?.checkpoint();
@@ -72,6 +73,7 @@ export function registerCourier(ctx: GameContext): void {
     const position = courierPosition(state)!;
     courierStore.write(state, { ...current, phase: "running", route: routeIndex, remaining: courierDeadline(route.seconds, rush), reward: 0, service: rush ? "rush" : "standard", condition: 100, lastHealth: state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 100,
       distance: Math.round(Math.hypot(position[0] - route.position[0], position[2] - route.position[1])) });
+    state.game.audio.play("parcel_take");
     void state.game.save?.checkpoint();
   } });
   ctx.game.commands.define("courier.deliver", { apply(state) {

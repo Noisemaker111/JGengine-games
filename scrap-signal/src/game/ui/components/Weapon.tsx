@@ -42,7 +42,7 @@ export function AmmoPlate() {
         >
           {gun.name}
         </div>
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-stone-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+        <div className="text-xs font-semibold uppercase tracking-wider text-stone-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
           {gun.manufacturer} {gun.family} · lv{gun.level} · {gun.weapon.damage} dmg
           {gun.element !== "none" ? (
             <span style={{ color: ELEMENT_COLORS[gun.element] }}> · {gun.element}</span>
@@ -61,7 +61,7 @@ export function AmmoPlate() {
           / {Math.round(reserve?.current ?? 0)}
         </span>
       </div>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-stone-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+      <div className="text-xs font-semibold uppercase tracking-wider text-stone-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
         {reloading ? "RELOADING…" : `${AMMO_LABELS[gun.ammo]} ammo · [R] reload`} · ✜ {Math.round(grenades?.current ?? 0)}
       </div>
     </div>
@@ -84,16 +84,16 @@ export function Hotbar() {
               active ? "border-amber-400 bg-black/80" : "border-black/70 bg-black/55"
             }`}
           >
-            <span className="text-[9px] font-bold text-stone-500">{index + 1}</span>
+            <span className="text-[11px] font-bold text-stone-400">{index + 1}</span>
             {gun !== undefined ? (
               <span
-                className="max-w-full truncate text-[10px] font-black uppercase"
+                className="max-w-full truncate text-xs font-black uppercase"
                 style={{ color: RARITY_COLORS[gun.rarity] }}
               >
                 {gun.name}
               </span>
             ) : (
-              <span className="text-[10px] text-stone-600">empty</span>
+              <span className="text-xs text-stone-600">empty</span>
             )}
           </div>
         );
@@ -116,10 +116,10 @@ export function ItemCard() {
       <div className="text-sm font-black uppercase tracking-wider" style={{ color: RARITY_COLORS[gun.rarity] }}>
         {gun.name}
       </div>
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+      <div className="text-xs font-semibold uppercase tracking-widest text-stone-400">
         {gun.rarity} {gun.manufacturer} {gun.family} · level {gun.level}
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] font-semibold text-stone-200">
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px] font-semibold text-stone-200">
         <span>Damage</span>
         <span className="text-right tabular-nums">{gun.weapon.damage}{gun.weapon.pellets !== undefined ? ` ×${gun.weapon.pellets}` : ""}</span>
         <span>Fire rate</span>

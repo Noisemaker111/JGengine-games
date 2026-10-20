@@ -245,7 +245,8 @@ export const game = defineGame({
   },
   lighting: { ambient: { color: "#d4d5c8", intensity: 0.72 }, hemisphere: { skyColor: "#c7d9df", groundColor: "#514639", intensity: 0.5 } },
   backdrop: { background: C.black, fog: { color: C.black, near: 24, far: 75 } },
-  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.2, radius: 0.4, threshold: 1.1 } },
+  // Lamp housings and amber signage sit near the bloom threshold; a high strength smeared the ceiling into haze.
+  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 } },
   capture: { probe: captureProbe },
   orientation: "landscape",
 });
