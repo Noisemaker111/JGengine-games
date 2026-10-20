@@ -6,6 +6,7 @@ import { GameIcon } from "@jgengine/react/gameIcons";
 import { actionLabel } from "@jgengine/core/input/actionBindings";
 
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
+import { buildPrompt } from "../../build/prompt";
 import { editorLayers } from "../../../editorLayers";
 import { TOWER_IDS, towerDef } from "../../entities/towers/catalog";
 import { keybinds } from "../../keybinds";
@@ -16,10 +17,12 @@ export function BuildBar() {
   const gameCtx = useGameContext();
   const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
   const selected = useGameStore(() => session.selectedTowerId);
+  const selectedAffordable =
+    selected !== null && gold >= towerDef(selected, editorLayers).cost;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <HudLabel>Build</HudLabel>
+      <HudLabel>{buildPrompt(selected !== null, selectedAffordable)}</HudLabel>
       <div style={{ display: "flex", gap: 10 }}>
         {TOWER_IDS.map((id, index) => {
           const def = towerDef(id, editorLayers);
@@ -64,10 +67,10 @@ export function BuildBar() {
               <span
                 style={{
                   fontFamily: "var(--jg-font-display)",
-                  fontSize: 9,
-                  letterSpacing: "0.08em",
+                  fontSize: 11,
+                  letterSpacing: "0.06em",
                   textTransform: "uppercase",
-                  color: "var(--jg-text-dim)",
+                  color: "var(--jg-text)",
                 }}
               >
                 {def.label}
