@@ -29,7 +29,7 @@ Engine contributors also follow [JGengine's governance](https://github.com/Noise
 
 - Code work happens in `.claude/worktrees/<name>` (`claude --worktree <name>`, or `git worktree add -b <name> .claude/worktrees/<name> origin/beta`); scratch and evidence go in `.scratch/`, which never holds a checkout. Both are ignored.
 - After opening a PR, always subscribe to its activity and drive it to green; never ask whether to watch it.
-- Work lands on `beta`: branch from `origin/beta`, then push verified commits to `beta` directly or open the PR into `beta` and merge it yourself with `gh pr merge <n> --auto --merge` (if that errors for any reason but a failing check, `gh pr merge <n> --merge`), and confirm it shows MERGED; never ask me to merge. `stable` is the stable branch and moves only when I ask.
-- For a reversible choice, pick the option you'd recommend, say which in the PR body, and keep going. Ask only for irreversible actions, money, production data, or releases.
+- Work lands on `beta`: branch from `origin/beta`, then push verified commits to `beta` directly or open the PR into `beta` and merge it yourself with `gh pr merge <n> --auto --merge` (if that errors for any reason but a failing check, `gh pr merge <n> --merge`), and confirm it shows MERGED; never ask me to merge. When a change needs unreleased engine work, cut the engine release yourself per the engine's AGENTS.md, then adopt it here and merge that too. `stable` is the stable branch and moves only when I ask.
+- For a reversible choice, pick the option you'd recommend, say which in the PR body, and keep going. Ask only for irreversible actions, money or production data; merges and releases are never questions.
 - Record demo clips and videos yourself with the repo's capture tooling; never ask me to record them.
 - Rewrite a PR body yourself whenever it goes stale.
