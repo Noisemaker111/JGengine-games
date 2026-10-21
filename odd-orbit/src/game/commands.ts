@@ -6,6 +6,7 @@ import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalo
 import { householdStore } from "./session/store";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
 import { canChangeLifestyle, shiftIsOpen } from "./sim/schedule";
+import { stationShortfall } from "./sim/goal";
 import { releaseMember, startConversation } from "./sim/simulate";
 import type { BloomCrop, Lifestyle } from "./session/types";
 import { pushEvent } from "./session/types";
@@ -100,6 +101,7 @@ export function registerCommands(ctx: GameContext): void {
       if (!gameCtx.scene.object.remove(input.id)) return;
       const state = householdStore.read(gameCtx);
       pushEvent(state, `Sold ${def.name} for ${Math.round(def.cost / 2)} credits.`, gameCtx.time.now(), "info");
+      gameCtx.game.audio.play("sell", [obj.position[0], obj.position[1], obj.position[2]]);
       for (const member of Object.values(state.members)) {
         if ((member.action.kind === "use" || member.action.kind === "seek") && member.action.objId === input.id) releaseMember(member);
       }
@@ -144,6 +146,7 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
     if (state.credits < def.cost) {
       pushEvent(state, `Not enough credits for ${def.name}.`, ctx.time.now(), "info");
       householdStore.write(ctx, { ...state });
+      ctx.game.audio.play("denied");
       return;
     }
     if (!Number.isFinite(input.point.x) || !Number.isFinite(input.point.z)) return;
@@ -161,12 +164,14 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
     if (blocked) {
       pushEvent(state, "Leave room between furnishings; choose another spot.", ctx.time.now());
       householdStore.write(ctx, { ...state });
+      ctx.game.audio.play("denied");
       return;
     }
     const y = ctx.world.groundHeightAt(x, z);
     ctx.scene.object.place(def.id, x, y, z, { instanceId: nextPlacementId(ctx, def.id) });
     pushEvent(state, `Placed ${def.name}.`, ctx.time.now(), "good");
     householdStore.write(ctx, { ...state, credits: creditAmount(state.credits - def.cost), buildTool: null });
+    ctx.game.audio.play("place", [x, y, z]);
     checkpoint(ctx);
     return;
   }
@@ -284,7 +289,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
         objects.sort((a, b) => Math.hypot(a.position[0] - from[0], a.position[2] - from[2]) - Math.hypot(b.position[0] - from[0], b.position[2] - from[2]));
         const obj = objects[0];
         if (obj === undefined) {
-          member.concern = `No ${goal === "tend" ? "Bloom Planter" : role} station; add one with Furnish`;
+          member.concern = stationShortfall(role, goal === "tend", false);
           householdStore.write(gameCtx, { ...state, members: { ...state.members } });
           return;
         }
@@ -292,6 +297,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
         const current = member.action;
         if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
           member.action = { kind: "seek", goal: role, objId: obj.instanceId };
+          if (goal === "work") pushEvent(state, `${member.name} started a Yield shift.`, gameCtx.time.now());
         }
         member.assignedByPlayer = true;
         member.actionUntil = gameCtx.time.now() + 12;
@@ -308,6 +314,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       state.credits = creditAmount(state.credits - RATION_BUNDLE.cost);
       state.pantry += RATION_BUNDLE.quantity;
       pushEvent(state, "Bought six ration crystals for 36 credits.", gameCtx.time.now(), "good");
+      gameCtx.game.audio.play("purchase");
       householdStore.write(gameCtx, { ...state });
       checkpoint(gameCtx);
     },
@@ -321,6 +328,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       state.debt = creditAmount(state.debt + RELIEF.debt);
       state.reliefDay = state.day;
       pushEvent(state, "Emergency ration signal accepted: four crystals, 40 credits owed. Earn or harvest to recover.", gameCtx.time.now());
+      gameCtx.game.audio.play("relief");
       householdStore.write(gameCtx, { ...state });
       checkpoint(gameCtx);
     },

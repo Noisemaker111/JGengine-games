@@ -10,6 +10,7 @@ import {
 import { DAY_LENGTH, MILESTONES } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { pushToast, session } from "../session";
+import { syncAmbience } from "../audio";
 import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
 import { placedList } from "../build/placement";
 
@@ -78,6 +79,7 @@ export function economyDayTick(ctx: GameContext): void {
     net >= 0 ? "good" : "bad",
     now,
   );
+  ctx.game.audio.play("settle");
 
   if (session.cash < 0) {
     session.bankruptDays += 1;
@@ -86,7 +88,9 @@ export function economyDayTick(ctx: GameContext): void {
       session.open = false;
       ctx.time.pause();
       setGamePhase(ctx, "ended");
+      syncAmbience(ctx);
       pushToast("Bankrupt! The park has closed for good.", "bad", now);
+      ctx.game.audio.play("bankrupt");
     } else {
       pushToast(`In the red — ${BANKRUPT_LIMIT - session.bankruptDays} day(s) to recover`, "bad", now);
     }
@@ -111,6 +115,7 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
     if (session.rating >= milestone.rating && ctx.game.unlocks !== undefined && !ctx.game.unlocks.has(ctx.player.userId, milestone.unlock)) {
       ctx.game.unlocks.grant(ctx.player.userId, milestone.unlock);
       pushToast(`Milestone! Unlocked: ${milestone.label}`, "good", now);
+      ctx.game.audio.play("milestone");
     }
   }
 }

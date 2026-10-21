@@ -8,6 +8,7 @@ import { BUILDABLES } from "../objects/catalog";
 import { archiveSave, savePark } from "../persistence";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
+import { syncAmbience } from "../audio";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -42,6 +43,7 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const def = buildableDef(toolId);
   if (!affordable(toolId)) {
     pushToast(`Not enough cash for ${def.label}`, "bad", ctx.time.now());
+    ctx.game.audio.play("denied");
     return;
   }
   if (!Array.isArray(input.point) || input.point.length !== 3 || !input.point.every(Number.isFinite)) return;
@@ -49,11 +51,14 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const check = canPlace(toolId, x, z);
   if (!check.ok) {
     pushToast(check.reason ?? "Can't build here", "bad", ctx.time.now());
+    ctx.game.audio.play("denied");
     return;
   }
   const placed = placeObject(ctx, toolId, x, z);
   if (placed === null) return;
   session.cash -= def.cost;
+  pushToast(`${def.label} built · -$${def.cost}`, "good", ctx.time.now());
+  ctx.game.audio.play("place", [placed.x, 0, placed.z]);
   savePark(ctx);
 }
 
@@ -74,6 +79,7 @@ export function registerBuildCommands(ctx: GameContext): void {
     if (session.gameOver) { setGamePhase(state,"ended"); state.time.pause(); }
     else if (session.won && !session.winDismissed) { setGamePhase(state,"paused"); state.time.pause(); }
     else { setGamePhase(state,"playing"); state.time.play(); }
+    syncAmbience(state);
     savePark(state); bump(state);
   }});
   ctx.game.commands.define("park.save", { apply(state) { savePark(state); bump(state); }});
@@ -123,6 +129,7 @@ export function registerBuildCommands(ctx: GameContext): void {
         session.cash += refund;
         if (session.selectedObject === input.id) session.selectedObject = null;
         pushToast(`Demolished — refunded ${refund}`, "info", state.time.now());
+        state.game.audio.play("sell", [placed.x, 0, placed.z]);
         savePark(state);
         bump(state);
       }
@@ -132,7 +139,9 @@ export function registerBuildCommands(ctx: GameContext): void {
   ctx.game.commands.define<{ delta: number }>("park.ticket", {
     apply(state, input) {
       if (!session.started || session.gameOver || !Number.isFinite(input.delta)) return;
+      const before = session.ticketPrice;
       session.ticketPrice = Math.max(4, Math.min(60, session.ticketPrice + input.delta));
+      if (session.ticketPrice !== before) state.game.audio.play("ticket");
       savePark(state);
       bump(state);
     },
@@ -143,6 +152,7 @@ export function registerBuildCommands(ctx: GameContext): void {
       if (!session.started || session.gameOver || (session.won && !session.winDismissed)) return;
       state.time.toggle();
       setGamePhase(state,state.time.isPaused() ? "paused" : "playing");
+      syncAmbience(state);
       savePark(state); bump(state);
     },
   });

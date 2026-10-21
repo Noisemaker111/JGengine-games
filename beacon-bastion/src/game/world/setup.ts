@@ -14,12 +14,14 @@ function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   if (event.catalogId === BASE_CATALOG_ID) {
     session.gameOver = true;
     setGamePhase(ctx, "ended");
+    ctx.game.audio.play("defeat");
     return;
   }
   if (event.catalogId in CREEP_CATALOG) {
     session.creeps.delete(event.instanceId);
     const beneficiary = event.reason.kind === "player_kill" ? event.reason.killerUserId : ctx.player.userId;
     ctx.game.economy.grant(beneficiary, GOLD_CURRENCY, creepDef(event.catalogId).bounty);
+    ctx.game.audio.play("kill", event.position);
   }
 }
 

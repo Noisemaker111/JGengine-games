@@ -53,11 +53,14 @@ export interface HudSnapshot {
   army: ArmyUnit[];
 }
 
+/** The opening instruction. Any accepted order replaces it with a line about that order. */
+export const OPENING_NOTICE = "Select your workers and right-click a gold seam or logging camp.";
+
 const initial: HudSnapshot = {
   elapsed: 0,
   foodReserved: 0,
   rallyArmed: false,
-  notice: "Select your workers and right-click a gold seam or logging camp.",
+  notice: OPENING_NOTICE,
   phase: "playing",
   gold: 0,
   lumber: 0,

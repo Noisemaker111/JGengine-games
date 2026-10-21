@@ -13,6 +13,7 @@ import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
 import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWindow } from "./schedule";
 import { bloomHarvest } from "./bloom";
 import { crossedMilestones, REL_BOUNDS } from "./social";
+import { stationShortfall } from "./goal";
 
 const EVENT_TTL = 90;
 
@@ -40,6 +41,14 @@ function hasRoom(state: HouseholdState, member: MemberState, obj: SceneObject): 
   const users = usersOf(state, obj.instanceId);
   const index = users.findIndex((m) => m.id === member.id);
   return index >= 0 ? index < def.capacity : users.length < def.capacity;
+}
+
+/** True while the member is walking to a station whose places are all taken — they will stand and wait. */
+export function waitingForStation(state: HouseholdState, member: MemberState, objects: readonly SceneObject[]): boolean {
+  const { action } = member;
+  if (action.kind !== "seek") return false;
+  const obj = objects.find((candidate) => candidate.instanceId === action.objId);
+  return obj !== undefined && !hasRoom(state, member, obj);
 }
 
 function nearestForRole(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], role: FurnitureRole, catalogId?: string): SceneObject | null {
@@ -85,11 +94,13 @@ function concern(state: HouseholdState, member: MemberState, text: string, now: 
   member.concern = text;
 }
 
-function finishShift(state: HouseholdState, member: MemberState, now: number): void {
+function finishShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number): void {
   if (member.shiftDay === state.day) return;
   member.shiftDay = state.day;
   member.completedShifts += 1;
   pushEvent(state, `${member.name} finished a ${member.lifestyle === "yield" ? "Yield" : "Bloom"} shift.`, now, "good");
+  const at = positionOf(ctx, member.id);
+  if (at !== null) ctx.game.audio.play("shift", at);
   if (member.completedShifts === FLEX_AFTER_SHIFTS) pushEvent(state, `${member.name} earned flex hours: paid shifts can now run 08–18.`, now, "milestone");
 }
 
@@ -142,7 +153,9 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   if (Math.floor(now / DAY_LENGTH) > state.day) {
     for (const id of state.order) closeMissedShift(state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001);
   }
+  const dayBefore = state.day;
   settleHouseholdDay(state, objects, now);
+  if (state.day !== dayBefore) ctx.game.audio.play("bill");
   const availability = availabilityFrom(objects);
   for (const id of state.order) {
     const member = state.members[id];
@@ -238,7 +251,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       member.needs.energy = clamp(member.needs.energy - 0.55 * worked);
       member.needs.hunger = clamp(member.needs.hunger - 0.2 * worked);
       member.stress = clamp(member.stress + worked);
-      if (member.workToday >= SHIFT_SECONDS) { finishShift(state, member, now); releaseMember(member); }
+      if (member.workToday >= SHIFT_SECONDS) { finishShift(ctx, state, member, now); releaseMember(member); }
       return;
     }
     const goal = action.goal;
@@ -265,7 +278,8 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         state.credits = creditAmount(state.credits + income);
         state.dayIncome = creditAmount(state.dayIncome + income);
         pushEvent(state, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, now, "good");
-        finishShift(state, member, now);
+        ctx.game.audio.play("harvest", [obj.position[0], obj.position[1], obj.position[2]]);
+        finishShift(ctx, state, member, now);
         releaseMember(member);
       }
       return;
@@ -298,7 +312,11 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       member.action = { kind: "seek", goal: role, objId: obj.instanceId };
       member.actionUntil = now + 12;
       member.concern = null;
-    } else concern(state, member, `No free ${bloomTime ? "Bloom Planter" : role} station`, now);
+    } else {
+      const planter = bloomTime && role === "fun";
+      const furnished = objects.some(candidate => FURNITURE_BY_ID[candidate.catalogId]?.role === role && (!planter || candidate.catalogId === "bloom_planter"));
+      concern(state, member, stationShortfall(role, planter, furnished), now);
+    }
   } else if (desire.kind === "socialize") {
     const companion = findIdleCompanion(ctx, state, member);
     if (companion !== null) startConversation(state, member, companion, now, false);
@@ -366,6 +384,7 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
     for (const milestone of crossedMilestones(before, after)) {
       if (state.milestones[key] === milestone.key) continue;
       state.milestones[key] = milestone.key;
+      ctx.game.audio.play("bond");
       pushEvent(state, `${a.name} & ${b.name} ${milestone.label}${milestone.key === "friends" ? "; tending Blooms together now yields more" : ""}.`, now, "milestone");
     }
   }

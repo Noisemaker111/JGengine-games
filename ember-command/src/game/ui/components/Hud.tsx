@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
-import { useState, useSyncExternalStore } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ExperienceBar, HealthBar, ManaBar, barTokens } from "@jgengine/react/bars";
 import { useEntityStat, useGame } from "@jgengine/react/hooks";
-import { ScrollRail } from "@jgengine/react/scrollRail";
 
 import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
@@ -10,6 +9,7 @@ import { UPGRADES, WEAPON_DMG_PER_RANK, ARMOR_REDUCE_PER_RANK } from "../../upgr
 import { HERO_DMG_PER_LEVEL, THUNDERCLAP_COOLDOWN, THUNDERCLAP_COST } from "../../hero";
 import { Icon } from "../icons";
 import { Minimap } from "./Minimap";
+import { ROSTER_METRICS, rosterFit, rosterPage } from "../rosterPage";
 
 const BUILD_LABELS: Record<string, string> = { barracks: "Barracks", farm: "Farm", guard_tower: "Guard Tower" };
 const UNIT_ICON: Record<string, string> = { footman: "helm", rifleman: "rifleman", peasant: "peasant" };
@@ -303,25 +303,72 @@ function HeroPanel() {
   );
 }
 
-/** Every fielded unit stays reachable in the shared horizontal rail. */
+/** Arrow chrome shared with the engine's ScrollRail buttons, so the paging arrows keep their look. */
+function rosterArrowStyle(enabled: boolean): CSSProperties {
+  return {
+    flex: `0 0 ${ROSTER_METRICS.arrow}px`, minHeight: 44, border: "1px solid var(--jg-edge, #454550)",
+    borderRadius: "var(--jg-slot-radius, 6px)", background: "var(--jg-surface-deep, #15151d)",
+    color: "var(--jg-text, #ececef)", fontSize: 20, lineHeight: 1, fontWeight: 700, cursor: enabled ? "pointer" : "default",
+    opacity: enabled ? 1 : 0.45,
+  };
+}
+
+/** Measures an element's content width; re-measures whenever it resizes. */
+function useElementWidth<T extends HTMLElement>(): [RefObject<T | null>, number] {
+  const ref = useRef<T | null>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el === null) return;
+    setWidth(el.clientWidth);
+    const observer = new ResizeObserver(([entry]) => setWidth(entry!.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width];
+}
+
+/** Every fielded unit, shown as whole crests per page. Arrows step one page; they disable at the ends. */
 function ArmyRow() {
   const hud = useHud();
-  if (hud.army.length === 0) {
-    return <div className="flex h-full items-center px-2 text-[11px] italic text-slate-500">No troops afield — train Footmen (2)</div>;
-  }
+  const [ref, width] = useElementWidth<HTMLDivElement>();
+  const [requestedPage, setRequestedPage] = useState(0);
+  const count = hud.army.length;
+  const fit = rosterFit(count, width);
+  const view = rosterPage(count, fit.pageSize, requestedPage);
+  const shown = hud.army.slice(view.start, view.end);
+
   return (
-    <ScrollRail label="army units" gap={4} style={{ height: "100%", width: "100%" }}>
-      {hud.army.map((u: ArmyUnit) => (
-        <div key={u.id} className="flex w-9 shrink-0 flex-col items-center gap-0.5" title={`${u.kind} · ${Math.ceil(u.hp)}/${u.max} health`}>
-          <div className="flex h-9 w-9 items-center justify-center rounded border border-amber-700/50 bg-gradient-to-b from-[#20242c] to-[#0b0d11]">
-            <Icon name={UNIT_ICON[u.kind] ?? "footman"} className="h-6 w-6 text-amber-200/90" />
+    <div ref={ref} className="flex h-full w-full min-w-0 items-center" style={{ gap: ROSTER_METRICS.gap }}>
+      {count === 0 ? (
+        <div className="flex h-full items-center px-2 text-[11px] italic text-slate-500">No troops afield — train Footmen (2)</div>
+      ) : (
+        <>
+          {fit.paged ? (
+            <button type="button" aria-label="Show earlier army units" disabled={!view.hasPrev} onClick={() => setRequestedPage(view.page - 1)} style={rosterArrowStyle(view.hasPrev)}>‹</button>
+          ) : null}
+          <div role="list" aria-label="army units" className="flex min-w-0 flex-1 items-start justify-center overflow-hidden" style={{ gap: ROSTER_METRICS.gap }}>
+            {shown.map((u: ArmyUnit) => {
+              const label = `${u.kind} · ${Math.ceil(u.hp)}/${u.max} health`;
+              return (
+                <div role="listitem" tabIndex={0} key={u.id} aria-label={label} title={label}
+                  className="flex w-9 shrink-0 flex-col items-center gap-0.5 rounded-sm focus-visible:outline focus-visible:outline-1 focus-visible:outline-sky-300">
+                  <div className="flex h-9 w-9 items-center justify-center rounded border border-amber-700/50 bg-gradient-to-b from-[#20242c] to-[#0b0d11]">
+                    <Icon name={UNIT_ICON[u.kind] ?? "footman"} className="h-6 w-6 text-amber-200/90" />
+                  </div>
+                  <div style={barTokens({ height: "4px", health: "#5cd66a" })} className="w-full">
+                    <HealthBar value={u.hp} max={u.max} fill="#5cd66a" showValue={false} width="100%" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div style={barTokens({ height: "4px", health: "#5cd66a" })} className="w-full">
-            <HealthBar value={u.hp} max={u.max} fill="#5cd66a" showValue={false} width="100%" />
-          </div>
-        </div>
-      ))}
-    </ScrollRail>
+          {fit.paged ? (
+            <button type="button" aria-label="Show later army units" disabled={!view.hasNext} onClick={() => setRequestedPage(view.page + 1)} style={rosterArrowStyle(view.hasNext)}>›</button>
+          ) : null}
+        </>
+      )}
+    </div>
   );
 }
 

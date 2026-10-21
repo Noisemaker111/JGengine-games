@@ -7,7 +7,7 @@ import { editorLayers } from "../../editorLayers";
 import { TOWER_IDS, towerDef } from "../entities/towers/catalog";
 import { sellValue, upgradeCost } from "../entities/towers/progression";
 import { nearestPlot, type BuildPlot } from "../world/path";
-import { session, nextTowerInstanceId, type TowerRuntime } from "../session";
+import { pushNotice, session, nextTowerInstanceId, type TowerRuntime } from "../session";
 import { towerBuildConfig } from "./construction";
 
 const PLOT_CLICK_RADIUS = 4.5;
@@ -26,12 +26,21 @@ function rejectBuild(ctx: GameContext, input: BuildPlaceInput): { reason: string
   if (plot === null) return session.inspectedTowerId === null ? { reason: "no-plot" } : null;
   if (session.plotOccupant.get(plot.id) !== null) return null;
   const towerId = session.selectedTowerId;
-  if (towerId === null) return { reason: "no-tower-selected" };
-  const def = towerDef(towerId, editorLayers);
-  if (ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY) < def.cost) {
-    return { reason: "insufficient-gold" };
+  if (towerId === null) {
+    pushNotice("Pick a tower first", ctx.time.now());
+    ctx.game.audio.play("denied");
+    return { reason: "no-tower-selected" };
   }
+  const def = towerDef(towerId, editorLayers);
+  const shortfall = def.cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  if (shortfall > 0) return denyGold(ctx, `${def.label} needs ${shortfall} more gold`);
   return null;
+}
+
+function denyGold(ctx: GameContext, text: string): { reason: string } {
+  pushNotice(text, ctx.time.now());
+  ctx.game.audio.play("denied");
+  return { reason: "insufficient-gold" };
 }
 
 function placeTower(ctx: GameContext, plot: BuildPlot): void {
@@ -53,6 +62,7 @@ function placeTower(ctx: GameContext, plot: BuildPlot): void {
   session.buildQueue = queued.state;
   ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, def.cost);
   session.plotOccupant.set(plot.id, instanceId);
+  ctx.game.audio.play("build", plot.position);
 }
 
 function clickPlot(ctx: GameContext, input: BuildPlaceInput): GameContext {
@@ -89,6 +99,7 @@ function sellTower(ctx: GameContext, input: TowerTargetInput | undefined): GameC
   session.towers.delete(tower.instanceId);
   session.plotOccupant.set(tower.plotId, null);
   if (session.inspectedTowerId === tower.instanceId) session.inspectedTowerId = null;
+  ctx.game.audio.play("sell");
   return ctx;
 }
 
@@ -97,7 +108,8 @@ function rejectUpgrade(ctx: GameContext, input: TowerTargetInput | undefined): {
   if (tower === null) return { reason: "no-tower" };
   const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level);
   if (cost === null) return { reason: "max-level" };
-  if (ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY) < cost) return { reason: "insufficient-gold" };
+  const shortfall = cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  if (shortfall > 0) return denyGold(ctx, `Upgrade needs ${shortfall} more gold`);
   return null;
 }
 
@@ -106,6 +118,7 @@ function upgradeTower(ctx: GameContext, input: TowerTargetInput | undefined): Ga
   const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level)!;
   ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, cost);
   tower.level += 1;
+  ctx.game.audio.play("upgrade");
   return ctx;
 }
 
@@ -113,6 +126,7 @@ function selectTowerCommand(id: string) {
   return {
     apply(state: GameContext): GameContext {
       session.selectedTowerId = session.selectedTowerId === id ? null : id;
+      if (session.selectedTowerId !== null) state.game.audio.play("select");
       return state;
     },
   };

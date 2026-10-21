@@ -16,6 +16,7 @@ import { Credits } from "./components/Credits";
 import { StartScreen } from "./components/StartScreen";
 import { RunResults } from "./components/RunResults";
 import { PartIcon } from "./components/PartIcon";
+import { launchCue } from "./launchCue";
 
 const toSnapshot = (session: RunSession | undefined): SessionSnapshot | null => session?.snapshot() ?? null;
 function publishSession(ctx: GameContext, session: RunSession) {
@@ -93,7 +94,7 @@ export function GameUI() {
       </header>
       <aside className={`df-gate-cue df-plate ${jumpNow ? "df-launch" : ""}`}>
         <span className="df-eyebrow">{nextGate ? `NEXT ${nextGate.requirement === "jump" ? "JUMP STACK" : "PLOW WALL"}` : "EXIT GATE"} / {Math.ceil(Math.max(0, distance))}m</span>
-        <b>{snapshot.pose.blockedByGate ? snapshot.tuning.jumpPower > 0 && nextGate?.requirement === "jump" ? "JUMP TO CLEAR THE STACK" : "MISSING ROUTE PART" : jumpNow ? "JUMP NOW · SPACE" : nextGate?.requirement === "jump" ? "JUMP ON THE TEAL MARKS" : nextGate ? "KEEP THE PLOW POINTED FORWARD" : "BRING IT HOME"}</b>
+        <b>{launchCue(snapshot) ?? (snapshot.pose.blockedByGate ? snapshot.tuning.jumpPower > 0 && nextGate?.requirement === "jump" ? "JUMP TO CLEAR THE STACK" : "MISSING ROUTE PART" : jumpNow ? "JUMP NOW · SPACE" : nextGate?.requirement === "jump" ? "JUMP ON THE TEAL MARKS" : nextGate ? "KEEP THE PLOW POINTED FORWARD" : "BRING IT HOME")}</b>
         <span>{nextGate?.label ?? "470m escape line"}</span>
       </aside>
       <aside className="df-build"><details><summary>YOUR BUILD · {Object.values(snapshot.installed).filter(Boolean).length}/4</summary><div>{PART_SLOTS.map(slot => <span key={slot}><PartIcon partId={snapshot.installed[slot]?.id ?? null}/><span><small>{slot.toUpperCase()}</small>{snapshot.installed[slot]?.label ?? "Empty"}</span></span>)}</div></details></aside>

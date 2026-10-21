@@ -1,5 +1,6 @@
 import { defineGame } from "@jgengine/shell/defineGame";
 
+import { ORBIT_SOUNDS } from "./game/audio";
 import { assets } from "./game/assets";
 import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
@@ -26,15 +27,18 @@ export const game = defineGame({
   editorLayers,
   scenePlacement: false,
   objectModels,
+  audio: { sounds: ORBIT_SOUNDS },
   renderEntity,
   WorldOverlay: CaptureReadiness,
   pointer: { moveCommand: "world.pointer" },
   touch: { buttons: [] },
   hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
   lighting: {
-    ambient: { color: "#c3b0e0", intensity: 0.75 },
-    hemisphere: { skyColor: "#c9a6e0", groundColor: "#4a3f66", intensity: 0.7 },
-    directional: [{ color: "#ffe6b0", intensity: 1.35, position: [30, 48, 24], castShadow: true }],
+    // A warm low key against a cool lilac fill: with the fill as bright as the key everything
+    // flattened into one pink wash and the cream living floor never read as cream.
+    ambient: { color: "#9c8fbf", intensity: 0.32 },
+    hemisphere: { skyColor: "#b9a2dc", groundColor: "#3a3150", intensity: 0.45 },
+    directional: [{ color: "#ffdca6", intensity: 2.3, position: [30, 48, 24], castShadow: true }],
   },
   // Dusk-moon presentation: the world owns its sky, so "cinematic" only fills the unset post stack
   // (IBL + tone-map/bloom/AO/grade). Lighting above is authored explicitly and wins.

@@ -2,6 +2,7 @@ import { defineGame } from "@jgengine/shell/gameKit";
 
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
+import { BEACON_SOUNDS } from "./game/audio";
 import { content } from "./game/content";
 import { GOLD_CURRENCY } from "./game/entities/base/catalog";
 import { currentWaveNumber, session } from "./game/session";
@@ -21,6 +22,7 @@ export const game = defineGame({
   input: keybinds,
   server: { mode: "defense" },
   content,
+  audio: { sounds: BEACON_SOUNDS },
   systems,
   loop,
   GameUI,

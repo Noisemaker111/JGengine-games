@@ -35,6 +35,7 @@ function spawnTrained(ctx: GameContext, unitId: string): void {
   const ex = keep.position[0] + lane;
   const ez = keep.position[2] - 8;
   ctx.scene.entity.spawn(unitId, { id, position: [ex, 0, ez], role: "npc" });
+  ctx.game.audio.play("muster", [ex, 0, ez]);
   const unit: UnitRuntime = {
     id,
     catalogId: unitId,
@@ -96,6 +97,7 @@ function raiseBuilding(ctx: GameContext, spec: BuildSpec): void {
   session.trainSeq += 1;
   const id = `${spec.type}_b${session.trainSeq}`;
   ctx.scene.entity.spawn(spec.type, { id, position: [spec.x, 0, spec.z], role: "npc" });
+  ctx.game.audio.play("raise", [spec.x, 0, spec.z]);
   session.units.set(id, {
     id,
     catalogId: spec.type,
