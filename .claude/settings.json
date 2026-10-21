@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git rm:*)",
       "Bash(git mv:*)",
-      "Bash(gh run rerun:*)"
+      "Bash(gh run rerun:*)",
+      "Bash(gh pr merge:*)",
+      "PowerShell(gh pr merge:*)"
     ]
   }
 }
