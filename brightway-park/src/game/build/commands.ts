@@ -2,7 +2,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { PointerHit } from "@jgengine/core/input/pointer";
 
 import { buildableDef } from "../objects/catalog";
-import { pushToast, session } from "../session";
+import { session } from "../session";
 import { canPlace, placeObject, removeObject } from "./placement";
 import { BUILDABLES } from "../objects/catalog";
 import { archiveSave, savePark } from "../persistence";
@@ -42,22 +42,21 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   if (!canBuild(ctx,toolId)) return;
   const def = buildableDef(toolId);
   if (!affordable(toolId)) {
-    pushToast(`Not enough cash for ${def.label}`, "bad", ctx.time.now());
-    ctx.game.audio.play("denied");
+    // The deny notice plays the park's own "denied" cue (audio.uiCues.deny).
+    ctx.game.notices.push({ text: `Not enough cash for ${def.label}`, tone: "deny" });
     return;
   }
   if (!Array.isArray(input.point) || input.point.length !== 3 || !input.point.every(Number.isFinite)) return;
   const [x,,z] = input.point;
   const check = canPlace(toolId, x, z);
   if (!check.ok) {
-    pushToast(check.reason ?? "Can't build here", "bad", ctx.time.now());
-    ctx.game.audio.play("denied");
+    ctx.game.notices.push({ text: check.reason ?? "Can't build here", tone: "deny" });
     return;
   }
   const placed = placeObject(ctx, toolId, x, z);
   if (placed === null) return;
   session.cash -= def.cost;
-  pushToast(`${def.label} built · -$${def.cost}`, "good", ctx.time.now());
+  ctx.game.notices.push({ text: `${def.label} built · -$${def.cost}`, tone: "success" });
   ctx.game.audio.play("place", [placed.x, 0, placed.z]);
   savePark(ctx);
 }
@@ -128,7 +127,7 @@ export function registerBuildCommands(ctx: GameContext): void {
       if (removeObject(state, input.id)) {
         session.cash += refund;
         if (session.selectedObject === input.id) session.selectedObject = null;
-        pushToast(`Demolished — refunded ${refund}`, "info", state.time.now());
+        state.game.notices.push({ text: `Demolished — refunded ${refund}`, tone: "info" });
         state.game.audio.play("sell", [placed.x, 0, placed.z]);
         savePark(state);
         bump(state);

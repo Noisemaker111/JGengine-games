@@ -1,4 +1,5 @@
 import { defineGame } from "@jgengine/shell/gameKit";
+import { HUD_THEME_PRESETS } from "@jgengine/react/hudTheme";
 
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
@@ -22,7 +23,10 @@ export const game = defineGame({
   input: keybinds,
   server: { mode: "defense" },
   content,
-  audio: { sounds: BEACON_SOUNDS },
+  // A refused build/upgrade reaches the player as a deny notice; its cue is the keep's own "denied" knock.
+  audio: { sounds: BEACON_SOUNDS, uiCues: { deny: BEACON_SOUNDS.denied! } },
+  notices: { cap: 3 },
+  hudTheme: HUD_THEME_PRESETS.fieldkit,
   systems,
   loop,
   GameUI,

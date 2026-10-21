@@ -1,4 +1,6 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel } from "@jgengine/react/hudPanel";
 
 import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
@@ -41,9 +43,9 @@ export function Inspector() {
   const refund = Math.round(def.cost * 0.5);
 
   return (
-    <div className="pointer-events-auto w-56 rounded-xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl backdrop-blur">
+    <HudPanel role="region" aria-label={`${def.label} details`} elevation="overlay">
       <div className="mb-2 flex items-center gap-2">
-        <button className="park-inspector-close" aria-label="Close inspector" onClick={()=>commands.run("build.clear", {})}>×</button>
+        <HudButton variant="ghost" size="icon" className="park-inspector-close" aria-label="Close inspector" cue="close" onClick={()=>commands.run("build.clear", {})}>×</HudButton>
         <span className="text-2xl">{def.icon}</span>
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-bold text-slate-100">{def.label}</span>
@@ -64,12 +66,15 @@ export function Inspector() {
         ) : null}
         {def.stall !== undefined ? <Row label="Sold (total)" value={`${sold}`} /> : null}
       </div>
-      <button
-        className="mt-3 w-full rounded-md bg-rose-500/90 py-1.5 text-xs font-bold text-white transition hover:bg-rose-500"
+      <HudButton
+        variant="danger"
+        size="sm"
+        block
+        className="mt-3"
         onClick={() => commands.run("build.demolish", { id: selectedId })}
       >
         Demolish · refund ${refund}
-      </button>
-    </div>
+      </HudButton>
+    </HudPanel>
   );
 }

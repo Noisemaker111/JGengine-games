@@ -19,6 +19,7 @@ import { captureProbe, initialize, keybinds, seatPlayer, setAim, tick, viewStore
 import { ITEMS } from "./game/state";
 import { StationStructure, StationBatch } from "./game/stationArt";
 import { GameUI } from "./game/ui/GameUI";
+import { shiftTheme } from "./game/ui/ItemMark";
 import { audio } from "./game/audio";
 
 function Block({ at, size, color = C.panel, glow = false, surface }: { at: Triple; size: Triple; color?: string; glow?: boolean; surface?: IndustrialSurface }) {
@@ -225,6 +226,7 @@ export const game = defineGame({
   worldItem: { filter: [{ id: "authored-salvage", when: {}, hide: true }] },
   loop: { onInit: initialize, onNewPlayer: seatPlayer, onTick: tick },
   GameUI, WorldOverlay, renderEntity,
+  hudTheme: shiftTheme,
   camera: { perspective: "first", firstPerson: { eyeHeight: 1.62, sensitivity: 0.0021, reticle: false, viewmodel: false }, frustum: { far: 95 } },
   movement: {
     beforeCommit(frame) {

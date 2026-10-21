@@ -1,3 +1,4 @@
+@import "@jgengine/react/styles.css";
 @import "tailwindcss";
 @import "./style.css";
 @source "../node_modules/@jgengine/react/dist";

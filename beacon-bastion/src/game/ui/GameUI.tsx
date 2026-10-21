@@ -1,22 +1,18 @@
 import { SettingsTrigger } from "@jgengine/react";
 import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/shell/gameKit";
-import { fieldkitVars } from "@/components/ui/jg-theme";
 
 import { BuildBar } from "./components/BuildBar";
 import { EndScreens } from "./components/EndScreens";
 import { Hud } from "./components/Hud";
-import { Notices } from "./components/Notices";
 import { TowerPanel } from "./components/TowerPanel";
 
-function GameUIInner() {
+/** The field-kit theme comes from `defineGame({ hudTheme })`; notices are the shell's shared feed. */
+export function GameUI() {
   const layout = useHudLayout({ storageKey: "beacon-bastion" });
   return (
     <HudCanvas layout={layout}>
       <HudPanel id="hud" anchor="top-left" inset={{ x: 18, y: 18 }}>
         <Hud />
-      </HudPanel>
-      <HudPanel id="notices" anchor="top" inset={{ x: 0, y: 18 }}>
-        <Notices />
       </HudPanel>
       <HudPanel id="settings" anchor="top-right" inset={{ x: 18, y: 18 }}>
         <SettingsTrigger />
@@ -29,13 +25,5 @@ function GameUIInner() {
       </HudPanel>
       <EndScreens />
     </HudCanvas>
-  );
-}
-
-export function GameUI() {
-  return (
-    <div style={{ ...fieldkitVars, display: "contents" }}>
-      <GameUIInner />
-    </div>
   );
 }

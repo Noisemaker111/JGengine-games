@@ -9,7 +9,7 @@ import {
 
 import { DAY_LENGTH, MILESTONES } from "../catalog";
 import { buildableDef } from "../objects/catalog";
-import { pushToast, session } from "../session";
+import { session } from "../session";
 import { syncAmbience } from "../audio";
 import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
 import { placedList } from "../build/placement";
@@ -73,12 +73,10 @@ export function economyDayTick(ctx: GameContext): void {
   session.upkeepYesterday = total;
   session.revenueYesterday = session.revenueToday;
   const net = session.revenueYesterday - total;
-  const now = ctx.time.now();
-  pushToast(
-    `Day ${session.day}: ${net >= 0 ? "+" : ""}${Math.round(net)} net (${session.guestsToday} guests)`,
-    net >= 0 ? "good" : "bad",
-    now,
-  );
+  ctx.game.notices.push({
+    text: `Day ${session.day}: ${net >= 0 ? "+" : ""}${Math.round(net)} net (${session.guestsToday} guests)`,
+    tone: net >= 0 ? "success" : "warn",
+  });
   ctx.game.audio.play("settle");
 
   if (session.cash < 0) {
@@ -89,10 +87,10 @@ export function economyDayTick(ctx: GameContext): void {
       ctx.time.pause();
       setGamePhase(ctx, "ended");
       syncAmbience(ctx);
-      pushToast("Bankrupt! The park has closed for good.", "bad", now);
+      ctx.game.notices.push({ text: "Bankrupt! The park has closed for good.", tone: "warn" });
       ctx.game.audio.play("bankrupt");
     } else {
-      pushToast(`In the red — ${BANKRUPT_LIMIT - session.bankruptDays} day(s) to recover`, "bad", now);
+      ctx.game.notices.push({ text: `In the red — ${BANKRUPT_LIMIT - session.bankruptDays} day(s) to recover`, tone: "warn" });
     }
   } else {
     session.bankruptDays = 0;
@@ -110,11 +108,10 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
 
   session.litter = Math.max(0, session.litter - metrics.cleaning * 0.08 * dt);
 
-  const now = ctx.time.now();
   for (const milestone of MILESTONES) {
     if (session.rating >= milestone.rating && ctx.game.unlocks !== undefined && !ctx.game.unlocks.has(ctx.player.userId, milestone.unlock)) {
       ctx.game.unlocks.grant(ctx.player.userId, milestone.unlock);
-      pushToast(`Milestone! Unlocked: ${milestone.label}`, "good", now);
+      ctx.game.notices.push({ text: `Milestone! Unlocked: ${milestone.label}`, tone: "success" });
       ctx.game.audio.play("milestone");
     }
   }

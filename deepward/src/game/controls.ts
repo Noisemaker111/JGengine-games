@@ -147,14 +147,14 @@ function interact(ctx: GameContext): void {
     viewStore.update(ctx, s => ({ ...s, dive: { ...dive, channel: null }, hint: "Search cancelled." })); return;
   }
   if (pack(dive.cache, { uid: `${dive.id}:${target.id}`, kind: target.kind, level: 1 }) === null) {
-    viewStore.update(ctx, s => ({ ...s, hint: "Cache has no room. Tab to repack or leave an item behind." })); return;
+    ctx.game.notices.push({ text: "Cache has no room. Tab to repack or leave an item behind.", tone: "deny" }); return;
   }
   viewStore.update(ctx, s => ({ ...s, dive: { ...dive, channel: { id: target.id, remaining: 1.4, anchor: at } }, hint: "Searching / stay still. The Fitter can hear you." }));
 }
 function fire(ctx: GameContext): void {
   const v = viewStore.read(ctx), at = playerAt(ctx), dive = v.dive;
   if (!playable(ctx) || v.mode !== "dive" || dive === null || at === null || dive.health <= 0 || dive.reload > 0 || dive.shotCooldown > 0) return;
-  if (dive.magazine === 0) { viewStore.update(ctx, s => ({ ...s, hint: "Empty magazine / R to reload." })); return; }
+  if (dive.magazine === 0) { ctx.game.notices.push({ text: "Empty magazine / R to reload.", tone: "deny" }); return; }
   const weapon = dive.hand === "sidearm" ? SIDEARM : RIFLE;
   ctx.game.audio.play("shot");
   const direction = runtime(ctx).aim;
@@ -252,7 +252,7 @@ export function registerControls(ctx: GameContext): void {
     const item = dive.cache.find(i => i.uid === input.uid);
     if (item === undefined) return;
     const next = { ...item, x: input.x ?? item.x, y: input.y ?? item.y, rotated: input.rotate ? !item.rotated : item.rotated };
-    if (!Number.isInteger(next.x) || !Number.isInteger(next.y) || !fits(dive.cache, next)) { viewStore.update(state, s => ({ ...s, hint: "That footprint will not fit there." })); return; }
+    if (!Number.isInteger(next.x) || !Number.isInteger(next.y) || !fits(dive.cache, next)) { state.game.notices.push({ text: "That footprint will not fit there.", tone: "deny" }); return; }
     viewStore.write(state, { ...v, dive: { ...dive, cache: dive.cache.map(i => i.uid === next.uid ? next : i) } });
   } });
   ctx.game.commands.define<{ uid: string }>("deepward.discard", { apply(state, input) {
@@ -350,7 +350,7 @@ export function tick(ctx: GameContext, dt: number): void {
         runtime(ctx).worldItems.delete(ch.id);
         dive = collected; hint = `${ITEMS[target.kind].name} in cache. It becomes permanent only after rail return.`;
       }
-      else { dive = { ...dive, channel: null }; hint = "Cache has no space for that footprint."; }
+      else { dive = { ...dive, channel: null }; ctx.game.notices.push({ text: "Cache has no space for that footprint.", tone: "deny" }); }
     } else dive = { ...dive, channel: { ...ch, remaining: ch.remaining - dt } };
   }
   const trace = v.trace !== null && v.trace.remaining > dt ? { ...v.trace, remaining: v.trace.remaining - dt } : null;

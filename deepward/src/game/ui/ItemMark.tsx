@@ -1,16 +1,16 @@
 import { IconTreatment } from '@jgengine/react/iconTreatment';
-import { hudTheme, hudThemeVars } from '@jgengine/react/hudTheme';
+import { hudTheme } from '@jgengine/react/hudTheme';
 import { ITEMS, type ItemKind } from '../state';
 
-/** Marrow's inventory is a stamped issue docket, with game-specific technical pictograms. */
+/** Marrow's inventory is a stamped issue docket, with game-specific technical pictograms. The shell applies it at the HUD root. */
 export const shiftTheme = hudTheme({
  palette:{accent:'#d5b879',accentDeep:'#8c723f',accentGlow:'#d5b87933',accentDim:'#d5b87915',health:'#a1e1d5',healthDeep:'#467c73',ammo:'#e1c18c'},
  surface:{surface:'#25383b',surfaceDeep:'#142429',edge:'#657d76',edgeBright:'#a1c4b3',text:'#ede9d9',textDim:'#bac7c1',backdrop:'#0d181bcc'},
  font:{display:'"Segoe UI",sans-serif',body:'"Segoe UI",sans-serif',numeric:'monospace'},
- frame:{bg:'linear-gradient(150deg,#27383b,#142429)',border:'#7c908b',radius:'0',glow:'0 20px 80px #0009'},
+ frame:{bg:'linear-gradient(150deg,#27383b,#142429)',border:'#7c908b',radius:'0',glow:'none'},
  slot:{bg:'#1b3030',border:'#5a7470',radius:'0'},
+ state:{disabledOpacity:'1',focusRing:'0 0 0 3px #9ce0da'},
 });
-export const shiftThemeStyle = hudThemeVars(shiftTheme);
 function Glyph({kind}:{kind:ItemKind}) {
  return <svg viewBox="0 0 64 64" fill="none" stroke={ITEMS[kind].color} strokeWidth="3" strokeLinejoin="round" aria-hidden="true">
   {kind==='wire'?<><ellipse cx="32" cy="14" rx="19" ry="8"/><path d="M13 14v32c0 5 9 9 19 9s19-4 19-9V14M13 22c10 9 28 9 38 0M13 30c10 9 28 9 38 0M13 38c10 9 28 9 38 0M28 6v13m8-13v13"/></>

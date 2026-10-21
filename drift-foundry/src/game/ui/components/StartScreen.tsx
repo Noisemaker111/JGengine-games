@@ -1,5 +1,7 @@
 import { SettingsTrigger } from "@jgengine/react";
 import { useGame } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel } from "@jgengine/react/hudPanel";
 import { useStore } from "@jgengine/react/store";
 import { runSessionStore } from "../../run/session";
 import type { RunRecords } from "../../run/records";
@@ -23,7 +25,7 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
       </svg>
       <span>ROW SIX / SALVAGE SPECIAL</span>
     </div>
-    <section className="df-card df-title-card">
+    <HudPanel className="df-card df-title-card" elevation="modal" style={{ padding: undefined }}>
       <div className="df-eyebrow">PIT RADIO / CHANNEL 06</div>
       <h1>DRIFT<br/><em>FOUNDRY</em></h1>
       <p className="df-intro">One welded buggy. Three salvage yards. A compactor that never stops.</p>
@@ -31,7 +33,7 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
       <div className="df-controls-legend"><span><kbd>W ↑</kbd> Throttle</span><span><kbd>A D</kbd> Steer</span><span><kbd>S ↓</kbd> Brake / reverse</span><span><kbd>Space</kbd> Jump</span><span><kbd>Shift</kbd> Brace plow</span><span><kbd>P</kbd> Pause</span></div>
       <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes · {records.attempts} finished runs</span></div>
       <p>{parkedRun ? `Parked checkpoint: ${Math.floor(parkedRun.position[2])}m · ${parkedRun.runTime.toFixed(1)}s · ${parkedRun.partIds.length} parts. Continue starts stopped with the compactor clock preserved.` : "To keep a run for later, stop on the ground and pause before returning to the pit."}</p>
-      <div className="df-actions"><button className="df-primary" onClick={onStart}>{parkedRun ? "CONTINUE PARKED RUN" : "START ENGINE"} <kbd>Enter</kbd></button>{parkedRun && <button onClick={() => commands.run("restart", {})}>NEW RUN</button>}<SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><button onClick={onCredits}>CREDITS</button></div>
-    </section>
+      <div className="df-actions"><HudButton variant="primary" className="df-primary" cue="confirm" onClick={onStart}>{parkedRun ? "CONTINUE PARKED RUN" : "START ENGINE"} <kbd>Enter</kbd></HudButton>{parkedRun && <HudButton onClick={() => commands.run("restart", {})}>NEW RUN</HudButton>}<SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><HudButton onClick={onCredits}>CREDITS</HudButton></div>
+    </HudPanel>
   </div>;
 }
