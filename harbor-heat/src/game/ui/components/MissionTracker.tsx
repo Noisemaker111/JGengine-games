@@ -1,4 +1,5 @@
 import { useQuestJournal } from "@jgengine/react/hooks";
+import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
 import { useStore } from "@jgengine/react/store";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { MISSION_HINTS, QUESTS } from "../../quests/catalog";
@@ -10,7 +11,7 @@ function BountyCard() {
   if (bounty === undefined || bounty.targetId === null) return null;
   const spot = BOUNTY_SPOTS.find((s) => s.id === bounty.spotId);
   return (
-    <div className="w-64 border-2 border-black bg-[#12141a]/90 px-3 py-2 text-[#f4e8c8] shadow-[4px_4px_0_#000]">
+    <HudFrame className="hh-card w-64" padding="8px 12px" interactive={false}>
       <div className="-mx-3 -mt-2 mb-1 border-b-2 border-black bg-[#6d2f8f] px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
         Bounty contract
       </div>
@@ -18,7 +19,7 @@ function BountyCard() {
         <span>{spot?.label ?? "A marked target"}</span>
         <span className="tabular-nums text-[#ffb020]">${bountyPayout(bounty.completed)}</span>
       </div>
-    </div>
+    </HudFrame>
   );
 }
 
@@ -43,7 +44,7 @@ export function MissionTracker() {
   const def = QUESTS.find((q) => q.id === active.questId);
   return (
     <div className="flex flex-col gap-2">
-      <div className="w-64 border-2 border-black bg-[#12141a]/90 px-3 py-2 text-[#f4e8c8] shadow-[4px_4px_0_#000]">
+      <HudFrame className="hh-card w-64" padding="8px 12px" interactive={false}>
         <div className="-mx-3 -mt-2 mb-1 border-b-2 border-black bg-[#c23b3b] px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
           {def?.title ?? active.questId}
         </div>
@@ -58,7 +59,7 @@ export function MissionTracker() {
             </div>
           ))}
         </div>
-      </div>
+      </HudFrame>
       <BountyCard />
     </div>
   );

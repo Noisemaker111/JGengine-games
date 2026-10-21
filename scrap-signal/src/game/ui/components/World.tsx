@@ -1,4 +1,6 @@
 import { useCurrency, useGame, useGameStore } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { ScrapPanel } from "./ScrapPanel";
 import { useStore } from "@jgengine/react/store";
 import { BLACK_MARKET_UPGRADES, upgradeCost } from "../../commands";
 import { QUEST_ECHOES } from "../../quests/catalog";
@@ -60,60 +62,36 @@ export function CoresPlate() {
   );
 }
 
-function PanelShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="signal-scroll w-[26rem] max-w-[92vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-lg font-black uppercase tracking-widest text-amber-300">{title}</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="border border-stone-600 px-2 py-0.5 text-xs font-bold uppercase text-stone-300 hover:border-amber-400 hover:text-amber-300"
-          >
-            Close
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export function TravelPanel() {
   const { commands } = useGame();
   const open = useStore(travelOpenStore);
   const discovered = useStore(discoveredStationsStore);
   if (!open) return null;
   return (
-    <PanelShell title="Fast Travel Network" onClose={() => commands.run("travel.close", {})}>
+    <ScrapPanel title="Fast Travel Network" onClose={() => commands.run("travel.close", {})}>
       <div className="flex flex-col gap-1.5">
         {TRAVEL_STATIONS.map((station) => {
           const known = discovered.includes(station.zoneId);
           return (
-            <button
+            <HudButton
               key={station.zoneId}
-              type="button"
+              block
               disabled={!known}
               onClick={() => commands.run("travel.go", { zoneId: station.zoneId })}
-              className={`flex w-full items-center border px-3 py-2 text-left ${
-                known
-                  ? "border-stone-700 bg-stone-900/80 hover:border-cyan-400/70 hover:bg-stone-800"
-                  : "cursor-not-allowed border-stone-800 bg-stone-950/60 opacity-50"
-              }`}
+              className="scrap-row scrap-row-cyan"
             >
               <span className="flex-1 text-sm font-bold uppercase tracking-wider text-stone-100">
                 {known ? station.name : "??? — undiscovered"}
               </span>
               {known ? <span className="text-xs font-black text-cyan-300">GO</span> : null}
-            </button>
+            </HudButton>
           );
         })}
       </div>
       <p className="mt-3 text-[11px] uppercase tracking-wider text-stone-500">
         Walk up to a station in the world to register it
       </p>
-    </PanelShell>
+    </ScrapPanel>
   );
 }
 
@@ -124,7 +102,7 @@ export function BlackMarketPanel() {
   const counts = useStore(blackMarketStore);
   if (!open) return null;
   return (
-    <PanelShell title="Switchboard Exchange" onClose={() => commands.run("blackmarket.close", {})}>
+    <ScrapPanel title="Switchboard Exchange" onClose={() => commands.run("blackmarket.close", {})}>
       <div className="mb-2 text-xs font-bold uppercase tracking-wider text-fuchsia-300">
         ◆ {cores} cores — elites and bosses drop it
       </div>
@@ -134,16 +112,12 @@ export function BlackMarketPanel() {
           const cost = upgradeCost(owned);
           const affordable = cores >= cost;
           return (
-            <button
+            <HudButton
               key={upgrade.id}
-              type="button"
+              block
               disabled={!affordable}
               onClick={() => commands.run("blackmarket.buy", { upgrade: upgrade.id })}
-              className={`flex w-full items-center gap-3 border px-3 py-2 text-left ${
-                affordable
-                  ? "border-stone-700 bg-stone-900/80 hover:border-fuchsia-400/70 hover:bg-stone-800"
-                  : "cursor-not-allowed border-stone-800 bg-stone-950/60 opacity-50"
-              }`}
+              className="scrap-row scrap-row-fuchsia"
             >
               <span className="flex-1">
                 <span className="block text-sm font-bold uppercase tracking-wider text-stone-100">
@@ -152,11 +126,11 @@ export function BlackMarketPanel() {
                 <span className="block text-[11px] text-stone-400">{upgrade.blurb}</span>
               </span>
               <span className="text-sm font-black tabular-nums text-fuchsia-300">◆ {cost}</span>
-            </button>
+            </HudButton>
           );
         })}
       </div>
-    </PanelShell>
+    </ScrapPanel>
   );
 }
 

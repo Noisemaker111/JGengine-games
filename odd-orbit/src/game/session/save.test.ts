@@ -138,17 +138,22 @@ test("a far future reload skips missed life events and preserves the next deadli
   expect(saved.household.nextLifeEventAt).toBeLessThan(saved.clock.now);
   expect(validOrbitSave(saved)).toBe(true);
   const second = boot(); restoreOrbitSave(second, saved);
-  for (const ctx of [first, second]) {
+  const fired: string[][] = [[], []];
+  for (const [index, ctx] of [first, second].entries()) {
+    ctx.game.notices.onPush(notice => fired[index]!.push(notice.text));
     const state = householdStore.read(ctx);
-    advanceLifeEvents(state, ctx.time.now());
+    advanceLifeEvents(state, ctx.time.now(), ctx.game.notices);
     householdStore.write(ctx, { ...state });
   }
   const after = captureOrbitSave(second);
   expect(after).toEqual(captureOrbitSave(first));
   expect(after.household.eventSeq).toBe(saved.household.eventSeq + 1);
+  expect(fired[1]).toHaveLength(1);
+  expect(fired[1]).toEqual(fired[0]!);
   expect(after.household.nextLifeEventAt).toBeGreaterThan(after.clock.now);
   expect(after.household.nextLifeEventAt).toBeLessThanOrEqual(after.clock.now + LIFE_EVENT_SECONDS);
-  advanceLifeEvents(householdStore.read(second), second.time.now());
+  advanceLifeEvents(householdStore.read(second), second.time.now(), second.game.notices);
+  expect(fired[1]).toHaveLength(1);
   expect(captureOrbitSave(second)).toEqual(after);
 });
 

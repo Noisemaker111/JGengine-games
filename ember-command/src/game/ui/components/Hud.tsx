@@ -2,6 +2,8 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ExperienceBar, HealthBar, ManaBar, barTokens } from "@jgengine/react/bars";
 import { useEntityStat, useGame } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
 
 import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
@@ -18,9 +20,10 @@ function useHud(): HudSnapshot {
   return useSyncExternalStore(hudStore.subscribe, hudStore.get, hudStore.get);
 }
 
-/** Sleek dark-glass panel with a cool steel edge and inset bevel — the shared chrome of the console.
- * Positioning is applied by each caller so the constant never clobbers layout. */
+/** Console chrome is the engine frame skinned by the Ember theme; `ec-frame` is the high-contrast hook.
+ * Padding stays on each caller's classes (it changes with the viewport), not the frame's inline default. */
 const FRAME = "ec-frame";
+const CSS_PADDING = { padding: undefined };
 
 /** Thin steel corner brackets — the cool-metal accent that reads as forged, not construction paper. */
 function Corners() {
@@ -49,7 +52,7 @@ function TopBar() {
   const hud = useHud();
   const foodTone = hud.foodUsed + hud.foodReserved >= hud.foodCap ? "text-rose-400" : "text-emerald-300";
   return (
-    <div className={"ec-stock pointer-events-none absolute top-3 z-20 flex items-center gap-3 px-4 py-2 font-serif text-slate-100 " + FRAME}>
+    <HudFrame interactive={false} style={CSS_PADDING} className={"ec-stock pointer-events-none absolute top-3 z-20 flex items-center gap-3 px-4 py-2 " + FRAME}>
       <Corners />
       <ResourceChip icon="gold" value={String(hud.gold)} tone="text-amber-300" />
       <ResourceChip icon="lumber" value={String(hud.lumber)} tone="text-orange-300" />
@@ -71,7 +74,7 @@ function TopBar() {
           <span className="text-[13px] font-bold tabular-nums text-rose-100">{hud.nextWaveIn}s</span>
         </div>
       </div>
-    </div>
+    </HudFrame>
   );
 }
 
@@ -81,12 +84,12 @@ function ObjectivesPanel() {
   const [open, setOpen] = useState(true);
   const done = hud.enemyKeepHp <= 0;
   return (
-    <div className={"ec-objectives pointer-events-auto absolute left-3 top-3 z-20 w-64 px-3 py-2 font-serif text-slate-100 " + FRAME}>
+    <HudFrame style={CSS_PADDING} className={"ec-objectives absolute left-3 top-3 z-20 w-64 px-3 py-2 " + FRAME}>
       <Corners />
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between text-left">
+      <HudButton variant="ghost" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="ec-objectives-toggle">
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Objectives</span>
         <span className={"text-sky-300/70 transition-transform " + (open ? "rotate-0" : "-rotate-90")}>⌄</span>
-      </button>
+      </HudButton>
       {open ? (
         <>
           <div className="mt-1.5 flex items-start gap-2">
@@ -103,7 +106,7 @@ function ObjectivesPanel() {
           </div>
         </>
       ) : null}
-    </div>
+    </HudFrame>
   );
 }
 
@@ -133,23 +136,17 @@ function Slot({
   setTip: (t: Tip | null) => void;
   onClick?: () => void;
 }) {
-  const shell =
-    tone === "locked"
-      ? "cursor-not-allowed border-slate-700/60 bg-gradient-to-b from-[#171a20] to-[#0a0c10]"
-      : tone === "active"
-        ? "border-sky-300 bg-gradient-to-b from-[#1c2b3e] to-[#0a0f16] shadow-[0_0_12px_2px_rgba(90,170,255,.6),inset_0_1px_0_rgba(160,210,255,.4)]"
-        : "border-amber-700/50 bg-gradient-to-b from-[#22252d] to-[#0c0e12] hover:border-amber-400/80 hover:shadow-[0_0_10px_1px_rgba(220,180,90,.35)]";
   const iconTone = tone === "locked" ? "text-slate-600" : tone === "active" ? "text-sky-200" : "text-amber-300";
   return (
-    <button
-      type="button"
+    <HudButton
+      data-tone={tone}
       disabled={tone === "locked"}
       onClick={onClick}
       onMouseEnter={() => setTip(tip)}
       onMouseLeave={() => setTip(null)}
       aria-label={tip.title} title={tip.title + " — " + tip.desc}
       onFocus={() => setTip(tip)} onBlur={() => setTip(null)}
-      className={"ec-slot relative flex h-[54px] w-[54px] items-center justify-center rounded-md border-2 transition " + shell}
+      className="ec-slot"
     >
       <Icon name={icon} className={"h-8 w-8 drop-shadow-[0_1px_1px_rgba(0,0,0,.85)] " + iconTone} />
       <span className="absolute left-1 top-0.5 text-[10px] font-black text-slate-200/80 [text-shadow:0_1px_2px_rgba(0,0,0,.95)]">{hotkey}</span>
@@ -159,7 +156,7 @@ function Slot({
       {foot !== undefined ? (
         <span className="absolute inset-x-0 bottom-0 truncate px-0.5 text-center text-[8px] font-semibold leading-tight text-amber-200/90 [text-shadow:0_1px_1px_rgba(0,0,0,.95)]">{foot}</span>
       ) : null}
-    </button>
+    </HudButton>
   );
 }
 
@@ -228,14 +225,14 @@ function CommandGrid() {
   return (
     <div className="relative">
       {tip !== null ? (
-        <div className={"pointer-events-none absolute bottom-[calc(100%+10px)] right-0 z-30 w-64 px-3 py-2 font-serif " + FRAME}>
+        <HudFrame interactive={false} elevation="overlay" style={CSS_PADDING} className={"pointer-events-none absolute bottom-[calc(100%+10px)] right-0 z-30 w-64 px-3 py-2 " + FRAME}>
           <Corners />
           <div className="text-[13px] font-bold text-amber-200">{tip.title}</div>
           <div className="mt-0.5 text-[11px] leading-snug text-slate-300">{tip.desc}</div>
           {tip.chips.length > 0 ? (
             <div className="mt-1.5 flex gap-3 text-[11px] font-bold">{tip.chips.map((c) => <TipChip key={c.icon + c.text} icon={c.icon} text={c.text} />)}</div>
           ) : null}
-        </div>
+        </HudFrame>
       ) : null}
       <div className="grid grid-cols-4 grid-rows-3 gap-1.5">
         <Slot icon="peasant" hotkey="1" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
@@ -306,7 +303,7 @@ function HeroPanel() {
 /** Arrow chrome shared with the engine's ScrollRail buttons, so the paging arrows keep their look. */
 function rosterArrowStyle(enabled: boolean): CSSProperties {
   return {
-    flex: `0 0 ${ROSTER_METRICS.arrow}px`, minHeight: 44, border: "1px solid var(--jg-edge, #454550)",
+    flex: `0 0 ${ROSTER_METRICS.arrow}px`, minHeight: 44, padding: 0, border: "1px solid var(--jg-edge, #454550)",
     borderRadius: "var(--jg-slot-radius, 6px)", background: "var(--jg-surface-deep, #15151d)",
     color: "var(--jg-text, #ececef)", fontSize: 20, lineHeight: 1, fontWeight: 700, cursor: enabled ? "pointer" : "default",
     opacity: enabled ? 1 : 0.45,
@@ -345,7 +342,7 @@ function ArmyRow() {
       ) : (
         <>
           {fit.paged ? (
-            <button type="button" aria-label="Show earlier army units" disabled={!view.hasPrev} onClick={() => setRequestedPage(view.page - 1)} style={rosterArrowStyle(view.hasPrev)}>‹</button>
+            <HudButton aria-label="Show earlier army units" disabled={!view.hasPrev} onClick={() => setRequestedPage(view.page - 1)} style={rosterArrowStyle(view.hasPrev)}>‹</HudButton>
           ) : null}
           <div role="list" aria-label="army units" className="flex min-w-0 flex-1 items-start justify-center overflow-hidden" style={{ gap: ROSTER_METRICS.gap }}>
             {shown.map((u: ArmyUnit) => {
@@ -364,7 +361,7 @@ function ArmyRow() {
             })}
           </div>
           {fit.paged ? (
-            <button type="button" aria-label="Show later army units" disabled={!view.hasNext} onClick={() => setRequestedPage(view.page + 1)} style={rosterArrowStyle(view.hasNext)}>›</button>
+            <HudButton aria-label="Show later army units" disabled={!view.hasNext} onClick={() => setRequestedPage(view.page + 1)} style={rosterArrowStyle(view.hasNext)}>›</HudButton>
           ) : null}
         </>
       )}
@@ -409,29 +406,29 @@ function Console() {
   return (
     <div className="ec-console pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-center gap-2 px-2 pb-1 font-serif">
       {/* Minimap cluster */}
-      <div className={"ec-map-panel pointer-events-auto relative flex items-stretch gap-2 p-2 " + FRAME}>
+      <HudFrame style={CSS_PADDING} className={"ec-map-panel relative flex items-stretch gap-2 p-2 " + FRAME}>
         <Corners />
         <MapControls />
         <div className="relative rounded border border-slate-600/50 bg-black/50 p-1">
           <Minimap />
           <span className="pointer-events-none absolute right-1 top-1 text-[9px] font-bold text-sky-200/70">N</span>
         </div>
-      </div>
+      </HudFrame>
 
       {/* Hero + army */}
-      <div className={"ec-hero-panel pointer-events-auto relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
+      <HudFrame style={CSS_PADDING} className={"ec-hero-panel relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
         <Corners />
         <HeroPanel />
         <div className="h-px w-full bg-slate-500/20" />
         <div className="ec-army h-[62px] w-[19rem]"><ArmyRow /></div>
         <ProductionLine />
-      </div>
+      </HudFrame>
 
       {/* Command grid */}
-      <div className={"pointer-events-auto relative p-2.5 " + FRAME}>
+      <HudFrame style={CSS_PADDING} className={"relative p-2.5 " + FRAME}>
         <Corners />
         <CommandGrid />
-      </div>
+      </HudFrame>
 
       {hud.buildArmed !== null ? (
         <div className="ec-build-mode pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 rounded-md border-2 border-sky-300/70 bg-sky-500/90 px-3 py-1 text-xs font-bold text-slate-950 shadow-lg">
@@ -442,6 +439,7 @@ function Console() {
   );
 }
 
+/** Order reports and refusals go to the engine notice feed (`ctx.game.notices`), which the shell draws. */
 export function RtsHud(): ReactNode {
   const hud = useHud();
   return (
@@ -449,7 +447,6 @@ export function RtsHud(): ReactNode {
       <TopBar />
       <ObjectivesPanel />
       <Console />
-      <div className="ec-field-report" role="status" aria-live="polite">{hud.notice}</div>
       {(hud.rallyArmed || hud.attackMoveArmed) && <div className="ec-order-mode">{hud.rallyArmed ? "Rally point" : "Attack-move"} · Right-click a destination · Esc to cancel</div>}
     </>
   );

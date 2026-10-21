@@ -1,3 +1,5 @@
+@import "@jgengine/react/styles.css";
+
 :root { color-scheme: dark; }
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #root { height: 100dvh; background: #102e3b; }
@@ -14,7 +16,7 @@ button:focus-visible { outline: 3px solid #fff3d8; outline-offset: 4px; }
 .hh-title-description { color: #b9cbd0; font-size: 14px; line-height: 1.6; max-width: 340px; margin: 18px 0 25px; }
 .hh-title-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .hh-button { min-height: 46px; padding: 12px 20px; border: 1px solid #76d4c355; border-radius: 5px; font: 750 14px system-ui; cursor: pointer; transition: filter .15s, transform .15s; }
-.hh-button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.hh-button:hover { filter: brightness(1.1); }
 .hh-button-primary { background: #ffc879; color: #102e3b; border-color: #ffc879; box-shadow: 0 4px 0 #ad7140; } .hh-button-primary span { margin-left: 22px; }
 .hh-button-secondary { background: #194451; color: #fff0d2; }
 .hh-controls { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; color: #b9cbd0; max-width: 375px; }
@@ -24,19 +26,31 @@ button:focus-visible { outline: 3px solid #fff3d8; outline-offset: 4px; }
 .hh-poster-stamp { z-index: 1; position: absolute; right: 6%; top: 8%; border: 2px solid #fff0d299; padding: 14px 24px; font-size: 23px; line-height: 1; text-transform: uppercase; transform: rotate(5deg); text-align: center; }
 .hh-poster-stamp small { display: block; font-size: 8px; letter-spacing: .2em; margin-top: 10px; }
 .hh-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; background: #08232dc9; backdrop-filter: blur(6px); z-index: 50; pointer-events: auto; font-family: system-ui; overflow: auto; }
-.hh-modal { width: min(460px,100%); padding: clamp(22px,5vw,40px); border: 1px solid #76d4c377; border-top: 5px solid #f88b6b; border-radius: 8px; background: #102e3b; color: #fff0d2; box-shadow: 0 20px 80px #0008; }
+.hh-modal { --hh-modal-pad: clamp(22px,5vw,40px); width: min(460px,100%); border: 1px solid #76d4c377; border-top: 5px solid #f88b6b; border-radius: 8px; background: #102e3b; color: #fff0d2; box-shadow: 0 20px 80px #0008; }
 .hh-modal h2 { font-weight: 900; font-size: clamp(25px,4vw,39px); line-height: 1.05; letter-spacing: -.04em; margin: 18px 0; }
 .hh-modal p { color: #b9cbd0; line-height: 1.65; font-size: 14px; margin-bottom: 25px; }
 .hh-menu-actions { display: grid; gap: 12px; margin-bottom: 20px; } .hh-modal small { font-size: 11px; color: #76d4c3; }
 .hh-payout { font-size: 42px; font-weight: 900; color: #ffc879; margin: 22px 0; } .hh-payout small { display: block; font-weight: 500; }
 .hh-pause-trigger { pointer-events: auto; position: absolute; right: 68px; top: 16px; z-index: 24; color: #fff0d2; background: #102e3be8; border: 1px solid #76d4c355; border-radius: 4px; padding: 9px 12px; cursor: pointer; font: 700 12px system-ui; }
-.hh-courier { width: clamp(210px,24vw,290px); padding: 12px 15px; background: #102e3be8; border: 1px solid #76d4c355; border-left: 4px solid #76d4c3; border-radius: 4px; color: #fff0d2; box-shadow: 0 3px 15px #0003; }
+.hh-courier { --hh-courier-pad: 12px 15px; width: clamp(210px,24vw,290px); background: #102e3be8; border: 1px solid #76d4c355; border-left: 4px solid #76d4c3; border-radius: 4px; color: #fff0d2; box-shadow: 0 3px 15px #0003; }
 .hh-courier-label { font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; color: #76d4c3; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
 .hh-courier-label span { color: #ffc879; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .hh-courier strong { font-size: 14px; } .hh-courier p { margin: 3px 0; font-size: 11px; color: #d6e3df; } .hh-courier small { font-size: 11px; line-height: 1.5; display: block; color: #c4d6da; margin-top: 5px; }
 .hh-courier progress { width: 100%; height: 5px; accent-color: #76d4c3; margin-top: 5px; } .hh-urgent { border-left-color: #f88b6b; } .hh-urgent .hh-courier-label span { color: #ff9d86; }
-.hh-inline-action { margin-top: 9px; color: #102e3b; background: #76d4c3; border: 0; border-radius: 3px; padding: 8px 10px; width: 100%; cursor: pointer; font-size: 11px; font-weight: 800; }
-@media (max-width: 700px) { .hh-title-content { width: 80%; padding: 24px; } .hh-poster { left: 10%; opacity: .55; } .hh-poster-stamp { display: none; } .hh-title::after { background: linear-gradient(90deg,#102e3bf5,#102e3bb0,transparent); } .hh-title h1 { margin: 20px 0; } .hh-title-description { max-width: 280px; } .hh-courier { width: 210px; padding: 9px; } .hh-courier small { display: none; } .hh-pause-trigger span { display: none; } }
+.hh-inline-action { margin-top: 9px; min-height: 0; color: #102e3b; background: #76d4c3; border: 0; border-radius: 3px; padding: 8px 10px; width: 100%; cursor: pointer; font-size: 11px; font-weight: 800; line-height: 1.3; white-space: normal; }
+@media (max-width: 700px) { .hh-title-content { width: 80%; padding: 24px; } .hh-poster { left: 10%; opacity: .55; } .hh-poster-stamp { display: none; } .hh-title::after { background: linear-gradient(90deg,#102e3bf5,#102e3bb0,transparent); } .hh-title h1 { margin: 20px 0; } .hh-title-description { max-width: 280px; } .hh-courier { width: 210px; --hh-courier-pad: 9px; } .hh-courier small { display: none; } .hh-pause-trigger span { display: none; } }
 @media (max-height: 530px) { .hh-title-content { padding: 20px 32px; width: 72%; } .hh-title h1 { font-size: 55px; margin: 15px 0; } .hh-title-description,.hh-title footer { display: none; } .hh-title-intro { font-size: 17px; margin-bottom: 14px; } .hh-controls { margin-top: 20px; } .hh-title-note { margin-top: 12px; } .hh-poster-stamp { display: none; } }
-@media (max-height: 530px) { .hh-overlay { padding: 14px; } .hh-modal { padding: 18px 24px; } .hh-modal h2 { font-size: 28px; margin: 12px 0; } .hh-modal p { font-size: 13px; line-height: 1.4; margin-bottom: 14px; } .hh-menu-actions { gap: 8px; margin-bottom: 14px; } .hh-menu-actions .hh-button { min-height: 40px; padding: 10px 14px; font-size: 13px; } .hh-courier small { display: none; } }
+@media (max-height: 530px) { .hh-overlay { padding: 14px; } .hh-modal { --hh-modal-pad: 18px 24px; } .hh-modal h2 { font-size: 28px; margin: 12px 0; } .hh-modal p { font-size: 13px; line-height: 1.4; margin-bottom: 14px; } .hh-menu-actions { gap: 8px; margin-bottom: 14px; } .hh-menu-actions .hh-button { min-height: 40px; padding: 10px 14px; font-size: 13px; } .hh-courier small { display: none; } }
 .hh-button:disabled { cursor: default; opacity: .55; transform: none; }
+
+/* Street counters (Ammu-Isle, Sunset Motors) and HUD plates: cream card stock, black ink, hard offset shadow. */
+.hh-counter { pointer-events: auto; border: 2px solid #000; border-radius: 0; background: #f4e8c8; color: #1b1e26; box-shadow: 6px 6px 0 #000; }
+.hh-counter-row { justify-content: space-between; min-height: 0; padding: 4px 8px; border: 2px solid #000; border-radius: 0; background: #fff; color: #1b1e26; box-shadow: none; text-align: left; font-size: 12px; font-weight: 900; line-height: 1.33; text-transform: uppercase; letter-spacing: 0; }
+.hh-counter-row-gold:not(:disabled):hover { background: #ffe9bd; }
+.hh-counter-row-teal:not(:disabled):hover { background: #d8f7f2; }
+.hh-counter-row:disabled { background: #c9c2ad; color: #0006; opacity: 1; }
+.hh-street-button { min-height: 0; padding: 4px 12px; border: 2px solid #000; border-radius: 0; color: #fff; box-shadow: none; font-size: 12px; font-weight: 900; line-height: 1.33; text-transform: uppercase; transform: skewX(-6deg); }
+.hh-street-leave { margin: 0 12px 12px; background: #c23b3b; } .hh-street-leave:hover { background: #e35555; }
+.hh-street-bribe { margin: 0 12px 4px; background: #4f7de8; } .hh-street-bribe:hover { background: #6b93f0; }
+.hh-plate { border: 2px solid #000; border-radius: 2px; background: #f4e8c8; color: #1b1e26; box-shadow: 4px 4px 0 #000; }
+.hh-card { border: 2px solid #000; border-radius: 0; background: #12141ae6; color: #f4e8c8; box-shadow: 4px 4px 0 #000; }

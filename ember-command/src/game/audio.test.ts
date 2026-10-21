@@ -46,7 +46,8 @@ describe("ember-command sound cues", () => {
   });
 
   test("every record entry is played or looped somewhere, so no dead cue ships", () => {
-    const unused = Object.keys(EMBER_SOUNDS).filter((id) => !played.has(id) && !looped.has(id));
+    // `ui.*` ids replace the engine's UI cues, which the shell plays (ui.deny on every deny notice).
+    const unused = Object.keys(EMBER_SOUNDS).filter((id) => !id.startsWith("ui.") && !played.has(id) && !looped.has(id));
     expect(unused).toEqual([]);
   });
 

@@ -10,6 +10,7 @@ import { entityModels } from "./game/models";
 import { isPlayerSelectable } from "./game/session";
 import { systems } from "./game/systems";
 import { GameUI } from "./game/ui/GameUI";
+import { emberTheme } from "./game/ui/theme";
 import { EmberCommandWorldOverlay } from "./game/ui/WorldOverlay";
 import { onInit, onNewPlayer, onTick } from "./loop";
 import { physics, world } from "./world";
@@ -27,6 +28,9 @@ export const game = defineGame({
   systems,
   loop: { onInit, onNewPlayer, onTick },
   GameUI,
+  hudTheme: emberTheme,
+  // Order reports and refusals: below the stockpile strip, clear of the command console.
+  notices: { placement: "top", ttlMs: 5000 },
   entityModels,
   // Selection rings, marquee + click select, and right-click orders are all shell-native: the game
   // supplies who is selectable and the verb that receives { selection, point }. With nothing

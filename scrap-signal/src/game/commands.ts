@@ -1,6 +1,6 @@
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { AMMO_STAT_IDS, type AmmoPool } from "./ammo";
+import { AMMO_LABELS, AMMO_STAT_IDS, type AmmoPool } from "./ammo";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
@@ -233,7 +233,7 @@ export function registerCommands(ctx: GameContext): void {
       if (input.itemId === undefined) return;
       const rejection = state.game.trade!.buy(input.itemId, 1, { shop: "shop_ferralon", inventoryId: "backpack" });
       if (rejection !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
       }
     },
   });
@@ -246,12 +246,12 @@ export function registerCommands(ctx: GameContext): void {
       const statId = AMMO_STAT_IDS[input.pool];
       const stat = state.scene.entity.stats.get(userId, statId);
       if (stat !== null && stat.current >= stat.max) {
-        state.scene.entity.floatText({ instanceId: userId, text: "AMMO FULL", kind: "warn" });
+        state.game.notices.push({ text: `${AMMO_LABELS[input.pool]} ammo is full.`, tone: "deny" });
         return;
       }
       const rejection = state.game.economy.charge(userId, "cash", price.cash);
       if (rejection !== null) {
-        state.scene.entity.floatText({ instanceId: userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
       state.scene.entity.stats.delta(userId, statId, price.amount);
@@ -263,7 +263,7 @@ export function registerCommands(ctx: GameContext): void {
       const userId = state.player.userId;
       const rejection = state.game.economy.charge(userId, "cash", 300);
       if (rejection !== null) {
-        state.scene.entity.floatText({ instanceId: userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
       const gun = rollGun(chestRng, playerLevel(state), { luck: 6 });
@@ -333,7 +333,7 @@ export function registerCommands(ctx: GameContext): void {
       const cost = upgradeCost(owned);
       const rejection = state.game.economy.charge(userId, "cores", cost);
       if (rejection !== null) {
-        state.scene.entity.floatText({ instanceId: userId, text: "NOT ENOUGH CORES", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cores.", tone: "deny" });
         return;
       }
       counts[upgrade.id] = owned + 1;
@@ -394,7 +394,7 @@ export function registerCommands(ctx: GameContext): void {
       const before = 1 + bonus("maxHealth");
       const result = tree.allocate(input.nodeId);
       if (!result.ok) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: result.reason.toUpperCase(), kind: "warn" });
+        state.game.notices.push({ text: `Can't learn that yet: ${result.reason.replaceAll("-", " ")}.`, tone: "deny" });
         return;
       }
       talentRanksStore.write(state, tree.snapshot().ranks);

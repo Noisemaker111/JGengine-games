@@ -2,10 +2,11 @@ import { useEntityStat, useGame, useInventory, usePlayer } from "@jgengine/react
 import { useStore } from "@jgengine/react/store";
 import { iconForItemId } from "@jgengine/react/gameIcons";
 import { IconTreatment, schoolForItem } from "@jgengine/react/iconTreatment";
-import { hudThemeVars, resolveHudTheme } from "@jgengine/react/hudTheme";
+import { HudThemeRoot } from "@jgengine/react/hudThemeRoot";
 import { slotStore } from "../../commands";
 import { AMMO_STAT_IDS, weaponById } from "../../items/weapons/catalog";
 import { ITEM_LABELS } from "../../content";
+import { hotbarTheme } from "../theme";
 
 export function Hotbar() {
   const { userId } = usePlayer();
@@ -15,11 +16,9 @@ export function Hotbar() {
   const ammo9 = useEntityStat(userId, "ammo_9mm");
   const ammoShell = useEntityStat(userId, "ammo_shell");
 
-  // #1034: one prop themes the painted slot icons below. A shipped game would author its own
-  // HudTheme (see beacon-bastion's fieldkitVars); the "sandbox-slot" preset matches Harbor Heat's
-  // chunky black-bordered look and is a fine scaffold default.
   return (
-    <div className="flex items-end gap-2" style={hudThemeVars(resolveHudTheme("sandbox-slot"))}>
+    <HudThemeRoot theme={hotbarTheme}>
+    <div className="flex items-end gap-2">
       {[0, 1, 2, 3].map((index) => {
         const slot = slots[index];
         const itemId = slot?.itemId ?? null;
@@ -57,5 +56,6 @@ export function Hotbar() {
         );
       })}
     </div>
+    </HudThemeRoot>
   );
 }

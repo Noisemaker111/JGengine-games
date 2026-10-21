@@ -1,3 +1,4 @@
+import type { NoticeTone } from "@jgengine/core/game/notices";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
@@ -16,12 +17,16 @@ import { FORMATION_SPACING, NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tun
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
 import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
 import { castThunderClap } from "./hero";
-import { hudStore } from "./hudStore";
 
 export interface OrderInput {
   /** Absent when the shell routes a right-click with nothing selected (`pointer.secondaryCommand`). */
   selection?: readonly string[];
   point: EntityPosition;
+}
+
+/** Field report for an order: a line in the engine notice feed. Deny notices play the `ui.deny` knock. */
+function notify(ctx: GameContext, text: string, tone: NoticeTone = "info"): void {
+  ctx.game.notices.push({ text, tone });
 }
 
 /** "1 trooper" / "3 troops": the notice line reads a count, so pick the matching noun. */
@@ -119,8 +124,7 @@ function canPlaceAt(ctx: GameContext, x: number, z: number): boolean {
 
 function placeBuilding(ctx: GameContext, type: string, x: number, z: number): boolean {
   if (!canAffordBuilding(ctx, type) || !canPlaceAt(ctx, x, z)) {
-    hudStore.set({ notice: "Choose clear ground on your half of the vale, away from buildings and resource nodes." });
-    ctx.game.audio.play("denied");
+    notify(ctx, "Choose clear ground on your half of the vale, away from buildings and resource nodes.", "deny");
     return false;
   }
   const result = enqueue(session.buildQueue, BUILD_CONFIG, { type, x, z });
@@ -129,7 +133,7 @@ function placeBuilding(ctx: GameContext, type: string, x: number, z: number): bo
   for (const [currency, amount] of Object.entries(BUILDINGS[type]!.cost)) {
     ctx.game.economy.charge(ctx.player.userId, currency, amount);
   }
-  hudStore.set({ notice: `Raising ${type.replaceAll("_", " ")} — construction is underway.` });
+  notify(ctx, `Raising ${type.replaceAll("_", " ")} — construction is underway.`, "success");
   ctx.game.audio.play("place", [x, 0, z]);
   return true;
 }
@@ -150,13 +154,12 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
   if (session.rallyArmed) {
     session.rallyPoint = { x, z };
     session.rallyArmed = false;
-    hudStore.set({ notice: "Rally set. New recruits will march to this point." });
+    notify(ctx, "Rally set. New recruits will march to this point.");
     return ctx;
   }
   const units = selectedPlayerUnits(input.selection ?? []);
   if (units.length === 0) {
-    hudStore.set({ notice: "Select your troops first: click a unit or drag a box around the formation." });
-    ctx.game.audio.play("denied");
+    notify(ctx, "Select your troops first: click a unit or drag a box around the formation.", "deny");
     return ctx;
   }
   const armed = session.attackMoveArmed;
@@ -164,7 +167,7 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
 
   const targetId = enemyNear(ctx, x, z);
   if (targetId !== null) {
-    hudStore.set({ notice: `Attack ordered: ${count(units.length, "trooper", "troops")}.` });
+    notify(ctx, `Attack ordered: ${count(units.length, "trooper", "troops")}.`);
     for (const u of units) {
       u.guardPoint = { x, z };
       u.command = { kind: "attack", targetId };
@@ -176,7 +179,7 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
   if (node !== null) {
     const workers = units.filter((u) => combatantDef(u.catalogId)?.worker === true);
     const rest = units.filter((u) => combatantDef(u.catalogId)?.worker !== true);
-    hudStore.set({ notice: `Gathering ${node.resource}: ${count(workers.length, "worker", "workers")} assigned.` });
+    notify(ctx, `Gathering ${node.resource}: ${count(workers.length, "worker", "workers")} assigned.`);
     for (const u of workers) {
       // Repeating this order keeps harvest progress and the load already removed from the node.
       if (u.command.kind === "gather" && u.command.nodeId === node.id && u.command.resource === node.resource) continue;
@@ -186,7 +189,7 @@ export function orderSelection(ctx: GameContext, input: OrderInput): GameContext
     return ctx;
   }
 
-  hudStore.set({ notice: `${armed ? "Advance and engage" : "Move ordered"}: ${count(units.length, "trooper", "troops")}.` });
+  notify(ctx, `${armed ? "Advance and engage" : "Move ordered"}: ${count(units.length, "trooper", "troops")}.`);
   assignMoveFormation(ctx, units, x, z, armed);
   return ctx;
 }
@@ -229,8 +232,7 @@ function explainTrainRefusal(ctx: GameContext, unitId: string): string {
 
 export function trainUnit(ctx: GameContext, unitId: string): GameContext {
   if (!canTrain(ctx, unitId)) {
-    hudStore.set({ notice: explainTrainRefusal(ctx, unitId) });
-    ctx.game.audio.play("denied");
+    notify(ctx, explainTrainRefusal(ctx, unitId), "deny");
     return ctx;
   }
   const result = enqueue(session.production, TRAINING_CONFIG, { unitId });
@@ -240,7 +242,7 @@ export function trainUnit(ctx: GameContext, unitId: string): GameContext {
     ctx.game.economy.charge(ctx.player.userId, currency, amount);
   }
   const trainer = BARRACKS_UNITS.has(unitId) ? "Barracks" : "Town Hall";
-  hudStore.set({ notice: `Training ${COMBATANTS[unitId]?.label ?? unitId} at the ${trainer}.` });
+  notify(ctx, `Training ${COMBATANTS[unitId]?.label ?? unitId} at the ${trainer}.`, "success");
   return ctx;
 }
 
@@ -290,13 +292,13 @@ export function registerCommands(ctx: GameContext): void {
         if (combatantDef(u.catalogId)?.worker || u.command.kind === "gather") continue;
         u.command = { kind: "hold" };
       }
-      hudStore.set({ notice: "Army holding position. Troops attack only enemies within weapon reach." });
+      notify(state, "Army holding position. Troops attack only enemies within weapon reach.");
     }
     return state;
   } });
   ctx.game.commands.define("unit.cancel", { apply: (state) => {
     session.buildArmed = null; session.attackMoveArmed = false; session.rallyArmed = false;
-    hudStore.set({ notice: "Order canceled." });
+    notify(state, "Order canceled.");
     return state;
   } });
   ctx.game.commands.define<OrderInput>("unit.order", { apply: orderSelection });

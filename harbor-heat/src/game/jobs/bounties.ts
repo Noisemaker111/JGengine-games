@@ -65,7 +65,7 @@ export function tickBounties(ctx: GameContext): void {
   });
   bountyStore.write(ctx, { ...state, targetId, spotId: spot.id });
   const district = districtAt(x, z)?.label ?? "the streets";
-  ctx.game.feed.push("harbor.log", { text: `Bounty posted: ${spot.label}, ${district}.` });
+  ctx.game.notices.push({ text: `Bounty posted: ${spot.label}, ${district}.`, tone: "info" });
 }
 
 /** Settle a kill if it was the live bounty target; returns false for unrelated deaths. */
@@ -81,6 +81,6 @@ export function onBountyKilled(ctx: GameContext, instanceId: string): boolean {
     spotId: null,
     nextAt: ctx.time.now() + BOUNTY_COOLDOWN_SEC,
   });
-  ctx.game.feed.push("harbor.log", { text: `Bounty collected — $${payout}.` });
+  ctx.game.notices.push({ text: `Bounty collected — $${payout}.`, tone: "success" });
   return true;
 }

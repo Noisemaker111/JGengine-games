@@ -8,6 +8,7 @@ import { keybinds } from "./game/keybinds";
 import { prompts } from "./game/prompts";
 import { entityModels, objectModels } from "./game/world/models";
 import { GameUI } from "./game/ui/GameUI";
+import { harborTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { physics, world } from "./world";
 import { drivingStore } from "./game/handroll";
@@ -65,13 +66,11 @@ export const game = defineGame({
   content,
   loop,
   GameUI,
+  hudTheme: harborTheme,
+  // Above the hotbar: the top band holds the wanted stars and the courier card.
+  notices: { placement: "bottom" },
   capture: {
     play: ["game.start"],
-    // `game.start` is what builds the isle — 170+ building lots, street furniture, traffic and peds
-    // all start streaming only once it has run, which is *after* the host's readiness gate has
-    // already seen an idle loader. Without this wait a play capture frames the bare terrain the
-    // world had not been placed on yet, which is exactly what "sparse prototype" screenshots were.
-    settleMs: 12000,
     views: {
       boulevard: {
         description: "Mainsail Boulevard looking down the palm boulevard — beach and Gulf on the left, deco blocks on the right.",

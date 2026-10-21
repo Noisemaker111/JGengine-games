@@ -83,12 +83,14 @@ export function tickStashes(ctx: GameContext): void {
 
     if (next.length >= STASH_SPOTS.length) {
       ctx.game.economy.grant(ctx.player.userId, "cash", STASH_COMPLETE_BONUS);
-      ctx.game.feed.push("harbor.log", {
+      ctx.game.notices.push({
         text: `Every stash on Harbor Heat bagged — $${STASH_COMPLETE_BONUS} bonus.`,
+        tone: "success",
       });
     } else {
-      ctx.game.feed.push("harbor.log", {
+      ctx.game.notices.push({
         text: `Stash bagged: ${spot.label} — $${STASH_PAYOUT}. ${stashesRemaining(next.length)} left.`,
+        tone: "success",
       });
     }
     return;

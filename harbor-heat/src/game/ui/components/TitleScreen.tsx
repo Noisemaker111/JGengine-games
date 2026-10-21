@@ -1,4 +1,5 @@
 import { SettingsTrigger } from "@jgengine/react";
+import { HudButton } from "@jgengine/react/hudButton";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { continueStore, startedStore } from "../../commands";
@@ -20,7 +21,7 @@ export function TitleScreen() {
         <p className="hh-title-intro">Golden coast. Hot cargo.<br />One more run before sundown.</p>
         <p className="hh-title-description">Carry parcels down the palm-lined coast, earn your wheels, and take on the crews who own the harbor.</p>
         <div className="hh-title-actions">
-          <button type="button" className="hh-button hh-button-primary" onClick={() => commands.run("game.start", {})}>{hasSave ? "Continue your story" : "Hit the street"} <span>↗</span></button>
+          <HudButton className="hh-button hh-button-primary" onClick={() => commands.run("game.start", {})}>{hasSave ? "Continue your story" : "Hit the street"} <span>↗</span></HudButton>
           <SettingsTrigger className="hh-button hh-button-secondary" label="Settings">Settings</SettingsTrigger>
         </div>
         <div className="hh-controls">

@@ -6,7 +6,7 @@ import { DAY_LENGTH } from "../../world";
 import { FURNITURE_BY_ID, WORK_EARN_PER_SECOND, type FurnitureRole } from "../objects/catalog";
 import { clamp, decayNeeds, lowestNeed, type NeedId } from "../needs/needs";
 import { householdStore } from "../session/store";
-import { pairKey, pruneEvents, pushEvent, type HouseholdState, type MemberState } from "../session/types";
+import { noteEvent, pairKey, type HouseholdState, type MemberState } from "../session/types";
 import { chooseDesire, isIdleish, SOCIAL_RANGE, SOCIAL_SECONDS, USE_FULL, type RoleAvailability } from "./ai";
 import { advanceLifeEvents } from "./events";
 import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
@@ -14,8 +14,6 @@ import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWin
 import { bloomHarvest } from "./bloom";
 import { crossedMilestones, REL_BOUNDS } from "./social";
 import { stationShortfall } from "./goal";
-
-const EVENT_TTL = 90;
 
 function positionOf(ctx: GameContext, id: string): [number, number, number] | null {
   const entity = ctx.scene.entity.get(id);
@@ -89,8 +87,8 @@ export function releaseMember(member: MemberState): void {
   member.actionUntil = 0;
 }
 
-function concern(state: HouseholdState, member: MemberState, text: string, now: number): void {
-  if (member.concern !== text) pushEvent(state, `${member.name}: ${text}.`, now);
+function concern(ctx: GameContext, state: HouseholdState, member: MemberState, text: string): void {
+  if (member.concern !== text) noteEvent(state, ctx.game.notices, `${member.name}: ${text}.`, "warn");
   member.concern = text;
 }
 
@@ -98,13 +96,13 @@ function finishShift(ctx: GameContext, state: HouseholdState, member: MemberStat
   if (member.shiftDay === state.day) return;
   member.shiftDay = state.day;
   member.completedShifts += 1;
-  pushEvent(state, `${member.name} finished a ${member.lifestyle === "yield" ? "Yield" : "Bloom"} shift.`, now, "good");
+  noteEvent(state, ctx.game.notices, `${member.name} finished a ${member.lifestyle === "yield" ? "Yield" : "Bloom"} shift.`, "success");
   const at = positionOf(ctx, member.id);
   if (at !== null) ctx.game.audio.play("shift", at);
-  if (member.completedShifts === FLEX_AFTER_SHIFTS) pushEvent(state, `${member.name} earned flex hours: paid shifts can now run 08–18.`, now, "milestone");
+  if (member.completedShifts === FLEX_AFTER_SHIFTS) noteEvent(state, ctx.game.notices, `${member.name} earned flex hours: paid shifts can now run 08–18.`, "success");
 }
 
-function closeMissedShift(state: HouseholdState, member: MemberState, now: number): void {
+function closeMissedShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number): void {
   const hour = ((now % DAY_LENGTH) / DAY_LENGTH) * 24;
   if (member.shiftDay >= state.day || hour < shiftWindow(member).end) return;
   const finished = member.lifestyle === "yield" ? member.workToday >= SHIFT_SECONDS : member.harvestToday > 0;
@@ -112,7 +110,7 @@ function closeMissedShift(state: HouseholdState, member: MemberState, now: numbe
   if (finished) return;
   member.missedShifts += 1;
   member.stress = clamp(member.stress + 12);
-  concern(state, member, member.lifestyle === "yield" ? "Yield window closed; unfinished work earned only partial pay" : "Bloom window closed; no harvest today", now);
+  concern(ctx, state, member, member.lifestyle === "yield" ? "Yield window closed; unfinished work earned only partial pay" : "Bloom window closed; no harvest today");
 }
 
 const MAX_FRAME_SIM_SECONDS = 10;
@@ -141,7 +139,7 @@ export function simulateHousehold(ctx: GameContext, dt: number): void {
   for (let i = 1; i <= steps; i++) stepHousehold(ctx, step, now - simulated + step * i);
   if (dt > simulated) {
     const state = householdStore.read(ctx);
-    pushEvent(state, "An unattended interval passed: needs continued to decay and paid shifts were missed. Habitat bills remain due.", now);
+    noteEvent(state, ctx.game.notices, "An unattended interval passed: needs continued to decay and paid shifts were missed. Habitat bills remain due.", "info");
     householdStore.write(ctx, { ...state });
   }
 }
@@ -151,10 +149,10 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   if (state.order.length === 0) return;
   const objects = ctx.scene.object.list();
   if (Math.floor(now / DAY_LENGTH) > state.day) {
-    for (const id of state.order) closeMissedShift(state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001);
+    for (const id of state.order) closeMissedShift(ctx, state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001);
   }
   const dayBefore = state.day;
-  settleHouseholdDay(state, objects, now);
+  settleHouseholdDay(state, objects, now, ctx.game.notices);
   if (state.day !== dayBefore) ctx.game.audio.play("bill");
   const availability = availabilityFrom(objects);
   for (const id of state.order) {
@@ -166,23 +164,22 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
     if (!member.recovering && member.stress >= 80) {
       member.recovering = true;
       releaseMember(member);
-      concern(state, member, "Overwhelmed — paid work stops until rest, food and company help", now);
+      concern(ctx, state, member, "Overwhelmed — paid work stops until rest, food and company help");
     }
     if (member.recovering && member.stress < 35 && member.needs.hunger >= 50 && member.needs.energy >= 50) {
       member.recovering = false;
       member.concern = null;
-      pushEvent(state, `${member.name} recovered and can take paid shifts again.`, now, "good");
+      noteEvent(state, ctx.game.notices, `${member.name} recovered and can take paid shifts again.`, "success");
     }
-    closeMissedShift(state, member, now);
+    closeMissedShift(ctx, state, member, now);
   }
   for (const id of state.order) {
     const member = state.members[id];
     if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt);
   }
   stepSocialPairs(ctx, state, now, dt);
-  advanceLifeEvents(state, now);
+  advanceLifeEvents(state, now, ctx.game.notices);
   for (const key of Object.keys(state.relationships)) driftValue(state.relationships, key, (2 / DAY_LENGTH) * dt, 0, REL_BOUNDS);
-  pruneEvents(state, now, EVENT_TTL);
   householdStore.write(ctx, { ...state, members: { ...state.members }, relationships: { ...state.relationships } });
 }
 
@@ -193,7 +190,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
   if ((action.kind === "use" || action.kind === "seek") && action.goal !== critical.need && critical.value < 25 && availability[critical.need]
     && (action.goal === "work" || action.goal === "social" || action.goal === "fun" || member.needs[action.goal] >= 55)) {
     releaseMember(member);
-    concern(state, member, `Interrupted for ${critical.need === "energy" ? "rest" : critical.need}`, now);
+    concern(ctx, state, member, `Interrupted for ${critical.need === "energy" ? "rest" : critical.need}`);
     return;
   }
   if (action.kind === "social") {
@@ -218,13 +215,13 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         if (action.goal === "work") { releaseMember(member); return; }
       }
       if (action.goal === "work" && (member.needs.energy < 35 || member.needs.hunger < 35 || member.needs.fun < 22 || member.needs.social < 22)) {
-        concern(state, member, "Too depleted for paid work; nourish, rest and reconnect", now);
+        concern(ctx, state, member, "Too depleted for paid work; nourish, rest and reconnect");
         releaseMember(member);
         return;
       }
     }
     if (!hasRoom(state, member, obj)) {
-      concern(state, member, `Waiting for ${def.name}; its ${def.capacity} ${def.capacity === 1 ? "place is" : "places are"} occupied`, now);
+      concern(ctx, state, member, `Waiting for ${def.name}; its ${def.capacity} ${def.capacity === 1 ? "place is" : "places are"} occupied`);
       if (now >= member.actionUntil) releaseMember(member);
       return;
     }
@@ -234,7 +231,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         member.action = { kind: "use", goal: action.goal, objId: action.objId };
         member.concern = null;
         if (action.goal === "hunger") {
-          if (state.pantry <= 0) { concern(state, member, "Pantry empty — buy rations, tend Blooms or request relief", now); releaseMember(member); return; }
+          if (state.pantry <= 0) { concern(ctx, state, member, "Pantry empty — buy rations, tend Blooms or request relief"); releaseMember(member); return; }
           state.pantry -= 1;
         }
       }
@@ -277,7 +274,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         state.dayHarvest += harvest;
         state.credits = creditAmount(state.credits + income);
         state.dayIncome = creditAmount(state.dayIncome + income);
-        pushEvent(state, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, now, "good");
+        noteEvent(state, ctx.game.notices, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, "success");
         ctx.game.audio.play("harvest", [obj.position[0], obj.position[1], obj.position[2]]);
         finishShift(ctx, state, member, now);
         releaseMember(member);
@@ -298,13 +295,13 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
   if (member.recovering && !availability.energy && member.needs.energy < 60) {
     member.needs.energy = clamp(member.needs.energy + 1.5 * dt);
     member.stress = clamp(member.stress - 0.65 * dt);
-    concern(state, member, "Resting outside; a Torpor Pod would recover faster", now);
+    concern(ctx, state, member, "Resting outside; a Torpor Pod would recover faster");
     return;
   }
   if (desire.kind === "need" || desire.kind === "work") {
     const role = desire.kind === "work" ? "work" : desire.goal;
     if (role === "hunger" && state.pantry === 0) {
-      concern(state, member, "Pantry empty — buy rations, tend Blooms or request relief", now);
+      concern(ctx, state, member, "Pantry empty — buy rations, tend Blooms or request relief");
       return;
     }
     const obj = nearestForRole(ctx, state, member, objects, role, bloomTime && role === "fun" ? "bloom_planter" : undefined);
@@ -315,7 +312,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
     } else {
       const planter = bloomTime && role === "fun";
       const furnished = objects.some(candidate => FURNITURE_BY_ID[candidate.catalogId]?.role === role && (!planter || candidate.catalogId === "bloom_planter"));
-      concern(state, member, stationShortfall(role, planter, furnished), now);
+      concern(ctx, state, member, stationShortfall(role, planter, furnished));
     }
   } else if (desire.kind === "socialize") {
     const companion = findIdleCompanion(ctx, state, member);
@@ -378,14 +375,14 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
     const before = getValue(state.relationships, key);
     const after = addValue(state.relationships, key, (tense ? -3 : 4) * dt, REL_BOUNDS);
     if (tense && a.concern !== "Signals clashed; rest before reconnecting") {
-      concern(state, a, "Signals clashed; rest before reconnecting", now);
+      concern(ctx, state, a, "Signals clashed; rest before reconnecting");
       b.concern = "Signals clashed; rest before reconnecting";
     }
     for (const milestone of crossedMilestones(before, after)) {
       if (state.milestones[key] === milestone.key) continue;
       state.milestones[key] = milestone.key;
       ctx.game.audio.play("bond");
-      pushEvent(state, `${a.name} & ${b.name} ${milestone.label}${milestone.key === "friends" ? "; tending Blooms together now yields more" : ""}.`, now, "milestone");
+      noteEvent(state, ctx.game.notices, `${a.name} & ${b.name} ${milestone.label}${milestone.key === "friends" ? "; tending Blooms together now yields more" : ""}.`, "success");
     }
   }
 }

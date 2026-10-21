@@ -147,7 +147,7 @@ function tickMissions(ctx: GameContext): void {
     if (wanted.peakStars >= 3 && wanted.stars === 0) {
       ctx.game.quest!.progress(ctx.player.userId, "m4_shake_the_heat", "lose_wanted", 1);
       ctx.game.quest!.turnIn(ctx.player.userId, "m4_shake_the_heat");
-      ctx.game.feed.push("harbor.log", { text: "You shook the heat. Harbor Heat is yours." });
+      ctx.game.notices.push({ text: "You shook the heat. Harbor Heat is yours.", tone: "success" });
     }
   }
 
@@ -168,7 +168,7 @@ function tickMissions(ctx: GameContext): void {
       if (dist < 9) {
         ctx.game.quest!.progress(ctx.player.userId, "m6_hot_wheels", "deliver_cicada", 1);
         handrollOf(ctx).exitVehicle(ctx);
-        ctx.game.feed.push("harbor.log", { text: "Cicada GT delivered." });
+        ctx.game.notices.push({ text: "Cicada GT delivered.", tone: "success" });
       }
     }
   }
@@ -225,7 +225,7 @@ function tickMissionSpawns(ctx: GameContext, dt: number): void {
           role: "npc",
         });
       }
-      ctx.game.feed.push("harbor.log", { text: "Sal is holed up in Palm Heights." });
+      ctx.game.notices.push({ text: "Sal is holed up in Palm Heights.", tone: "info" });
     }
   }
 
@@ -279,17 +279,18 @@ function tickRaceEconomy(ctx: GameContext): void {
         bestRaceStore.write(ctx, snapshot.timeSec);
         if (best !== undefined) {
           ctx.game.economy.grant(ctx.player.userId, "cash", RACE_BEST_BONUS);
-          ctx.game.feed.push("harbor.log", {
+          ctx.game.notices.push({
             text: `New ${snapshot.label} record ${snapshot.timeSec.toFixed(1)}s — $${RACE_WIN_PAYOUT + RACE_BEST_BONUS}.`,
+            tone: "success",
           });
         } else {
-          ctx.game.feed.push("harbor.log", { text: `Won ${snapshot.label} — $${RACE_WIN_PAYOUT}.` });
+          ctx.game.notices.push({ text: `Won ${snapshot.label} — $${RACE_WIN_PAYOUT}.`, tone: "success" });
         }
       } else {
-        ctx.game.feed.push("harbor.log", { text: `Won ${snapshot.label} — $${RACE_WIN_PAYOUT}.` });
+        ctx.game.notices.push({ text: `Won ${snapshot.label} — $${RACE_WIN_PAYOUT}.`, tone: "success" });
       }
     } else {
-      ctx.game.feed.push("harbor.log", { text: `Lost ${snapshot.label}. The start line runs it again anytime.` });
+      ctx.game.notices.push({ text: `Lost ${snapshot.label}. The start line runs it again anytime.`, tone: "warn" });
     }
   }
   if (ctx.time.now() >= mission(ctx).raceClearAt) raceStore.clear(ctx);
@@ -321,7 +322,6 @@ function tickBusted(ctx: GameContext, dt: number): void {
   ctx.scene.entity.setPose(ctx.player.userId, { position: [HHPD_POS[0], y, HHPD_POS[2]] });
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
-  ctx.game.feed.push("harbor.log", { text: `Busted. HHPD released you for $${fine}.` });
   finishCourier(ctx, false);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
   syncPhase(ctx);
@@ -350,9 +350,6 @@ function tickWasted(ctx: GameContext): void {
   if (fee > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fee);
   handrollOf(ctx).clearWanted(ctx);
   restageAfterWasted(ctx);
-  ctx.game.feed.push("harbor.log", {
-    text: fee > 0 ? `Wasted. The clinic took $${fee}.` : "Wasted. The clinic took pity.",
-  });
   finishCourier(ctx, false);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
   syncPhase(ctx);

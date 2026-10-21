@@ -54,7 +54,7 @@ export function grantCred(ctx: GameContext, amount: number): void {
     amount,
     (level) => {
       ctx.game.events.emit("stat.levelUp", { userId: ctx.player.userId, stat: "level", level });
-      ctx.game.feed.push("harbor.log", { text: `Street cred ${level} — new stock on the isle.` });
+      ctx.game.notices.push({ text: `Street cred ${level} — new stock on the isle.`, tone: "success" });
       ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: `CRED ${level}`, kind: "good" });
     },
   );

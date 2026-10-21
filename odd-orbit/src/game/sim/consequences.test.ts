@@ -21,6 +21,13 @@ function boot(): GameContext {
   return ctx;
 }
 
+/** Every notice pushed so far, including ones stacked onto a live notice. */
+function noticeLog(ctx: GameContext): string[] {
+  const log: string[] = [];
+  ctx.game.notices.onPush(notice => log.push(notice.text));
+  return log;
+}
+
 function advance(ctx: GameContext, seconds: number, step = 0.25): void {
   let remaining = seconds;
   while (remaining > 1e-8) {
@@ -123,6 +130,7 @@ describe("chosen daily rhythms", () => {
 describe("failure and recovery", () => {
   test("empty pantry and overload stop work; relief has debt and rest restores agency", () => {
     const ctx = boot();
+    const notices = noticeLog(ctx);
     const state = householdStore.read(ctx);
     const member = state.members[state.order[0]!]!;
     state.credits = 0;
@@ -144,7 +152,7 @@ describe("failure and recovery", () => {
     expect(member.stress).toBeLessThan(35);
     expect(member.needs.energy).toBeGreaterThan(50);
     expect(member.needs.hunger).toBeGreaterThan(35);
-    expect(householdStore.read(ctx).events.some(e => e.text.includes("recovered"))).toBe(true);
+    expect(notices.some(text => text.includes("recovered"))).toBe(true);
     expect(nextBill(householdStore.read(ctx), ctx.scene.object.list())).toBeGreaterThan(100);
   });
 });
@@ -251,6 +259,7 @@ test("slow rendered frames preserve three days of shifts, food and nightly settl
 
 test("an unattended gap skips paid activity while preserving bills and need consequences", () => {
   const ctx = boot();
+  const notices = noticeLog(ctx);
   const before = householdStore.read(ctx).credits;
   simulateHousehold(ctx, ctx.time.advance(DAY_LENGTH * 2));
   const state = householdStore.read(ctx);
@@ -259,7 +268,7 @@ test("an unattended gap skips paid activity while preserving bills and need cons
   expect(state.credits).toBe(before - 194);
   expect(state.dayIncome).toBe(0);
   expect(state.order.every(id => state.members[id]!.recovering)).toBe(true);
-  expect(state.events.some(event => event.text.includes("unattended interval"))).toBe(true);
+  expect(notices.some(text => text.includes("unattended interval"))).toBe(true);
 });
 
 test("unpaid upkeep becomes debt without deleting the household; later savings repay it", () => {
@@ -327,16 +336,16 @@ test("directed paid shifts explain closed windows instead of silently cancelling
 
 test("starting a Yield shift from the inspector journals it and shows the shift in progress", () => {
   const ctx = boot();
+  const notices = noticeLog(ctx);
   const member = householdStore.read(ctx).members["alien:2"]!;
   ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
   expect(shiftIsOpen(member, ctx.time.now())).toBe(true); // the fresh habitat clock opens at 09:00
   ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
-  const started = householdStore.read(ctx).events.map(event => event.text);
-  expect(started).toContain(`${member.name} started a Yield shift.`);
+  expect(notices).toContain(`${member.name} started a Yield shift.`);
   expect(yieldShiftLabel(member)).toBe("Heading to Yield Console");
   // Repeating the press keeps the same shift and does not journal it twice.
   ctx.game.commands.run("member.direct", { id:member.id, goal:"work" });
-  expect(householdStore.read(ctx).events.filter(event => event.text.includes("started a Yield shift")).length).toBe(1);
+  expect(notices.filter(text => text.includes("started a Yield shift")).length).toBe(1);
   const console = ctx.scene.object.get("starter:work_console")!;
   ctx.scene.entity.setPose(member.id, { position:[...console.position] });
   advance(ctx, 1);
