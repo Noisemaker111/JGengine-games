@@ -1,4 +1,3 @@
-import { appendFeed } from "@jgengine/core/game/feed";
 import {
   addScheduledRule,
   createResourceLedger,
@@ -58,15 +57,6 @@ export interface GuestState {
   litterTimer: number;
 }
 
-export type Tone = "good" | "bad" | "info";
-
-export interface Toast {
-  id: number;
-  text: string;
-  tone: Tone;
-  at: number;
-}
-
 export interface Session {
   selectedTool: string | null;
   selectedObject: string | null;
@@ -88,8 +78,6 @@ export interface Session {
   spawnAcc: number;
   guestSeq: number;
   objectSeq: number;
-  toastSeq: number;
-  toasts: Toast[];
   bankruptDays: number;
   gameOver: boolean;
   started: boolean;
@@ -121,8 +109,6 @@ function freshSession(): Session {
     spawnAcc: 0,
     guestSeq: 0,
     objectSeq: 0,
-    toastSeq: 0,
-    toasts: [],
     bankruptDays: 0,
     gameOver: false,
     started: false,
@@ -147,10 +133,4 @@ export function nextObjectId(catalogId: string): string {
 export function nextGuestId(): string {
   session.guestSeq += 1;
   return `guest#${session.guestSeq}`;
-}
-
-export function pushToast(text: string, tone: Tone, now: number): void {
-  session.toastSeq += 1;
-  // Count-capped flat feed: the shared primitive keeps the newest 6, same as the old push/shift.
-  session.toasts = appendFeed(session.toasts, { id: session.toastSeq, text, tone, at: now }, { limit: 6 });
 }

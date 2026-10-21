@@ -1,5 +1,5 @@
 import { createGameFeed } from "@jgengine/core/game/feed";
-import { createToastQueue, type Toast } from "@jgengine/core/game/toasts";
+import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
 import type { InstalledPart } from "@jgengine/core/item/modularItem";
 import { defineStore } from "@jgengine/core/store/defineStore";
 
@@ -49,7 +49,6 @@ export interface SessionSnapshot {
   compactorSurge: CompactorSurge | null;
   installed: Readonly<Record<PartSlotId, DriftFoundryPartDef | null>>;
   tuning: KartTuning;
-  toast: Toast<string> | null;
   ticker: readonly RadioLine[];
   nearMissCount: number;
   closestGap: number;
@@ -74,9 +73,13 @@ export const runSessionStore = defineStore<RunSession>("runSession", () => creat
 const SPAWN_POSITION: readonly [number, number, number] = [0, 0, SPAWN_Z];
 const SPAWN_HEADING = 0;
 const TICKER_LIMIT = 6;
-const TOAST_HOLD_SECONDS = 3.2;
 
-export function createRunSession(groundHeightAt: (x: number, z: number) => number = () => 0, storage: RecordStorage | undefined = browserRecordStorage()): RunSession {
+/** `notices` is the game's shared feed (`ctx.game.notices`); pickups, saves and armor saves surface there. */
+export function createRunSession(
+  groundHeightAt: (x: number, z: number) => number = () => 0,
+  storage: RecordStorage | undefined = browserRecordStorage(),
+  notices?: Pick<NoticeFeed, "push">,
+): RunSession {
   let phase: RunPhase = "start";
   let paused = false;
   let suspended = false;
@@ -94,7 +97,6 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   let nearMissCount = 0;
   let wasNear = false;
   let closestGap = Number.POSITIVE_INFINITY;
-  const toastQueue = createToastQueue<string>({ cap: 1, ttlSeconds: TOAST_HOLD_SECONDS });
   const radioFeed = createGameFeed({ limit: TICKER_LIMIT });
   let radioCounter = 0;
   let outcome: RunOutcome | null = null;
@@ -113,8 +115,8 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     radioFeed.push("radio", { id: radioCounter, text });
   }
 
-  function pushToast(message: string): void {
-    toastQueue.push(message, runTime);
+  function notify(text: string, tone: NoticeTone): void {
+    notices?.push({ text, tone });
   }
 
   function installedBySlot(): Record<PartSlotId, DriftFoundryPartDef | null> {
@@ -137,7 +139,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     const { part, ejected } = grant;
     installed = grant.installed;
     collected.add(found.id);
-    pushToast(part.radioLine);
+    notify(part.radioLine, "success");
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
     if (part.stats.armor > 0) armorSaveArmed = true;
@@ -168,7 +170,6 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
     nearMissCount = 0;
     wasNear = false;
     closestGap = Number.POSITIVE_INFINITY;
-    toastQueue.clear();
     radioFeed.hydrate({});
     outcome = null;
     personalBest = "unchanged";
@@ -181,8 +182,8 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
   function parkRun(): void {
     if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
     const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
-    if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; pushToast("PARKED RUN SAVED — CONTINUE FROM THE PIT"); }
-    else pushToast("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN");
+    if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; notify("PARKED RUN SAVED — CONTINUE FROM THE PIT", "success"); }
+    else notify("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN", "warn");
   }
 
   function recordOutcome(): void {
@@ -213,7 +214,6 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
         compactorSurge: activeSurge(runTime),
         installed: installedBySlot(),
         tuning: tuningFrom(installed),
-        toast: toastQueue.list()[0] ?? null,
         ticker: radioFeed.recent("radio").map((entry) => entry.data as RadioLine),
         nearMissCount,
         closestGap: Number.isFinite(closestGap) ? closestGap : 0,
@@ -266,7 +266,6 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
 
       applyPickup(input.salvageSwap === true);
       announceGates();
-      toastQueue.prune(runTime);
 
       const compactorZ = compactorZAt(runTime);
       const surge = activeSurge(runTime);
@@ -291,7 +290,7 @@ export function createRunSession(groundHeightAt: (x: number, z: number) => numbe
         armorSavesUsed += 1;
         vehicle.resetTo([pose.position[0], pose.position[1], contact.reboundZ], pose.heading);
         pose = { ...pose, position: [pose.position[0], pose.position[1], contact.reboundZ] };
-        pushToast("ARMOR PLATE SAVED YOUR HIDE");
+        notify("ARMOR PLATE SAVED YOUR HIDE", "warn");
         pushRadio("ARMOR PLATE TOOK THE HIT — KEEP MOVING");
       } else if (contact.outcome === "crushed") {
         phase = "crushed";

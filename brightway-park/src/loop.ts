@@ -3,7 +3,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { CLOSE_FRACTION, DAY_LENGTH, OPEN_FRACTION } from "./game/catalog";
-import { pushToast, session } from "./game/session";
+import { session } from "./game/session";
 import { disposeWorld, setupWorld } from "./game/world/setup";
 import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
 import { spawnGuests, tickGuests } from "./game/sim/guests";
@@ -25,11 +25,7 @@ function updateOpenState(ctx: GameContext): void {
   const wantOpen = !session.gameOver && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
   if (wantOpen === session.open) return;
   session.open = wantOpen;
-  pushToast(
-    wantOpen ? `Day ${session.day} — gates open!` : "Gates closed for the night",
-    "info",
-    ctx.time.now(),
-  );
+  ctx.game.notices.push({ text: wantOpen ? `Day ${session.day} — gates open!` : "Gates closed for the night", tone: "info" });
   if (wantOpen) ctx.game.audio.play("gates");
 }
 

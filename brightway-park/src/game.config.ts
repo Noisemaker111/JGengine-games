@@ -8,6 +8,7 @@ import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
 import { BrightwayParkWorldOverlay } from "./game/render/WorldOverlay";
 import { GameUI } from "./game/ui/GameUI";
+import { parkTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { physics, world } from "./world";
 
@@ -28,7 +29,11 @@ export const game = defineGame({
   objectModels,
   WorldOverlay: BrightwayParkWorldOverlay,
   worldHealthBars: false,
-  audio: { sounds: BRIGHTWAY_SOUNDS },
+  // A refused build is a deny notice; its cue is the park's own "denied" chime.
+  audio: { sounds: BRIGHTWAY_SOUNDS, uiCues: { deny: BRIGHTWAY_SOUNDS.denied! } },
+  // Park news lingers like the old ticker: up to six lines, seven seconds each.
+  notices: { cap: 6, ttlMs: 7000 },
+  hudTheme: parkTheme,
   look: "cinematic",
   postProcessing: {
     toneMapping: "aces",

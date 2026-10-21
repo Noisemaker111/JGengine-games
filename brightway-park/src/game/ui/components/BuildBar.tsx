@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel } from "@jgengine/react/hudPanel";
 
 import {
   BUILDABLES,
@@ -37,41 +39,34 @@ export function BuildBar() {
 
   return (
     <div className="park-catalog">
-      <div className="flex gap-1 rounded-lg border border-white/10 bg-slate-900/85 p-1 shadow-lg backdrop-blur">
+      <HudPanel className="flex gap-1" role="toolbar" aria-label="Blueprint categories">
         {CATEGORY_ORDER.map((c) => (
-          <button
+          <HudButton
             key={c}
+            variant="ghost"
+            size="sm"
             aria-label={CATEGORY_LABEL[c]}
             aria-pressed={category===c}
-            className={`pointer-events-auto flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold transition ${
-              category === c ? "bg-amber-400 text-slate-900" : "text-slate-200 hover:bg-slate-700"
-            }`}
             onClick={() => setCategory(c)}
           >
             <span>{CATEGORY_ICON[c]}</span>
             <span className="hidden sm:inline">{CATEGORY_LABEL[c]}</span>
-          </button>
+          </HudButton>
         ))}
-      </div>
+      </HudPanel>
 
-      <div className="flex max-w-[92vw] flex-wrap justify-center gap-2 rounded-xl border border-white/10 bg-slate-900/85 p-2 shadow-2xl backdrop-blur">
+      <HudPanel className="flex max-w-[92vw] flex-wrap justify-center gap-2" role="group" aria-label="Blueprints">
         {items.map((def) => {
           const locked = def.requires !== undefined && !unlockedSet.has(def.requires);
           const affordable = cash >= def.cost;
           const isSelected = selected === def.id;
           const disabled = locked;
           return (
-            <button
+            <HudButton
               key={def.id}
               disabled={disabled}
               aria-pressed={isSelected}
-              className={`pointer-events-auto flex w-[92px] flex-col items-center gap-0.5 rounded-lg border-2 p-2 text-center transition ${
-                isSelected
-                  ? "border-amber-400 bg-amber-400/15"
-                  : locked
-                    ? "border-white/5 bg-slate-800/60 opacity-80"
-                    : "border-white/10 bg-slate-800/80 hover:border-amber-300/60"
-              }`}
+              className="flex-col text-center"
               onClick={() => commands.run("build.select", { id: def.id })}
               title={def.blurb}
             >
@@ -86,21 +81,21 @@ export function BuildBar() {
                   ${def.cost}
                 </span>
               )}
-            </button>
+            </HudButton>
           );
         })}
-      </div>
+      </HudPanel>
 
-      {blueprint !== undefined ? <div className="pointer-events-auto max-w-[92vw] rounded-lg bg-slate-900/95 px-3 py-2 text-xs text-slate-200" role="status">
+      {blueprint !== undefined ? <HudPanel className="max-w-[92vw] text-xs" padding="8px 12px" role="status">
         <div>{blueprint.label} · ${blueprint.cost} to build · ${blueprint.upkeep} / day{cash < blueprint.cost ? " · Not enough cash" : ""}</div>
         {blueprint.ride !== undefined ? <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           <span>Intensity {rideThrill(blueprint.id, tracks).toFixed(1)}</span>
           {["guest_a", "guest_c", "guest_d"].map(kind => <span key={kind}>{guestRidePreference(kind).label}: {Math.round(rideFit(kind, blueprint.id, tracks) * 100)}% fit</span>)}
         </div> : null}
-      </div> : null}
+      </HudPanel> : null}
 
       <div className="park-build-hint">
-        {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><button onClick={()=>commands.run("build.clear", {})}>Cancel ×</button></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
+        {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><HudButton variant="ghost" size="sm" cue="close" onClick={()=>commands.run("build.clear", {})}>Cancel ×</HudButton></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
       </div>
     </div>
   );

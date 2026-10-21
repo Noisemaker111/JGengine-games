@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel } from "@jgengine/react/hudPanel";
+import { CSS_PADDING } from "../theme";
 
 /** Touch buttons feed the published RTS rig's existing DOM input boundary. */
 export function CameraPad() {
@@ -17,18 +20,18 @@ export function CameraPad() {
     window.addEventListener("blur",release);
     return ()=>{release();window.removeEventListener("blur",release);};
   },[]);
-  const key=(label:string,glyph:string,code:string)=><button key={code} aria-label={label}
+  const key=(label:string,glyph:string,code:string)=><HudButton key={code} size="icon" aria-label={label}
     onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);press(code);}}
     onPointerUp={release} onPointerCancel={release} onLostPointerCapture={release}
-    onClick={e=>{if(e.detail===0){press(code);pulse.current=setTimeout(release,180);}}}>{glyph}</button>;
+    onClick={e=>{if(e.detail===0){press(code);pulse.current=setTimeout(release,180);}}}>{glyph}</HudButton>;
   const zoom=(deltaY:number)=>{
     const canvas=document.querySelector("canvas");
     canvas?.dispatchEvent(new WheelEvent("wheel",{deltaY,bubbles:true,cancelable:true}));
   };
-  return <nav className="park-camera park-surface" aria-label="Camera navigation">
+  return <HudPanel className="park-camera park-surface" role="navigation" aria-label="Camera navigation" style={CSS_PADDING}>
     <span>LOOK AROUND</span>
     <div>{key("Rotate camera left","↶","KeyQ")}{key("Pan camera up","↑","ArrowUp")}{key("Rotate camera right","↷","KeyE")}
-    {key("Pan camera left","←","ArrowLeft")}<button aria-label="Zoom camera in" onClick={()=>zoom(-100)}>＋</button>{key("Pan camera right","→","ArrowRight")}
-    <button aria-label="Zoom camera out" onClick={()=>zoom(100)}>−</button>{key("Pan camera down","↓","ArrowDown")}</div>
-  </nav>;
+    {key("Pan camera left","←","ArrowLeft")}<HudButton size="icon" aria-label="Zoom camera in" onClick={()=>zoom(-100)}>＋</HudButton>{key("Pan camera right","→","ArrowRight")}
+    <HudButton size="icon" aria-label="Zoom camera out" onClick={()=>zoom(100)}>−</HudButton>{key("Pan camera down","↓","ArrowDown")}</div>
+  </HudPanel>;
 }

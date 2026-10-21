@@ -33,7 +33,7 @@ export function onInit(ctx: GameContext): void {
   placeExitGate(ctx);
   worldRuntimeStore.write(ctx, createWorldRuntime(propRows));
 
-  const session = createRunSession(ctx.world.groundHeightAt);
+  const session = createRunSession(ctx.world.groundHeightAt, undefined, ctx.game.notices);
   runSessionStore.write(ctx, session);
 
   const input = createDriveInput();

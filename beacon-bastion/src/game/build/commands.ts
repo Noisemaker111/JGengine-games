@@ -7,7 +7,7 @@ import { editorLayers } from "../../editorLayers";
 import { TOWER_IDS, towerDef } from "../entities/towers/catalog";
 import { sellValue, upgradeCost } from "../entities/towers/progression";
 import { nearestPlot, type BuildPlot } from "../world/path";
-import { pushNotice, session, nextTowerInstanceId, type TowerRuntime } from "../session";
+import { session, nextTowerInstanceId, type TowerRuntime } from "../session";
 import { towerBuildConfig } from "./construction";
 
 const PLOT_CLICK_RADIUS = 4.5;
@@ -21,26 +21,19 @@ export interface TowerTargetInput {
   instanceId?: string;
 }
 
-function rejectBuild(ctx: GameContext, input: BuildPlaceInput): { reason: string } | null {
+/** A refusal; `message` is what the shell shows in the shared notice feed (with the deny cue). */
+type Refusal = { reason: string; message?: string };
+
+function rejectBuild(ctx: GameContext, input: BuildPlaceInput): Refusal | null {
   const plot = nearestPlot(input.point, PLOT_CLICK_RADIUS);
   if (plot === null) return session.inspectedTowerId === null ? { reason: "no-plot" } : null;
   if (session.plotOccupant.get(plot.id) !== null) return null;
   const towerId = session.selectedTowerId;
-  if (towerId === null) {
-    pushNotice("Pick a tower first", ctx.time.now());
-    ctx.game.audio.play("denied");
-    return { reason: "no-tower-selected" };
-  }
+  if (towerId === null) return { reason: "no-tower-selected", message: "Pick a tower first" };
   const def = towerDef(towerId, editorLayers);
   const shortfall = def.cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
-  if (shortfall > 0) return denyGold(ctx, `${def.label} needs ${shortfall} more gold`);
+  if (shortfall > 0) return { reason: "insufficient-gold", message: `${def.label} needs ${shortfall} more gold` };
   return null;
-}
-
-function denyGold(ctx: GameContext, text: string): { reason: string } {
-  pushNotice(text, ctx.time.now());
-  ctx.game.audio.play("denied");
-  return { reason: "insufficient-gold" };
 }
 
 function placeTower(ctx: GameContext, plot: BuildPlot): void {
@@ -103,13 +96,13 @@ function sellTower(ctx: GameContext, input: TowerTargetInput | undefined): GameC
   return ctx;
 }
 
-function rejectUpgrade(ctx: GameContext, input: TowerTargetInput | undefined): { reason: string } | null {
+function rejectUpgrade(ctx: GameContext, input: TowerTargetInput | undefined): Refusal | null {
   const tower = targetTower(input);
   if (tower === null) return { reason: "no-tower" };
   const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level);
   if (cost === null) return { reason: "max-level" };
   const shortfall = cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
-  if (shortfall > 0) return denyGold(ctx, `Upgrade needs ${shortfall} more gold`);
+  if (shortfall > 0) return { reason: "insufficient-gold", message: `Upgrade needs ${shortfall} more gold` };
   return null;
 }
 

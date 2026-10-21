@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel } from "@jgengine/react/hudPanel";
 import { applyBindingOverrides, loadBindingOverrides } from "@jgengine/core/input/bindingOverrides";
 import { keybinds } from "../keybinds";
 
 import { BuildBar } from "./components/BuildBar";
 import { Inspector } from "./components/Inspector";
-import { Toasts } from "./components/Toasts";
 import { ParkDashboard } from "./components/ParkDashboard";
 import { ParkFlow } from "./components/ParkFlow";
 import { CameraPad } from "./components/CameraPad";
 import { session } from "../session";
+import { CSS_PADDING } from "./theme";
 
 function preference(key: string): boolean { try { return localStorage.getItem(`brightway-park.${key}`)==="true"; } catch { return false; } }
 
@@ -44,12 +46,11 @@ export function GameUI() {
   return (
     <div className={`park-ui ${contrast?"park-contrast":""} ${reducedMotion?"park-reduced-motion":""}`}>
       {started&&<><ParkDashboard/>
-        <nav className="park-time park-surface" aria-label="Simulation controls">
-          <button className={clock.paused?"active":""} onClick={()=>commands.run("pauseToggle", {})} aria-label="Pause park">Ⅱ</button>
-          {clock.speeds.map(s=><button key={s} className={!clock.paused&&clock.speed===s?"active":""} onClick={()=>commands.run("park.speed",{speed:s})}>{s}×</button>)}
-          <button onClick={()=>{if(!clock.paused)commands.run("pauseToggle", {});setSettings(true);}} aria-label="Park settings">⚙</button>
-        </nav>
-        <div className="park-toasts"><Toasts/></div>
+        <HudPanel className="park-time park-surface" role="navigation" aria-label="Simulation controls" style={CSS_PADDING}>
+          <HudButton variant="ghost" className={clock.paused?"active":""} aria-pressed={clock.paused} onClick={()=>commands.run("pauseToggle", {})} aria-label="Pause park">Ⅱ</HudButton>
+          {clock.speeds.map(s=><HudButton key={s} variant="ghost" className={!clock.paused&&clock.speed===s?"active":""} aria-pressed={!clock.paused&&clock.speed===s} onClick={()=>commands.run("park.speed",{speed:s})}>{s}×</HudButton>)}
+          <HudButton variant="ghost" cue="open" onClick={()=>{if(!clock.paused)commands.run("pauseToggle", {});setSettings(true);}} aria-label="Park settings">⚙</HudButton>
+        </HudPanel>
         <div className="park-inspector"><Inspector/></div>
         <div className="park-build"><BuildBar/></div>
         {!clock.paused&&!settings&&<CameraPad/>}

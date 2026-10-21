@@ -7,6 +7,7 @@ import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
 import { GameUI } from "./game/ui/GameUI";
+import { driftTheme } from "./game/ui/theme";
 import { lifecycle, onInit, onNewPlayer, onTick } from "./loop";
 import { physics, world } from "./world";
 
@@ -21,6 +22,9 @@ export const game = defineGame({
   loop: { onInit, onNewPlayer, onTick },
   lifecycle,
   GameUI,
+  hudTheme: driftTheme,
+  // One salvage call at a time, above the speed/route plates, like the old pit-radio toast.
+  notices: { placement: "bottom", cap: 1 },
   // This run uses its own held throttle/jump pad alongside the branded HUD.
   touch: false,
   capture: {
