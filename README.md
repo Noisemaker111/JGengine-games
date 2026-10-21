@@ -66,7 +66,7 @@ versions; game and shared workspace manifests use `catalog:` and never own SDK
 versions. Change the root catalog and regenerate `bun.lock` for an intentional
 SDK update. The CLI `jgengine` keeps its separate version cadence.
 
-The current catalog installs SDK 0.22.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
+The current catalog installs SDK 0.23.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 
