@@ -5,7 +5,8 @@
       "Bash(git mv:*)",
       "Bash(gh run rerun:*)",
       "Bash(gh pr merge:*)",
-      "PowerShell(gh pr merge:*)"
+      "PowerShell(gh pr merge:*)",
+      "Bash(git push origin origin/beta:stable)"
     ]
   }
 }
