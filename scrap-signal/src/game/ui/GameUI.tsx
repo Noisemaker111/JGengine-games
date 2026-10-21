@@ -36,7 +36,7 @@ export function GameUI() {
         <ZoneBanner />
       </HudPanel>
 
-      <HudPanel id="echo" anchor="left" order={1} compact="hide" interactive={false}>
+      <HudPanel id="echo" anchor="bottom" order={1} compact="hide" interactive={false}>
         <EchoBox />
       </HudPanel>
 

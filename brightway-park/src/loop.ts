@@ -8,6 +8,7 @@ import { disposeWorld, setupWorld } from "./game/world/setup";
 import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
 import { spawnGuests, tickGuests } from "./game/sim/guests";
 import { savePark } from "./game/persistence";
+import { syncAmbience } from "./game/audio";
 
 // Midnight is a simulation event, scheduled after restoring the clock.
 function scheduleMidnight(ctx: GameContext): void {
@@ -29,6 +30,7 @@ function updateOpenState(ctx: GameContext): void {
     "info",
     ctx.time.now(),
   );
+  if (wantOpen) ctx.game.audio.play("gates");
 }
 
 export const loop: GameLoop<GameContext> = {
@@ -40,6 +42,7 @@ export const loop: GameLoop<GameContext> = {
   onNewPlayer() {},
   onDispose: disposeWorld,
   onTick(ctx, dt) {
+    syncAmbience(ctx);
     if (!session.started || session.gameOver || dt <= 0) return;
     updateOpenState(ctx);
     const metrics = currentMetrics();
@@ -52,6 +55,8 @@ export const loop: GameLoop<GameContext> = {
       session.won = true;
       ctx.time.pause();
       setGamePhase(ctx, "paused");
+      syncAmbience(ctx);
+      ctx.game.audio.play("ribbon");
       savePark(ctx);
     }
   },

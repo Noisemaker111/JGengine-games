@@ -7,7 +7,7 @@ import { BASE_ENTITY_ID, GOLD_CURRENCY } from "../entities/base/catalog";
 import { creepDef } from "../entities/enemies/catalog";
 import { gameClockMs, session, nextCreepInstanceId, newSpeedStats } from "../session";
 import { SPAWN_DIRECTOR_CONFIG } from "./manifest";
-import { PATH_WAYPOINTS } from "../world/path";
+import { KEEP_POINT, PATH_WAYPOINTS } from "../world/path";
 
 const LEAK_EFFECT = "leak";
 
@@ -31,6 +31,7 @@ export function sendWave(ctx: GameContext): void {
   session.waveReady = false;
   session.lastWaveBonus = bonus;
   if (bonus > 0) ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, bonus);
+  ctx.game.audio.play("wave");
 }
 
 export function registerWaveCommands(ctx: GameContext): void {
@@ -67,6 +68,7 @@ function leakCreep(ctx: GameContext, instanceId: string, catalogId: string): voi
   });
   ctx.scene.entity.despawn(instanceId);
   session.creeps.delete(instanceId);
+  ctx.game.audio.play("leak", KEEP_POINT);
 }
 
 export function tickWaves(ctx: GameContext, dt: number): void {
@@ -101,5 +103,6 @@ export function tickWaves(ctx: GameContext, dt: number): void {
   if (session.director.done && session.creeps.size === 0 && !session.victory && !session.gameOver) {
     session.victory = true;
     setGamePhase(ctx, "ended");
+    ctx.game.audio.play("victory");
   }
 }

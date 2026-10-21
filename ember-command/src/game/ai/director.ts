@@ -103,5 +103,6 @@ export function tickEnemyWaves(ctx: GameContext, dt: number): void {
   for (let i = 0; i < step.spawns.length; i += 1) {
     wave.sent += 1;
     spawnWave(ctx, campEnt, wave.sent);
+    ctx.game.audio.play("wave", campEnt.position);
   }
 }

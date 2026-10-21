@@ -41,17 +41,12 @@ See [the genre roadmap](./CLASSICS.md) for planned mechanics and [content proven
 
 ```sh
 bun install --frozen-lockfile
+bun run provision           # pull every asset pack the games reference (skips packs already on disk)
+bun run dev:harbor-heat     # or another playable game id
 ```
 
-For games with an asset catalog, provision its downloaded packs before launch.
-Catalogs such as Harbor Heat's `src/game/assets.ts` list their source identifiers.
-Run the published assets CLI from the repository root for each source, writing
-into that game's public directory:
-
-```sh
-bun <game-id>/node_modules/@jgengine/assets/dist/cli/pull.js pull <source> --dir <game-id>/public
-bun run dev:harbor-heat   # or another playable game id
-```
+`bun run provision <game-id>` pulls one game's packs. A pack counts as referenced when its source
+id appears in the game's `src/`. CI runs the same command, then `check-types` and `test`.
 
 Deepward uses original procedural industrial geometry and needs no downloaded
 asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).

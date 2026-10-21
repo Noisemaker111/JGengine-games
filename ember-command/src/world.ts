@@ -7,12 +7,13 @@ export const world: EnvironmentWorldFeature = environment({
   sculpt: editorLayers.terrain,
   clearings: clearanceZonesFrom(editorLayers),
   terrain: terrain({
-    bounds: { w: 104, d: 104 },
+    // Far wider than the 92 m playable box so the RTS camera sees highland past the edge, not sky.
+    bounds: { w: 260, d: 260 },
     height: 2.6,
     frequency: 0.045,
     octaves: 4,
     seed: "ember-command-vale",
-    segments: 120,
+    segments: 240,
     material: "highland",
     colors: { low: "#4c6a31", high: "#728b40", waterline: "#3d5a4a" },
     // Push snow off-world so the detail shader reads as pure grass → rock relief.
@@ -35,7 +36,7 @@ export const world: EnvironmentWorldFeature = environment({
     ambientIntensity: 0.55,
     hazeStrength: 0.4,
     sunGlowStrength: 0.5,
-    fog: { color: "#c6d9e8", near: 78, far: 168 },
+    fog: { color: "#b7c3ae", near: 70, far: 190 },
   }),
 });
 

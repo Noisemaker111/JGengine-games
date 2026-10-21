@@ -2,13 +2,14 @@ import { terrain, type TerrainEnvironmentDescriptor } from "@jgengine/core/world
 
 
 export const TERRAIN: TerrainEnvironmentDescriptor = terrain({
-  bounds: { w: 84, d: 84 },
+  // Wider than the 84 m arena so the tilted camera sees rolling country past the edge, not sky.
+  bounds: { w: 220, d: 220 },
   height: 3,
   frequency: 0.05,
   octaves: 4,
   seed: "beacon-bastion",
   baseHeight: 0,
-  segments: 130,
+  segments: 300,
   material: "highland",
   // Lush grass valleys rising to sunlit ridges — kept green, not yellow.
   colors: { low: "#4d6a33", high: "#7f9a45", waterline: "#3d6a70" },

@@ -26,7 +26,7 @@ function fakeCtx(positions: Map<string, EntityPosition>): Recorder {
       return [];
     },
   };
-  const ctx = { scene: { entity } } as unknown as GameContext;
+  const ctx = { scene: { entity }, game: { audio: { play: () => {} } } } as unknown as GameContext;
   return { ctx, moves, damages };
 }
 

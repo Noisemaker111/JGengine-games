@@ -534,9 +534,9 @@
         "bladeBendMax": 0.18,
         "tuftRadius": 0.055,
         "normalLift": 0.65,
-        "colorBase": "#749574",
-        "colorTip": "#a2b19a",
-        "colorVariation": 0.08,
+        "colorBase": "#5b8a37",
+        "colorTip": "#a3c262",
+        "colorVariation": 0.12,
         "windStrength": 0.08,
         "windSpeed": 1,
         "windGust": 0.06,
@@ -25052,7 +25052,7 @@
       {
         "id": "grass",
         "surface": "grass",
-        "tint": "#87a685",
+        "tint": "#6c9646",
         "tiling": 2,
         "roughness": 0.96,
         "triplanar": true

@@ -14,6 +14,9 @@ import { recordOutcome } from "../preferences";
 
 const wiredContexts = new WeakSet<GameContext>();
 
+/** Retained id of the hall drone (sound id `bed` in audio.ts); live at full gain, silent while paused. */
+const BED_LOOP = "bed";
+
 const GUARD_LEASH = 16;
 
 function markerCatalogId(marker: { catalogId?: string; meta?: unknown }): string | null {
@@ -43,6 +46,8 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     recordOutcome(ctx, true, session.elapsed);
     ctx.time.pause();
     setGamePhase(ctx, "ended");
+    ctx.game.audio.stopLoop(BED_LOOP);
+    ctx.game.audio.play("victory");
     return;
   }
   if (def.id === "keep_player") {
@@ -52,8 +57,11 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     recordOutcome(ctx, false, session.elapsed);
     ctx.time.pause();
     setGamePhase(ctx, "ended");
+    ctx.game.audio.stopLoop(BED_LOOP);
+    ctx.game.audio.play("defeat");
     return;
   }
+  ctx.game.audio.play("fall", event.position);
   if (def.faction === "enemy" && def.kind === "unit") {
     if (def.bounty > 0) ctx.game.economy.grant(ctx.player.userId, GOLD, def.bounty);
     grantHeroXp(ctx, heroXpFor(event.catalogId)); // the hero champions the kill
@@ -78,6 +86,7 @@ export function setupSkirmish(ctx: GameContext): void {
   hudStore.set({ phase: "ready", gold: STARTING_GOLD, lumber: STARTING_LUMBER });
   setGamePhase(ctx, "menu");
   ctx.time.pause();
+  ctx.game.audio.stopLoop(BED_LOOP);
   ctx.game.economy.grant(ctx.player.userId, GOLD, STARTING_GOLD);
   ctx.game.economy.grant(ctx.player.userId, LUMBER, STARTING_LUMBER);
 
@@ -139,6 +148,8 @@ export function setupSkirmish(ctx: GameContext): void {
       hudStore.set({ phase: "playing" });
       setGamePhase(state, "playing");
       state.time.play();
+      state.game.audio.loop("bed", "bed");
+      state.game.audio.setLoop(BED_LOOP, { gain: 1 });
     }
     return state;
   } });
@@ -148,6 +159,7 @@ export function setupSkirmish(ctx: GameContext): void {
       hudStore.set({ phase: "paused" });
       setGamePhase(state, "paused");
       state.time.pause();
+      state.game.audio.setLoop(BED_LOOP, { gain: 0 });
     }
     return state;
   } });
@@ -157,6 +169,7 @@ export function setupSkirmish(ctx: GameContext): void {
       hudStore.set({ phase: "playing" });
       setGamePhase(state, "playing");
       state.time.play();
+      state.game.audio.setLoop(BED_LOOP, { gain: 1 });
     }
     return state;
   } });
