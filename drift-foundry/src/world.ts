@@ -101,9 +101,6 @@ export const world: WorldFeature = environment({
     detail: {
       rockColor: "#4a3421",
       sandColor: "#4a3826",
-      // The noise field dips below y=0 across most of the yard, so the default waterline would paint
-      // a pale beach band right through the corridor. There is no water here — push it out of range.
-      waterLevel: -60,
       snowHeight: 400,
       detailScale: 3.2,
       macroScale: 30,
