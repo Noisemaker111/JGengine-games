@@ -45,3 +45,12 @@ describe("scrap-signal chests", () => {
     expect(ctx.scene.worldItem.list()).toHaveLength(2);
   });
 });
+
+describe("scrap-signal terminal refusals", () => {
+  test("an unaffordable vendor roll spends nothing and raises a deny notice", () => {
+    const ctx = bootContext();
+    ctx.game.commands.run("vendor.gunOfTheDay", { vendor: "rigg" });
+    expect(ctx.game.economy.balance("p1", "cash")).toBe(0);
+    expect(ctx.game.notices.list().map((notice) => [notice.text, notice.tone])).toEqual([["Not enough cash.", "deny"]]);
+  });
+});

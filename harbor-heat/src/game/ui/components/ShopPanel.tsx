@@ -1,4 +1,6 @@
 import { useCurrency, useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
 import { useStore } from "@jgengine/react/store";
 import { shopStore } from "../../commands";
 import { wantedStore } from "../../handroll";
@@ -13,13 +15,9 @@ function BribeButton() {
   const stars = useStore(wantedStore, (wanted) => wanted?.stars ?? 0);
   if (stars === 0) return null;
   return (
-    <button
-      type="button"
-      onClick={() => commands.run("shop.bribe", {})}
-      className="mx-3 mb-1 -skew-x-6 border-2 border-black bg-[#4f7de8] px-3 py-1 text-xs font-black uppercase text-white hover:bg-[#6b93f0]"
-    >
+    <HudButton onClick={() => commands.run("shop.bribe", {})} className="hh-street-button hh-street-bribe mx-3 mb-1">
       Bribe HHPD — ${stars * 250} clears {stars}★
-    </button>
+    </HudButton>
   );
 }
 
@@ -31,7 +29,7 @@ export function ShopPanel() {
   const cred = useEntityStat(userId, "level")?.current ?? 1;
   if (open === null) return null;
   return (
-    <div className="pointer-events-auto w-80 border-2 border-black bg-[#f4e8c8] text-[#1b1e26] shadow-[6px_6px_0_#000]">
+    <HudFrame className="hh-counter w-80" padding={0}>
       <div className="flex items-center justify-between border-b-2 border-black bg-[#ffb020] px-3 py-2">
         <span className="text-sm font-black uppercase tracking-widest">Ammu-Isle</span>
         <span className="-skew-x-6 border-2 border-black bg-[#2f8f4e] px-2 text-sm font-black text-[#eaffdd]">${cash.toLocaleString()}</span>
@@ -43,14 +41,12 @@ export function ShopPanel() {
           const locked = gate !== undefined && cred < gate;
           const affordable = cash >= price && !locked;
           return (
-            <button
+            <HudButton
               key={item.id}
-              type="button"
+              block
               disabled={!affordable}
               onClick={() => commands.run("shop.buy", { item: item.id })}
-              className={`flex items-center justify-between border-2 border-black px-2 py-1 text-left text-xs font-black uppercase ${
-                affordable ? "bg-white hover:bg-[#ffe9bd]" : "bg-[#c9c2ad] text-black/40"
-              }`}
+              className="hh-counter-row hh-counter-row-gold"
             >
               <span>{ITEM_LABELS[item.id] ?? item.id}</span>
               {locked ? (
@@ -58,18 +54,14 @@ export function ShopPanel() {
               ) : (
                 <span className="tabular-nums">${price}</span>
               )}
-            </button>
+            </HudButton>
           );
         })}
       </div>
       <BribeButton />
-      <button
-        type="button"
-        onClick={() => commands.run("shop.close", {})}
-        className="m-3 mt-0 -skew-x-6 border-2 border-black bg-[#c23b3b] px-3 py-1 text-xs font-black uppercase text-white hover:bg-[#e35555]"
-      >
+      <HudButton onClick={() => commands.run("shop.close", {})} className="hh-street-button hh-street-leave m-3 mt-0">
         Leave
-      </button>
-    </div>
+      </HudButton>
+    </HudFrame>
   );
 }

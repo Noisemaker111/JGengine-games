@@ -1,5 +1,5 @@
 import { createPairKeyCodec } from "@jgengine/core/relation/keyedValues";
-import { appendFeed, pruneFeed } from "@jgengine/core/game/feed";
+import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
 
 import type { AlienBodyPlan } from "../creatures/bodyPlan";
 import type { ResourceLedger } from "@jgengine/core/economy/resourceLedger";
@@ -41,13 +41,6 @@ export interface MemberState {
   concern: string | null;
 }
 
-export interface LifeEvent {
-  id: string;
-  text: string;
-  at: number;
-  tone: "info" | "good" | "milestone";
-}
-
 export interface DaySummary {
   day: number;
   income: number;
@@ -73,7 +66,7 @@ export interface HouseholdState {
   lastDay: DaySummary | null;
   selectedMemberId: string | null;
   buildTool: string | null;
-  events: LifeEvent[];
+  /** Household notices raised so far; seeds life-event rolls. */
   eventSeq: number;
   nextLifeEventAt: number;
 }
@@ -103,24 +96,13 @@ export function createHousehold(seed: string): HouseholdState {
     lastDay: null,
     selectedMemberId: null,
     buildTool: null,
-    events: [],
     eventSeq: 0,
     nextLifeEventAt: 0,
   };
 }
 
-export function pushEvent(
-  state: HouseholdState,
-  text: string,
-  at: number,
-  tone: LifeEvent["tone"] = "info",
-): void {
+/** Raise a household notice in the shell feed and count it toward the life-event seed. */
+export function noteEvent(state: HouseholdState, notices: Pick<NoticeFeed, "push">, text: string, tone: NoticeTone = "info"): void {
   state.eventSeq += 1;
-  // `LifeEvent` is a flat timestamped entry, so the shared feed primitive bounds it with no envelope.
-  state.events = appendFeed(state.events, { id: `ev${state.eventSeq}`, text, at, tone }, { limit: 6 });
-}
-
-export function pruneEvents(state: HouseholdState, now: number, ttl: number): void {
-  // pruneFeed returns the same reference when nothing expired, preserving the old no-op skip.
-  state.events = pruneFeed(state.events, now, ttl);
+  notices.push({ text, tone });
 }

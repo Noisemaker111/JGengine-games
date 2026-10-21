@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useCurrency, useGame, useGameStore } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
+import { HudButton } from "@jgengine/react/hudButton";
 import { AMMO_LABELS, AMMO_POOLS } from "../../ammo";
 import { gearItems, AMMO_PRICES } from "../../items/gear/catalog";
 import { FERRALON } from "../../palette";
+import { ScrapPanel } from "./ScrapPanel";
 import { reserveStore, ruskDownStore, vendorOpenStore } from "../../stores";
 
 export function ReserveOverlay() {
@@ -32,38 +34,9 @@ function useCloseOnOpen(open: boolean): void {
   }, [open]);
 }
 
-function PanelFrame({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="signal-scroll w-[26rem] max-w-[92vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-lg font-black uppercase tracking-widest text-amber-300">{title}</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="border border-stone-600 px-2 py-0.5 text-xs font-bold uppercase text-stone-300 hover:border-amber-400 hover:text-amber-300"
-          >
-            Close [Esc]
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function BuyRow({ label, detail, cost, affordable, onBuy }: { label: string; detail?: string; cost: number; affordable: boolean; onBuy: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onBuy}
-      disabled={!affordable}
-      className={`flex w-full items-center gap-3 border px-3 py-2 text-left transition-colors ${
-        affordable
-          ? "border-stone-700 bg-stone-900/80 hover:border-amber-400/70 hover:bg-stone-800"
-          : "cursor-not-allowed border-stone-800 bg-stone-950/60 opacity-50"
-      }`}
-    >
+    <HudButton block onClick={onBuy} disabled={!affordable} className="scrap-row scrap-row-amber">
       <span className="flex-1">
         <span className="block text-sm font-bold uppercase tracking-wider text-stone-100">{label}</span>
         {detail !== undefined ? <span className="block text-[11px] text-stone-400">{detail}</span> : null}
@@ -71,7 +44,7 @@ function BuyRow({ label, detail, cost, affordable, onBuy }: { label: string; det
       <span className="text-sm font-black tabular-nums" style={{ color: FERRALON.hudXp }}>
         ${cost}
       </span>
-    </button>
+    </HudButton>
   );
 }
 
@@ -87,20 +60,20 @@ export function VendorPanel() {
 
   if (vendor === "bolt") {
     return (
-      <PanelFrame title="B0-LT Steward Bot" onClose={close}>
+      <ScrapPanel title="B0-LT Steward Bot" closeLabel="Close [Esc]" onClose={close}>
         <p className="text-sm font-semibold leading-relaxed text-stone-200">
           {ruskDown
             ? "Rusk’s blockade is down. The stolen modules are back on the relay, and Coretown can hear us again. Follow the signal toward the reactor or recover more equipment here."
             : "Reclaimer, our relay parts are scattered east of camp. Ripper drones stripped the repair stock, and Rusk’s blockade has cut off the recovery crews. Your mission log marks the next job."}
         </p>
         <p className="mt-3 text-[11px] uppercase tracking-wider text-stone-500">Missions track on the left of your HUD</p>
-      </PanelFrame>
+      </ScrapPanel>
     );
   }
 
   if (vendor === "sparx") {
     return (
-      <PanelFrame title="Dr. Sparx's Meds" onClose={close}>
+      <ScrapPanel title="Dr. Sparx's Meds" closeLabel="Close [Esc]" onClose={close}>
         <div className="flex flex-col gap-1.5">
           {gearItems
             .filter((item) => item.trade !== undefined && item.kind !== "ammo")
@@ -115,12 +88,12 @@ export function VendorPanel() {
               />
             ))}
         </div>
-      </PanelFrame>
+      </ScrapPanel>
     );
   }
 
   return (
-    <PanelFrame title="Rigg Munitions" onClose={close}>
+    <ScrapPanel title="Rigg Munitions" closeLabel="Close [Esc]" onClose={close}>
       <div className="flex flex-col gap-1.5">
         {AMMO_POOLS.map((pool) => (
           <BuyRow
@@ -141,6 +114,6 @@ export function VendorPanel() {
         />
       </div>
       <p className="mt-3 text-[11px] uppercase tracking-wider text-stone-500">No refunds.</p>
-    </PanelFrame>
+    </ScrapPanel>
   );
 }

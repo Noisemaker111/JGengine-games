@@ -55,7 +55,6 @@ export function finishCourier(ctx: GameContext, won: boolean): void {
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
   ctx.game.audio.play(won ? "delivery_chime" : "delivery_fail");
   syncSession(ctx, true);
-  ctx.game.feed.push("harbor.log", { text: won ? `Parcel delivered to ${route.recipient}. $${reward} paid.${rush ? ` Cargo ${Math.round(condition)}%; bond refund included.` : ""}` : rush ? "Rush expired. The $60 bond was forfeited; free standard jobs remain available." : "Delivery expired. The parcel returned to dispatch; no cash lost." });
   void ctx.game.save?.checkpoint();
 }
 
@@ -65,7 +64,7 @@ export function registerCourier(ctx: GameContext): void {
     if (current.phase === "running" || !near(state, DISPATCH, 9)) return;
     const rush = input?.service === "rush";
     if (rush && (current.completed < 1 || state.game.economy.charge(state.player.userId, "cash", RUSH_BOND) !== null)) {
-      state.scene.entity.floatText({ instanceId: state.player.userId, text: current.completed < 1 ? "COMPLETE A STANDARD DELIVERY FIRST" : "RUSH NEEDS $60 BOND — STANDARD IS FREE", kind: "warn" });
+      state.game.notices.push({ text: current.completed < 1 ? "Complete a standard delivery first." : "Fragile rush needs a $60 bond. Standard parcels are free.", tone: "deny" });
       return;
     }
     const routeIndex = current.completed % DELIVERY_ROUTES.length;
@@ -82,7 +81,7 @@ export function registerCourier(ctx: GameContext): void {
     const route = DELIVERY_ROUTES[current.route % DELIVERY_ROUTES.length]!;
     if (!near(state, route.position, 8)) return;
     if (handrollOf(state).carSpeedKmh() > 8) {
-      state.scene.entity.floatText({ instanceId: state.player.userId, text: "SLOW DOWN TO DELIVER", kind: "warn" });
+      state.game.notices.push({ text: "Slow down to deliver.", tone: "deny" });
       return;
     }
     finishCourier(state, current.remaining > 0);

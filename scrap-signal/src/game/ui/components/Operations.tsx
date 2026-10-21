@@ -4,6 +4,8 @@ import { useGame, useGamePhase, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
+import { HudButton } from "@jgengine/react/hudButton";
+import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { RELAY, relayDistance, relayStore } from "../../relay";
 import { characterIdStore, vendorOpenStore, travelOpenStore, skillsOpenStore, blackMarketOpenStore } from "../../stores";
@@ -66,34 +68,34 @@ export function Operations() {
   const result = relay.phase === "won" || relay.phase === "lost";
   return <>
     <HudPanel id="dead-air" anchor="top-left" compact="keep" interactive>
-      <div className="signal-contract">
+      <HudFrame className="signal-contract" padding="var(--signal-contract-pad)">
         <div className="signal-eyebrow">{relay.rewarded ? "Carrier restored" : "Optional salvage contract"}</div>
         <strong>DEAD AIR <span>{active ? `${relay.wave}/3` : "↗"}</span></strong>
         <p>{active ? relay.phase === "defend" ? `Clear the ambush · ${relay.enemies.length} hostiles` : distance > RELAY.radius ? "Return to the copper ring to upload" : "Hold position · uploading carrier" : `Copper-ring relay · ${Math.round(distance)} m · north of crash site`}</p>
-        {active ? <><div className="signal-meter"><i style={{ width: `${Math.min(100, relay.upload / RELAY.uploadSeconds * 100)}%` }} /></div><small>{Math.ceil(relay.remaining)}s window · {relay.upload.toFixed(1)}/6s signal banked</small><button className="signal-button signal-small" aria-pressed={relay.overclock === true} onClick={() => commands.run("relay.overclock", {})}>V · {relay.overclock ? "Overclock ON — reserve shield" : "Clear first — enable overclock"}</button><small>{relay.overclock ? "Inside ring: bank signal during combat, costs 6 shield/sec. Stops at 10 shield. Still clear every hostile." : "Clear first keeps your shield. Overclock trades protection for up to 6s less upload per wave."}</small></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
-      </div>
+        {active ? <><div className="signal-meter"><i style={{ width: `${Math.min(100, relay.upload / RELAY.uploadSeconds * 100)}%` }} /></div><small>{Math.ceil(relay.remaining)}s window · {relay.upload.toFixed(1)}/6s signal banked</small><HudButton className="signal-button signal-small" aria-pressed={relay.overclock === true} onClick={() => commands.run("relay.overclock", {})}>V · {relay.overclock ? "Overclock ON — reserve shield" : "Clear first — enable overclock"}</HudButton><small>{relay.overclock ? "Inside ring: bank signal during combat, costs 6 shield/sec. Stops at 10 shield. Still clear every hostile." : "Clear first keeps your shield. Overclock trades protection for up to 6s less upload per wave."}</small></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
+      </HudFrame>
     </HudPanel>
     <HudPanel id="pause-operation" anchor="top-right" order={-2} compact="keep" interactive>
-      <button className="signal-button signal-small" onClick={() => setManual(true)}>Pause / Esc</button>
+      <HudButton className="signal-button signal-small" onClick={() => setManual(true)}>Pause / Esc</HudButton>
     </HudPanel>
     {manual && !modal && !result && <div className="signal-modal" role="dialog" aria-modal="true" aria-label="Run paused">
-      <section className="signal-sheet">
+      <HudFrame className="signal-sheet" elevation="modal" padding="var(--signal-sheet-pad)">
         <div className="signal-eyebrow">Reclaimer field terminal / 04</div><h1>Signal on hold.</h1>
         <p>Combat, reloads and the carrier window are paused.</p>
-        <div className="signal-actions"><button autoFocus className="signal-button" onClick={() => setManual(false)}>Resume run</button><button className="signal-button" onClick={save}>Save checkpoint</button><button className="signal-button" onClick={settings.open}>Settings & controls</button></div>
+        <div className="signal-actions"><HudButton autoFocus className="signal-button" onClick={() => setManual(false)}>Resume run</HudButton><HudButton className="signal-button" onClick={save}>Save checkpoint</HudButton><HudButton className="signal-button" onClick={settings.open}>Settings & controls</HudButton></div>
         <p role="status">{saveMessage}</p>
         <div className="signal-control-grid"><span><b>WASD / Shift</b>Move / sprint</span><span><b>Mouse / right mouse</b>Fire / aim</span><span><b>E / R</b>Interact / reload</span><span><b>Q / G / K</b>Heal / grenade / talents</span></div>
         <small>Resume, then click the world to capture the mouse. Esc releases it.</small>
-      </section>
+      </HudFrame>
     </div>}
     {result && <div className="signal-modal" role="dialog" aria-modal="true" aria-label="Dead Air results">
-      <section className="signal-sheet">
+      <HudFrame className="signal-sheet" elevation="modal" padding="var(--signal-sheet-pad)">
         <div className="signal-eyebrow">Dead Air / field report</div><h1>{relay.phase === "won" ? "You broke the silence." : "Carrier lost."}</h1>
         <p>{relay.reason}</p><div className="signal-result"><span>{relay.phase === "won" ? "03 / 03" : `${relay.wave} / 03`}<small>ambush reached</small></span><span>{Math.ceil(relay.remaining)}s<small>carrier remaining</small></span></div>
         <p>{relay.phase === "won" ? "Contract secured · $120 + 3 cores on first completion. The campaign and your loot remain yours." : "Your inventory is retained. Reconstruction charges the usual 7% cash fee when your chassis is down."}</p>
-        <button autoFocus className="signal-button" onClick={() => { setManual(false); commands.run("relay.continue", {}); }}>Return to the wastes</button>
+        <HudButton autoFocus className="signal-button" onClick={() => { setManual(false); commands.run("relay.continue", {}); }}>Return to the wastes</HudButton>
         <small>The console accepts another attempt when you return.</small>
-      </section>
+      </HudFrame>
     </div>}
   </>;
 }

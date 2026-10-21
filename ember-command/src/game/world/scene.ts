@@ -73,6 +73,10 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
   }
 }
 
+/** The opening instruction, held long enough to read before the first order lands. */
+export const OPENING_NOTICE = "Select your workers and right-click a gold seam or logging camp.";
+const OPENING_NOTICE_MS = 12_000;
+
 /** Spawn the authored roster + resource nodes, wire economy + win/lose, and register the RTS commands. */
 export function setupSkirmish(ctx: GameContext): void {
   for (const entity of ctx.scene.entity.list()) ctx.scene.entity.despawn(entity.id);
@@ -147,6 +151,7 @@ export function setupSkirmish(ctx: GameContext): void {
       session.started = true;
       hudStore.set({ phase: "playing" });
       setGamePhase(state, "playing");
+      state.game.notices.push({ text: OPENING_NOTICE, ttlMs: OPENING_NOTICE_MS });
       state.time.play();
       state.game.audio.loop("bed", "bed");
       state.game.audio.setLoop(BED_LOOP, { gain: 1 });

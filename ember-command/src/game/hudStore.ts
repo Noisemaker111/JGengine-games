@@ -16,7 +16,6 @@ export interface HudSnapshot {
   elapsed: number;
   foodReserved: number;
   rallyArmed: boolean;
-  notice: string;
   phase: MatchPhase;
   gold: number;
   lumber: number;
@@ -53,14 +52,10 @@ export interface HudSnapshot {
   army: ArmyUnit[];
 }
 
-/** The opening instruction. Any accepted order replaces it with a line about that order. */
-export const OPENING_NOTICE = "Select your workers and right-click a gold seam or logging camp.";
-
 const initial: HudSnapshot = {
   elapsed: 0,
   foodReserved: 0,
   rallyArmed: false,
-  notice: OPENING_NOTICE,
   phase: "playing",
   gold: 0,
   lumber: 0,
@@ -109,7 +104,6 @@ function changed(next: HudSnapshot): boolean {
     p.elapsed !== next.elapsed ||
     p.foodReserved !== next.foodReserved ||
     p.rallyArmed !== next.rallyArmed ||
-    p.notice !== next.notice ||
     p.phase !== next.phase ||
     p.gold !== next.gold ||
     p.lumber !== next.lumber ||

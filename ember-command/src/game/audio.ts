@@ -43,9 +43,10 @@ export const EMBER_SOUNDS: Record<string, SoundDef> = {
       ],
     },
   },
-  // Order refused with a message: two low square-wave knocks, stepping down.
-  denied: {
-    id: "denied",
+  // Order refused with a message: two low square-wave knocks, stepping down. Named `ui.deny` so the
+  // engine notice feed plays it for every deny notice.
+  "ui.deny": {
+    id: "ui.deny",
     bus: "sfx",
     positional: false,
     gain: 0.7,

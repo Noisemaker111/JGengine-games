@@ -1,4 +1,5 @@
 import { HealthBar, ShieldBar, barTokens } from "@jgengine/react/bars";
+import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
 import { useCurrency, useEntityStat, usePlayer } from "@jgengine/react/hooks";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -39,10 +40,7 @@ export function StatusPanel() {
   const cred = level?.current ?? 1;
   const credFraction = cred >= MAX_CRED ? 1 : (xp?.max ?? 0) > 0 ? Math.min(1, (xp?.current ?? 0) / (xp?.max ?? 1)) : 0;
   return (
-    <div
-      className="flex flex-col gap-1 rounded-sm border-2 border-black bg-[#f4e8c8] px-3 py-2 text-[#1b1e26] shadow-[4px_4px_0_#000]"
-      style={STATUS_TOKENS}
-    >
+    <HudFrame className="hh-plate flex flex-col gap-1" padding="8px 12px" interactive={false} style={STATUS_TOKENS}>
       <StatRow label="HP" value={health?.current ?? 0}>
         <HealthBar value={health?.current ?? 0} max={health?.max ?? 100} shape="skew" showValue={false} width="100%" />
       </StatRow>
@@ -60,6 +58,6 @@ export function StatusPanel() {
           </div>
         </div>
       </div>
-    </div>
+    </HudFrame>
   );
 }

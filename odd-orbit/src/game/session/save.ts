@@ -81,7 +81,7 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   const pairs = h.order.flatMap((a, i) => h.order.slice(i + 1).map((b: string) => pairKey(a, b)));
   if (!object(h.relationships) || !keys(h.relationships, pairs) || !Object.values(h.relationships).every(value => number(value, -100, 100))) return false;
   if (!object(h.milestones) || Object.entries(h.milestones).some(([key, value]) => !pairs.includes(key) || !["friends", "close", "bonded"].includes(value))) return false;
-  return integer(h.eventSeq) && Array.isArray(h.events) && h.events.length <= 6 && h.events.every(object) && new Set(h.events.map(event => event.id)).size === h.events.length && h.events.every(event => object(event) && /^ev[1-9][0-9]*$/.test(event.id) && Number(event.id.slice(2)) <= h.eventSeq && text(event.text, 240) && number(event.at, 0, clock.now) && ["info", "good", "milestone"].includes(event.tone));
+  return integer(h.eventSeq);
 }
 
 /** Reject the entire save before any subsystem can hydrate a partial damaged world. */
@@ -107,6 +107,9 @@ export function captureOrbitSave(ctx: GameContext): OrbitSave {
 export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   if (!validOrbitSave(save)) throw new Error("Invalid Odd Orbit save");
   const detached = structuredClone(save);
+  // v1 saves written before the shell notice feed carried a household journal; it no longer exists.
+  const legacy = detached.household as HouseholdState & { events?: unknown };
+  delete legacy.events;
   ctx.time.hydrate(detached.clock);
   ctx.hydrate({ objects: detached.objects, entities: detached.entities, stats: detached.stats });
   householdStore.write(ctx, detached.household);

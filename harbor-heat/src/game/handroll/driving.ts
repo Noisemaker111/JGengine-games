@@ -401,7 +401,7 @@ export function createDriving(): Driving {
       if (!force && definition?.dynamics.type === "aircraft" && vehicle !== null) {
         const altitude = vehicle.position[1] - ctx.world.groundHeightAt(vehicle.position[0], vehicle.position[2]);
         if (altitude > 3) {
-          ctx.scene.entity.floatText({ instanceId: driving, text: "LAND BEFORE EXITING", kind: "warn" });
+          ctx.game.notices.push({ text: "Land before exiting.", tone: "deny" });
           return;
         }
       }

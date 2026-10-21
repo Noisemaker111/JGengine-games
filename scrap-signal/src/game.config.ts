@@ -14,6 +14,7 @@ import { RARITY_COLORS } from "./game/palette";
 import { session } from "./game/session";
 import { RELAY } from "./game/relay";
 import { GameUI } from "./game/ui/GameUI";
+import { scrapTheme } from "./game/ui/theme";
 import { entityModels, objectModels } from "./game/world/models";
 import { FerralonWorldOverlay } from "./game/world/Viewmodel";
 import { NPC_PLACEMENTS } from "./game/world/level";
@@ -176,6 +177,7 @@ export const game = defineGame({
   content,
   loop,
   GameUI,
+  hudTheme: scrapTheme,
   entityModels,
   objectModels,
   WorldOverlay: FerralonWorldOverlay,

@@ -6,8 +6,8 @@ import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { objectModels } from "./game/models";
 import { renderEntity } from "./game/render/renderEntity";
-import { CaptureReadiness } from "./game/render/CaptureReadiness";
 import { GameUI } from "./game/ui/GameUI";
+import { orbitTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { editorLayers } from "./editorLayers";
 import { DAY_LENGTH, physics, terrainField, world } from "./world";
@@ -23,13 +23,15 @@ export const game = defineGame({
   content,
   loop,
   GameUI,
+  hudTheme: orbitTheme,
+  // Household journal lines are full sentences; give them time to read above the habitat tools.
+  notices: { placement: "bottom", ttlMs: 8000 },
   assets,
   editorLayers,
   scenePlacement: false,
   objectModels,
   audio: { sounds: ORBIT_SOUNDS },
   renderEntity,
-  WorldOverlay: CaptureReadiness,
   pointer: { moveCommand: "world.pointer" },
   touch: { buttons: [] },
   hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },

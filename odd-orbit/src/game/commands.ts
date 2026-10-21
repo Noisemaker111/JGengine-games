@@ -3,13 +3,13 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { PLOT } from "../world";
 import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalog";
+import { noteEvent } from "./session/types";
 import { householdStore } from "./session/store";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
 import { canChangeLifestyle, shiftIsOpen } from "./sim/schedule";
 import { stationShortfall } from "./sim/goal";
 import { releaseMember, startConversation } from "./sim/simulate";
 import type { BloomCrop, Lifestyle } from "./session/types";
-import { pushEvent } from "./session/types";
 
 export interface PointerInput {
   point: { x: number; y: number; z: number };
@@ -100,7 +100,7 @@ export function registerCommands(ctx: GameContext): void {
       if (def === undefined) return;
       if (!gameCtx.scene.object.remove(input.id)) return;
       const state = householdStore.read(gameCtx);
-      pushEvent(state, `Sold ${def.name} for ${Math.round(def.cost / 2)} credits.`, gameCtx.time.now(), "info");
+      noteEvent(state, gameCtx.game.notices, `Sold ${def.name} for ${Math.round(def.cost / 2)} credits.`, "info");
       gameCtx.game.audio.play("sell", [obj.position[0], obj.position[1], obj.position[2]]);
       for (const member of Object.values(state.members)) {
         if ((member.action.kind === "use" || member.action.kind === "seek") && member.action.objId === input.id) releaseMember(member);
@@ -144,7 +144,7 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
     const def = FURNITURE_BY_ID[state.buildTool];
     if (def === undefined) return;
     if (state.credits < def.cost) {
-      pushEvent(state, `Not enough credits for ${def.name}.`, ctx.time.now(), "info");
+      noteEvent(state, ctx.game.notices, `Not enough credits for ${def.name}.`, "deny");
       householdStore.write(ctx, { ...state });
       ctx.game.audio.play("denied");
       return;
@@ -162,14 +162,14 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
       return Math.abs(obj.position[0] - x) < (w + def.footprint.w) / 2 + 0.4 && Math.abs(obj.position[2] - z) < (d + def.footprint.d) / 2 + 0.4;
     });
     if (blocked) {
-      pushEvent(state, "Leave room between furnishings; choose another spot.", ctx.time.now());
+      noteEvent(state, ctx.game.notices, "Leave room between furnishings; choose another spot.", "deny");
       householdStore.write(ctx, { ...state });
       ctx.game.audio.play("denied");
       return;
     }
     const y = ctx.world.groundHeightAt(x, z);
     ctx.scene.object.place(def.id, x, y, z, { instanceId: nextPlacementId(ctx, def.id) });
-    pushEvent(state, `Placed ${def.name}.`, ctx.time.now(), "good");
+    noteEvent(state, ctx.game.notices, `Placed ${def.name}.`, "success");
     householdStore.write(ctx, { ...state, credits: creditAmount(state.credits - def.cost), buildTool: null });
     ctx.game.audio.play("place", [x, y, z]);
     checkpoint(ctx);
@@ -194,7 +194,7 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
         }
         member.assignedByPlayer = true;
         member.actionUntil = ctx.time.now() + 12;
-        pushEvent(state, `${member.name} sent to the ${def.name}.`, ctx.time.now(), "info");
+        noteEvent(state, ctx.game.notices, `${member.name} sent to the ${def.name}.`, "info");
         householdStore.write(ctx, { ...state, members: { ...state.members } });
         checkpoint(ctx);
         return;
@@ -217,7 +217,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       } else {
         member.bloomCrop = crop;
         member.concern = null;
-        pushEvent(state, `${member.name} chose ${crop === "pantry" ? "pantry crops: 4 rations and 48 credits" : "export crops: 1 ration and 60 credits"}.`, gameCtx.time.now());
+        noteEvent(state, gameCtx.game.notices, `${member.name} chose ${crop === "pantry" ? "pantry crops: 4 rations and 48 credits" : "export crops: 1 ration and 60 credits"}.`, "info");
       }
       householdStore.write(gameCtx, { ...state, members: { ...state.members } });
       checkpoint(gameCtx);
@@ -230,14 +230,14 @@ function registerHouseholdCommands(ctx: GameContext): void {
       const member = state.members[id];
       if (member === undefined || member.lifestyle === lifestyle) return;
       if (!canChangeLifestyle(member)) {
-        pushEvent(state, `${member.name} already started today's paid shift; choose a new rhythm tomorrow.`, gameCtx.time.now());
+        noteEvent(state, gameCtx.game.notices, `${member.name} already started today's paid shift; choose a new rhythm tomorrow.`, "deny");
         householdStore.write(gameCtx, { ...state });
         return;
       }
       member.lifestyle = lifestyle;
       releaseMember(member);
       member.concern = null;
-      pushEvent(state, `${member.name} chose ${lifestyle === "yield" ? "Yield career" : "Bloom keeping"}. The daily paid limit stays in place.`, gameCtx.time.now());
+      noteEvent(state, gameCtx.game.notices, `${member.name} chose ${lifestyle === "yield" ? "Yield career" : "Bloom keeping"}. The daily paid limit stays in place.`, "info");
       householdStore.write(gameCtx, { ...state, members: { ...state.members } });
       checkpoint(gameCtx);
     },
@@ -262,7 +262,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       const partner = state.members[withId];
       if (member === undefined || partner === undefined) return;
       const accepted = startConversation(state, member, partner, gameCtx.time.now());
-      pushEvent(state, accepted ? `${member.name} and ${partner.name} put their activities aside to trade signals.` : "Nourish and rest before inviting a companion.", gameCtx.time.now());
+      noteEvent(state, gameCtx.game.notices, accepted ? `${member.name} and ${partner.name} put their activities aside to trade signals.` : "Nourish and rest before inviting a companion.", accepted ? "info" : "deny");
       householdStore.write(gameCtx, { ...state, members: { ...state.members } });
       checkpoint(gameCtx);
     },
@@ -297,7 +297,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
         const current = member.action;
         if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
           member.action = { kind: "seek", goal: role, objId: obj.instanceId };
-          if (goal === "work") pushEvent(state, `${member.name} started a Yield shift.`, gameCtx.time.now());
+          if (goal === "work") noteEvent(state, gameCtx.game.notices, `${member.name} started a Yield shift.`, "info");
         }
         member.assignedByPlayer = true;
         member.actionUntil = gameCtx.time.now() + 12;
@@ -313,7 +313,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       if (state.credits < RATION_BUNDLE.cost || state.pantry + RATION_BUNDLE.quantity > PANTRY_CAP) return;
       state.credits = creditAmount(state.credits - RATION_BUNDLE.cost);
       state.pantry += RATION_BUNDLE.quantity;
-      pushEvent(state, "Bought six ration crystals for 36 credits.", gameCtx.time.now(), "good");
+      noteEvent(state, gameCtx.game.notices, "Bought six ration crystals for 36 credits.", "success");
       gameCtx.game.audio.play("purchase");
       householdStore.write(gameCtx, { ...state });
       checkpoint(gameCtx);
@@ -327,7 +327,7 @@ function registerHouseholdCommands(ctx: GameContext): void {
       state.pantry = Math.min(PANTRY_CAP, state.pantry + RELIEF.quantity);
       state.debt = creditAmount(state.debt + RELIEF.debt);
       state.reliefDay = state.day;
-      pushEvent(state, "Emergency ration signal accepted: four crystals, 40 credits owed. Earn or harvest to recover.", gameCtx.time.now());
+      noteEvent(state, gameCtx.game.notices, "Emergency ration signal accepted: four crystals, 40 credits owed. Earn or harvest to recover.", "info");
       gameCtx.game.audio.play("relief");
       householdStore.write(gameCtx, { ...state });
       checkpoint(gameCtx);

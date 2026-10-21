@@ -1,5 +1,6 @@
 import { useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
+import { HudButton } from "@jgengine/react/hudButton";
 import {
   activeCharacter,
   characterNodes,
@@ -11,13 +12,13 @@ import {
 import { FERRALON } from "../../palette";
 import { characterIdStore, skillsOpenStore, talentRanksStore } from "../../stores";
 import { ReclaimerPortrait } from "./Portrait";
+import { ScrapPanel } from "./ScrapPanel";
 
 function CharacterCard({ character, onPick }: { character: CharacterDef; onPick: () => void }) {
   return (
-    <button
-      type="button"
+    <HudButton
       onClick={onPick}
-      className="scrap-plate signal-character group flex flex-col border-2 border-stone-700 bg-stone-950/90 p-4 text-left transition hover:border-amber-400 focus-visible:border-cyan-300"
+      className="scrap-plate signal-character scrap-character group"
       style={{ boxShadow: `inset 0 -4px 0 ${character.color}` }}
     >
       <div
@@ -43,7 +44,7 @@ function CharacterCard({ character, onPick }: { character: CharacterDef; onPick:
       <span className="mt-3 text-center text-xs font-black uppercase tracking-[0.3em] text-amber-300 opacity-0 transition group-hover:opacity-100">
         Select
       </span>
-    </button>
+    </HudButton>
   );
 }
 
@@ -84,18 +85,7 @@ function NodeButton({ node, onSpend }: { node: CharacterNode; onSpend: () => voi
   const can = tree.canAllocate(node.id).ok;
   const maxed = rank >= node.maxRank;
   return (
-    <button
-      type="button"
-      disabled={!can}
-      onClick={onSpend}
-      className={`flex w-full items-center gap-2 border px-2.5 py-1.5 text-left transition ${
-        maxed
-          ? "border-amber-500/70 bg-amber-950/40"
-          : can
-            ? "border-stone-700 bg-stone-900/80 hover:border-lime-400/70 hover:bg-stone-800"
-            : "cursor-not-allowed border-stone-800 bg-stone-950/60 opacity-55"
-      }`}
-    >
+    <HudButton block disabled={!can} onClick={onSpend} className={`scrap-row scrap-row-lime scrap-node ${maxed ? "scrap-node-maxed" : ""}`}>
       <span className="flex-1">
         <span className="block text-xs font-bold uppercase tracking-wider text-stone-100">{node.name}</span>
         <span className="block text-[10px] leading-snug text-stone-400">{node.blurb}</span>
@@ -103,7 +93,7 @@ function NodeButton({ node, onSpend }: { node: CharacterNode; onSpend: () => voi
       <span className={`text-xs font-black tabular-nums ${maxed ? "text-amber-300" : "text-lime-300"}`}>
         {rank}/{node.maxRank}
       </span>
-    </button>
+    </HudButton>
   );
 }
 
@@ -118,25 +108,17 @@ export function TalentsPanel() {
   if (!open || character === null || tree === null) return null;
   const nodes = characterNodes(character);
   return (
-    <div className="pointer-events-auto absolute inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div className="signal-scroll w-[46rem] max-w-[95vw] border-2 border-amber-500/80 bg-stone-950/95 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.9)]">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <span className="text-lg font-black uppercase tracking-widest text-amber-300">
-              {character.name} — {character.className}
-            </span>
-            <span className="ml-3 text-xs font-bold uppercase tracking-wider" style={{ color: FERRALON.hudXp }}>
-              {Math.round(points?.current ?? tree.pointsAvailable())} points
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => commands.run("ui.openSkills", {})}
-            className="border border-stone-600 px-2 py-0.5 text-xs font-bold uppercase text-stone-300 hover:border-amber-400 hover:text-amber-300"
-          >
-            Close [K]
-          </button>
-        </div>
+    <ScrapPanel
+      wide
+      title={`${character.name} — ${character.className}`}
+      aside={
+        <span className="ml-3 text-xs font-bold uppercase tracking-wider" style={{ color: FERRALON.hudXp }}>
+          {Math.round(points?.current ?? tree.pointsAvailable())} points
+        </span>
+      }
+      closeLabel="Close [K]"
+      onClose={() => commands.run("ui.openSkills", {})}
+    >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {character.branches.map((branch) => (
             <div key={branch.id} className="border border-stone-800 bg-black/40 p-2">
@@ -159,7 +141,6 @@ export function TalentsPanel() {
         <p className="mt-3 text-[10px] uppercase tracking-wider text-stone-500">
           Capstones unlock at 10 points in their branch · earn points by leveling up
         </p>
-      </div>
-    </div>
+    </ScrapPanel>
   );
 }

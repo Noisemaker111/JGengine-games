@@ -3,7 +3,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
 import { canTrain, orderSelection, trainUnit } from "./commands";
-import { hudStore, OPENING_NOTICE } from "./hudStore";
+import { createNoticeFeed, type Notice } from "@jgengine/core/game/notices";
 import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
 import { TRAINING_CONFIG } from "./production";
 import { resetSession, session } from "./session";
@@ -15,6 +15,7 @@ function ctxWith(positions: Map<string, EntityPosition>, wallet: Record<string, 
     scene: { entity: { get: (id: string) => (positions.has(id) ? { id, position: positions.get(id)! } : null) } },
     game: {
       audio: { play: () => {} },
+      notices: createNoticeFeed(),
       economy: {
         balance: (_u: string, c: string) => balances[c] ?? 0,
         charge: (_u: string, c: string, a: number) => {
@@ -24,6 +25,11 @@ function ctxWith(positions: Map<string, EntityPosition>, wallet: Record<string, 
       },
     },
   } as unknown as GameContext;
+}
+
+/** The newest field report the order pushed to the notice feed. */
+function lastNotice(ctx: GameContext): Notice | undefined {
+  return ctx.game.notices.list().at(-1);
 }
 
 function addPlayerUnit(id: string): void {
@@ -84,13 +90,12 @@ describe("right-click order routing", () => {
     expect(command.kind === "gather" && command.resource).toBe("gold");
   });
 
-  test("an accepted gather order replaces the opening field report", () => {
+  test("an accepted gather order reports the assignment", () => {
     session.units.set("w1", { id: "w1", catalogId: "peasant", faction: "player", kind: "unit", command: { kind: "idle" }, leash: 0, attackCooldown: 0 });
     session.nodes.set("mine", { id: "mine", resource: "gold", x: 10, z: 10 });
-    hudStore.set({ notice: OPENING_NOTICE });
     const ctx = ctxWith(new Map<string, EntityPosition>([["w1", [0, 0, 0]]]));
     orderSelection(ctx, { selection: ["w1"], point: [10, 0, 10] });
-    expect(hudStore.get().notice).toBe("Gathering gold: 1 worker assigned.");
+    expect(lastNotice(ctx)?.text).toBe("Gathering gold: 1 worker assigned.");
   });
 
   test("a footman right-clicking a node just moves (cannot gather)", () => {
@@ -117,7 +122,8 @@ describe("base building", () => {
   test("a bare right-click with nothing selected says to select troops", () => {
     const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
     orderSelection(ctx, { point: [10, 0, 10] });
-    expect(hudStore.get().notice).toStartWith("Select your troops first");
+    expect(lastNotice(ctx)?.text).toStartWith("Select your troops first");
+    expect(lastNotice(ctx)?.tone).toBe("deny");
   });
 
   test("the selection-less secondary right-click still places an armed building", () => {
@@ -177,33 +183,32 @@ describe("order and train feedback", () => {
     session.started = true;
   });
 
-  test("a refused train order explains itself and plays the denied cue", () => {
+  test("a refused train order explains itself as a deny notice", () => {
     addKeep();
-    const plays: string[] = [];
     const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 10 });
-    (ctx.game.audio as { play: (s: string) => void }).play = (s: string) => plays.push(s);
     trainUnit(ctx, "peasant");
-    expect(hudStore.get().notice).toBe("Not enough gold for Peasant.");
-    expect(plays).toEqual(["denied"]);
+    expect(lastNotice(ctx)).toMatchObject({ text: "Not enough gold for Peasant.", tone: "deny" });
   });
 
   test("a footman without a Barracks is told what it needs", () => {
     addKeep();
-    trainUnit(ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 }), "footman");
-    expect(hudStore.get().notice).toBe("Footman needs a Barracks first.");
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500, lumber: 500 });
+    trainUnit(ctx, "footman");
+    expect(lastNotice(ctx)?.text).toBe("Footman needs a Barracks first.");
   });
 
   test("an accepted train order confirms what is training and where", () => {
     addKeep();
-    trainUnit(ctxWith(new Map<string, EntityPosition>(), { gold: 500 }), "peasant");
-    expect(hudStore.get().notice).toBe("Training Peasant at the Town Hall.");
+    const ctx = ctxWith(new Map<string, EntityPosition>(), { gold: 500 });
+    trainUnit(ctx, "peasant");
+    expect(lastNotice(ctx)?.text).toBe("Training Peasant at the Town Hall.");
   });
 
   test("order notices count units with the right noun", () => {
     addPlayerUnit("f1");
     const ctx = ctxWith(new Map<string, EntityPosition>([["f1", [0, 0, 0]]]));
     orderSelection(ctx, { selection: ["f1"], point: [10, 0, 10] });
-    expect(hudStore.get().notice).toBe("Move ordered: 1 trooper.");
+    expect(lastNotice(ctx)?.text).toBe("Move ordered: 1 trooper.");
   });
 });
 

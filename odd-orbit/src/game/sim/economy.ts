@@ -3,7 +3,8 @@ import { fromMinorUnits, toMinorUnits, type CurrencyDefinition } from "@jgengine
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
 import { DAY_LENGTH } from "../../world";
 import { FURNITURE_BY_ID } from "../objects/catalog";
-import { pushEvent, type HouseholdState } from "../session/types";
+import type { NoticeFeed } from "@jgengine/core/game/notices";
+import { noteEvent, type HouseholdState } from "../session/types";
 
 export const CREDIT_CURRENCY: CurrencyDefinition = { id: "credits", name: "Credits", decimals: 2 };
 export const HABITAT_UPKEEP = 80;
@@ -31,7 +32,7 @@ export function nextBill(state: HouseholdState, objects: readonly SceneObject[])
   return dailyUpkeep(objects) + Math.min(state.debt, 40);
 }
 
-export function settleHouseholdDay(state: HouseholdState, objects: readonly SceneObject[], now: number): void {
+export function settleHouseholdDay(state: HouseholdState, objects: readonly SceneObject[], now: number, notices: Pick<NoticeFeed, "push">): void {
   const today = Math.floor(now / DAY_LENGTH);
   const due = state.economy.cursors.upkeep!.nextDueSeconds;
   if (due > now) return;
@@ -55,7 +56,7 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
   state.economy.accounts.household = { credits: state.credits };
   if (!newDay) {
     if (state.lastDay !== null) state.lastDay.bill = creditAmount(state.lastDay.bill + bill);
-    pushEvent(state, `Outstanding habitat bills ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, now, state.debt > 0 ? "info" : "good");
+    noteEvent(state, notices, `Outstanding habitat bills ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, state.debt > 0 ? "info" : "success");
     return;
   }
   const missed = state.order.reduce((sum, id) => {
@@ -63,7 +64,7 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
     return sum + (m !== undefined && (m.lifestyle === "yield" ? m.workToday < 20 : m.harvestToday === 0) ? 1 : 0);
   }, 0);
   state.lastDay = { day: state.day, income: creditAmount(state.dayIncome), harvest: state.dayHarvest, bill, missed };
-  pushEvent(state, `Day ${state.day + 1}: earned ${Math.round(state.dayIncome)}, harvested ${state.dayHarvest} rations; habitat bill ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, now, state.debt > 0 ? "info" : "good");
+  noteEvent(state, notices, `Day ${state.day + 1}: earned ${Math.round(state.dayIncome)}, harvested ${state.dayHarvest} rations; habitat bill ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, state.debt > 0 ? "info" : "success");
   state.day = today;
   state.dayIncome = 0;
   state.dayHarvest = 0;

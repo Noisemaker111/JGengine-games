@@ -126,7 +126,7 @@ export function registerCommands(ctx: GameContext): void {
       if (vehicle === null || vehicleById(vehicle.name) === undefined) return;
       handrollOf(state).enterVehicle(state, vehicleId);
       handrollOf(state).addHeat(state, 30);
-      state.game.feed.push("harbor.log", { text: `Boosted a ${vehicleById(vehicle.name)?.label ?? "car"}` });
+      state.game.notices.push({ text: `Boosted a ${vehicleById(vehicle.name)?.label ?? "car"}`, tone: "info" });
     },
   });
 
@@ -154,7 +154,7 @@ export function registerCommands(ctx: GameContext): void {
       if (itemId === undefined) return;
       const gate = credGateBlocking(state, itemId);
       if (gate !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: `NEEDS CRED ${gate}`, kind: "warn" });
+        state.game.notices.push({ text: `Needs street cred ${gate}.`, tone: "deny" });
         return;
       }
       const isWeapon = itemId.startsWith("pistol") || itemId.startsWith("smg") || itemId.startsWith("shotgun");
@@ -163,7 +163,7 @@ export function registerCommands(ctx: GameContext): void {
         inventoryId: isWeapon ? "hotbar" : "backpack",
       });
       if (result !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: result.reason.toUpperCase(), kind: "warn" });
+        state.game.notices.push({ text: `Can't buy that: ${result.reason.replaceAll("-", " ")}.`, tone: "deny" });
       }
     },
   });
@@ -187,12 +187,12 @@ export function registerCommands(ctx: GameContext): void {
       if (def === undefined || def.price <= 0) return;
       const gate = credGateBlocking(state, def.id);
       if (gate !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: `NEEDS CRED ${gate}`, kind: "warn" });
+        state.game.notices.push({ text: `Needs street cred ${gate}.`, tone: "deny" });
         return;
       }
       const charge = state.game.economy.charge(state.player.userId, "cash", def.price);
       if (charge !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
       const x = GARAGE_POS[0] + 6;
@@ -203,27 +203,27 @@ export function registerCommands(ctx: GameContext): void {
         role: "prop",
       });
       garageStore.clear(state);
-      state.game.feed.push("harbor.log", { text: `Bought a ${def.label}` });
+      state.game.notices.push({ text: `Bought a ${def.label}`, tone: "success" });
     },
   });
 
   ctx.game.commands.define("race.start", {
     apply(state) {
       if (handrollOf(state).drivingVehicleId() === null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: "YOU NEED A CAR", kind: "warn" });
+        state.game.notices.push({ text: "You need a car to race.", tone: "deny" });
         return;
       }
       if (handrollOf(state).raceActive()) return;
       const charge = state.game.economy.charge(state.player.userId, "cash", RACE_ENTRY_FEE);
       if (charge !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: `ENTRY $${RACE_ENTRY_FEE}`, kind: "warn" });
+        state.game.notices.push({ text: `Race entry is $${RACE_ENTRY_FEE}.`, tone: "deny" });
         return;
       }
       if (!handrollOf(state).startRace(state)) {
         state.game.economy.grant(state.player.userId, "cash", RACE_ENTRY_FEE);
         return;
       }
-      state.game.feed.push("harbor.log", { text: `Ocean Loop entry paid — $${RACE_ENTRY_FEE}.` });
+      state.game.notices.push({ text: `Ocean Loop entry paid — $${RACE_ENTRY_FEE}.`, tone: "info" });
     },
   });
 
@@ -232,11 +232,11 @@ export function registerCommands(ctx: GameContext): void {
       if (safehouseStore.read(state) === true) return;
       const charge = state.game.economy.charge(state.player.userId, "cash", SAFEHOUSE_PRICE);
       if (charge !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
       safehouseStore.write(state, true);
-      state.game.feed.push("harbor.log", { text: "Palmview Bungalow is yours — rest up, respawn here." });
+      state.game.notices.push({ text: "Palmview Bungalow is yours — rest up, respawn here.", tone: "success" });
       state.scene.entity.floatText({ instanceId: state.player.userId, text: "SAFEHOUSE OWNED", kind: "good" });
     },
   });
@@ -247,7 +247,7 @@ export function registerCommands(ctx: GameContext): void {
       const health = state.scene.entity.stats.get(state.player.userId, "health");
       if (health === null) return;
       state.scene.entity.stats.set(state.player.userId, "health", { current: health.max });
-      state.game.feed.push("harbor.log", { text: "Rested at the bungalow — back to full health." });
+      state.game.notices.push({ text: "Rested at the bungalow — back to full health.", tone: "success" });
     },
   });
 
@@ -258,11 +258,11 @@ export function registerCommands(ctx: GameContext): void {
       const cost = wanted.stars * 250;
       const charge = state.game.economy.charge(state.player.userId, "cash", cost);
       if (charge !== null) {
-        state.scene.entity.floatText({ instanceId: state.player.userId, text: "NOT ENOUGH CASH", kind: "warn" });
+        state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
       handrollOf(state).clearWanted(state);
-      state.game.feed.push("harbor.log", { text: `Bribed HHPD for $${cost}` });
+      state.game.notices.push({ text: `Bribed HHPD for $${cost}`, tone: "success" });
     },
   });
 
