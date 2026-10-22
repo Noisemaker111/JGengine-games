@@ -368,6 +368,317 @@
       "meta": {
         "clearance": 3
       }
+    },
+    {
+      "id": "d03_banner_blue_1",
+      "kind": "prop",
+      "position": {
+        "x": -6,
+        "y": 0,
+        "z": 18
+      },
+      "rotationY": 1.571,
+      "catalogId": "banner_blue",
+      "label": "The Ember Gate",
+      "meta": {
+        "catalogId": "banner_blue"
+      }
+    },
+    {
+      "id": "d03_banner_blue_2",
+      "kind": "prop",
+      "position": {
+        "x": 6,
+        "y": 0,
+        "z": 18
+      },
+      "rotationY": -1.571,
+      "catalogId": "banner_blue",
+      "meta": {
+        "catalogId": "banner_blue"
+      }
+    },
+    {
+      "id": "d03_torch_3",
+      "kind": "prop",
+      "position": {
+        "x": -4.6,
+        "y": 0,
+        "z": 16.6
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_torch_4",
+      "kind": "prop",
+      "position": {
+        "x": 4.6,
+        "y": 0,
+        "z": 16.6
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_barrel_5",
+      "kind": "prop",
+      "position": {
+        "x": -10,
+        "y": 0,
+        "z": 19.4
+      },
+      "rotationY": 0.4,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_6",
+      "kind": "prop",
+      "position": {
+        "x": 9.6,
+        "y": 0,
+        "z": 19.2
+      },
+      "rotationY": 1.1,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_torch_7",
+      "kind": "prop",
+      "position": {
+        "x": -7.6,
+        "y": 0,
+        "z": -4.6
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_torch_8",
+      "kind": "prop",
+      "position": {
+        "x": -7.6,
+        "y": 0,
+        "z": 3.6
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_barrel_9",
+      "kind": "prop",
+      "position": {
+        "x": -9.6,
+        "y": 0,
+        "z": -2.4
+      },
+      "rotationY": 0.2,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_10",
+      "kind": "prop",
+      "position": {
+        "x": -10.4,
+        "y": 0,
+        "z": 1.4
+      },
+      "rotationY": 1.8,
+      "catalogId": "barrel",
+      "label": "Waystone of the Vale",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_banner_red_11",
+      "kind": "prop",
+      "position": {
+        "x": -6.4,
+        "y": 0,
+        "z": -22
+      },
+      "rotationY": 1.571,
+      "catalogId": "banner_red",
+      "label": "Marauder muster",
+      "meta": {
+        "catalogId": "banner_red"
+      }
+    },
+    {
+      "id": "d03_banner_red_12",
+      "kind": "prop",
+      "position": {
+        "x": 6.4,
+        "y": 0,
+        "z": -22
+      },
+      "rotationY": -1.571,
+      "catalogId": "banner_red",
+      "meta": {
+        "catalogId": "banner_red"
+      }
+    },
+    {
+      "id": "d03_torch_13",
+      "kind": "prop",
+      "position": {
+        "x": -4.8,
+        "y": 0,
+        "z": -20.4
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_torch_14",
+      "kind": "prop",
+      "position": {
+        "x": 4.8,
+        "y": 0,
+        "z": -20.4
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_barrel_15",
+      "kind": "prop",
+      "position": {
+        "x": -9.8,
+        "y": 0,
+        "z": -24.2
+      },
+      "rotationY": 0.7,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_16",
+      "kind": "prop",
+      "position": {
+        "x": 11.8,
+        "y": 0,
+        "z": -25.4
+      },
+      "rotationY": 1.3,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_17",
+      "kind": "prop",
+      "position": {
+        "x": -11.4,
+        "y": 0,
+        "z": -34.6
+      },
+      "rotationY": 0.3,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_18",
+      "kind": "prop",
+      "position": {
+        "x": 11.4,
+        "y": 0,
+        "z": -34.6
+      },
+      "rotationY": 1.5,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_19",
+      "kind": "prop",
+      "position": {
+        "x": -12.2,
+        "y": 0,
+        "z": -29.8
+      },
+      "rotationY": 2.1,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_barrel_20",
+      "kind": "prop",
+      "position": {
+        "x": 12.2,
+        "y": 0,
+        "z": -29.8
+      },
+      "rotationY": 0.9,
+      "catalogId": "barrel",
+      "meta": {
+        "catalogId": "barrel"
+      }
+    },
+    {
+      "id": "d03_torch_21",
+      "kind": "prop",
+      "position": {
+        "x": -8.4,
+        "y": 0,
+        "z": -33.2
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
+    },
+    {
+      "id": "d03_torch_22",
+      "kind": "prop",
+      "position": {
+        "x": 8.4,
+        "y": 0,
+        "z": -33.2
+      },
+      "rotationY": 0,
+      "catalogId": "torch",
+      "meta": {
+        "catalogId": "torch"
+      }
     }
   ],
   "volumes": [
@@ -796,6 +1107,481 @@
           {
             "item": "stone",
             "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ridge-west-shoulder",
+      "kind": "scatter",
+      "points": [
+        {
+          "x": -26,
+          "y": 0,
+          "z": -34
+        },
+        {
+          "x": -20,
+          "y": 0,
+          "z": -34
+        },
+        {
+          "x": -20,
+          "y": 0,
+          "z": 34
+        },
+        {
+          "x": -26,
+          "y": 0,
+          "z": 34
+        }
+      ],
+      "label": "West ridge shoulder",
+      "meta": {
+        "density": 0.1,
+        "minSpacing": 2.8,
+        "seed": "ember-command-shoulder-west",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 4
+          },
+          {
+            "item": "tree",
+            "weight": 2
+          },
+          {
+            "item": "bush",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "ridge-east-shoulder",
+      "kind": "scatter",
+      "points": [
+        {
+          "x": 20,
+          "y": 0,
+          "z": -34
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "z": -34
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "z": 34
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "z": 34
+        }
+      ],
+      "label": "East ridge shoulder",
+      "meta": {
+        "density": 0.1,
+        "minSpacing": 2.8,
+        "seed": "ember-command-shoulder-east",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 4
+          },
+          {
+            "item": "oak",
+            "weight": 2
+          },
+          {
+            "item": "bush",
+            "weight": 3
+          },
+          {
+            "item": "stone",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "backdrop-north",
+      "kind": "scatter",
+      "points": [
+        {
+          "x": -24,
+          "y": 0,
+          "z": -48
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "z": -48
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "z": -41
+        },
+        {
+          "x": -24,
+          "y": 0,
+          "z": -41
+        }
+      ],
+      "label": "North pine wall",
+      "meta": {
+        "density": 0.22,
+        "minSpacing": 2.4,
+        "seed": "ember-command-backdrop-north",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 3
+          },
+          {
+            "item": "oak",
+            "weight": 2
+          },
+          {
+            "item": "rock",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "backdrop-south",
+      "kind": "scatter",
+      "points": [
+        {
+          "x": -24,
+          "y": 0,
+          "z": 41
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "z": 41
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "z": 48
+        },
+        {
+          "x": -24,
+          "y": 0,
+          "z": 48
+        }
+      ],
+      "label": "South pine wall",
+      "meta": {
+        "density": 0.22,
+        "minSpacing": 2.4,
+        "seed": "ember-command-backdrop-south",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 3
+          },
+          {
+            "item": "bush",
+            "weight": 2
+          },
+          {
+            "item": "rock",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "midfield-boulders",
+      "kind": "scatter",
+      "points": [
+        {
+          "x": -18,
+          "y": 0,
+          "z": -14
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "z": -14
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "z": 14
+        },
+        {
+          "x": -18,
+          "y": 0,
+          "z": 14
+        }
+      ],
+      "label": "Crossroads boulder field",
+      "meta": {
+        "density": 0.045,
+        "minSpacing": 5.4,
+        "seed": "ember-command-midfield-boulders",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "rock",
+            "weight": 4
+          },
+          {
+            "item": "stone",
+            "weight": 3
+          },
+          {
+            "item": "bush",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "outer-ring-west",
+      "kind": "scatter",
+      "label": "Vale ring (west)",
+      "points": [
+        {
+          "x": -92,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": -56,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": -56,
+          "y": 0,
+          "z": 92
+        },
+        {
+          "x": -92,
+          "y": 0,
+          "z": 92
+        }
+      ],
+      "meta": {
+        "density": 0.06,
+        "minSpacing": 4.2,
+        "seed": "ember-command-ring-west",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "outer-ring-east",
+      "kind": "scatter",
+      "label": "Vale ring (east)",
+      "points": [
+        {
+          "x": 56,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": 92,
+          "y": 0,
+          "z": 92
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "z": 92
+        }
+      ],
+      "meta": {
+        "density": 0.06,
+        "minSpacing": 4.2,
+        "seed": "ember-command-ring-east",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "outer-ring-north",
+      "kind": "scatter",
+      "label": "Vale ring (north)",
+      "points": [
+        {
+          "x": -56,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "z": -92
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "z": -56
+        },
+        {
+          "x": -56,
+          "y": 0,
+          "z": -56
+        }
+      ],
+      "meta": {
+        "density": 0.06,
+        "minSpacing": 4.2,
+        "seed": "ember-command-ring-north",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 3
+          },
+          {
+            "item": "bush",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "outer-ring-south",
+      "kind": "scatter",
+      "label": "Vale ring (south)",
+      "points": [
+        {
+          "x": -56,
+          "y": 0,
+          "z": 56
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "z": 56
+        },
+        {
+          "x": 56,
+          "y": 0,
+          "z": 92
+        },
+        {
+          "x": -56,
+          "y": 0,
+          "z": 92
+        }
+      ],
+      "meta": {
+        "density": 0.06,
+        "minSpacing": 4.2,
+        "seed": "ember-command-ring-south",
+        "maxSlope": 30,
+        "edgeFalloff": 4,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 3
+          },
+          {
+            "item": "bush",
+            "weight": 2
           }
         ]
       }

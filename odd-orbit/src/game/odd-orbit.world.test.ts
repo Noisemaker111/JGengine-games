@@ -39,7 +39,11 @@ describe("odd-orbit world", () => {
     expect(paint.surfaceAt(26, 20)).toBe("rock");
     expect(world.sculpt.offsets.every(offset => offset === 0)).toBe(true);
     expect(world.sky?.timeOfDay).toBe(false);
-    expect(editorLayers.markers).toHaveLength(32);
+    // The authored set: 13 habitat shell pieces, 6 starter furnishings, and the grown yards around
+    // them (a D0.3 content pass added fronds, crystals, boulders and the Listening Spires).
+    expect(editorLayers.markers.filter((marker) => marker.meta?.["group"] === "hab")).toHaveLength(13);
+    expect(editorLayers.markers.filter((marker) => marker.meta?.["group"] === "starter")).toHaveLength(6);
+    expect(editorLayers.markers.filter((marker) => marker.meta?.["group"] === "decor").length).toBeGreaterThanOrEqual(60);
     const starter = editorLayers.markers.find(marker => marker.id === "starter:bloom_planter");
     expect(starter?.position).toEqual({ x: 0, y: 0, z: -2 });
   });
