@@ -54,458 +54,524 @@
       }
     },
     {
-      "id": "path_walk-5",
+      "id": "auth_path_walk_1",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 48
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-6",
+      "id": "auth_path_walk_2",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 44
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-7",
+      "id": "auth_path_walk_3",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 40
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-8",
+      "id": "auth_path_walk_4",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 36
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-9",
+      "id": "auth_path_walk_5",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 32
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-10",
+      "id": "auth_path_walk_6",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 28
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-11",
+      "id": "auth_path_walk_7",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 24
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-12",
+      "id": "auth_path_walk_8",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 20
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-13",
+      "id": "auth_path_walk_9",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
         "z": 16
       },
-      "label": "Path",
+      "rotationY": 0,
       "meta": {
         "catalogId": "path_walk"
       }
     },
     {
-      "id": "path_walk-14",
-      "kind": "prop",
-      "position": {
-        "x": -4,
-        "y": 0,
-        "z": 20
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-15",
-      "kind": "prop",
-      "position": {
-        "x": 4,
-        "y": 0,
-        "z": 20
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-16",
-      "kind": "prop",
-      "position": {
-        "x": -4,
-        "y": 0,
-        "z": 28
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-17",
-      "kind": "prop",
-      "position": {
-        "x": -8,
-        "y": 0,
-        "z": 28
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-18",
-      "kind": "prop",
-      "position": {
-        "x": 4,
-        "y": 0,
-        "z": 28
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-19",
-      "kind": "prop",
-      "position": {
-        "x": 8,
-        "y": 0,
-        "z": 28
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-20",
-      "kind": "prop",
-      "position": {
-        "x": -4,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-21",
-      "kind": "prop",
-      "position": {
-        "x": -8,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-22",
-      "kind": "prop",
-      "position": {
-        "x": 4,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "path_walk-23",
-      "kind": "prop",
-      "position": {
-        "x": 8,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Path",
-      "meta": {
-        "catalogId": "path_walk"
-      }
-    },
-    {
-      "id": "deco_tree-24",
-      "kind": "prop",
-      "position": {
-        "x": -32,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-25",
-      "kind": "prop",
-      "position": {
-        "x": 32,
-        "y": 0,
-        "z": 12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-26",
-      "kind": "prop",
-      "position": {
-        "x": -28,
-        "y": 0,
-        "z": -8
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-27",
-      "kind": "prop",
-      "position": {
-        "x": 28,
-        "y": 0,
-        "z": 28
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-28",
-      "kind": "prop",
-      "position": {
-        "x": -20,
-        "y": 0,
-        "z": 32
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-29",
-      "kind": "prop",
-      "position": {
-        "x": 20,
-        "y": 0,
-        "z": 32
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-30",
-      "kind": "prop",
-      "position": {
-        "x": -8,
-        "y": 0,
-        "z": -12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-31",
-      "kind": "prop",
-      "position": {
-        "x": 8,
-        "y": 0,
-        "z": -12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-32",
-      "kind": "prop",
-      "position": {
-        "x": -16,
-        "y": 0,
-        "z": 44
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-33",
-      "kind": "prop",
-      "position": {
-        "x": 16,
-        "y": 0,
-        "z": 44
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-34",
-      "kind": "prop",
-      "position": {
-        "x": -32,
-        "y": 0,
-        "z": 32
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-35",
-      "kind": "prop",
-      "position": {
-        "x": 32,
-        "y": 0,
-        "z": 32
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-36",
-      "kind": "prop",
-      "position": {
-        "x": -24,
-        "y": 0,
-        "z": -12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-37",
-      "kind": "prop",
-      "position": {
-        "x": 24,
-        "y": 0,
-        "z": -12
-      },
-      "label": "Tree",
-      "meta": {
-        "catalogId": "deco_tree"
-      }
-    },
-    {
-      "id": "deco_tree-38",
+      "id": "auth_path_walk_10",
       "kind": "prop",
       "position": {
         "x": 0,
         "y": 0,
-        "z": -12
+        "z": 12
       },
-      "label": "Tree",
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_11",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_12",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_13",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 0
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_14",
+      "kind": "prop",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_15",
+      "kind": "prop",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_16",
+      "kind": "prop",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": 0
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_17",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_18",
+      "kind": "prop",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_19",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_20",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_21",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 0
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_deco_fountain_22",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "rotationY": 0,
+      "label": "Plaza fountain",
+      "meta": {
+        "catalogId": "deco_fountain"
+      }
+    },
+    {
+      "id": "auth_path_walk_23",
+      "kind": "prop",
+      "position": {
+        "x": -12,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_24",
+      "kind": "prop",
+      "position": {
+        "x": -16,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_25",
+      "kind": "prop",
+      "position": {
+        "x": -20,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_path_walk_26",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "path_walk"
+      }
+    },
+    {
+      "id": "auth_deco_tree_27",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 16
+      },
+      "rotationY": 2.6529004630313806,
       "meta": {
         "catalogId": "deco_tree"
       }
     },
     {
-      "id": "deco_tree-39",
+      "id": "auth_deco_tree_28",
       "kind": "prop",
       "position": {
-        "x": -32,
+        "x": 8,
         "y": 0,
-        "z": -20
+        "z": 16
       },
-      "label": "Tree",
+      "rotationY": 4.60766922526503,
       "meta": {
         "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_29",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 24
+      },
+      "rotationY": 4.468042885105484,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_30",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 24
+      },
+      "rotationY": 0.13962634015954636,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_31",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 32
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_32",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 32
+      },
+      "rotationY": 1.9547687622336491,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_33",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 40
+      },
+      "rotationY": 1.8151424220741028,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_34",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 40
+      },
+      "rotationY": 3.7699111843077517,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_35",
+      "kind": "prop",
+      "position": {
+        "x": -8,
+        "y": 0,
+        "z": 48
+      },
+      "rotationY": 3.6302848441482056,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_36",
+      "kind": "prop",
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 48
+      },
+      "rotationY": 5.585053606381854,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_37",
+      "kind": "prop",
+      "position": {
+        "x": -24,
+        "y": 0,
+        "z": 12
+      },
+      "rotationY": -0.20943951023931953,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_tree_38",
+      "kind": "prop",
+      "position": {
+        "x": -28,
+        "y": 0,
+        "z": 4
+      },
+      "rotationY": -2.5132741228718345,
+      "meta": {
+        "catalogId": "deco_tree"
+      }
+    },
+    {
+      "id": "auth_deco_lamp_39",
+      "kind": "prop",
+      "position": {
+        "x": -12,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "deco_lamp"
+      }
+    },
+    {
+      "id": "auth_deco_lamp_40",
+      "kind": "prop",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 8
+      },
+      "rotationY": 0,
+      "meta": {
+        "catalogId": "deco_lamp"
       }
     }
   ],
@@ -599,6 +665,26 @@
           "x": 16,
           "y": 0,
           "z": 4
+        },
+        {
+          "x": 16,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 20,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 24,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 28,
+          "y": 0,
+          "z": 0
         }
       ],
       "width": 2.4,
