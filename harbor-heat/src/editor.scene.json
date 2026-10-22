@@ -546,6 +546,3115 @@
         "z": -104
       },
       "label": "Ocean overlook"
+    },
+    {
+      "id": "d03_obj_palm_tall_1",
+      "kind": "prop",
+      "position": {
+        "x": 15,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 1.571,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_2",
+      "kind": "prop",
+      "position": {
+        "x": 10.6,
+        "y": 0,
+        "z": 70.6
+      },
+      "rotationY": 2.356,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_3",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 75
+      },
+      "rotationY": 3.142,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_4",
+      "kind": "prop",
+      "position": {
+        "x": -10.6,
+        "y": 0,
+        "z": 70.6
+      },
+      "rotationY": 3.927,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_5",
+      "kind": "prop",
+      "position": {
+        "x": -15,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 4.712,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_6",
+      "kind": "prop",
+      "position": {
+        "x": -10.6,
+        "y": 0,
+        "z": 49.4
+      },
+      "rotationY": 5.498,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_7",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 45
+      },
+      "rotationY": 6.283,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_8",
+      "kind": "prop",
+      "position": {
+        "x": 10.6,
+        "y": 0,
+        "z": 49.4
+      },
+      "rotationY": 7.069,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_9",
+      "kind": "prop",
+      "position": {
+        "x": 7.4,
+        "y": 0,
+        "z": 63.1
+      },
+      "rotationY": 1.971,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_10",
+      "kind": "prop",
+      "position": {
+        "x": 1,
+        "y": 0,
+        "z": 67.9
+      },
+      "rotationY": 3.018,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_11",
+      "kind": "prop",
+      "position": {
+        "x": -6.4,
+        "y": 0,
+        "z": 64.8
+      },
+      "rotationY": 4.065,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_12",
+      "kind": "prop",
+      "position": {
+        "x": -7.4,
+        "y": 0,
+        "z": 56.9
+      },
+      "rotationY": 5.112,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_13",
+      "kind": "prop",
+      "position": {
+        "x": -1,
+        "y": 0,
+        "z": 52.1
+      },
+      "rotationY": 6.16,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_14",
+      "kind": "prop",
+      "position": {
+        "x": 6.4,
+        "y": 0,
+        "z": 55.2
+      },
+      "rotationY": 7.207,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_bench_15",
+      "kind": "prop",
+      "position": {
+        "x": 7.7,
+        "y": 0,
+        "z": 67.9
+      },
+      "rotationY": 0.8,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_planter_16",
+      "kind": "prop",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 70.3
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_17",
+      "kind": "prop",
+      "position": {
+        "x": -10.3,
+        "y": 0,
+        "z": 64
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_bench_18",
+      "kind": "prop",
+      "position": {
+        "x": -7.7,
+        "y": 0,
+        "z": 52.1
+      },
+      "rotationY": 3.942,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_planter_19",
+      "kind": "prop",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": 49.7
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_20",
+      "kind": "prop",
+      "position": {
+        "x": 10.3,
+        "y": 0,
+        "z": 56
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_flametree_21",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_flametree",
+      "label": "Palm Court",
+      "meta": {
+        "catalogId": "obj_flametree"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_22",
+      "kind": "prop",
+      "position": {
+        "x": -138,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_23",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -78
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_24",
+      "kind": "prop",
+      "position": {
+        "x": -129,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_25",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -69
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_26",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_27",
+      "kind": "prop",
+      "position": {
+        "x": -111,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_28",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -51
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_29",
+      "kind": "prop",
+      "position": {
+        "x": -102,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_30",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -42
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_31",
+      "kind": "prop",
+      "position": {
+        "x": -138,
+        "y": 0,
+        "z": -78
+      },
+      "rotationY": 0,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_32",
+      "kind": "prop",
+      "position": {
+        "x": -102,
+        "y": 0,
+        "z": -78
+      },
+      "rotationY": 0,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_33",
+      "kind": "prop",
+      "position": {
+        "x": -138,
+        "y": 0,
+        "z": -42
+      },
+      "rotationY": 0,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_34",
+      "kind": "prop",
+      "position": {
+        "x": -102,
+        "y": 0,
+        "z": -42
+      },
+      "rotationY": 0,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_planter_35",
+      "kind": "prop",
+      "position": {
+        "x": -132,
+        "y": 0,
+        "z": -48
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_36",
+      "kind": "prop",
+      "position": {
+        "x": -132,
+        "y": 0,
+        "z": -72
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_37",
+      "kind": "prop",
+      "position": {
+        "x": -108,
+        "y": 0,
+        "z": -48
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_38",
+      "kind": "prop",
+      "position": {
+        "x": -108,
+        "y": 0,
+        "z": -72
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_39",
+      "kind": "prop",
+      "position": {
+        "x": 133.7,
+        "y": 0,
+        "z": -57.2
+      },
+      "rotationY": 1.771,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_40",
+      "kind": "prop",
+      "position": {
+        "x": 124.5,
+        "y": 0,
+        "z": -46.7
+      },
+      "rotationY": 2.818,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_41",
+      "kind": "prop",
+      "position": {
+        "x": 110.7,
+        "y": 0,
+        "z": -49.5
+      },
+      "rotationY": 3.865,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_42",
+      "kind": "prop",
+      "position": {
+        "x": 106.3,
+        "y": 0,
+        "z": -62.8
+      },
+      "rotationY": 4.912,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_43",
+      "kind": "prop",
+      "position": {
+        "x": 115.5,
+        "y": 0,
+        "z": -73.3
+      },
+      "rotationY": 5.96,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_44",
+      "kind": "prop",
+      "position": {
+        "x": 129.3,
+        "y": 0,
+        "z": -70.5
+      },
+      "rotationY": 7.007,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_45",
+      "kind": "prop",
+      "position": {
+        "x": 123.2,
+        "y": 0,
+        "z": -53.8
+      },
+      "rotationY": 2.671,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_46",
+      "kind": "prop",
+      "position": {
+        "x": 115,
+        "y": 0,
+        "z": -55.1
+      },
+      "rotationY": 3.927,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_47",
+      "kind": "prop",
+      "position": {
+        "x": 113.8,
+        "y": 0,
+        "z": -63.2
+      },
+      "rotationY": 5.184,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_48",
+      "kind": "prop",
+      "position": {
+        "x": 121.1,
+        "y": 0,
+        "z": -66.9
+      },
+      "rotationY": 6.441,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_49",
+      "kind": "prop",
+      "position": {
+        "x": 126.9,
+        "y": 0,
+        "z": -61.1
+      },
+      "rotationY": 7.697,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_50",
+      "kind": "prop",
+      "position": {
+        "x": 134,
+        "y": 0,
+        "z": -51.3
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_51",
+      "kind": "prop",
+      "position": {
+        "x": 134,
+        "y": 0,
+        "z": -42.7
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_52",
+      "kind": "prop",
+      "position": {
+        "x": 134,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_53",
+      "kind": "prop",
+      "position": {
+        "x": 106,
+        "y": 0,
+        "z": -68.7
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_54",
+      "kind": "prop",
+      "position": {
+        "x": 106,
+        "y": 0,
+        "z": -77.3
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_55",
+      "kind": "prop",
+      "position": {
+        "x": 106,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_planter_56",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": -46
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_57",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": -74
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_58",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -148
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_59",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -158.7
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_60",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -169.3
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_61",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_62",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -190.7
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_63",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -201.3
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_64",
+      "kind": "prop",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": -212
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_65",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -148
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_66",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -158.7
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_67",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -169.3
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_68",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_69",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -190.7
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_70",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -201.3
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_71",
+      "kind": "prop",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -212
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_planter_72",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -150
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_73",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -170
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_74",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -190
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_75",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -210
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_76",
+      "kind": "prop",
+      "position": {
+        "x": -16,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_77",
+      "kind": "prop",
+      "position": {
+        "x": 16,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 0,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_bench_78",
+      "kind": "prop",
+      "position": {
+        "x": -14,
+        "y": 0,
+        "z": -160
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_bench_79",
+      "kind": "prop",
+      "position": {
+        "x": 14,
+        "y": 0,
+        "z": -160
+      },
+      "rotationY": 1.8,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_80",
+      "kind": "prop",
+      "position": {
+        "x": 129.9,
+        "y": 0,
+        "z": 66.8
+      },
+      "rotationY": 2.171,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_81",
+      "kind": "prop",
+      "position": {
+        "x": 116.6,
+        "y": 0,
+        "z": 71.5
+      },
+      "rotationY": 3.427,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_82",
+      "kind": "prop",
+      "position": {
+        "x": 108,
+        "y": 0,
+        "z": 60.3
+      },
+      "rotationY": 4.684,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_83",
+      "kind": "prop",
+      "position": {
+        "x": 116,
+        "y": 0,
+        "z": 48.7
+      },
+      "rotationY": 5.941,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_84",
+      "kind": "prop",
+      "position": {
+        "x": 129.5,
+        "y": 0,
+        "z": 52.7
+      },
+      "rotationY": 7.197,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_85",
+      "kind": "prop",
+      "position": {
+        "x": 137.9,
+        "y": 0,
+        "z": 61.8
+      },
+      "rotationY": 1.671,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_86",
+      "kind": "prop",
+      "position": {
+        "x": 123.8,
+        "y": 0,
+        "z": 77.6
+      },
+      "rotationY": 2.927,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_87",
+      "kind": "prop",
+      "position": {
+        "x": 104.5,
+        "y": 0,
+        "z": 69.1
+      },
+      "rotationY": 4.184,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_88",
+      "kind": "prop",
+      "position": {
+        "x": 106.6,
+        "y": 0,
+        "z": 48
+      },
+      "rotationY": 5.441,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_89",
+      "kind": "prop",
+      "position": {
+        "x": 127.2,
+        "y": 0,
+        "z": 43.5
+      },
+      "rotationY": 6.697,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_90",
+      "kind": "prop",
+      "position": {
+        "x": 104,
+        "y": 0,
+        "z": 44
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_91",
+      "kind": "prop",
+      "position": {
+        "x": 112,
+        "y": 0,
+        "z": 52
+      },
+      "rotationY": 1.4,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_92",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_93",
+      "kind": "prop",
+      "position": {
+        "x": 136,
+        "y": 0,
+        "z": 76
+      },
+      "rotationY": 0.2,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_94",
+      "kind": "prop",
+      "position": {
+        "x": 108,
+        "y": 0,
+        "z": 178
+      },
+      "rotationY": 0.06,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_95",
+      "kind": "prop",
+      "position": {
+        "x": 108,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 0.08,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_96",
+      "kind": "prop",
+      "position": {
+        "x": 152,
+        "y": 0,
+        "z": 186
+      },
+      "rotationY": 1.55,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_97",
+      "kind": "prop",
+      "position": {
+        "x": 117,
+        "y": 0,
+        "z": 178
+      },
+      "rotationY": 1.62,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_98",
+      "kind": "prop",
+      "position": {
+        "x": 117,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 1.58,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_99",
+      "kind": "prop",
+      "position": {
+        "x": 152,
+        "y": 0,
+        "z": 193
+      },
+      "rotationY": 1.55,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_100",
+      "kind": "prop",
+      "position": {
+        "x": 126,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 0.08,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_101",
+      "kind": "prop",
+      "position": {
+        "x": 152,
+        "y": 0,
+        "z": 200
+      },
+      "rotationY": 1.55,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_102",
+      "kind": "prop",
+      "position": {
+        "x": 135,
+        "y": 0,
+        "z": 178
+      },
+      "rotationY": 1.62,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_103",
+      "kind": "prop",
+      "position": {
+        "x": 135,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 1.58,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_104",
+      "kind": "prop",
+      "position": {
+        "x": 152,
+        "y": 0,
+        "z": 207
+      },
+      "rotationY": 1.55,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_105",
+      "kind": "prop",
+      "position": {
+        "x": 144,
+        "y": 0,
+        "z": 178
+      },
+      "rotationY": 0.06,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_106",
+      "kind": "prop",
+      "position": {
+        "x": 144,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 0.08,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_cargo_107",
+      "kind": "prop",
+      "position": {
+        "x": 152,
+        "y": 0,
+        "z": 214
+      },
+      "rotationY": 1.55,
+      "catalogId": "obj_cargo",
+      "meta": {
+        "catalogId": "obj_cargo"
+      }
+    },
+    {
+      "id": "d03_obj_crate_dock_108",
+      "kind": "prop",
+      "position": {
+        "x": 116,
+        "y": 0,
+        "z": 192
+      },
+      "rotationY": 0,
+      "catalogId": "obj_crate_dock",
+      "meta": {
+        "catalogId": "obj_crate_dock"
+      }
+    },
+    {
+      "id": "d03_obj_crate_dock_109",
+      "kind": "prop",
+      "position": {
+        "x": 123,
+        "y": 0,
+        "z": 200
+      },
+      "rotationY": 1,
+      "catalogId": "obj_crate_dock",
+      "meta": {
+        "catalogId": "obj_crate_dock"
+      }
+    },
+    {
+      "id": "d03_obj_crate_dock_110",
+      "kind": "prop",
+      "position": {
+        "x": 130,
+        "y": 0,
+        "z": 192
+      },
+      "rotationY": 2,
+      "catalogId": "obj_crate_dock",
+      "meta": {
+        "catalogId": "obj_crate_dock"
+      }
+    },
+    {
+      "id": "d03_obj_crate_dock_111",
+      "kind": "prop",
+      "position": {
+        "x": 137,
+        "y": 0,
+        "z": 200
+      },
+      "rotationY": 3,
+      "catalogId": "obj_crate_dock",
+      "meta": {
+        "catalogId": "obj_crate_dock"
+      }
+    },
+    {
+      "id": "d03_obj_crate_dock_112",
+      "kind": "prop",
+      "position": {
+        "x": 144,
+        "y": 0,
+        "z": 192
+      },
+      "rotationY": 4,
+      "catalogId": "obj_crate_dock",
+      "meta": {
+        "catalogId": "obj_crate_dock"
+      }
+    },
+    {
+      "id": "d03_obj_neon_113",
+      "kind": "prop",
+      "position": {
+        "x": 106,
+        "y": 0,
+        "z": 170
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_neon",
+      "meta": {
+        "catalogId": "obj_neon"
+      }
+    },
+    {
+      "id": "d03_obj_neon_114",
+      "kind": "prop",
+      "position": {
+        "x": 150,
+        "y": 0,
+        "z": 220
+      },
+      "rotationY": 2.8,
+      "catalogId": "obj_neon",
+      "meta": {
+        "catalogId": "obj_neon"
+      }
+    },
+    {
+      "id": "d03_obj_palm_115",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": -132
+      },
+      "rotationY": 0,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_116",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": -121
+      },
+      "rotationY": 1.7,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_117",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": -110
+      },
+      "rotationY": 3.4,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_118",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": -99
+      },
+      "rotationY": 5.1,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_119",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": -88
+      },
+      "rotationY": 0.52,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_120",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": -77
+      },
+      "rotationY": 2.22,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_palm_121",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": -66
+      },
+      "rotationY": 3.92,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_122",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": -55
+      },
+      "rotationY": 5.62,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_123",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": -44
+      },
+      "rotationY": 1.04,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_124",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": -33
+      },
+      "rotationY": 2.74,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_125",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": -22
+      },
+      "rotationY": 4.44,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_126",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": -11
+      },
+      "rotationY": 6.14,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_palm_127",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": 0
+      },
+      "rotationY": 1.56,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_128",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": 11
+      },
+      "rotationY": 3.26,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_129",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": 22
+      },
+      "rotationY": 4.96,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_130",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": 33
+      },
+      "rotationY": 0.38,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_131",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": 44
+      },
+      "rotationY": 2.08,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_132",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": 55
+      },
+      "rotationY": 3.78,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_palm_133",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": 66
+      },
+      "rotationY": 5.48,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_134",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": 77
+      },
+      "rotationY": 0.9,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_low_135",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": 88
+      },
+      "rotationY": 2.6,
+      "catalogId": "obj_palm_low",
+      "meta": {
+        "catalogId": "obj_palm_low"
+      }
+    },
+    {
+      "id": "d03_obj_hedge_136",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": 99
+      },
+      "rotationY": 4.3,
+      "catalogId": "obj_hedge",
+      "meta": {
+        "catalogId": "obj_hedge"
+      }
+    },
+    {
+      "id": "d03_obj_palm_tall_137",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": 110
+      },
+      "rotationY": 6,
+      "catalogId": "obj_palm_tall",
+      "meta": {
+        "catalogId": "obj_palm_tall"
+      }
+    },
+    {
+      "id": "d03_obj_cactus_138",
+      "kind": "prop",
+      "position": {
+        "x": -198,
+        "y": 0,
+        "z": 121
+      },
+      "rotationY": 1.42,
+      "catalogId": "obj_cactus",
+      "meta": {
+        "catalogId": "obj_cactus"
+      }
+    },
+    {
+      "id": "d03_obj_palm_139",
+      "kind": "prop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": 132
+      },
+      "rotationY": 3.12,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_140",
+      "kind": "prop",
+      "position": {
+        "x": -195,
+        "y": 0,
+        "z": 143
+      },
+      "rotationY": 4.82,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_bench_141",
+      "kind": "prop",
+      "position": {
+        "x": -198.5,
+        "y": 0,
+        "z": 46
+      },
+      "rotationY": 1.571,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_bench_142",
+      "kind": "prop",
+      "position": {
+        "x": -198.5,
+        "y": 0,
+        "z": 70
+      },
+      "rotationY": 1.571,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_bench_143",
+      "kind": "prop",
+      "position": {
+        "x": -198.5,
+        "y": 0,
+        "z": 94
+      },
+      "rotationY": 1.571,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_bench_144",
+      "kind": "prop",
+      "position": {
+        "x": -198.5,
+        "y": 0,
+        "z": 142
+      },
+      "rotationY": 1.571,
+      "catalogId": "obj_bench",
+      "meta": {
+        "catalogId": "obj_bench"
+      }
+    },
+    {
+      "id": "d03_obj_planter_145",
+      "kind": "prop",
+      "position": {
+        "x": -196,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_146",
+      "kind": "prop",
+      "position": {
+        "x": -196,
+        "y": 0,
+        "z": 82
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_147",
+      "kind": "prop",
+      "position": {
+        "x": -196,
+        "y": 0,
+        "z": 130
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_148",
+      "kind": "prop",
+      "position": {
+        "x": -22,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_149",
+      "kind": "prop",
+      "position": {
+        "x": -22,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_150",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": 38
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_151",
+      "kind": "prop",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_152",
+      "kind": "prop",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_153",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": 49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_154",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": 49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_155",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_156",
+      "kind": "prop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_157",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_158",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_159",
+      "kind": "prop",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_160",
+      "kind": "prop",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_161",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": 71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_162",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": 71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_163",
+      "kind": "prop",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_164",
+      "kind": "prop",
+      "position": {
+        "x": -142,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_165",
+      "kind": "prop",
+      "position": {
+        "x": -142,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_166",
+      "kind": "prop",
+      "position": {
+        "x": -94,
+        "y": 0,
+        "z": -82
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_167",
+      "kind": "prop",
+      "position": {
+        "x": -131,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_168",
+      "kind": "prop",
+      "position": {
+        "x": -131,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_169",
+      "kind": "prop",
+      "position": {
+        "x": -146,
+        "y": 0,
+        "z": -71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_170",
+      "kind": "prop",
+      "position": {
+        "x": -94,
+        "y": 0,
+        "z": -71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_171",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_172",
+      "kind": "prop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_173",
+      "kind": "prop",
+      "position": {
+        "x": -146,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_174",
+      "kind": "prop",
+      "position": {
+        "x": -94,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_175",
+      "kind": "prop",
+      "position": {
+        "x": -109,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_176",
+      "kind": "prop",
+      "position": {
+        "x": -109,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_177",
+      "kind": "prop",
+      "position": {
+        "x": -146,
+        "y": 0,
+        "z": -49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_178",
+      "kind": "prop",
+      "position": {
+        "x": -94,
+        "y": 0,
+        "z": -49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_179",
+      "kind": "prop",
+      "position": {
+        "x": -98,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_180",
+      "kind": "prop",
+      "position": {
+        "x": 98,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_181",
+      "kind": "prop",
+      "position": {
+        "x": 98,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_182",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": -82
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_183",
+      "kind": "prop",
+      "position": {
+        "x": 109,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_184",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": -71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_185",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": -71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_186",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_187",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_188",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": -60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_189",
+      "kind": "prop",
+      "position": {
+        "x": 131,
+        "y": 0,
+        "z": -86
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_190",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": -49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_191",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": -49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_192",
+      "kind": "prop",
+      "position": {
+        "x": 142,
+        "y": 0,
+        "z": -34
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_193",
+      "kind": "prop",
+      "position": {
+        "x": -22,
+        "y": 0,
+        "z": -206
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_194",
+      "kind": "prop",
+      "position": {
+        "x": -22,
+        "y": 0,
+        "z": -154
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_195",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": -202
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_196",
+      "kind": "prop",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": -206
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_197",
+      "kind": "prop",
+      "position": {
+        "x": -11,
+        "y": 0,
+        "z": -154
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_198",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": -191
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_199",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": -191
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_200",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_201",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": -180
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_202",
+      "kind": "prop",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": -206
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_203",
+      "kind": "prop",
+      "position": {
+        "x": 11,
+        "y": 0,
+        "z": -154
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_204",
+      "kind": "prop",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": -169
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_205",
+      "kind": "prop",
+      "position": {
+        "x": 26,
+        "y": 0,
+        "z": -169
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_206",
+      "kind": "prop",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": -154
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_207",
+      "kind": "prop",
+      "position": {
+        "x": 98,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_208",
+      "kind": "prop",
+      "position": {
+        "x": 98,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_209",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": 38
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_210",
+      "kind": "prop",
+      "position": {
+        "x": 109,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_211",
+      "kind": "prop",
+      "position": {
+        "x": 109,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_212",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": 49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_213",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": 49
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_214",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_215",
+      "kind": "prop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_216",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_217",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": 60
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_218",
+      "kind": "prop",
+      "position": {
+        "x": 131,
+        "y": 0,
+        "z": 34
+      },
+      "rotationY": 0.3,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_palm_219",
+      "kind": "prop",
+      "position": {
+        "x": 131,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
+    },
+    {
+      "id": "d03_obj_planter_220",
+      "kind": "prop",
+      "position": {
+        "x": 94,
+        "y": 0,
+        "z": 71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_planter_221",
+      "kind": "prop",
+      "position": {
+        "x": 146,
+        "y": 0,
+        "z": 71
+      },
+      "rotationY": 0,
+      "catalogId": "obj_planter",
+      "meta": {
+        "catalogId": "obj_planter"
+      }
+    },
+    {
+      "id": "d03_obj_palm_222",
+      "kind": "prop",
+      "position": {
+        "x": 142,
+        "y": 0,
+        "z": 86
+      },
+      "rotationY": 1.9,
+      "catalogId": "obj_palm",
+      "meta": {
+        "catalogId": "obj_palm"
+      }
     }
   ],
   "volumes": [

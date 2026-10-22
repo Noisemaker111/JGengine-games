@@ -16,7 +16,7 @@ const pieceById = new Map(AUTHORED_PIECES.map((piece) => [piece.instanceId, piec
 
 describe("authored document", () => {
   test("every placed prop is a document marker with a resolvable catalog id", () => {
-    expect(AUTHORED_PIECES.length).toBe(403);
+    // The count is read from the document, so a resolver that silently drops authored props fails here.\n    const authored = authoredScene.markers.filter((marker) => marker.catalogId !== undefined || typeof marker.meta?.["catalogId"] === "string");\n    expect(AUTHORED_PIECES.length).toBe(authored.length);\n    expect(AUTHORED_PIECES.length).toBeGreaterThan(400);
     for (const piece of AUTHORED_PIECES) expect(worldObjectById(piece.catalogId)).toBeDefined();
   });
 

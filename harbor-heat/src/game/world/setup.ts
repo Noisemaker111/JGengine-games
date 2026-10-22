@@ -3,9 +3,11 @@ import { seededRng } from "@jgengine/core/random/rng";
 import { patrol } from "@jgengine/core/scene/behaviors";
 import type { Waypoint } from "@jgengine/core/nav/pathFollow";
 import { deriveBuildingLots } from "@jgengine/core/world/buildingLots";
+import { placeAuthoredObjectsFromDocument } from "@jgengine/core/world/authoredObjects";
 import { isOnRoad, nearestOnPath } from "@jgengine/core/world/roads";
 import { furnitureSpots, parkingSpots, sidewalkPoint } from "@jgengine/core/world/streets";
 import { streets } from "../../world";
+import { editorLayers } from "../../editorLayers";
 import { buildingsByStyle, type BuildingStyle } from "./buildings";
 import { PALM_IDS } from "./models";
 import {
@@ -283,6 +285,11 @@ export function setupWorld(ctx: GameContext): void {
   const rng = seededRng("harbor-heat-setup");
 
   placeBuildings(ctx, rng);
+
+  // Authored city parks, the container yard and boardwalk seating: `prop` markers in the scene
+  // document, placed through the shared authored-objects primitive so moving or adding one is an
+  // editor edit rather than a coordinate in this file.
+  placeAuthoredObjectsFromDocument(ctx.scene.object, editorLayers, (x, z) => ctx.world.groundHeightAt(x, z));
 
   for (const spawn of AUTHORED_VEHICLE_SPAWNS) {
     const def = vehicleById(spawn.catalogId);
