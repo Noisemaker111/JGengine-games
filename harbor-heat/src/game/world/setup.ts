@@ -159,6 +159,13 @@ const BUILDING_ROAD_CLEARANCE = 16;
  */
 const SEAFRONT_BUILD_LINE = SHORE_X + 24;
 
+/** A building lot's world footprint, as the frontage placer placed it. */
+export interface BuildingFootprintXZ {
+  x: number;
+  z: number;
+  rotationY: number;
+}
+
 /**
  * Line every authored street with collidable, street-facing buildings using the engine's street-aware
  * frontage placer (`deriveBuildingLots` — the same lot engine `generateCity` composes over) instead of
@@ -166,7 +173,8 @@ const SEAFRONT_BUILD_LINE = SHORE_X + 24;
  * a crossing street or a gameplay POI, so no building ever lands on the asphalt. Each lot is placed as a
  * scene object, so it gets a fitted physical collider and blocks the player like a real building.
  */
-function placeBuildings(ctx: GameContext, rng: () => number): void {
+function placeBuildings(ctx: GameContext, rng: () => number): readonly BuildingFootprintXZ[] {
+  const placed: BuildingFootprintXZ[] = [];
   const lots = deriveBuildingLots({
     roads: streets.map((street) => ({ path: street.path, width: street.width })),
     footprint: BUILDING_FOOTPRINT,
@@ -188,7 +196,9 @@ function placeBuildings(ctx: GameContext, rng: () => number): void {
     ctx.scene.object.place(pick.id, Math.round(x), ctx.world.groundHeightAt(x, z), Math.round(z), {
       rotation: lot.rotationY,
     });
+    placed.push({ x, z, rotationY: lot.rotationY });
   }
+  return placed;
 }
 
 /** World units between palms on an authored promenade; benches and planters land on alternate steps. */
@@ -245,10 +255,10 @@ function dressPromenades(ctx: GameContext, rng: () => number): void {
   }
 }
 
-export function setupWorld(ctx: GameContext): void {
+export function setupWorld(ctx: GameContext): readonly BuildingFootprintXZ[] {
   const rng = seededRng("harbor-heat-setup");
 
-  placeBuildings(ctx, rng);
+  const buildings = placeBuildings(ctx, rng);
 
   // Authored city parks, the container yard and boardwalk seating: `prop` markers in the scene
   // document, placed through the shared authored-objects primitive so moving or adding one is an
@@ -277,36 +287,9 @@ export function setupWorld(ctx: GameContext): void {
 
   ctx.scene.entity.spawn("contact_marco", { id: "npc_marco", position: ground(ctx, MARCO_POS[0], MARCO_POS[2]), role: "npc" });
 
-  let pedCount = 0;
-  streets.forEach((street, roadIndex) => {
-    const kind = PED_KIND_BY_ROAD[roadIndex] ?? "ped_city";
-    for (let i = 0; i < 7; i += 1) {
-      const side = rng() < 0.5 ? "left" : "right";
-      const fraction = 0.15 + rng() * 0.7;
-      const point = sidewalkPoint(street, side, fraction);
-      if (point === null) continue;
-      pedCount += 1;
-      const id = `ped_${pedCount}`;
-      const walk = sidewalkPoint(street, side, Math.min(1, fraction + 0.25));
-      const behaviors =
-        walk !== null
-          ? [
-              patrol({
-                waypoints: [
-                  [point[0], 0, point[1]],
-                  [walk[0], 0, walk[1]],
-                  [point[0], 0, point[1]],
-                ] as Waypoint[],
-                speed: 1.5,
-                loop: true,
-                groundClamp: true,
-                startProgress: { kind: "distance", value: 1.5 * rng() * 40 },
-              }),
-            ]
-          : [];
-      ctx.scene.entity.spawn(kind, { id, position: ground(ctx, point[0], point[1]), role: "npc", behaviors });
-    }
-  });
+  // Sidewalk life is not a patrol loop per street any more: `game/world/residents.ts` runs the named
+  // residents on authored routines through the engine's off-screen world, so each one walks its own
+  // day and the ones out of range cost a schedule and a position.
 
   // Kerbside metal is not hand-placed any more: `game/world/traffic.ts` parks real cars in the
   // authored `traffic_parking` spots, so a parked car is one the traffic system already knows about
@@ -396,4 +379,6 @@ export function setupWorld(ctx: GameContext): void {
     position: [BRIEFCASE_POS[0], ctx.world.groundHeightAt(BRIEFCASE_POS[0], BRIEFCASE_POS[2]) + 0.4, BRIEFCASE_POS[2]],
     rarity: "legendary",
   });
+
+  return buildings;
 }
