@@ -1,6 +1,5 @@
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
-import { CSS_PADDING } from "../theme";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { moodOf, NEEDS } from "../../needs/needs";
@@ -12,7 +11,7 @@ import { AlienSwatch, MoodBadge, NeedBar } from "./bits";
 export function RosterPanel({ compact = false }: { compact?: boolean }) {
   const household = useStore(householdStore);
   const { commands } = useGame();
-  return <HudFrame className={`orbit-roster ${compact ? "compact" : ""}`} style={CSS_PADDING} role="region" aria-label="Household"><h2>Household <span>{household.order.length} beings</span></h2><div className="orbit-member-list">{household.order.map(id => {
+  return <HudSurface className={`orbit-roster ${compact ? "compact" : ""}`} as="section" aria-label="Household"><h2>Household <span>{household.order.length} beings</span></h2><div className="orbit-member-list">{household.order.map(id => {
     const member = household.members[id];
     if (!member) return null;
     const mood = moodOf(member.needs);
@@ -23,5 +22,5 @@ export function RosterPanel({ compact = false }: { compact?: boolean }) {
       {!compact && selected && <><p className="orbit-member-schedule">{scheduleLabel(member)}</p><div className="orbit-member-needs">{NEEDS.map(need => <NeedBar key={need} need={need} value={member.needs[need]}/>)}</div></>}
       {member.concern && <small className="orbit-concern">{member.concern}</small>}
     </HudButton>;
-  })}</div></HudFrame>;
+  })}</div></HudSurface>;
 }

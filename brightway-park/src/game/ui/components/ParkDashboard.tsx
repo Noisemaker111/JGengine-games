@@ -1,7 +1,6 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
-import { CSS_PADDING } from "../theme";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { guestCap } from "../../catalog";
 import { session } from "../../session";
 import { currentMetrics } from "../../sim/economy";
@@ -14,19 +13,19 @@ export function ParkDashboard() {
   const m=currentMetrics(), next=nextMilestone(session.rating), nextStep=nextStepText(session.rating);
   const net=session.revenueYesterday-session.upkeepYesterday;
   return <>
-    <HudPanel className="park-header park-surface" role="banner" style={CSS_PADDING}>
+    <HudSurface className="park-header park-surface" as="header">
       <div className="park-wordmark"><img src={new URL("../../../../public/art/brightway-sign.svg",import.meta.url).href} alt="Brightway Park" /><span>A little seaside. A lot of possibility.</span></div>
       <div className="park-status"><span className={session.open?"park-open":"park-closed"}>{session.open?"GATES OPEN":"AFTER HOURS"}</span><strong>Day {session.day} · {calendar}</strong></div>
-    </HudPanel>
-    <HudPanel className="park-stats park-surface" role="region" aria-label="Park statistics" style={CSS_PADDING}>
+    </HudSurface>
+    <HudSurface className="park-stats park-surface" as="section" aria-label="Park statistics">
       <Stat label="Park funds" value={`$${Math.round(session.cash).toLocaleString()}`} tone={session.cash<0?"bad":"good"}/>
       <Stat label="Park rating" value={`${Math.round(session.rating)} ★`} tone="gold"/>
       <Stat label="Visitors" value={`${session.guests.size} / ${guestCap(session.rating)}`}/>
       <Stat label="Happiness" value={`${Math.round(session.happinessAvg)}%`} tone={session.happinessAvg<50?"bad":"good"}/>
       <Stat label="Cleanliness" value={`${Math.round(100-session.litter)}%`} tone={session.litter>40?"bad":"good"}/>
       <div className="park-ticket"><span>Entry ticket</span><div><HudButton size="icon" aria-label="Lower ticket price" onClick={()=>commands.run("park.ticket",{delta:-1})}>−</HudButton><strong>${session.ticketPrice}</strong><HudButton size="icon" aria-label="Raise ticket price" onClick={()=>commands.run("park.ticket",{delta:1})}>+</HudButton></div></div>
-    </HudPanel>
-    <HudPanel className="park-objectives park-surface" role="complementary" aria-label="Park goals" style={CSS_PADDING}>
+    </HudSurface>
+    <HudSurface className="park-objectives park-surface" as="aside" aria-label="Park goals">
       <div className="park-section-label">{session.won?"BLUE RIBBON PARK":"YOUR FIRST BLUE RIBBON"}</div>
       <h2>{session.won?"Keep the good days rolling":"Build a fair worth coming back to"}</h2>
       <div className="park-goals">
@@ -38,7 +37,7 @@ export function ParkDashboard() {
       <p>{session.litter>25?"Hire a janitor before litter takes over.":m.stalls<3?"Add refreshments to keep visitors smiling.":"Mix gentle rides and thrills: families and thrill seekers want different days out."}</p>
       {next&&nextStep&&<div className="park-unlock"><span>{nextStep}</span><progress max={next.rating} value={session.rating}/></div>}
       <div className="park-ledger"><span>Daily upkeep</span><strong>${m.dailyUpkeep}</strong><span>Today’s sales</span><strong>${Math.round(session.revenueToday)}</strong></div>
-    </HudPanel>
+    </HudSurface>
   </>;
 }
 function Stat({label,value,tone=""}:{label:string;value:string;tone?:string}) { return <div className={`park-stat ${tone}`}><span>{label}</span><strong>{value}</strong></div>; }

@@ -4,7 +4,7 @@ import { useDialogBehavior } from "@jgengine/react";
 import { useDomEvent, useGame, type DomEventTarget } from "@jgengine/react/hooks";
 import { useMenuRouter } from "@jgengine/react/menuRouter";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
 import { creditsForSourceIds } from "@jgengine/assets/credits";
 import { mergeCredits } from "@jgengine/core/game/credits";
@@ -45,7 +45,7 @@ export function MatchFrontEnd() {
   if (live) return <HudButton className="ec-pause" onClick={() => run("match.pause")} aria-label="Pause battle">Ⅱ <span>Pause</span></HudButton>;
   const ready = hud.phase === "ready", paused = hud.phase === "paused", won = hud.phase === "won";
   return <div className="ec-curtain" onContextMenu={(e) => e.preventDefault()}>
-    <HudFrame ref={panel} elevation="modal" style={{ padding: undefined }} className="ec-front" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="ec-front-title" onKeyDown={(event) => {
+    <HudSurface ref={panel} elevation="modal" className="ec-front" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="ec-front-title" onKeyDown={(event) => {
       if (["Tab", " ", "Enter"].includes(event.key)) event.stopPropagation();
     }}>
       <div className="ec-seal"><Icon name={ready || paused ? "helm" : won ? "medal" : "skull"} /></div>
@@ -73,6 +73,6 @@ export function MatchFrontEnd() {
         <p className="ec-record">Service record · {prefs.wins} victories / {prefs.losses} defeats{prefs.bestVictory ? ` · Best ${battleTime(prefs.bestVictory)}` : ""}</p>
         {ready && <small className="ec-footnote">Single-player skirmish · Mouse & keyboard · Matches restart on reload; preferences and service record persist.</small>}
       </>}
-    </HudFrame>
+    </HudSurface>
   </div>;
 }

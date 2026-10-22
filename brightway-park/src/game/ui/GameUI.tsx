@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { applyBindingOverrides, loadBindingOverrides } from "@jgengine/core/input/bindingOverrides";
 import { keybinds } from "../keybinds";
 
@@ -11,7 +11,6 @@ import { ParkDashboard } from "./components/ParkDashboard";
 import { ParkFlow } from "./components/ParkFlow";
 import { CameraPad } from "./components/CameraPad";
 import { session } from "../session";
-import { CSS_PADDING } from "./theme";
 
 function preference(key: string): boolean { try { return localStorage.getItem(`brightway-park.${key}`)==="true"; } catch { return false; } }
 
@@ -46,11 +45,11 @@ export function GameUI() {
   return (
     <div className={`park-ui ${contrast?"park-contrast":""} ${reducedMotion?"park-reduced-motion":""}`}>
       {started&&<><ParkDashboard/>
-        <HudPanel className="park-time park-surface" role="navigation" aria-label="Simulation controls" style={CSS_PADDING}>
+        <HudSurface className="park-time park-surface" as="nav" aria-label="Simulation controls">
           <HudButton variant="ghost" className={clock.paused?"active":""} aria-pressed={clock.paused} onClick={()=>commands.run("pauseToggle", {})} aria-label="Pause park">Ⅱ</HudButton>
           {clock.speeds.map(s=><HudButton key={s} variant="ghost" className={!clock.paused&&clock.speed===s?"active":""} aria-pressed={!clock.paused&&clock.speed===s} onClick={()=>commands.run("park.speed",{speed:s})}>{s}×</HudButton>)}
           <HudButton variant="ghost" cue="open" onClick={()=>{if(!clock.paused)commands.run("pauseToggle", {});setSettings(true);}} aria-label="Park settings">⚙</HudButton>
-        </HudPanel>
+        </HudSurface>
         <div className="park-inspector"><Inspector/></div>
         <div className="park-build"><BuildBar/></div>
         {!clock.paused&&!settings&&<CameraPad/>}

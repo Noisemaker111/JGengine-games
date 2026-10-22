@@ -67,8 +67,6 @@ export const game = defineGame({
   loop,
   GameUI,
   hudTheme: harborTheme,
-  // Above the hotbar: the top band holds the wanted stars and the courier card.
-  notices: { placement: "bottom" },
   capture: {
     play: ["game.start"],
     views: {

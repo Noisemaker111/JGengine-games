@@ -1,6 +1,6 @@
 import { useCurrency, useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { useStore } from "@jgengine/react/store";
 import { bestRaceStore, garageStore } from "../../commands";
 import { VEHICLES } from "../../entities/vehicles/catalog";
@@ -17,7 +17,7 @@ export function GaragePanel() {
   const bestLap = useStore(bestRaceStore, (v) => v);
   if (!open) return null;
   return (
-    <HudFrame className="hh-counter w-80" padding={0}>
+    <HudSurface className="hh-counter w-80" padding={0}>
       <div className="flex items-center justify-between border-b-2 border-black bg-[#33c1b1] px-3 py-2">
         <span className="text-sm font-black uppercase tracking-widest">Sunset Motors</span>
         <span className="-skew-x-6 border-2 border-black bg-[#2f8f4e] px-2 text-sm font-black text-[#eaffdd]">${cash.toLocaleString()}</span>
@@ -56,6 +56,6 @@ export function GaragePanel() {
       <HudButton onClick={() => commands.run("garage.close", {})} className="hh-street-button hh-street-leave m-3 mt-0">
         Leave
       </HudButton>
-    </HudFrame>
+    </HudSurface>
   );
 }

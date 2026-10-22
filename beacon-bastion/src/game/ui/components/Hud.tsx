@@ -1,6 +1,6 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { HeartRow } from "@/components/ui/heart-row";
 import { WaveIndicator } from "@/components/ui/wave-indicator";
 import { WalletCurrencyDisplay } from "@/components/ui/wallet-currency-display";
@@ -33,12 +33,12 @@ export function Hud() {
         <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} />
         <HudLabel>{waveStatusLine({ started, releasing, wave: Math.min(wave, TOTAL_WAVES), alive: remaining })}</HudLabel>
       </div>
-      <HudPanel open={ready} elevation="overlay" title={started ? "Choose your next assault" : "Prepare the beacon"} width={256}>
+      <HudSurface open={ready} elevation="overlay" title={started ? "Choose your next assault" : "Prepare the beacon"} width={256}>
         <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45 }}>{bonus > 0 ? `Wait for a safer approach, or send the next wave with ${remaining} raiders still alive for +${bonus} gold.` : "Place defenses on the foundation rings, then release the raiders when you are ready."}</p>
         <HudButton variant="primary" cue="confirm" onClick={() => commands.run("wave.send", {})}>
           {started ? `Send wave ${wave + 1}` : "Begin first assault"}{bonus > 0 ? ` · +${bonus} gold` : ""}
         </HudButton>
-      </HudPanel>
+      </HudSurface>
     </div>
   );
 }

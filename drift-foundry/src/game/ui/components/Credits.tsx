@@ -2,7 +2,7 @@ import { creditsForSourceIds } from "@jgengine/assets/credits";
 import { mergeCredits } from "@jgengine/core/game/credits";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { ASSET_SOURCE_IDS } from "../../assets";
 
@@ -26,12 +26,12 @@ const DOCUMENT = mergeCredits(AUTHORED, creditsForSourceIds(ASSET_SOURCE_IDS));
 export function Credits({ onBack }: { onBack: () => void }) {
   return (
     <div className="df-overlay">
-      <HudPanel className="df-card df-credits" role="dialog" aria-label="Credits" elevation="modal" style={{ padding: undefined }}>
+      <HudSurface className="df-card df-credits" role="dialog" aria-label="Credits" elevation="modal">
         <CreditsScreen document={DOCUMENT} />
         <div className="df-actions">
           <HudButton variant="primary" className="df-primary" onClick={onBack}>BACK <kbd>Esc</kbd></HudButton>
         </div>
-      </HudPanel>
+      </HudSurface>
     </div>
   );
 }

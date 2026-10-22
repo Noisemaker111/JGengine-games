@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 import {
   BUILDABLES,
@@ -39,7 +39,7 @@ export function BuildBar() {
 
   return (
     <div className="park-catalog">
-      <HudPanel className="flex gap-1" role="toolbar" aria-label="Blueprint categories">
+      <HudSurface className="flex gap-1" role="toolbar" aria-label="Blueprint categories">
         {CATEGORY_ORDER.map((c) => (
           <HudButton
             key={c}
@@ -53,9 +53,9 @@ export function BuildBar() {
             <span className="hidden sm:inline">{CATEGORY_LABEL[c]}</span>
           </HudButton>
         ))}
-      </HudPanel>
+      </HudSurface>
 
-      <HudPanel className="flex max-w-[92vw] flex-wrap justify-center gap-2" role="group" aria-label="Blueprints">
+      <HudSurface className="flex max-w-[92vw] flex-wrap justify-center gap-2" role="group" aria-label="Blueprints">
         {items.map((def) => {
           const locked = def.requires !== undefined && !unlockedSet.has(def.requires);
           const affordable = cash >= def.cost;
@@ -84,15 +84,15 @@ export function BuildBar() {
             </HudButton>
           );
         })}
-      </HudPanel>
+      </HudSurface>
 
-      {blueprint !== undefined ? <HudPanel className="max-w-[92vw] text-xs" padding="8px 12px" role="status">
+      {blueprint !== undefined ? <HudSurface className="max-w-[92vw] text-xs" padding="8px 12px" role="status">
         <div>{blueprint.label} · ${blueprint.cost} to build · ${blueprint.upkeep} / day{cash < blueprint.cost ? " · Not enough cash" : ""}</div>
         {blueprint.ride !== undefined ? <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           <span>Intensity {rideThrill(blueprint.id, tracks).toFixed(1)}</span>
           {["guest_a", "guest_c", "guest_d"].map(kind => <span key={kind}>{guestRidePreference(kind).label}: {Math.round(rideFit(kind, blueprint.id, tracks) * 100)}% fit</span>)}
         </div> : null}
-      </HudPanel> : null}
+      </HudSurface> : null}
 
       <div className="park-build-hint">
         {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><HudButton variant="ghost" size="sm" cue="close" onClick={()=>commands.run("build.clear", {})}>Cancel ×</HudButton></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}

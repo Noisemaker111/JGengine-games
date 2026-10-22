@@ -18,6 +18,3 @@ export const parkTheme = hudTheme({
   slot: { bg: "#366169", border: "1px solid #91b2aa66", radius: "10px" },
   state: { hover: "rgba(255,241,207,0.08)", focusRing: "0 0 0 3px #fff1cf" },
 });
-
-/** HudPanel writes an inline 12px padding by default; Brightway's park-* classes own padding and its breakpoints. */
-export const CSS_PADDING = { padding: undefined } as const;

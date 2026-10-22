@@ -2,15 +2,14 @@ import { type ReactNode } from "react";
 import { SettingsTrigger, useDialogBehavior } from "@jgengine/react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
-import { CSS_PADDING } from "../theme";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { session } from "../../session";
 
 export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:string;children:ReactNode;onClose?:()=>void;blockGameKeys?:boolean}) {
   const ref=useDialogBehavior({open:true,onClose,initialFocus:"root",focusKey:title});
-  return <div className="park-modal-scrim" onPointerDown={e=>e.stopPropagation()}><HudPanel ref={ref} tabIndex={-1} className="park-dialog park-surface" role="dialog" aria-modal="true" aria-label={title} elevation="modal" style={CSS_PADDING} onKeyDown={e=>{
+  return <div className="park-modal-scrim" onPointerDown={e=>e.stopPropagation()}><HudSurface ref={ref} tabIndex={-1} className="park-dialog park-surface" role="dialog" aria-modal="true" aria-label={title} elevation="modal" onKeyDown={e=>{
     if(blockGameKeys)e.stopPropagation();
-  }}>{children}</HudPanel></div>;
+  }}>{children}</HudSurface></div>;
 }
 
 export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion,contrast,onContrast}:{settings:boolean;onCloseSettings:()=>void;reducedMotion:boolean;onReducedMotion:(v:boolean)=>void;contrast:boolean;onContrast:(v:boolean)=>void}) {
