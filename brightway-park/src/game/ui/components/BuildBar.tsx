@@ -21,7 +21,7 @@ function unlockLabel(requires: string): string {
   return m === undefined ? "locked" : `Rating ${m.rating}`;
 }
 
-export function BuildBar() {
+export function BuildBar({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState<BuildCategory>("ride");
   const { commands } = useGame();
   const cash = useGameStore(() => session.cash);
@@ -53,6 +53,15 @@ export function BuildBar() {
             <span className="hidden sm:inline">{CATEGORY_LABEL[c]}</span>
           </HudButton>
         ))}
+        <HudButton
+          variant="ghost"
+          size="sm"
+          className="park-build-close"
+          aria-label="Close build palette"
+          title="Close the catalog (B reopens it)"
+          cue="close"
+          onClick={onClose}
+        >×</HudButton>
       </HudSurface>
 
       <HudSurface className="flex max-w-[92vw] flex-wrap justify-center gap-2" role="group" aria-label="Blueprints">
@@ -95,7 +104,7 @@ export function BuildBar() {
       </HudSurface> : null}
 
       <div className="park-build-hint">
-        {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><HudButton variant="ghost" size="sm" cue="close" onClick={()=>commands.run("build.clear", {})}>Cancel ×</HudButton></> : <span>Choose a blueprint · click a structure to inspect · P pauses</span>}
+        {selected ? <><span>Place {BUILDABLES[selected]?.label} · {refusal ?? "click a green spot to build"}</span><HudButton variant="ghost" size="sm" cue="close" onClick={()=>commands.run("build.clear", {})}>Cancel ×</HudButton></> : <span>Choose a blueprint · click a structure or guest to inspect · B hides this catalog · P pauses</span>}
       </div>
     </div>
   );

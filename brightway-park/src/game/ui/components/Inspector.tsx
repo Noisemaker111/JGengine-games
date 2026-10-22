@@ -6,19 +6,17 @@ import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
 import { coasterThrill } from "../../sim/rating";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4 text-xs">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-mono font-bold text-slate-100">{value}</span>
-    </div>
-  );
-}
+import { GuestPanel } from "./GuestPanel";
+import { Row } from "./Row";
 
 export function Inspector() {
   const { commands } = useGame();
   const selectedId = useGameStore(() => session.selectedObject);
+  // Guests are selected through the engine's shared entity selection, which the shell draws the ring from.
+  const selectedGuest = useGameStore((ctx) => {
+    const [id] = ctx.scene.entity.selection.list();
+    return id !== undefined && session.guests.has(id) ? id : null;
+  });
   const tracks = useGameStore(() => {
     let n = 0;
     for (const o of session.placed.values()) if (o.catalogId === "track_piece") n += 1;
@@ -35,6 +33,7 @@ export function Inspector() {
     return o === undefined ? 0 : o.soldTotal;
   });
 
+  if (selectedGuest !== null) return <GuestPanel id={selectedGuest} />;
   if (selectedId === null) return null;
   const placed = session.placed.get(selectedId);
   if (placed === undefined) return null;

@@ -27,7 +27,7 @@ export function canBuild(ctx: GameContext, id: string): boolean {
 
 function selectTool(ctx: GameContext, id: string): void {
   if (!session.started || session.gameOver || !canBuild(ctx,id)) return;
-  session.selectedObject = null;
+  clearSelection(ctx);
   session.selectedTool = session.selectedTool === id ? null : id;
   bump(ctx);
 }
@@ -61,6 +61,26 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   savePark(ctx);
 }
 
+/** Drop both kinds of click selection: the park's inspected object and the engine's selected guest. */
+function clearSelection(ctx: GameContext): void {
+  session.selectedObject = null;
+  ctx.scene.entity.selection.clear();
+}
+
+/**
+ * Click selection. Guests are scene entities and structures are placed objects; the engine's pointer
+ * hit reports each separately. A guest goes into the engine's shared entity selection
+ * (`ctx.scene.entity.selection`, the set the shell draws its selection ring from) and an object into
+ * the park's own `selectedObject` for its inspector. Picking one clears the other, so clicking a guest
+ * can never leave the path beneath it selected.
+ */
+function selectGuestOrObject(ctx: GameContext, input: PointerInput): void {
+  const guest = input.entity !== null && session.guests.has(input.entity) ? input.entity : null;
+  session.selectedObject = guest === null ? input.object : null;
+  ctx.scene.entity.selection.clear();
+  if (guest !== null) ctx.scene.entity.selection.replace([guest]);
+}
+
 function pointerAction(ctx: GameContext, input: PointerInput): void {
   tracePark(ctx,"pointer",input);
   if (!session.started || session.gameOver) return;
@@ -68,7 +88,7 @@ function pointerAction(ctx: GameContext, input: PointerInput): void {
     tryBuild(ctx, input);
     return;
   }
-  session.selectedObject = input.object;
+  selectGuestOrObject(ctx, input);
 }
 
 export function registerBuildCommands(ctx: GameContext): void {
@@ -113,7 +133,7 @@ export function registerBuildCommands(ctx: GameContext): void {
   ctx.game.commands.define("build.clear", {
     apply(state) {
       session.selectedTool = null;
-      session.selectedObject = null;
+      clearSelection(state);
       bump(state);
     },
   });
@@ -159,7 +179,7 @@ export function registerBuildCommands(ctx: GameContext): void {
   ctx.game.commands.define("clearTool", {
     apply(state) {
       session.selectedTool = null;
-      session.selectedObject = null;
+      clearSelection(state);
       bump(state);
     },
   });
