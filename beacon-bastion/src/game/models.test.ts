@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { CREEP_CATALOG } from "./entities/enemies/catalog";
 import { entityModels, scatterModels } from "./models";
 
 describe("beacon-bastion models", () => {
@@ -23,5 +24,24 @@ describe("beacon-bastion models", () => {
       expect(any.url).toMatch(/\/models\/(kaykit|quaternius)-/);
     }
     void keep;
+  });
+
+  test("the three raiders read apart at the default camera: own model, own size, own rim", () => {
+    const raiders = Object.values(CREEP_CATALOG);
+    expect(new Set(raiders.map((def) => def.model)).size).toBe(raiders.length);
+    expect(new Set(raiders.map((def) => def.color)).size).toBe(raiders.length);
+    for (const def of raiders) {
+      expect(def.rim.strength).toBeGreaterThan(0);
+    }
+    const scout = CREEP_CATALOG.raider_scout!;
+    const grunt = CREEP_CATALOG.raider_grunt!;
+    const brute = CREEP_CATALOG.raider_brute!;
+    expect(grunt.scale).toBeGreaterThan(scout.scale);
+    expect(brute.scale).toBeGreaterThan(grunt.scale);
+    for (const def of raiders) {
+      const config = entityModels[def.id];
+      if (config === undefined) continue;
+      expect(config.url).toContain(def.model.split("/")[1]!);
+    }
   });
 });
