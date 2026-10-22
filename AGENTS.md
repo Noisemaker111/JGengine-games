@@ -25,6 +25,17 @@ Repeated generic glue is framework friction or adoption debt, even if the game w
 
 Engine contributors also follow [JGengine's governance](https://github.com/Noisemaker111/jgengine/blob/beta/AGENTS.md#game-changes-improve-the-framework). Its package skills describe discovery and exact APIs; inspect installed declarations rather than assuming unpublished capabilities exist.
 
+## Framework before game code
+
+Every task in a game starts with one question: **what in the engine let this game get it wrong, and would a second game hit the same thing?**
+
+- **If another game would need it, it is an engine change.** Fix it in `Noisemaker111/jgengine` (`packages/*`), publish a release, and the change *here* is an adoption: a config value, a scene document, a setting or a named toggle. One game proves it, a second adopts it, every other game gets it for free. A game is never the owner of a mechanic.
+- **The size signal.** A module in a game directory that contains a state machine, reducer, scheduler, resource pool, pathfinder, damage/status table, spawn director or progression curve is an engine system being written in the wrong repo. If it would pass ~50 lines, or a second game would want it, stop and file the engine seam first.
+- **A game symptom is an engine gap.** When a game looks or feels wrong, find the seam that allowed it and fix the seam, then adopt. Never leave the engine able to produce the same bad thing in another game.
+- **Escalate with a shape, not a complaint.** File an engine issue naming the seam (`packages/<pkg>/src/<file>:<line>`), the API you need, and the two games that would adopt it; add it to [epic #2038](https://github.com/Noisemaker111/jgengine/issues/2038) under the matching system: missions, progression/economy, AI director, vehicles, items/loot, agents, damage/status, abilities, run loop, wanted/heat, shell UI. Until it lands, work only on the adoption side of the game.
+- **Precedents.** Harbor's 6 -> 60 FPS and Odd Orbit's missing-material fallback were each fixed once in the engine, and every game gained. Brightway's flat turf was patched inside the game and had to be paid for again.
+- **Every PR states which one it is:** `Engine seam: packages/shell/src/render/x.ts (adopts #1234)` or `Engine seam: none - authored content only`. `bun run check:framework` fails on a new engine-shaped module inside a game; pass `-- --allow "<reason>"` only when you can name why it cannot live upstream.
+
 ## Agent workflow
 
 - Code work happens in `.claude/worktrees/<name>` (`claude --worktree <name>`, or `git worktree add -b <name> .claude/worktrees/<name> origin/beta`); scratch and evidence go in `.scratch/`, which never holds a checkout. Both are ignored.

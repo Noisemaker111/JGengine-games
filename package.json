@@ -2,7 +2,7 @@
   "name": "jgengine-games",
   "private": true,
   "type": "module",
-  "description": "Playable games built with JGengine \u2014 probe games for engine gaps. Each game is a standalone Vite app on published @jgengine/* packages.",
+  "description": "Playable games built with JGengine — probe games for engine gaps. Each game is a standalone Vite app on published @jgengine/* packages.",
   "workspaces": {
     "packages": [
       "*"
@@ -31,6 +31,7 @@
     "test": "bun test",
     "test:games": "bun test",
     "check-types": "bun --filter='*' run check-types",
+    "check:framework": "bun scripts/framework-check.ts",
     "dev:ember-command": "bun --cwd=ember-command run dev",
     "dev:brightway-park": "bun --cwd=brightway-park run dev",
     "dev:odd-orbit": "bun --cwd=odd-orbit run dev",
