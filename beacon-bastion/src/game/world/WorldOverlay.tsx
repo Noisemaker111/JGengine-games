@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useGameContext } from "@jgengine/react/provider";
@@ -10,7 +10,8 @@ import { towerDef } from "../entities/towers/catalog";
 import { towerStats } from "../entities/towers/progression";
 import { session } from "../session";
 import { activeProjectiles } from "../combat/pendingProjectiles";
-import { BUILD_PLOTS, SPAWN_POINT } from "./path";
+import { BUILD_PLOTS, SPAWN_POINT, groundHeightAt } from "./path";
+import { rangeRingBand } from "./rangeRing";
 
 function BuildPlots() {
   const ctx = useGameContext();
@@ -48,6 +49,34 @@ function BuildPlots() {
   );
 }
 
+/** The inspected tower's firing radius: a draped ground outline, so the raider road stays readable under it. */
+function RangeRing({ center, radius }: { center: readonly [number, number]; radius: number }) {
+  const [x, z] = center;
+  const geometry = useMemo(() => {
+    const band = rangeRingBand({ center: [x, z], radius, sampleHeight: groundHeightAt });
+    const draped = new THREE.BufferGeometry();
+    draped.setAttribute("position", new THREE.BufferAttribute(band.positions, 3));
+    draped.setIndex(new THREE.BufferAttribute(band.indices, 1));
+    draped.computeVertexNormals();
+    return draped;
+  }, [x, z, radius]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh geometry={geometry} renderOrder={4}>
+      <meshStandardMaterial
+        color="#f4d35e"
+        emissive="#f4d35e"
+        emissiveIntensity={0.6}
+        roughness={0.5}
+        transparent
+        opacity={0.85}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 /** Selection ring plus the live firing radius of the tower whose sell/upgrade panel is open. */
 function InspectedTower() {
   const inspectedId = useGameStore(() => session.inspectedTowerId);
@@ -58,16 +87,15 @@ function InspectedTower() {
   if (plot === undefined) return null;
   const range = towerStats(towerDef(tower.catalogId, editorLayers), tower.level).range;
   return (
-    <group position={[plot.position[0], plot.position[1], plot.position[2]]}>
-      <mesh position-y={0.33} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.5, 1.75, 32]} />
-        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.8} roughness={0.5} />
-      </mesh>
-      <mesh position-y={0.2} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[range - 0.12, range, 64]} />
-        <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.5} transparent opacity={0.55} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-    </group>
+    <>
+      <group position={[plot.position[0], plot.position[1], plot.position[2]]}>
+        <mesh position-y={0.33} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.5, 1.75, 32]} />
+          <meshStandardMaterial color="#f4d35e" emissive="#f4d35e" emissiveIntensity={0.8} roughness={0.5} />
+        </mesh>
+      </group>
+      <RangeRing center={[plot.position[0], plot.position[2]]} radius={range} />
+    </>
   );
 }
 
