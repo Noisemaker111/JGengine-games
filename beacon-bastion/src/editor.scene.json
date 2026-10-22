@@ -256,8 +256,8 @@
       ],
       "label": "Low approach scrub",
       "meta": {
-        "density": 0.012,
-        "minSpacing": 5,
+        "density": 0.045,
+        "minSpacing": 3,
         "seed": "beacon-bastion-meadow",
         "maxSlope": 5,
         "edgeFalloff": 4,
@@ -487,6 +487,516 @@
           },
           {
             "item": "bush",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-muster-cairn",
+      "kind": "scatter",
+      "label": "Muster Cairn",
+      "points": [
+        {
+          "x": -48,
+          "y": 0,
+          "z": -22
+        },
+        {
+          "x": -36,
+          "y": 0,
+          "z": -22
+        },
+        {
+          "x": -36,
+          "y": 0,
+          "z": -6
+        },
+        {
+          "x": -48,
+          "y": 0,
+          "z": -6
+        }
+      ],
+      "meta": {
+        "density": 0.22,
+        "minSpacing": 2.2,
+        "seed": "beacon-muster-cairn",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "rock",
+            "weight": 5
+          },
+          {
+            "item": "bush",
+            "weight": 3
+          },
+          {
+            "item": "grass",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-approach-pines",
+      "kind": "scatter",
+      "label": "Approach pines",
+      "points": [
+        {
+          "x": -52,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": -36,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": -36,
+          "y": 0,
+          "z": -26
+        },
+        {
+          "x": -52,
+          "y": 0,
+          "z": -26
+        }
+      ],
+      "meta": {
+        "density": 0.2,
+        "minSpacing": 2.6,
+        "seed": "beacon-approach-pines",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 2
+          },
+          {
+            "item": "bush",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-broken-watch",
+      "kind": "scatter",
+      "label": "The Broken Watch",
+      "points": [
+        {
+          "x": -22,
+          "y": 0,
+          "z": 2
+        },
+        {
+          "x": -11,
+          "y": 0,
+          "z": 2
+        },
+        {
+          "x": -11,
+          "y": 0,
+          "z": 18
+        },
+        {
+          "x": -22,
+          "y": 0,
+          "z": 18
+        }
+      ],
+      "meta": {
+        "density": 0.22,
+        "minSpacing": 2.2,
+        "seed": "beacon-broken-watch",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "rock",
+            "weight": 6
+          },
+          {
+            "item": "bush",
+            "weight": 3
+          },
+          {
+            "item": "grass",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-inside-bend-scrub",
+      "kind": "scatter",
+      "label": "Inside-bend scrub",
+      "points": [
+        {
+          "x": 2,
+          "y": 0,
+          "z": -22
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "z": -22
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "z": -13
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "z": -13
+        }
+      ],
+      "meta": {
+        "density": 0.16,
+        "minSpacing": 2.8,
+        "seed": "beacon-bend-scrub",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "bush",
+            "weight": 5
+          },
+          {
+            "item": "tree",
+            "weight": 2
+          },
+          {
+            "item": "rock",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-keep-gate-pines",
+      "kind": "scatter",
+      "label": "Keep Gate pines",
+      "points": [
+        {
+          "x": 33,
+          "y": 0,
+          "z": 28
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "z": 28
+        },
+        {
+          "x": 45,
+          "y": 0,
+          "z": 41
+        },
+        {
+          "x": 33,
+          "y": 0,
+          "z": 41
+        }
+      ],
+      "meta": {
+        "density": 0.22,
+        "minSpacing": 2.6,
+        "seed": "beacon-keep-gate-pines",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 2
+          },
+          {
+            "item": "bush",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-north-meadow-rocks",
+      "kind": "scatter",
+      "label": "North meadow rocks",
+      "points": [
+        {
+          "x": 2,
+          "y": 0,
+          "z": 20
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "z": 20
+        },
+        {
+          "x": 14,
+          "y": 0,
+          "z": 34
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "z": 34
+        }
+      ],
+      "meta": {
+        "density": 0.12,
+        "minSpacing": 3.2,
+        "seed": "beacon-north-meadow",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "bush",
+            "weight": 5
+          },
+          {
+            "item": "rock",
+            "weight": 3
+          },
+          {
+            "item": "grass",
+            "weight": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-horizon-pines-north",
+      "kind": "scatter",
+      "label": "Horizon pines (north)",
+      "points": [
+        {
+          "x": -78,
+          "y": 0,
+          "z": -78
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": -78
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": -78,
+          "y": 0,
+          "z": -42
+        }
+      ],
+      "meta": {
+        "density": 0.05,
+        "minSpacing": 5,
+        "seed": "beacon-horizon-north",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-horizon-pines-south",
+      "kind": "scatter",
+      "label": "Horizon pines (south)",
+      "points": [
+        {
+          "x": -78,
+          "y": 0,
+          "z": 42
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": 42
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": 78
+        },
+        {
+          "x": -78,
+          "y": 0,
+          "z": 78
+        }
+      ],
+      "meta": {
+        "density": 0.05,
+        "minSpacing": 5,
+        "seed": "beacon-horizon-south",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-horizon-pines-west",
+      "kind": "scatter",
+      "label": "Horizon pines (west)",
+      "points": [
+        {
+          "x": -78,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": -42,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": -42,
+          "y": 0,
+          "z": 42
+        },
+        {
+          "x": -78,
+          "y": 0,
+          "z": 42
+        }
+      ],
+      "meta": {
+        "density": 0.05,
+        "minSpacing": 5,
+        "seed": "beacon-horizon-west",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "tree",
+            "weight": 3
+          },
+          {
+            "item": "rock",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "d03-horizon-pines-east",
+      "kind": "scatter",
+      "label": "Horizon pines (east)",
+      "points": [
+        {
+          "x": 42,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": -42
+        },
+        {
+          "x": 78,
+          "y": 0,
+          "z": 42
+        },
+        {
+          "x": 42,
+          "y": 0,
+          "z": 42
+        }
+      ],
+      "meta": {
+        "density": 0.05,
+        "minSpacing": 5,
+        "seed": "beacon-horizon-east",
+        "maxSlope": 40,
+        "edgeFalloff": 2,
+        "minScale": 0.85,
+        "maxScale": 1.9,
+        "jitter": 1,
+        "palette": [
+          {
+            "item": "pine",
+            "weight": 6
+          },
+          {
+            "item": "oak",
+            "weight": 3
+          },
+          {
+            "item": "rock",
             "weight": 1
           }
         ]
