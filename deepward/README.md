@@ -51,7 +51,14 @@ Validation status is tracked in
 [slice #35](https://github.com/Noisemaker111/JGengine-games/issues/35).
 
 The station presentation uses original editor-authored rail canopies, pressure
-vessels, print press ribs, receiving gantry and service panels. Only the current
+vessels, print press ribs, receiving gantry and service panels. A content pass
+adds one landmark per zone and eye-height wayfinding: a tool bay and service
+trunk in Marrow, pallet banks and a mirrored receiving gantry, shelf bays and
+bin cards in shift stores, an east manifold wall and ceiling ducts in the pump
+gallery, a press flywheel, paper-roll bank and vent frame in the printhouse,
+amber walk edges and junction boxes down the return spine, and five wall signs
+naming each bay. `scripts/author-station.ts` rebuilds all of it through the
+published editor session. Only the current
 station architecture renders, with static surfaces and equipment batched. Original detailed GLB machinery is placed from the same
 editor document and includes embedded authored material maps; see the per-model
 manifest and reproducible tooling in `scripts/`. The original skinned Fitter
