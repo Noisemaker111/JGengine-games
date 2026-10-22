@@ -18,8 +18,9 @@ import { Inspector } from "./components/Inspector";
 import { RosterPanel } from "./components/RosterPanel";
 import { TopBar } from "./components/TopBar";
 import { AlienSwatch, creditsText } from "./components/bits";
+import { ASSET_SOURCE_IDS } from "../assets";
 
-const credits = mergeCredits({ sections: [{ heading: "Original game art", entries: [{ label: "Odd Orbit", detail: "Original plan-derived household portraits and habitat interface." }] }, { heading: "Engine", entries: [{ label: "JG Engine", detail: "Apache-2.0", href: "https://github.com/Noisemaker111/jgengine" }, { label: "React / Three.js", detail: "MIT" }] }] }, creditsForSourceIds(["quaternius-modular-scifi", "quaternius-stylized-nature", "kaykit-adventurers", "kaykit-furniture", "kaykit-space-base", "ambientcg-metalplates001"]));
+const credits = mergeCredits({ sections: [{ heading: "Original game art", entries: [{ label: "Odd Orbit", detail: "Original plan-derived household portraits and habitat interface." }] }, { heading: "Engine", entries: [{ label: "JG Engine", detail: "Apache-2.0", href: "https://github.com/Noisemaker111/jgengine" }, { label: "React / Three.js", detail: "MIT" }] }] }, creditsForSourceIds(ASSET_SOURCE_IDS));
 const PREF_KEY = "odd-orbit.preferences.v2";
 function readPreferences() {
   try { const p = JSON.parse(localStorage.getItem(PREF_KEY) ?? "{}"); return { calm:p?.calm === true, contrast:p?.contrast === true }; }

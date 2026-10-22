@@ -5,6 +5,7 @@ import { environment, sky, terrain, type WorldFeature } from "@jgengine/core/wor
 
 import { editorLayers } from "./editorLayers";
 import { HABITAT } from "./game/palette";
+import { libraryGroundMaps } from "./game/assets";
 
 export const WORLD_SEED = "odd-orbit-habitat-2026";
 export const DAY_LENGTH = 210;
@@ -27,6 +28,9 @@ const terrainDescriptor = terrain({
     strength: 0.2,
     snowHeight: 60,
     sweeps: { dry: [1.04, 1.02, 1], wet: [0.95, 0.96, 1] },
+    // Regolith from the shared material library. `tint` well under 1 keeps the habitat's lilac above
+    // the scan, so the floor and the ground outside gain grain instead of turning grey.
+    material: { maps: libraryGroundMaps("ground/gravel"), repeat: 1.6, strength: 1, tint: 0.35 },
   },
 });
 
