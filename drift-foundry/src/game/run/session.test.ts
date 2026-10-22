@@ -6,6 +6,8 @@ import { EXIT_Z } from "./constants";
 import { ROUTE_GATES } from "../route/gates";
 import { PICKUPS } from "./pickups";
 import { createRunSession, type RunSession } from "./session";
+import { tuningFrom } from "../parts/build";
+import { surfaceAt } from "../vehicle/surface";
 
 const DT = 1 / 30;
 const PAR_SECONDS = 100;
@@ -136,6 +138,49 @@ describe("drift-foundry run session", () => {
     expect(snapshot.tuning.jumpPower).toBe(0);
     expect(snapshot.phase).toBe("crushed");
     expect(snapshot.pose.position[2]).toBeLessThan(EXIT_Z);
+  });
+
+  test("hitting a barricade the build cannot clear bends the nose, costs top speed and pulls the wheel", () => {
+    const session = createRunSession();
+    session.start();
+    const clean = session.snapshot();
+    expect(clean.damage.every((zone) => zone.stage === 0)).toBe(true);
+    // Full throttle down the centreline collects the plow but never jumps: the tire stack at z=150 stops it.
+    for (let i = 0; i < 3000 && session.snapshot().phase === "running"; i++) {
+      session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    }
+    const bent = session.snapshot();
+    expect(bent.damage.some((zone) => zone.stage > 0)).toBe(true);
+    // The same build undamaged, for the numbers to mean something. A stage-1 nose of two is half of
+    // the zone's 5% top-end cost.
+    const parts = Object.values(bent.installed).filter((part) => part !== null);
+    const undamaged = tuningFrom(parts);
+    expect(bent.tuning.topSpeed).toBeLessThan(undamaged.topSpeed);
+    expect(bent.tuning.topSpeed).toBeCloseTo(undamaged.topSpeed * 0.975, 5);
+    expect(bent.ticker.some((line) => line.text.includes("FRONT END"))).toBe(true);
+  });
+
+  test("restart clears bent metal along with the build", () => {
+    const session = createRunSession();
+    session.start();
+    for (let i = 0; i < 3000 && session.snapshot().phase === "running"; i++) {
+      session.tick(DT, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
+    }
+    expect(session.snapshot().damage.some((zone) => zone.stage > 0)).toBe(true);
+    session.restart();
+    const fresh = session.snapshot();
+    expect(fresh.damage.every((zone) => zone.stage === 0)).toBe(true);
+    expect(fresh.tuning.topSpeed).toBeCloseTo(tuningFrom([]).topSpeed, 6);
+  });
+
+  test("the yard under the kart is reported per zone, so different yards really grip differently", () => {
+    const session = createRunSession();
+    session.start();
+    expect(session.snapshot().surface.zone.id).toBe("oil");
+    driveStraight(session, 6);
+    const later = session.snapshot();
+    expect(later.zone.id).toBe("canyons");
+    expect(later.surface.grip).toBeCloseTo(surfaceAt(later.pose.position[0], later.pose.position[2]).grip, 6);
   });
 
   test("an idle kart is caught and crushed by the compactor", () => {

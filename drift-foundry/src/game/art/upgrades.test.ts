@@ -9,7 +9,7 @@ test("every real pickup has its own model kind and follows the chassis pose", ()
   const session = createRunSession();
   for (const part of PARTS) {
     const snapshot = session.snapshot();
-    const bodies = upgradeBodies("racer", { ...snapshot, installed: { ...snapshot.installed, [part.category]: part }, pose: { ...snapshot.pose, position: [7, 2, 31], heading: 1.25 } });
+    const bodies = upgradeBodies("racer", { ...snapshot, installed: { ...snapshot.installed, [part.slot]: part }, pose: { ...snapshot.pose, position: [7, 2, 31], heading: 1.25 } });
     expect(bodies).toHaveLength(1);
     expect(bodies[0]!.kind).toBe(UPGRADE_KINDS[part.id]);
     expect(bodies[0]!.position).toEqual([7, 2, 31]);

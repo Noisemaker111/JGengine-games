@@ -18,13 +18,13 @@ export interface DriveInput {
 }
 
 export function createDriveInput(bindings: () => ActionCodesMap = () => applyBindingOverrides(keybinds, loadBindingOverrides("Drift Foundry"))): DriveInput {
-  let axis: DriveAxis = { throttle: 0, brake: 0, steer: 0 };
+  let axis: DriveAxis = { throttle: 0, brake: 0, steer: 0, handbrake: 0 };
   const touchHeld = new Set<string>();
   let jump = false;
   const makeKeyboard = () => createActionStateTracker(toActionStateBindingMap(bindings()));
   let keyboard = makeKeyboard();
   return {
-    reset() { axis = { throttle: 0, brake: 0, steer: 0 }; touchHeld.clear(); keyboard.reset(); jump = false; },
+    reset() { axis = { throttle: 0, brake: 0, steer: 0, handbrake: 0 }; touchHeld.clear(); keyboard.reset(); jump = false; },
     // Published shell 0.18.1 builds an empty tracker in the menu and does not
     // rebuild it on phase changes. Own keyboard capture shares its persisted
     // bindings while semantic host input still supports gamepads and touch.
@@ -42,7 +42,7 @@ export function createDriveInput(bindings: () => ActionCodesMap = () => applyBin
     sample(dt, input, active) {
       if (!active) { this.reset(); return axis; }
       const value = (action: string) => Math.max(input.value(action), this.isDown(action) ? 1 : 0);
-      const target = { throttle: value("throttle"), brake: value("brake"), steer: value("steerRight") - value("steerLeft") };
+      const target = { throttle: value("throttle"), brake: value("brake"), steer: value("steerRight") - value("steerLeft"), handbrake: value("handbrake") };
       const blend = 1 - Math.exp(-6 * Math.max(0, Math.min(dt, .05)));
       axis = {
         // Released pedals must become genuinely neutral so the published vehicle can coast.
@@ -50,6 +50,8 @@ export function createDriveInput(bindings: () => ActionCodesMap = () => applyBin
         throttle: target.throttle === 0 ? 0 : axis.throttle + (target.throttle - axis.throttle) * blend,
         brake: target.brake === 0 ? 0 : axis.brake + (target.brake - axis.brake) * blend,
         steer: axis.steer + (target.steer - axis.steer) * blend,
+        // The handbrake is a switch, not a pedal: it snaps on and off with the key.
+        handbrake: target.handbrake,
       };
       keyboard.endFrame();
       return axis;

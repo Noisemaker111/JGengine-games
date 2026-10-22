@@ -118,7 +118,7 @@ export function placeGateBarricades(ctx: GameContext): void {
 export function placePickupMarkers(ctx: GameContext): void {
   for (const pickup of PICKUPS) {
     const y = ctx.world.groundHeightAt(pickup.position[0], pickup.position[2]);
-    const slot = partById(pickup.partId)!.category;
+    const slot = partById(pickup.partId)!.slot;
     placeIdempotent(ctx, PICKUP_STATIONS[slot], pickup.position[0], y, pickup.position[2], `marker-${pickup.id}`);
   }
 }

@@ -9,7 +9,7 @@ function zOf(partId: string): number {
 }
 
 function lastDropZForSlot(category: string): number {
-  const slotZs = PICKUPS.filter((p) => partById(p.partId)!.category === category).map((p) => p.position[2]);
+  const slotZs = PICKUPS.filter((p) => partById(p.partId)!.slot === category).map((p) => p.position[2]);
   return Math.max(...slotZs);
 }
 
@@ -34,8 +34,8 @@ describe("drift-foundry debris pickups", () => {
     if (replacement.status !== "accepted") throw new Error("replacement rejected");
     expect(replacement.ejected?.id).toBe("salvage_v6");
     expect(replacement.installed).toHaveLength(1);
-    expect(replacement.installed[0]?.part.id).toBe("truck_engine");
-    expect(grant.installed[0]?.part.id).toBe("salvage_v6");
+    expect(replacement.installed[0]?.id).toBe("truck_engine");
+    expect(grant.installed[0]?.id).toBe("salvage_v6");
   });
   test("places exactly one pickup per catalog part", () => {
     expect(PICKUPS).toHaveLength(PARTS.length);
