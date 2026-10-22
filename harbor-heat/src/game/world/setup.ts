@@ -96,42 +96,6 @@ const STREET_BLOCKERS: readonly (readonly [number, number])[] = [
   [HHPD_POS[0], HHPD_POS[2]],
 ];
 
-/** A rectangular city block bounded by two avenues (`x0`/`x1`) and two streets (`z0`/`z1`) from the grid. */
-interface TrafficBlock {
-  x0: number;
-  x1: number;
-  z0: number;
-  z1: number;
-}
-
-/** Blocks whose four sides are authored avenues (x ∈ {−180,−60,60,180}) and streets (z ∈ {−240,−120,0,120,240}). */
-const TRAFFIC_BLOCKS: readonly TrafficBlock[] = [
-  { x0: -60, x1: 60, z0: -120, z1: 0 },
-  { x0: -60, x1: 60, z0: 0, z1: 120 },
-  { x0: 60, x1: 180, z0: -240, z1: -120 },
-  { x0: -180, x1: -60, z0: 0, z1: 120 },
-  { x0: 60, x1: 180, z0: 0, z1: 120 },
-  { x0: -180, x1: -60, z0: -120, z1: 0 },
-  { x0: -60, x1: 60, z0: 120, z1: 240 },
-];
-
-/** Lane inset (world units) pulling the loop off the street centerline into the block's inner lane. */
-const TRAFFIC_LANE_INSET = 2.4;
-
-/** Clockwise rectangle of corner waypoints for a block, inset so cars ride the inner (right-hand) lane. */
-function blockLoopWaypoints(block: TrafficBlock): Waypoint[] {
-  const ax0 = block.x0 + TRAFFIC_LANE_INSET;
-  const ax1 = block.x1 - TRAFFIC_LANE_INSET;
-  const az0 = block.z0 + TRAFFIC_LANE_INSET;
-  const az1 = block.z1 - TRAFFIC_LANE_INSET;
-  return [
-    [ax0, 0, az0],
-    [ax1, 0, az0],
-    [ax1, 0, az1],
-    [ax0, 0, az1],
-  ];
-}
-
 function styleAt(x: number, z: number, rng: () => number): BuildingStyle {
   const district = districtAt(x, z);
   if (district?.id === "downtown") return rng() < 0.45 ? "tower" : "commercial";
@@ -344,59 +308,13 @@ export function setupWorld(ctx: GameContext): void {
     }
   });
 
-  // Curbside metal on every avenue: a street-level frame needs parked cars in the near and mid
-  // ground or the kerbs read as an unused film set. Kept to a fixed list so the count is bounded.
-  const parkedKinds = [
-    "car_compact", "car_muscle", "car_compact", "car_sport", "car_muscle", "car_compact", "car_muscle", "car_sport",
-    "car_compact", "car_muscle", "car_compact", "car_suv", "car_muscle", "car_compact", "car_sport", "car_muscle",
-    "car_compact", "car_sport", "car_suv", "car_muscle", "car_compact", "car_muscle", "car_sport", "car_compact",
-    "car_muscle", "car_compact", "car_suv", "car_sport", "car_compact", "car_muscle", "car_compact", "car_sport",
-  ];
-  let parkedCount = 0;
-  for (const street of streets) {
-    if (parkedCount >= parkedKinds.length) break;
-    const spots = parkingSpots(street, { spacing: 46, sides: "both" });
-    for (const spot of spots) {
-      if (parkedCount >= parkedKinds.length) break;
-      if (rng() < 0.35) continue;
-      const kind = parkedKinds[parkedCount]!;
-      parkedCount += 1;
-      ctx.scene.entity.spawn(kind, {
-        id: `veh_${parkedCount}`,
-        position: ground(ctx, spot.position[0], spot.position[1]),
-        rotationY: spot.heading,
-        role: "prop",
-      });
-    }
-  }
+  // Kerbside metal is not hand-placed any more: `game/world/traffic.ts` parks real cars in the
+  // authored `traffic_parking` spots, so a parked car is one the traffic system already knows about
+  // and drives around instead of a prop it can pass through.
 
-  // Traffic circulates real city blocks: each car drives a rectangle whose four edges ride four
-  // authored streets and turns at each intersection, so cars flow through the grid instead of looping
-  // forward-and-back on a single segment (the old `[...forward, ...reverse]` path, which read as cars
-  // driving tight circles). The rectangle is inset toward the block interior so cars keep to the
-  // right-hand lane of each leg.
-  TRAFFIC_BLOCKS.forEach((block, i) => {
-    const waypoints = blockLoopWaypoints(block);
-    const start = waypoints[0]!;
-    for (let lap = 0; lap < 3; lap += 1) {
-      const id = `traffic_${i}_${lap}`;
-      const kind = (i + lap) % 3 === 2 ? "car_muscle" : (i + lap) % 3 === 1 ? "car_sport" : "car_compact";
-      ctx.scene.entity.spawn(kind, {
-        id,
-        position: ground(ctx, start[0], start[2]),
-        role: "prop",
-        behaviors: [
-          patrol({
-            waypoints,
-            speed: 8,
-            loop: true,
-            groundClamp: true,
-            startProgress: { kind: "distance", value: 8 * (rng() * 60 + lap * 90) },
-          }),
-        ],
-      });
-    }
-  });
+  // Street traffic is not a game loop here any more: `game/world/traffic.ts` drives the authored lane
+  // graph (D1.1) with the engine's `createTraffic`, so cars follow lanes, signals, kerbs and each
+  // other instead of a per-block patrol rectangle.
 
   const gangSpots: readonly (readonly [number, number])[] = [
     [DOCK_FIGHT_CENTER[0] - 12, DOCK_FIGHT_CENTER[2] - 8],

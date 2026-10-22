@@ -17,6 +17,10 @@ export interface District {
 export interface RoadSegment {
   from: readonly [number, number];
   to: readonly [number, number];
+  /** Authored carriageway width; an avenue carries four lanes, a side street two. */
+  width: number;
+  /** Authored street class — the lane graph's speed policy and the traffic system's density read it. */
+  level: string;
 }
 
 export interface AuthoredVehicleSpawn {
@@ -46,7 +50,12 @@ export const ROADS: readonly RoadSegment[] = editorLayers.paths
   .map((path) => {
     const from = path.points[0]!;
     const to = path.points[1]!;
-    return { from: [from.x, from.z] as const, to: [to.x, to.z] as const };
+    return {
+      from: [from.x, from.z] as const,
+      to: [to.x, to.z] as const,
+      width: path.width ?? 9,
+      level: typeof path.meta?.level === "string" ? path.meta.level : "street",
+    };
   });
 
 export interface Promenade {

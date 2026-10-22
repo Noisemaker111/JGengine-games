@@ -174,7 +174,9 @@ const objectPlan: Record<string, ModelPick> = {
   obj_streetlight: {
     model: `${CITY}/streetlight`,
     fallbackModel: `${FURN}/lamp_standing`,
-    style: { targetHeight: 4.3 },
+    // The lamp head is the only light a street has after dark, so it carries a warm self-lit finish:
+    // with the day cycle's night exposure it reads as a lit street rather than a black pole.
+    style: { targetHeight: 4.3, material: { emissive: "#ffcf94", emissiveIntensity: 0.55 } },
   },
   obj_gunshop_sign: {
     model: `${CITY}/trafficlight_A`,

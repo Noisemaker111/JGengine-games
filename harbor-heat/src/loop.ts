@@ -37,6 +37,7 @@ import {
   HHPD_POS,
 } from "./game/world/districts";
 import { setupWorld } from "./game/world/setup";
+import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
@@ -431,6 +432,7 @@ function onInit(ctx: GameContext): void {
 
   registerCommands(ctx);
   setupWorld(ctx);
+  setupTraffic(ctx);
   setupCourierLandmarks(ctx);
 }
 
@@ -455,6 +457,7 @@ function onNewPlayer(ctx: GameContext): void {
 function onTick(ctx: GameContext, dt: number): void {
   if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
   handrollOf(ctx).tick(ctx, dt);
+  tickTraffic(ctx, dt);
   tickGangers(ctx, dt);
   tickMissions(ctx);
   tickMissionSpawns(ctx, dt);
@@ -467,4 +470,8 @@ function onTick(ctx: GameContext, dt: number): void {
   tickCourier(ctx, dt);
 }
 
-export const loop = { onInit, onNewPlayer, onTick };
+function onDispose(ctx: GameContext): void {
+  disposeTraffic(ctx);
+}
+
+export const loop = { onInit, onNewPlayer, onTick, onDispose };
