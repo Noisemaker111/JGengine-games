@@ -72,3 +72,38 @@ world; those small captures do not establish overall scene or HUD quality. This 
 [design](DESIGN.md).
 
 See [credits](CREDITS.md) for original content and dependency provenance.
+
+## Design checklist
+
+Read from `src/game/{state,progression,save,stationModels}`, `DESIGN.md` and the authored scene. The slice,
+not the full design, is what the numbers describe.
+
+- **Core loop.** At Marrow, depart through the Garage, walk Bellwether with 110 seconds of air, channel
+  loot from a source into a 4 × 3 cache grid, then retrace the route to the entrance before air runs out.
+  Banked salvage stays home; the next dive starts from the same entrance.
+- **Progression — three systems.**
+  - [x] Refits. Two permanent buys at the stash: a sealed tank (145 seconds instead of 110) and a reserve
+    rack (30 rounds instead of 18). Both cost one copper spool plus seals or cells, so one spool buys one
+    of them, and that shortage is the intended decision.
+  - [x] Salvage. Five item kinds with real footprints — ink 2 × 2, power cells 1 × 2, service rifle 3 × 1,
+    suit seals 2 × 1, wire 1 × 1 — so what fits in twelve squares is the choice, not a weight number.
+  - [x] Lives. Death advances the Life once, keeps the stash, and stops at Halloway's reprint screen.
+    A service rifle can be prepared for one departure (30 damage against the 20-damage sidearm), leaves
+    the stash on departure, and is gone if that dive ends in death.
+- **Failure states.** Air at zero suffocates at 12 health a second; steam costs 18 a second; the Fitter
+  print has 80 health and a windup. Death banks nothing carried and requires acknowledging the reprint
+  before departing again. A dive interrupted by reload loses its carried haul exactly once and keeps the
+  banked stash.
+- **Minute 5 → hour 5.** At 5:00 you are on the first departure with the sidearm and two or three items,
+  still deciding whether the rifle is worth three cache squares. Hour five is roughly two or three Lives
+  in, both refits installed, and the light-or-armed departure actually costing something.
+- **References it is chasing.**
+  - *Escape from Tarkov* — feel: the way out is the whole tension; density: loot scattered through rooms
+    rather than poured out of one chest; UI: the timer and the extraction point, plus grid packing.
+  - *Subnautica* — feel: oxygen as the only clock, so depth is a bet; density: one route out that you
+    re-cross; UI: air and depth readable without opening a map.
+  - *Prey (2017)* — feel: a station that reads as somewhere people worked; density: rooms with a job, not
+    corridors with props; UI: a hand wheel instead of a spellbook.
+- **Gap to target.** Five item kinds are the entire loot table. [DESIGN.md](DESIGN.md) describes six hand
+  families, item levels, per-item trees and a two-axis rarity ladder; until some of that exists, the
+  second delve has nothing new to hold.
