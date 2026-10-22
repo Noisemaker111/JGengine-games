@@ -29,3 +29,37 @@ Each settlement processes at most seven overdue bills. Remaining due cycles stay
 in the saved economy cursor and settle on later simulation steps; repayment stops
 when the outstanding debt reaches zero. Bills skipped by an older build cannot
 be reconstructed from its already-advanced cursor.
+
+## Design checklist
+
+Read from `src/game/{needs,objects,sim,session}`. Numbers are what the build does now.
+
+- **Core loop.** A 210-second day starts at 09:00 with 640 credits and 12 rations for four generated
+  members. Each member has four needs that decay per day — Nourish 118, Rest 82, Bond 74, Play 90,
+  scaled by metabolism 0.75–1.35 — and you either direct an activity or let them choose. A meal spends
+  one ration; a 20-second shift pays 100 credits (Yield, 08–14) or 4 rations and 48 credits (Bloom,
+  14–18). Midnight charges 80 credits plus each furnishing's running cost.
+- **Progression — three systems.**
+  - [x] Shift mastery. Three completed shifts unlock the wider 08–18 window; before that a late order
+    loses its shift rather than creating overtime.
+  - [x] Bonds. Pair relationships run −100 to 100 with milestones at 35 (friends), 70 (close) and 95
+    (bonded); tending Bloom together pays more for friends, and two stressed members clash instead.
+  - [x] Furnishing. Six types from 70 to 220 credits, capacity 1–4, running cost 1–4 a day, satisfying
+    5–12 points a second — so a full household needs duplicates of the same station.
+- **Failure states.** There is no game over. An unpaid bill becomes debt, which the next bill repays at up
+  to 40; relief supplies 4 rations and adds 40 debt once per day; an empty pantry stops meals, a need
+  below 25 pulls a member off whatever they were doing, and overload stops paid work until food, rest and
+  company fix it. The household can drift down, but nothing evicts it.
+- **Minute 5 → hour 5.** At 5:00 you are about a day and a half in: the first bill has settled, one shift
+  has been worked and flex scheduling is still two shifts away. Hour five is roughly day 17 at 1× speed
+  — all three plans of the day have been tried, several bonds are at friends, and the only stated goal
+  is still `dayGoal`, which never names anything but the next bill.
+- **References it is chasing.**
+  - *The Sims 2* — feel: mood legible from one portrait; density: one household, four bodies, no crowd;
+    UI: needs bars beside a direct action queue.
+  - *RimWorld* — feel: a schedule that explains itself before you read it; density: a small roster where
+    each person is a plan; UI: priorities, bills and the day's work on one screen.
+  - *This War of Mine* — feel: scarcity with a tone, not a score; density: few rooms visited repeatedly;
+    UI: the nightly summary as the consequence readout.
+- **Gap to target.** No win or loss condition exists, so the household can only drift. Naming an end
+  state — debt-free and bonded, or evicted — is what makes hour five different from hour one.
