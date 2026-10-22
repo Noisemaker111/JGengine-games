@@ -8,19 +8,18 @@ import { CREEP_CATALOG, type CreepDef } from "./entities/enemies/catalog";
 const VILLAGE = "quaternius-medieval-village";
 const NATURE = "quaternius-stylized-nature";
 const DUNGEON = "kaykit-dungeon";
-const CHAR = "kaykit-adventurers";
-const SKEL = "kaykit-skeletons";
 
+/** Height of a raider at scale 1; each catalog entry's scale multiplies it. */
 const RAIDER_HEIGHT = 1.8;
 
 // Preserve automatic clip roles while advancing raiders with the game's accepted clock.
 function raiderPick(def: CreepDef): ModelPick {
   return {
-    model: `${CHAR}/Rogue`,
-    fallbackModel: `${SKEL}/Skeleton_Rogue`,
+    model: def.model,
+    fallbackModel: def.fallbackModel,
     style: {
       targetHeight: RAIDER_HEIGHT * def.scale,
-      material: { color: def.color },
+      material: { color: def.color, rim: def.rim },
       animation: { auto: true, clock: "game" },
     },
   };
