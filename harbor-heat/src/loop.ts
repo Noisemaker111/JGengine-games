@@ -38,6 +38,7 @@ import {
 } from "./game/world/districts";
 import { setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
+import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
@@ -431,8 +432,9 @@ function onInit(ctx: GameContext): void {
   });
 
   registerCommands(ctx);
-  setupWorld(ctx);
+  const buildings = setupWorld(ctx);
   setupTraffic(ctx);
+  setupResidents(ctx, buildings);
   setupCourierLandmarks(ctx);
 }
 
@@ -458,6 +460,7 @@ function onTick(ctx: GameContext, dt: number): void {
   if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
   handrollOf(ctx).tick(ctx, dt);
   tickTraffic(ctx, dt);
+  tickResidents(ctx, dt);
   tickGangers(ctx, dt);
   tickMissions(ctx);
   tickMissionSpawns(ctx, dt);
@@ -472,6 +475,7 @@ function onTick(ctx: GameContext, dt: number): void {
 
 function onDispose(ctx: GameContext): void {
   disposeTraffic(ctx);
+  disposeResidents(ctx);
 }
 
 export const loop = { onInit, onNewPlayer, onTick, onDispose };

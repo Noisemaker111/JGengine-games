@@ -5,6 +5,7 @@ import { game } from "../game.config";
 import { loop } from "../loop";
 import { content } from "./content";
 import { createHandroll, handrollOf } from "./handroll";
+import { RESIDENTS, residentAt, residentStats, tickResidents } from "./world/residents";
 import { advanceBehaviors } from "@jgengine/core/scene/behaviorRuntime";
 
 const HERO = "hero-test";
@@ -147,24 +148,39 @@ describe("handroll drivable-vehicle adoption", () => {
   });
 });
 
-describe("pedestrians in the live world", () => {
-  test("still walk their routes now that patrol slides against solids", () => {
+describe("residents in the live world", () => {
+  test("named residents walk their own routine legs near the player", () => {
     const ctx = boot();
-    const start = new Map(
-      ctx.scene.entity
-        .list()
-        .filter((entity) => entity.id.startsWith("ped_"))
-        .map((entity) => [entity.id, entity.position] as const),
+    // The first frame splits the population by distance; nobody is simulated before it.
+    tickResidents(ctx, STEP);
+    const stats = residentStats(ctx);
+    expect(stats).not.toBeNull();
+    expect(stats?.agents).toBe(RESIDENTS.length);
+    // The player spawns on the boardwalk, so somebody's day is being simulated right away.
+    expect(stats?.near).toBeGreaterThan(0);
+    expect(stats?.far).toBe(RESIDENTS.length - (stats?.near ?? 0));
+
+    const spawned = RESIDENTS.map((spec) => ctx.scene.entity.get(`resident-${spec.id}`)).filter(
+      (entity) => entity !== null,
     );
-    expect(start.size).toBeGreaterThan(0);
+    expect(spawned.length).toBe(stats?.near ?? -1);
+    const start = new Map(spawned.map((entity) => [entity.id, entity.position] as const));
 
-    for (let i = 0; i < 240; i += 1) advanceBehaviors(ctx, STEP);
+    for (let i = 0; i < 600; i += 1) {
+      ctx.time.advance(STEP);
+      tickResidents(ctx, STEP);
+    }
 
-    // Sliding must not freeze the crowd: the routes still run.
+    // Each walker follows its own route — not one shared crowd loop — and actually moves along it.
     const moved = [...start].filter(([id, from]) => {
       const now = ctx.scene.entity.get(id)?.position;
-      return now !== undefined && Math.hypot(now[0] - from[0], now[2] - from[2]) > 0.1;
+      return now !== undefined && Math.hypot(now[0] - from[0], now[2] - from[2]) > 0.2;
     });
-    expect(moved.length).toBeGreaterThan(start.size / 2);
+    expect(moved.length).toBeGreaterThan(0);
+    for (const spec of RESIDENTS) {
+      const agent = residentAt(ctx, spec.id);
+      if (agent?.mode !== "near") continue;
+      expect(agent.travelling || agent.activity !== null).toBe(true);
+    }
   });
 });

@@ -4195,6 +4195,186 @@
         "z": 86.39999999999999
       },
       "label": "av_e southbound kerb"
+    },
+    {
+      "id": "place_home_gull",
+      "kind": "resident_place",
+      "position": {
+        "x": -206,
+        "y": 0,
+        "z": -170
+      },
+      "label": "Gull Row cottage"
+    },
+    {
+      "id": "place_kiosk",
+      "kind": "resident_place",
+      "position": {
+        "x": -206,
+        "y": 0,
+        "z": -140
+      },
+      "label": "Boardwalk kiosk"
+    },
+    {
+      "id": "place_shack",
+      "kind": "resident_place",
+      "position": {
+        "x": -206,
+        "y": 0,
+        "z": -110
+      },
+      "label": "Boat shack"
+    },
+    {
+      "id": "place_home_tide",
+      "kind": "resident_place",
+      "position": {
+        "x": -208,
+        "y": 0,
+        "z": -30
+      },
+      "label": "Tide Street flat"
+    },
+    {
+      "id": "place_diner",
+      "kind": "resident_place",
+      "position": {
+        "x": -207,
+        "y": 0,
+        "z": 40
+      },
+      "label": "Boardwalk diner"
+    },
+    {
+      "id": "place_market",
+      "kind": "resident_place",
+      "position": {
+        "x": -206,
+        "y": 0,
+        "z": 90
+      },
+      "label": "Boardwalk market"
+    },
+    {
+      "id": "place_cafe",
+      "kind": "resident_place",
+      "position": {
+        "x": -209,
+        "y": 0,
+        "z": 120
+      },
+      "label": "Promenade cafe"
+    },
+    {
+      "id": "place_home_salt",
+      "kind": "resident_place",
+      "position": {
+        "x": -208,
+        "y": 0,
+        "z": 150
+      },
+      "label": "Salt Row house"
+    },
+    {
+      "id": "place_flat",
+      "kind": "resident_place",
+      "position": {
+        "x": 44,
+        "y": 0,
+        "z": 7
+      },
+      "label": "Downtown flat"
+    },
+    {
+      "id": "place_offices",
+      "kind": "resident_place",
+      "position": {
+        "x": 20,
+        "y": 0,
+        "z": 7
+      },
+      "label": "Plaza offices"
+    },
+    {
+      "id": "place_avenue_cafe",
+      "kind": "resident_place",
+      "position": {
+        "x": 51,
+        "y": 0,
+        "z": -40
+      },
+      "label": "Avenue cafe"
+    },
+    {
+      "id": "place_busstop",
+      "kind": "resident_place",
+      "position": {
+        "x": -188,
+        "y": 0,
+        "z": 20
+      },
+      "label": "Boulevard bus stop"
+    },
+    {
+      "id": "place_newsstand",
+      "kind": "resident_place",
+      "position": {
+        "x": -188,
+        "y": 0,
+        "z": 84
+      },
+      "label": "Boulevard newsstand"
+    },
+    {
+      "id": "place_home_verge",
+      "kind": "resident_place",
+      "position": {
+        "x": -188,
+        "y": 0,
+        "z": 60
+      },
+      "label": "Verge Street flat"
+    },
+    {
+      "id": "place_corner_cafe",
+      "kind": "resident_place",
+      "position": {
+        "x": -188,
+        "y": 0,
+        "z": 140
+      },
+      "label": "Boulevard corner cafe"
+    },
+    {
+      "id": "place_docks",
+      "kind": "resident_place",
+      "position": {
+        "x": 110,
+        "y": 0,
+        "z": 113
+      },
+      "label": "Dock office"
+    },
+    {
+      "id": "place_canteen",
+      "kind": "resident_place",
+      "position": {
+        "x": 110,
+        "y": 0,
+        "z": 127
+      },
+      "label": "Dock canteen"
+    },
+    {
+      "id": "place_warehouse",
+      "kind": "resident_place",
+      "position": {
+        "x": 140,
+        "y": 0,
+        "z": 113
+      },
+      "label": "Warehouse gate"
     }
   ],
   "volumes": [

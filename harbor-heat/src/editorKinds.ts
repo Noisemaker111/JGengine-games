@@ -56,3 +56,14 @@ export const TRAFFIC_PARKING_KIND = definePlaceableMarkerKind({
   category: "Harbor Heat",
   accent: "#8aa0b4",
 });
+
+/**
+ * A place a resident's day can name: a home, a workplace, a diner. `game/world/residents.ts` reads
+ * these as the routine anchors, so moving one in the editor moves where that resident goes.
+ */
+export const RESIDENT_PLACE_KIND = definePlaceableMarkerKind({
+  kind: "resident_place",
+  label: "Resident place",
+  category: "Harbor Heat",
+  accent: "#e8a14a",
+});
