@@ -1,7 +1,7 @@
 import { SettingsTrigger } from "@jgengine/react";
 import { useGame } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { useStore } from "@jgengine/react/store";
 import { runSessionStore } from "../../run/session";
 import type { RunRecords } from "../../run/records";
@@ -25,7 +25,7 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
       </svg>
       <span>ROW SIX / SALVAGE SPECIAL</span>
     </div>
-    <HudPanel className="df-card df-title-card" elevation="modal" style={{ padding: undefined }}>
+    <HudSurface className="df-card df-title-card" elevation="modal">
       <div className="df-eyebrow">PIT RADIO / CHANNEL 06</div>
       <h1>DRIFT<br/><em>FOUNDRY</em></h1>
       <p className="df-intro">One welded buggy. Three salvage yards. A compactor that never stops.</p>
@@ -34,6 +34,6 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
       <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes · {records.attempts} finished runs</span></div>
       <p>{parkedRun ? `Parked checkpoint: ${Math.floor(parkedRun.position[2])}m · ${parkedRun.runTime.toFixed(1)}s · ${parkedRun.partIds.length} parts. Continue starts stopped with the compactor clock preserved.` : "To keep a run for later, stop on the ground and pause before returning to the pit."}</p>
       <div className="df-actions"><HudButton variant="primary" className="df-primary" cue="confirm" onClick={onStart}>{parkedRun ? "CONTINUE PARKED RUN" : "START ENGINE"} <kbd>Enter</kbd></HudButton>{parkedRun && <HudButton onClick={() => commands.run("restart", {})}>NEW RUN</HudButton>}<SettingsTrigger className="df-button" label="Settings">SETTINGS</SettingsTrigger><HudButton onClick={onCredits}>CREDITS</HudButton></div>
-    </HudPanel>
+    </HudSurface>
   </div>;
 }

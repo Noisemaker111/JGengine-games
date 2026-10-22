@@ -1,6 +1,6 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
@@ -43,7 +43,7 @@ export function Inspector() {
   const refund = Math.round(def.cost * 0.5);
 
   return (
-    <HudPanel role="region" aria-label={`${def.label} details`} elevation="overlay">
+    <HudSurface as="section" aria-label={`${def.label} details`} elevation="overlay">
       <div className="mb-2 flex items-center gap-2">
         <HudButton variant="ghost" size="icon" className="park-inspector-close" aria-label="Close inspector" cue="close" onClick={()=>commands.run("build.clear", {})}>×</HudButton>
         <span className="text-2xl">{def.icon}</span>
@@ -75,6 +75,6 @@ export function Inspector() {
       >
         Demolish · refund ${refund}
       </HudButton>
-    </HudPanel>
+    </HudSurface>
   );
 }

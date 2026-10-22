@@ -4,7 +4,7 @@ import { actionLabel } from "@jgengine/core/input/actionBindings";
 import { HudLabel } from "@/components/ui/hud-label";
 import { KeybindBadge } from "@/components/ui/keybind-badge";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
 import { editorLayers } from "../../../editorLayers";
@@ -37,7 +37,7 @@ export function TowerPanel() {
   const sellKey = actionLabel(keybinds, "sellTower");
 
   return (
-    <HudPanel
+    <HudSurface
       data-jg="tower-panel"
       title={def.label}
       aside={<span style={{ ...statStyle, color: "var(--jg-accent)" }}>Level {tower.level} / {MAX_TOWER_LEVEL}</span>}
@@ -69,6 +69,6 @@ export function TowerPanel() {
           {sellKey === null ? null : <KeybindBadge label={sellKey} size="sm" />}
         </HudButton>
       </div>
-    </HudPanel>
+    </HudSurface>
   );
 }

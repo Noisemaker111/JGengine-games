@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ExperienceBar, HealthBar, ManaBar, barTokens } from "@jgengine/react/bars";
 import { useEntityStat, useGame } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel as HudFrame } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
@@ -20,10 +20,8 @@ function useHud(): HudSnapshot {
   return useSyncExternalStore(hudStore.subscribe, hudStore.get, hudStore.get);
 }
 
-/** Console chrome is the engine frame skinned by the Ember theme; `ec-frame` is the high-contrast hook.
- * Padding stays on each caller's classes (it changes with the viewport), not the frame's inline default. */
+/** Console chrome is the engine frame skinned by the Ember theme; `ec-frame` is the high-contrast hook. */
 const FRAME = "ec-frame";
-const CSS_PADDING = { padding: undefined };
 
 /** Thin steel corner brackets — the cool-metal accent that reads as forged, not construction paper. */
 function Corners() {
@@ -52,7 +50,7 @@ function TopBar() {
   const hud = useHud();
   const foodTone = hud.foodUsed + hud.foodReserved >= hud.foodCap ? "text-rose-400" : "text-emerald-300";
   return (
-    <HudFrame interactive={false} style={CSS_PADDING} className={"ec-stock pointer-events-none absolute top-3 z-20 flex items-center gap-3 px-4 py-2 " + FRAME}>
+    <HudSurface interactive={false} className={"ec-stock pointer-events-none absolute top-3 z-20 flex items-center gap-3 px-4 py-2 " + FRAME}>
       <Corners />
       <ResourceChip icon="gold" value={String(hud.gold)} tone="text-amber-300" />
       <ResourceChip icon="lumber" value={String(hud.lumber)} tone="text-orange-300" />
@@ -74,7 +72,7 @@ function TopBar() {
           <span className="text-[13px] font-bold tabular-nums text-rose-100">{hud.nextWaveIn}s</span>
         </div>
       </div>
-    </HudFrame>
+    </HudSurface>
   );
 }
 
@@ -84,7 +82,7 @@ function ObjectivesPanel() {
   const [open, setOpen] = useState(true);
   const done = hud.enemyKeepHp <= 0;
   return (
-    <HudFrame style={CSS_PADDING} className={"ec-objectives absolute left-3 top-3 z-20 w-64 px-3 py-2 " + FRAME}>
+    <HudSurface className={"ec-objectives absolute left-3 top-3 z-20 w-64 px-3 py-2 " + FRAME}>
       <Corners />
       <HudButton variant="ghost" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="ec-objectives-toggle">
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Objectives</span>
@@ -106,7 +104,7 @@ function ObjectivesPanel() {
           </div>
         </>
       ) : null}
-    </HudFrame>
+    </HudSurface>
   );
 }
 
@@ -225,14 +223,14 @@ function CommandGrid() {
   return (
     <div className="relative">
       {tip !== null ? (
-        <HudFrame interactive={false} elevation="overlay" style={CSS_PADDING} className={"pointer-events-none absolute bottom-[calc(100%+10px)] right-0 z-30 w-64 px-3 py-2 " + FRAME}>
+        <HudSurface interactive={false} elevation="overlay" className={"pointer-events-none absolute bottom-[calc(100%+10px)] right-0 z-30 w-64 px-3 py-2 " + FRAME}>
           <Corners />
           <div className="text-[13px] font-bold text-amber-200">{tip.title}</div>
           <div className="mt-0.5 text-[11px] leading-snug text-slate-300">{tip.desc}</div>
           {tip.chips.length > 0 ? (
             <div className="mt-1.5 flex gap-3 text-[11px] font-bold">{tip.chips.map((c) => <TipChip key={c.icon + c.text} icon={c.icon} text={c.text} />)}</div>
           ) : null}
-        </HudFrame>
+        </HudSurface>
       ) : null}
       <div className="grid grid-cols-4 grid-rows-3 gap-1.5">
         <Slot icon="peasant" hotkey="1" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
@@ -406,29 +404,29 @@ function Console() {
   return (
     <div className="ec-console pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-center gap-2 px-2 pb-1 font-serif">
       {/* Minimap cluster */}
-      <HudFrame style={CSS_PADDING} className={"ec-map-panel relative flex items-stretch gap-2 p-2 " + FRAME}>
+      <HudSurface className={"ec-map-panel relative flex items-stretch gap-2 p-2 " + FRAME}>
         <Corners />
         <MapControls />
         <div className="relative rounded border border-slate-600/50 bg-black/50 p-1">
           <Minimap />
           <span className="pointer-events-none absolute right-1 top-1 text-[9px] font-bold text-sky-200/70">N</span>
         </div>
-      </HudFrame>
+      </HudSurface>
 
       {/* Hero + army */}
-      <HudFrame style={CSS_PADDING} className={"ec-hero-panel relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
+      <HudSurface className={"ec-hero-panel relative flex flex-col gap-1.5 p-2.5 " + FRAME}>
         <Corners />
         <HeroPanel />
         <div className="h-px w-full bg-slate-500/20" />
         <div className="ec-army h-[62px] w-[19rem]"><ArmyRow /></div>
         <ProductionLine />
-      </HudFrame>
+      </HudSurface>
 
       {/* Command grid */}
-      <HudFrame style={CSS_PADDING} className={"relative p-2.5 " + FRAME}>
+      <HudSurface className={"relative p-2.5 " + FRAME}>
         <Corners />
         <CommandGrid />
-      </HudFrame>
+      </HudSurface>
 
       {hud.buildArmed !== null ? (
         <div className="ec-build-mode pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 rounded-md border-2 border-sky-300/70 bg-sky-500/90 px-3 py-1 text-xs font-bold text-slate-950 shadow-lg">

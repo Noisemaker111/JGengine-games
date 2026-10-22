@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
-import { CSS_PADDING } from "../theme";
+import { HudSurface } from "@jgengine/react/hudSurface";
 
 /** Touch buttons feed the published RTS rig's existing DOM input boundary. */
 export function CameraPad() {
@@ -28,10 +27,10 @@ export function CameraPad() {
     const canvas=document.querySelector("canvas");
     canvas?.dispatchEvent(new WheelEvent("wheel",{deltaY,bubbles:true,cancelable:true}));
   };
-  return <HudPanel className="park-camera park-surface" role="navigation" aria-label="Camera navigation" style={CSS_PADDING}>
+  return <HudSurface className="park-camera park-surface" as="nav" aria-label="Camera navigation">
     <span>LOOK AROUND</span>
     <div>{key("Rotate camera left","↶","KeyQ")}{key("Pan camera up","↑","ArrowUp")}{key("Rotate camera right","↷","KeyE")}
     {key("Pan camera left","←","ArrowLeft")}<HudButton size="icon" aria-label="Zoom camera in" onClick={()=>zoom(-100)}>＋</HudButton>{key("Pan camera right","→","ArrowRight")}
     <HudButton size="icon" aria-label="Zoom camera out" onClick={()=>zoom(100)}>−</HudButton>{key("Pan camera down","↓","ArrowDown")}</div>
-  </HudPanel>;
+  </HudSurface>;
 }

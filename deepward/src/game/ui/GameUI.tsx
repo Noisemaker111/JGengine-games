@@ -6,16 +6,13 @@ import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudPanel } from "@jgengine/react/hudPanel";
+import { HudSurface } from "@jgengine/react/hudSurface";
 import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
 import { ItemMark } from "./ItemMark";
 import { SAVE_KEY } from "../save";
-
-/** HudPanel writes an inline 12px padding by default; the dw-* classes own padding and its breakpoints. */
-const CSS_PADDING = { padding: undefined } as const;
 
 function grab(): void {
   const canvas = document.querySelector("canvas");
@@ -87,38 +84,38 @@ export function GameUI() {
       }}>Credits</HudButton>
     </header>
     {dive !== null && <>
-      <HudPanel className="dw-air" role="region" aria-label="Oxygen tank" interactive={false} style={CSS_PADDING}>
+      <HudSurface className="dw-air" as="section" aria-label="Oxygen tank" interactive={false}>
         <span className="dw-eyebrow">Equipment / {dive.tankSeconds > 110 ? "sealed tank" : "issue tank"}</span>
         <div><strong>{Math.ceil(dive.oxygen)}<small>s</small></strong><span>{dive.oxygen === 0 ? "NO AIR / HEALTH BLEED" : low ? "RETRACE TO THE RAIL" : "AIR REMAINING"}</span></div>
         <progress max={dive.tankSeconds} value={dive.oxygen} />
         <p>Return rail · {Math.round(distance(at, EXIT))} m · the way you came in</p>
-      </HudPanel>
+      </HudSurface>
       <div className="dw-reticle" aria-hidden="true">{dive.flash > 0 ? "+" : "·"}</div>
       {dive.hurt > 0 && <div className="dw-damage" aria-hidden="true" />}
-      <HudPanel className="dw-vitals" interactive={false} style={CSS_PADDING}><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
+      <HudSurface className="dw-vitals" interactive={false}><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
         <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{dive.reload > 0 ? `RELOADING ${dive.reload.toFixed(1)}s` : `${dive.magazine} / 6`} <small>{dive.reserve} reserve</small></div>
-      </HudPanel>
-      <HudPanel className="dw-haul" interactive={false} style={CSS_PADDING}><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} {dive.cache.length === 1 ? "item" : "items"}</strong>
+      </HudSurface>
+      <HudSurface className="dw-haul" interactive={false}><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} {dive.cache.length === 1 ? "item" : "items"}</strong>
         <p>{dive.cache.map(i => ITEMS[i.kind].name).join(" · ") || "Nothing carried yet"}</p>
         <HudButton onClick={() => command("cache")}>Open cache / Tab</HudButton>
-      </HudPanel>
+      </HudSurface>
     </>}
-    {view.mode === "home" && view.panel === null && <HudPanel className="dw-home" role="complementary" aria-label="Marrow departure" interactive={false} style={CSS_PADDING}>
+    {view.mode === "home" && view.panel === null && <HudSurface className="dw-home" as="aside" aria-label="Marrow departure" interactive={false}>
       <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Rail departure / 06</h2>
       <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
       <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
       <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death or dive reload loses carried items.</p>
       <p className="dw-note">Next departure: {view.rifleUid === null ? "issue sidearm · 12 free cache squares" : "banked service rifle · 9 free cache squares · rifle at risk"}. Prepare a rifle at the stash bench.</p>
       {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
-    </HudPanel>}
+    </HudSurface>}
     <footer className="dw-bottom">
-      <HudPanel className="dw-radio" interactive={false} style={CSS_PADDING}><span>MARROW / RADIO</span><p role="status">{view.hint}</p></HudPanel>
+      <HudSurface className="dw-radio" interactive={false}><span>MARROW / RADIO</span><p role="status">{view.hint}</p></HudSurface>
       {dive?.channel !== null && dive?.channel !== undefined ? <div className="dw-prompt"><strong>Searching / keep still</strong><progress max={1.4} value={1.4 - dive.channel.remaining} /><small>E to cancel · movement or damage interrupts</small></div>
         : target !== null && view.panel === null && !view.paused ? <HudButton className="dw-prompt" onClick={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }}>{target.label}</HudButton> : null}
 
       {view.error && view.mode !== "saving" && view.mode !== "blocked" && <p role="alert" className="dw-error">{view.error}</p>}
     </footer>
-    {view.panel === "stash" && <div className="dw-modal"><HudPanel ref={shiftDialogRef} elevation="modal" style={CSS_PADDING} data-hud-window className="dw-sheet" aria-label="Marrow stash" role="dialog" aria-modal="true" tabIndex={-1}>
+    {view.panel === "stash" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet" aria-label="Marrow stash" role="dialog" aria-modal="true" tabIndex={-1}>
       <HudButton className="dw-sheet-close" onClick={close}>Close bench ×</HudButton>
       <span className="dw-eyebrow">Permanent / saved on return</span><h2>Marrow's stash</h2>
       <p>These exact item instances survived the rail journey. They remain here through deaths and reloads.</p>
@@ -136,8 +133,8 @@ export function GameUI() {
       </article>; })}
       <p role="status">{view.hint}</p>{view.error && <p role="alert">{view.error}</p>}
       <div className="dw-actions"><HudButton onClick={close}>Back to Marrow</HudButton><HudButton onClick={() => window.location.reload()}>Reload saved stash</HudButton></div>
-    </HudPanel></div>}
-    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><HudPanel ref={shiftDialogRef} elevation="modal" style={CSS_PADDING} data-hud-window className="dw-sheet" aria-label="Carried cache" role="dialog" aria-modal="true" tabIndex={-1}>
+    </HudSurface></div>}
+    {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet" aria-label="Carried cache" role="dialog" aria-modal="true" tabIndex={-1}>
       <HudButton className="dw-sheet-close" onClick={close}>Close cache ×</HudButton>
       <span className="dw-eyebrow">Carried cache / 4 × 3 / equipment capacity</span><h2>What fits comes home.</h2><p className="dw-error">The tank and prints keep moving while you pack.</p>
       <div className="dw-cache-grid">
@@ -150,29 +147,29 @@ export function GameUI() {
       </div> : <p>Select a carried item to repack, rotate or leave it behind.</p>}
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><HudButton aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</HudButton><HudButton aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</HudButton></div>}
       <HudButton onClick={() => { command("cache"); grab(); }}>Close cache / Tab</HudButton>
-    </HudPanel></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><HudPanel ref={shiftDialogRef} elevation="modal" style={CSS_PADDING} role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><HudButton onClick={() => { command("pause"); grab(); }}>Resume / Esc</HudButton><HudButton onClick={settings.open}>Settings & controls</HudButton><HudButton onClick={() => setCredits(true)}>Credits</HudButton><HudButton onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</HudButton></HudPanel></div>}
-    {view.mode === "reprinting" && <div className="dw-modal"><HudPanel ref={shiftDialogRef} elevation="modal" style={CSS_PADDING} data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
+    </HudSurface></div>}
+    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><HudButton onClick={() => { command("pause"); grab(); }}>Resume / Esc</HudButton><HudButton onClick={settings.open}>Settings & controls</HudButton><HudButton onClick={() => setCredits(true)}>Credits</HudButton><HudButton onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</HudButton></HudSurface></div>}
+    {view.mode === "reprinting" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
       <p>Halloway has printed Life {view.home.life}. This loss is already saved; reloading cannot restore the expedition.</p>
       {view.error && <p role="alert">{view.error}</p>}
       <HudButton onClick={() => { command("acknowledgeReprint"); if (viewStore.read(ctx).mode === "home") grab(); }}>Accept reprint / return to Marrow</HudButton>
       <HudButton onClick={() => window.location.reload()}>Reload saved Marrow</HudButton>
-    </HudPanel></div>}
-    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><HudPanel ref={shiftDialogRef} elevation="modal" style={CSS_PADDING} data-hud-window className="dw-sheet dw-pause" role="alertdialog" aria-label="Marrow save boundary" aria-modal="true" tabIndex={-1}>
+    </HudSurface></div>}
+    {(view.mode === "saving" || view.mode === "blocked") && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet dw-pause" role="alertdialog" aria-label="Marrow save boundary" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Marrow / save boundary</span><h2>{view.mode === "saving" ? "Return pending" : "Marrow is unavailable"}</h2><p>{view.error}</p>
       <p>{view.mode === "saving" ? "The simulation is stopped. This return has not been acknowledged; retry or reload the saved record." : "The saved record has been preserved. No new dive can begin."}</p>
       {view.mode === "saving" && <HudButton onClick={() => command("retrySave")}>Retry saving this return</HudButton>}
       <HudButton onClick={() => window.location.reload()}>Reload saved Marrow</HudButton>
-    </HudPanel></div>}
-    {credits && <div className="dw-modal"><HudPanel ref={creditsRef} elevation="modal" style={CSS_PADDING} data-hud-window className="dw-sheet" role="dialog" aria-modal="true" aria-label="Deepward credits" tabIndex={-1}>
+    </HudSurface></div>}
+    {credits && <div className="dw-modal"><HudSurface ref={creditsRef} elevation="modal" data-hud-window className="dw-sheet" role="dialog" aria-modal="true" aria-label="Deepward credits" tabIndex={-1}>
       <h2>Deepward / credits</h2>
       <CreditsScreen document={{ sections: [
         { heading: "Original Deepward artwork", entries: [{ label: "Deepward", detail: "Original vault geometry, machinery, Fitter rig, signage, item art and synthesized mechanical sound cues." }] },
         { heading: "Technology", entries: [{ label: "JGengine", detail: "Apache-2.0", href: "https://jgengine.com" }, { label: "React", detail: "MIT" }, { label: "Three.js", detail: "MIT" }] },
       ] }} />
       <HudButton onClick={() => setCredits(false)}>Back to shift</HudButton>
-    </HudPanel></div>}
+    </HudSurface></div>}
   </div>;
 }

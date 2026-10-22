@@ -8,6 +8,3 @@ export const orbitTheme = hudTheme({
   font: { display: "'Trebuchet MS', sans-serif", body: "'Segoe UI', sans-serif", numeric: "'Segoe UI', sans-serif" },
   frame: { radius: "4px 20px 4px 4px", bg: "#342547", border: "1px solid #765778", glow: "0 6px 18px #170d2866" },
 });
-
-/** Frame panels take their padding from style.css (it changes with the compact layout), not the frame's inline default. */
-export const CSS_PADDING = { padding: undefined };
