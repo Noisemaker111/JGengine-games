@@ -4,7 +4,7 @@
   "declarations": [
     {
       "provenance": { "kind": "runtime", "providerId": "drift-foundry", "instanceId": "corridor-world" },
-      "reason": "Corridor survival racer whose yard — zone terrain bands, frontage building rows, scattered wrecks, lamps, gates, and the advancing compactor — is regenerated every run from the zone catalog and run seed. There is no static placement to author: the world is a function of run state, and pickups/barricades move with the compactor."
+      "reason": "The run's yard dressing, pickups and barricades are regenerated every run from the zone catalog and run seed, and they move or vanish with the compactor, so they stay runtime-owned. The static silhouette is authored: editor.scene.json places the water-tower crowns, one landmark cluster per yard, crane-leg pylons at each yard seam and the alternating shoulder sentries (scripts/author-corridor.ts), all outside the fenced driving line."
     }
   ]
 }

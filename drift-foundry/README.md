@@ -40,6 +40,10 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
 - **Gap to target.** One authored route. A second corridor, per-zone splits, or a ghost of your best run
   would give the records board something to chase after the first escape.
 
-Part stats live in `src/game/parts/catalog.ts`, zone palettes in `src/game/zones/catalog.ts`, and the
-corridor dressing is scattered in `src/game/world/setup.ts`. Run `bun run check-types` and `bun run test`
+Part stats live in `src/game/parts/catalog.ts`, zone palettes in `src/game/zones/catalog.ts`, and
+the run's scattered prop field and barricade tiling in `src/game/world/setup.ts`. The corridor's
+authored landmarks and shoulder rhythm live in `src/editor.scene.json` (authored by
+`scripts/author-corridor.ts`): water-tower crowns, one landmark cluster per yard, crane-leg pylons at
+each yard seam, and alternating junk sentries at x ±25.5, all clear of the fenced driving line at
+x ±18.5. Run `bun run check-types` and `bun run test`
 here after changes.
