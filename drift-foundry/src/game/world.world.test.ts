@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { findLibraryMaterial } from "@jgengine/assets/catalogs/materialLibrary";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 
 import { CORRIDOR_HALF_WIDTH, EXIT_Z } from "./run/constants";
@@ -48,6 +49,28 @@ describe("drift-foundry world", () => {
     const signs = new Set(ZONES.map((zone) => zone.palette.storeSign));
     expect(walls.size).toBe(ZONES.length);
     expect(signs.size).toBe(ZONES.length);
+  });
+
+  test("every zone facade is a named shared-library material, not a flat colour", () => {
+    for (const zone of ZONES) {
+      const entry = findLibraryMaterial(zone.facadeMaterial);
+      expect(entry).not.toBeNull();
+      for (const kind of ["wall", "corner", "roof"] as const) {
+        const surface = zone.palette[kind];
+        if (typeof surface === "string") throw new Error(`${zone.id}.${kind} is still a flat colour`);
+        const match = /^\/materials\/([a-z0-9-]+)\/color\.jpg$/.exec(surface.maps?.color ?? "");
+        expect(match).not.toBeNull();
+        expect(match![1]).toBe(entry?.source);
+        expect(surface.maps?.normal).toBeDefined();
+        expect(surface.maps?.roughness).toBeDefined();
+        expect(surface.repeat).toBeDefined();
+      }
+    }
+  });
+
+  test("each zone names its own facade material so the corridor still reads in three zones", () => {
+    const named = ZONES.map((zone) => zone.facadeMaterial);
+    expect(new Set(named).size).toBe(ZONES.length);
   });
 
   test("terrain is wide enough that the far wall row stands on ground", () => {

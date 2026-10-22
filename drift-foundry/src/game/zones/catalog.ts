@@ -1,5 +1,6 @@
 import type { BuildingPaletteOverrides, BuildingStyle } from "@jgengine/core/world/buildings";
 import type { BiomeFog, BiomeSky, TerrainColors } from "@jgengine/core/world/features";
+import { libraryFacade } from "../world/librarySurface";
 import { EXIT_Z, ZONE_A_END, ZONE_B_END } from "../run/constants";
 
 export type ZoneId = "canyons" | "flats" | "gantry";
@@ -13,13 +14,23 @@ export interface ZoneDef {
   wallColor: string;
   propIds: readonly string[];
   buildingStyle: BuildingStyle;
-  /** Facade colors for this zone's corridor walls — the per-zone read the minimap already promises. */
+  /** Shared-library material painting this zone's generated corridor facades and roofs. */
+  facadeMaterial: string;
+  /** Facade colours for this zone's corridor walls — the per-zone read the minimap already promises. */
   palette: BuildingPaletteOverrides;
   /** Ground palette for the zone's terrain band. */
   ground: TerrainColors;
   fog: BiomeFog;
   sky: BiomeSky;
 }
+
+/**
+ * A bay face is one `bayWidth` × `floorHeight` slot (about 1.9 m × 2.8 m at this game's footprint),
+ * so its repeat is that face over the material's own world tile. Roofs are one slab per building
+ * spanning the whole footprint, hence the coarser repeat.
+ */
+const WALL_REPEAT: [number, number] = [1.4, 2];
+const ROOF_REPEAT: [number, number] = [10, 7];
 
 export const ZONES: readonly ZoneDef[] = [
   {
@@ -31,10 +42,11 @@ export const ZONES: readonly ZoneDef[] = [
     wallColor: "#b7410e",
     propIds: ["prop_wreck_pile", "prop_tire_wall", "prop_stripped_car", "prop_dumpster"],
     buildingStyle: "ruin",
+    facadeMaterial: "metal/corrugated",
     palette: {
-      wall: "#5e3323",
-      corner: "#48291b",
-      roof: "#3a2117",
+      wall: libraryFacade("metal/corrugated", WALL_REPEAT, "#e0c2a6"),
+      corner: libraryFacade("metal/corrugated", WALL_REPEAT, "#b89a80"),
+      roof: libraryFacade("metal/corrugated", ROOF_REPEAT, "#96795f"),
       window: "#ffb066",
       storefront: "#241610",
       shutter: "#7a3a1e",
@@ -58,10 +70,11 @@ export const ZONES: readonly ZoneDef[] = [
     wallColor: "#8d99a6",
     propIds: ["prop_appliance_stack", "prop_scrap_heap", "prop_dumpster", "prop_stripped_car"],
     buildingStyle: "industrial",
+    facadeMaterial: "concrete/rough",
     palette: {
-      wall: "#5b636b",
-      corner: "#434a51",
-      roof: "#2f3439",
+      wall: libraryFacade("concrete/rough", WALL_REPEAT, "#d8dce0"),
+      corner: libraryFacade("concrete/rough", WALL_REPEAT, "#b2b8be"),
+      roof: libraryFacade("concrete/rough", ROOF_REPEAT, "#8f959b"),
       window: "#8fd8e8",
       storefront: "#2a3136",
       shutter: "#6b757e",
@@ -85,10 +98,11 @@ export const ZONES: readonly ZoneDef[] = [
     wallColor: "#f0c419",
     propIds: ["prop_container_stack", "prop_crane_leg", "prop_scrap_heap", "prop_dumpster"],
     buildingStyle: "industrial",
+    facadeMaterial: "metal/rust",
     palette: {
-      wall: "#4a453c",
-      corner: "#37332c",
-      roof: "#26231e",
+      wall: libraryFacade("metal/rust", WALL_REPEAT, "#e4d0be"),
+      corner: libraryFacade("metal/rust", WALL_REPEAT, "#c0a794"),
+      roof: libraryFacade("metal/rust", ROOF_REPEAT, "#9d8674"),
       window: "#ffe08a",
       storefront: "#1d1b17",
       shutter: "#f0c419",
