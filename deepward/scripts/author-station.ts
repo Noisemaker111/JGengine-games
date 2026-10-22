@@ -78,5 +78,73 @@ for(const [id,x,z,title,sub,turn] of [
  const result=api.handle({method:'add_marker',id,kind:'deepward-station-sign',x,y:2.5,z,rotationY:turn,label:title,meta:{place:id.includes('home')?'home':'vault',subtitle:sub,width:2.6}});
  if(!result.ok)throw Error(JSON.stringify(result));
 }
+// D0.3 content pass: one landmark per zone, depth off the rail route and wall dressing that
+// reads at eye height. Every part stays outside the walked centre of each room; the only new
+// solid pieces are wall-hugging benches and shelf bays.
+// Marrow workshop: a tool bay on the west wall and a service trunk overhead.
+for (const z of [15.4,16.9]) box('home','bench-unit',[-6.5,0.52,z],[1.1,1.04,1.3],enamel);
+box('home','bench-top',[-6.46,1.08,16.15],[1.25,0.09,2.95],steel,'steel');
+for (const z of [15.2,16.15,17.1]) box('home','pegboard-panel',[-6.86,2.02,z],[0.05,1.15,0.78],dark);
+for (const [z,h] of [[15.05,0.42],[15.5,0.6],[16.05,0.34],[16.6,0.52],[17.02,0.44]] as const) box('home','tool-shadow',[-6.78,1.86,z],[0.05,h,0.07],yellow);
+box('home','bench-lamp',[-6.4,2.72,16.15],[0.34,0.05,1.9],'#ffe4ae','lamp');
+box('home','trunk-duct',[3.5,3.5,13.2],[1.15,0.5,10.6],steel,'steel');
+box('home','trunk-hanger',[3.5,3.2,13.2],[0.5,0.12,10.6],dark);
+box('home','walk-line-w',[-0.92,0.014,11.4],[0.1,0.028,5.4],yellow,'lamp');
+box('home','walk-line-e',[0.92,0.014,11.4],[0.1,0.028,5.4],yellow,'lamp');
+// Rail receiving: pallet banks inside the two back corners and a mirrored gantry over the desk.
+for (const [x,z,n] of [[6.6,-7.4,3],[7.1,-6.1,2],[-7.3,-7.5,3]] as const)
+ for (let i=0;i<n;i++) box('vault','pallet-stack',[x,0.3+i*0.58,z],[1.15,0.56,1.15],i%2===0?enamel:dark);
+box('vault','receiving-gantry-east',[4.9,3.15,-5],[4.4,0.3,3.6],red);
+for(const x of [2.85,6.95])box('vault','receiving-gantry-leg',[x,1.55,-6.5],[0.22,3.1,0.26],red);
+box('vault','hoist-track-east',[4.9,2.93,-5],[0.09,0.11,3.3],steel,'steel');
+box('vault','hoist-head-east',[4.9,2.52,-5.9],[0.5,0.48,0.4],yellow);
+box('vault','gate-stile-w',[-2.5,1.55,2.6],[0.24,3.1,0.3],yellow);
+box('vault','gate-stile-e',[2.5,1.55,2.6],[0.24,3.1,0.3],yellow);
+box('vault','gate-head',[0,3.16,2.6],[5.25,0.3,0.3],dark);
+// Shift stores: shelving bays against the west wall with bin lips, and a crate stack in the far corner.
+for (const z of [-20.4,-18.1,-15.8,-13.5]) {
+ box('vault','store-shelf',[-7.5,1.1,z],[0.9,2.2,1.95],enamel);
+ for (const y of [0.42,0.96,1.5]) box('vault','shelf-lip',[-6.98,y,z],[0.12,0.06,1.98],steel,'steel');
+ box('vault','bin-card',[-6.99,1.62,z-0.72],[0.06,0.24,0.42],dark);
+}
+for(let i=0;i<3;i++)box('vault','crate-stack',[-7.15,0.32+i*0.62,-21.2],[1.05,0.6,1.0],i%2===0?dark:enamel);
+box('vault','cage-light-stores',[-5,3.62,-17.2],[0.55,0.05,7.6],'#a4ded2','lamp');
+box('vault','cage-housing-stores',[-5,3.71,-17.2],[0.75,0.12,7.9],dark);
+// Pump gallery: an east manifold with gauges and transverse ducts overhead.
+drum('vault','manifold-header',[7.4,1.5,-28],0.17,2.7,steel);
+for(const z of [-30.4,-28,-25.6]){
+ drum('vault','manifold-branch',[6.6,2.35,z],0.1,1.6,yellow,0,Math.PI/2);
+ drum('vault','gauge-face',[6.05,1.62,z],0.2,0.08,enamel,Math.PI/2,0);
+}
+for(const z of [-30.6,-25.4]) box('vault','hall-duct',[0,3.5,z],[15,0.52,0.82],steel,'steel');
+// Printhouse: a press flywheel, a paper-roll bank and a caged vent.
+drum('vault','press-flywheel',[-4.8,2.05,-41.4],1.3,0.44,steel,Math.PI/2,0);
+drum('vault','press-hub',[-4.8,2.05,-41.4],0.34,0.62,yellow,Math.PI/2,0);
+box('vault','press-backbone',[-4.8,1.9,-42.35],[2.9,3.7,0.34],dark);
+for(let i=0;i<3;i++)drum('vault','paper-roll',[7.0,0.72+i*0.66,-35.6+i*0.4],0.62,1.9,enamel,Math.PI/2);
+for(const [x,z] of [[3.2,-41.7],[6.8,-41.7],[3.2,-35.3],[6.8,-35.3]])box('vault','vent-post',[x,1.4,z],[0.16,2.8,0.16],red);
+box('vault','vent-header',[5,2.76,-41.7],[3.9,0.16,0.16],red);
+// Return spine: amber walk edges, a low conduit run and junction boxes down the whole return.
+for(let z=-4;z>=-42;z-=4){
+ box('vault','spine-edge-w',[-2.55,0.014,z-1.5],[0.09,0.028,2.6],yellow,'lamp');
+ box('vault','spine-edge-e',[2.55,0.014,z-1.5],[0.09,0.028,2.6],yellow,'lamp');
+}
+for(const x of [-2.82,2.82])drum('vault','spine-conduit',[x,1.18,-23.5],0.07,37,'#9e513e',Math.PI/2);
+for(let z=-6;z>=-42;z-=6){
+ box('vault','junction-box',[-2.86,1.62,z],[0.14,0.42,0.34],dark);
+ box('vault','junction-box',[2.86,1.62,z],[0.14,0.42,0.34],dark);
+}
+// Wall wayfinding: room identity read at eye height from each doorway and from the return walk.
+for(const [id,x,z,title,sub,turn] of [
+ ['station-route-workshop',-6.85,15.2,'WORKSHOP 06','TOOL BAY / STASH WEST',Math.PI/2],
+ ['station-route-stores-wall',-7.85,-17,'SHIFT STORES','SEALS + CELLS / SHELF 02',Math.PI/2],
+ ['station-route-pumps-wall',-7.85,-28,'PRESSURE 3.4','DO NOT ISOLATE THE HEADER',Math.PI/2],
+ ['station-route-press-wall',-7.85,-37.5,'PATTERN 406','FITTER / HALLOWAY PRESS',Math.PI/2],
+ ['station-route-return-mid',0,-21.5,'RETURN RAIL','21 M / MARROW',Math.PI],
+] as const) {
+ const result=api.handle({method:'add_marker',id,kind:'deepward-station-sign',x,y:2.5,z,rotationY:turn,label:title,meta:{place:id.includes('home')||id.includes('workshop')?'home':'vault',subtitle:sub,width:2.4}});
+ if(!result.ok)throw Error(JSON.stringify(result));
+}
+
 writeFileSync(path, session.exportJson(true)+'\n');
 console.log(api.handle({method:'scene_summary'}));dispose();
