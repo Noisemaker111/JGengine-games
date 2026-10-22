@@ -23,18 +23,15 @@ Every interaction, feature, bugfix and visual pass should improve or adopt JGeng
 
 Repeated generic glue is framework friction or adoption debt, even if the game works. Track any necessary fallback with its upstream issue and removal path; do not count it as a completed framework improvement. World placement, terrain, paths, zones and foliage are editor-authored data consumed through shared SDK primitives, not hardcoded runtime coordinate arrays.
 
+**Size signal.** A game module that owns a state machine, reducer, scheduler, resource pool, pathfinder, damage or status table, spawn director or progression curve is an engine system in the wrong repo. If it would pass roughly 50 lines, or a second game would want it, file the engine seam before writing it.
+
+**Escalate with a shape, not a complaint.** File the engine issue naming the seam (`packages/<pkg>/src/<file>:<line>`), the API needed and the two games that would adopt it; track it in [epic #2038](https://github.com/Noisemaker111/jgengine/issues/2038) under the matching system: missions, progression and economy, AI director, vehicles, items and loot, agents, damage and status, abilities, run and session loop, wanted and heat, shell UI. Until it lands, a game works only on its adoption side.
+
+**Say which it is in the PR**, using the template's required line: `Engine seam: packages/shell/src/render/x.ts (adopts #1234)` or `Engine seam: none - authored content only`. `bun run check:framework` (also run by CI) fails on a new engine-shaped module inside a game; pass `-- --allow "<reason>"` only when you can name why it cannot live upstream.
+
+Precedents: Harbor's 6 -> 60 FPS and Odd Orbit's missing-material fallback were each corrected once in the engine and every game gained; Brightway's flat turf was patched inside the game and had to be paid for twice.
+
 Engine contributors also follow [JGengine's governance](https://github.com/Noisemaker111/jgengine/blob/beta/AGENTS.md#game-changes-improve-the-framework). Its package skills describe discovery and exact APIs; inspect installed declarations rather than assuming unpublished capabilities exist.
-
-## Framework before game code
-
-Every task in a game starts with one question: **what in the engine let this game get it wrong, and would a second game hit the same thing?**
-
-- **If another game would need it, it is an engine change.** Fix it in `Noisemaker111/jgengine` (`packages/*`), publish a release, and the change *here* is an adoption: a config value, a scene document, a setting or a named toggle. One game proves it, a second adopts it, every other game gets it for free. A game is never the owner of a mechanic.
-- **The size signal.** A module in a game directory that contains a state machine, reducer, scheduler, resource pool, pathfinder, damage/status table, spawn director or progression curve is an engine system being written in the wrong repo. If it would pass ~50 lines, or a second game would want it, stop and file the engine seam first.
-- **A game symptom is an engine gap.** When a game looks or feels wrong, find the seam that allowed it and fix the seam, then adopt. Never leave the engine able to produce the same bad thing in another game.
-- **Escalate with a shape, not a complaint.** File an engine issue naming the seam (`packages/<pkg>/src/<file>:<line>`), the API you need, and the two games that would adopt it; add it to [epic #2038](https://github.com/Noisemaker111/jgengine/issues/2038) under the matching system: missions, progression/economy, AI director, vehicles, items/loot, agents, damage/status, abilities, run loop, wanted/heat, shell UI. Until it lands, work only on the adoption side of the game.
-- **Precedents.** Harbor's 6 -> 60 FPS and Odd Orbit's missing-material fallback were each fixed once in the engine, and every game gained. Brightway's flat turf was patched inside the game and had to be paid for again.
-- **Every PR states which one it is:** `Engine seam: packages/shell/src/render/x.ts (adopts #1234)` or `Engine seam: none - authored content only`. `bun run check:framework` fails on a new engine-shaped module inside a game; pass `-- --allow "<reason>"` only when you can name why it cannot live upstream.
 
 ## Agent workflow
 
