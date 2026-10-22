@@ -186,6 +186,8 @@ function despawnGuest(ctx: GameContext, guest: GuestState): void {
   releaseOccupant(guest);
   const weight = 0.06;
   session.happinessAvg = session.happinessAvg * (1 - weight) + guest.happy * weight;
+  // Drop the departing guest from the shared entity selection so the HUD never points at a gone visitor.
+  if (ctx.scene.entity.selection.has(guest.id)) ctx.scene.entity.selection.remove(guest.id);
   session.guests.delete(guest.id);
   ctx.scene.entity.despawn(guest.id);
 }
