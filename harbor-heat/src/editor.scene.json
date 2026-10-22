@@ -3655,6 +3655,546 @@
       "meta": {
         "catalogId": "obj_palm"
       }
+    },
+    {
+      "id": "xi_av_w_st_n",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": -240
+      },
+      "label": "av_w x st_n",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 0,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_w_st_nm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": -120
+      },
+      "label": "av_w x st_nm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 8,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_w_st_m",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": 0
+      },
+      "label": "av_w x st_m",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 16,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_w_st_sm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": 120
+      },
+      "label": "av_w x st_sm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 24,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_w_st_s",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -180,
+        "y": 0,
+        "z": 240
+      },
+      "label": "av_w x st_s",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 32,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_cw_st_n",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": -240
+      },
+      "label": "av_cw x st_n",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 0,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_cw_st_nm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": -120
+      },
+      "label": "av_cw x st_nm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 8,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_cw_st_m",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": 0
+      },
+      "label": "av_cw x st_m",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 16,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_cw_st_sm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": 120
+      },
+      "label": "av_cw x st_sm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 24,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_cw_st_s",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": 240
+      },
+      "label": "av_cw x st_s",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 32,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_ce_st_n",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -240
+      },
+      "label": "av_ce x st_n",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 0,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_ce_st_nm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -120
+      },
+      "label": "av_ce x st_nm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 8,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_ce_st_m",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": 0
+      },
+      "label": "av_ce x st_m",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 16,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_ce_st_sm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": 120
+      },
+      "label": "av_ce x st_sm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 24,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_ce_st_s",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": 240
+      },
+      "label": "av_ce x st_s",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 32,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_e_st_n",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": -240
+      },
+      "label": "av_e x st_n",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 0,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_e_st_nm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": -120
+      },
+      "label": "av_e x st_nm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 8,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_e_st_m",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": 0
+      },
+      "label": "av_e x st_m",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 16,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_e_st_sm",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": 120
+      },
+      "label": "av_e x st_sm",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 24,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "xi_av_e_st_s",
+      "kind": "traffic_intersection",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": 240
+      },
+      "label": "av_e x st_s",
+      "meta": {
+        "rightOfWay": "signal",
+        "offsetSeconds": 32,
+        "signal": {
+          "greenSeconds": 12,
+          "yellowSeconds": 3,
+          "allRedSeconds": 1
+        }
+      }
+    },
+    {
+      "id": "park_av_w_nb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -186.39999999999998,
+        "y": 0,
+        "z": -192
+      },
+      "label": "av_w northbound kerb"
+    },
+    {
+      "id": "park_av_w_sb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -173.60000000000002,
+        "y": 0,
+        "z": -153.60000000000002
+      },
+      "label": "av_w southbound kerb"
+    },
+    {
+      "id": "park_av_w_nb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -186.39999999999998,
+        "y": 0,
+        "z": 48
+      },
+      "label": "av_w northbound kerb"
+    },
+    {
+      "id": "park_av_w_sb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -173.60000000000002,
+        "y": 0,
+        "z": 86.39999999999999
+      },
+      "label": "av_w southbound kerb"
+    },
+    {
+      "id": "park_av_cw_nb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -66.4,
+        "y": 0,
+        "z": -192
+      },
+      "label": "av_cw northbound kerb"
+    },
+    {
+      "id": "park_av_cw_sb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -53.599999999999994,
+        "y": 0,
+        "z": -153.60000000000002
+      },
+      "label": "av_cw southbound kerb"
+    },
+    {
+      "id": "park_av_cw_nb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -66.4,
+        "y": 0,
+        "z": 48
+      },
+      "label": "av_cw northbound kerb"
+    },
+    {
+      "id": "park_av_cw_sb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": -53.599999999999994,
+        "y": 0,
+        "z": 86.39999999999999
+      },
+      "label": "av_cw southbound kerb"
+    },
+    {
+      "id": "park_av_ce_nb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 53.599999999999994,
+        "y": 0,
+        "z": -192
+      },
+      "label": "av_ce northbound kerb"
+    },
+    {
+      "id": "park_av_ce_sb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 66.4,
+        "y": 0,
+        "z": -153.60000000000002
+      },
+      "label": "av_ce southbound kerb"
+    },
+    {
+      "id": "park_av_ce_nb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 53.599999999999994,
+        "y": 0,
+        "z": 48
+      },
+      "label": "av_ce northbound kerb"
+    },
+    {
+      "id": "park_av_ce_sb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 66.4,
+        "y": 0,
+        "z": 86.39999999999999
+      },
+      "label": "av_ce southbound kerb"
+    },
+    {
+      "id": "park_av_e_nb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 173.60000000000002,
+        "y": 0,
+        "z": -192
+      },
+      "label": "av_e northbound kerb"
+    },
+    {
+      "id": "park_av_e_sb_1",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 186.39999999999998,
+        "y": 0,
+        "z": -153.60000000000002
+      },
+      "label": "av_e southbound kerb"
+    },
+    {
+      "id": "park_av_e_nb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 173.60000000000002,
+        "y": 0,
+        "z": 48
+      },
+      "label": "av_e northbound kerb"
+    },
+    {
+      "id": "park_av_e_sb_3",
+      "kind": "traffic_parking",
+      "position": {
+        "x": 186.39999999999998,
+        "y": 0,
+        "z": 86.39999999999999
+      },
+      "label": "av_e southbound kerb"
     }
   ],
   "volumes": [
@@ -4011,7 +4551,11 @@
           "z": 280
         }
       ],
-      "label": "Avenue W"
+      "label": "Avenue W",
+      "width": 14,
+      "meta": {
+        "level": "avenue"
+      }
     },
     {
       "id": "road-1",
@@ -4028,7 +4572,11 @@
           "z": 280
         }
       ],
-      "label": "Avenue C-W"
+      "label": "Avenue C-W",
+      "width": 14,
+      "meta": {
+        "level": "avenue"
+      }
     },
     {
       "id": "road-2",
@@ -4045,7 +4593,11 @@
           "z": 280
         }
       ],
-      "label": "Avenue C-E"
+      "label": "Avenue C-E",
+      "width": 14,
+      "meta": {
+        "level": "avenue"
+      }
     },
     {
       "id": "road-3",
@@ -4062,7 +4614,11 @@
           "z": 280
         }
       ],
-      "label": "Avenue E"
+      "label": "Avenue E",
+      "width": 14,
+      "meta": {
+        "level": "avenue"
+      }
     },
     {
       "id": "road-4",
@@ -4079,7 +4635,11 @@
           "z": -240
         }
       ],
-      "label": "Street N"
+      "label": "Street N",
+      "width": 9,
+      "meta": {
+        "level": "street"
+      }
     },
     {
       "id": "road-5",
@@ -4096,7 +4656,11 @@
           "z": -120
         }
       ],
-      "label": "Street NC"
+      "label": "Street NC",
+      "width": 9,
+      "meta": {
+        "level": "street"
+      }
     },
     {
       "id": "road-6",
@@ -4113,7 +4677,11 @@
           "z": 0
         }
       ],
-      "label": "Street Mid"
+      "label": "Street Mid",
+      "width": 9,
+      "meta": {
+        "level": "street"
+      }
     },
     {
       "id": "road-7",
@@ -4130,7 +4698,11 @@
           "z": 120
         }
       ],
-      "label": "Street SC"
+      "label": "Street SC",
+      "width": 9,
+      "meta": {
+        "level": "street"
+      }
     },
     {
       "id": "road-8",
@@ -4147,7 +4719,11 @@
           "z": 240
         }
       ],
-      "label": "Street S"
+      "label": "Street S",
+      "width": 9,
+      "meta": {
+        "level": "street"
+      }
     },
     {
       "id": "boardwalk",
@@ -4415,10 +4991,2766 @@
         }
       ],
       "label": "Coastline Circuit"
+    },
+    {
+      "id": "tl_av_w_nb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_w_nb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_nb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -181.8,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_nb_out_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_w_nb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -185.2,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_nb_in_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_w_sb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": -178.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_w_sb_out_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_w_sb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": -174.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_w_sb_in_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -61.8,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_nb_out_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_cw_nb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": -65.2,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_nb_in_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": -58.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_cw_sb_out_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_cw_sb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": -54.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_cw_sb_in_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_nb_out_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_ce_nb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 54.8,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_nb_in_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": 61.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_ce_sb_out_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_ce_sb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": 65.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_ce_sb_in_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": -280
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_0",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": -280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_0",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": -240
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": -240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_1",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": -120
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": -120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_2",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_3",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 0
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_3",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 120
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_4",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 120
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_4",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_nb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 178.2,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_nb_out_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_e_nb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 240
+        },
+        {
+          "x": 174.8,
+          "y": 0,
+          "z": 280
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_nb_in_5",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_av_e_sb_in_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": 181.8,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "right": "tl_av_e_sb_out_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_av_e_sb_out_5",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 280
+        },
+        {
+          "x": 185.2,
+          "y": 0,
+          "z": 240
+        }
+      ],
+      "meta": {
+        "level": "avenue",
+        "left": "tl_av_e_sb_in_5",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_n_eb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -180,
+          "y": 0,
+          "z": -237.8
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": -237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_n_wb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": -242.2
+        },
+        {
+          "x": -180,
+          "y": 0,
+          "z": -242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_n_eb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": -237.8
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": -237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_n_wb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": -242.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": -242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_n_eb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": -237.8
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "z": -237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_n_wb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 180,
+          "y": 0,
+          "z": -242.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": -242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_nm_eb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -180,
+          "y": 0,
+          "z": -117.8
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": -117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_nm_wb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": -122.2
+        },
+        {
+          "x": -180,
+          "y": 0,
+          "z": -122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_nm_eb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": -117.8
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": -117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_nm_wb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": -122.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": -122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_nm_eb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": -117.8
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "z": -117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_nm_wb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 180,
+          "y": 0,
+          "z": -122.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": -122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_m_eb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -180,
+          "y": 0,
+          "z": 2.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": 2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_m_wb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": -2.2
+        },
+        {
+          "x": -180,
+          "y": 0,
+          "z": -2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_m_eb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": 2.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": 2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_m_wb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": -2.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": -2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_m_eb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": 2.2
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "z": 2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_m_wb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 180,
+          "y": 0,
+          "z": -2.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": -2.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_sm_eb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -180,
+          "y": 0,
+          "z": 122.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": 122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_sm_wb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": 117.8
+        },
+        {
+          "x": -180,
+          "y": 0,
+          "z": 117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_sm_eb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": 122.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": 122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_sm_wb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": 117.8
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": 117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_sm_eb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": 122.2
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "z": 122.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_sm_wb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 180,
+          "y": 0,
+          "z": 117.8
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": 117.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_s_eb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -180,
+          "y": 0,
+          "z": 242.2
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": 242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_s_wb_0",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": 237.8
+        },
+        {
+          "x": -180,
+          "y": 0,
+          "z": 237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_s_eb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": -60,
+          "y": 0,
+          "z": 242.2
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": 242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_s_wb_1",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": 237.8
+        },
+        {
+          "x": -60,
+          "y": 0,
+          "z": 237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": false
+      }
+    },
+    {
+      "id": "tl_st_s_eb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 60,
+          "y": 0,
+          "z": 242.2
+        },
+        {
+          "x": 180,
+          "y": 0,
+          "z": 242.2
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": false,
+        "exit": true
+      }
+    },
+    {
+      "id": "tl_st_s_wb_2",
+      "kind": "traffic_lane",
+      "points": [
+        {
+          "x": 180,
+          "y": 0,
+          "z": 237.8
+        },
+        {
+          "x": 60,
+          "y": 0,
+          "z": 237.8
+        }
+      ],
+      "meta": {
+        "level": "street",
+        "entry": true,
+        "exit": false
+      }
     }
   ],
   "annotations": [],
   "prefabs": [],
   "collections": [],
-  "catalogs": []
+  "catalogs": [],
+  "environment": {
+    "preset": "day",
+    "timeOfDay": true,
+    "zenithColor": "#1f6fc4",
+    "horizonColor": "#eadcc4",
+    "sunAzimuth": 104.5,
+    "sunElevation": 22.6,
+    "grading": {
+      "autoExposure": {
+        "min": 0.85,
+        "max": 2.1
+      }
+    }
+  }
 }

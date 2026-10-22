@@ -13,7 +13,19 @@ describe("harbor-heat placeable marker kinds", () => {
       expect(definition?.addCategory).toBe("Harbor Heat");
     }
     const menuMarkers = listSceneKinds("marker").filter((d) => d.addCategory === "Harbor Heat");
-    expect(menuMarkers.map((d) => d.kind).sort()).toEqual(["bounty", "stash"]);
+    expect(menuMarkers.map((d) => d.kind).sort()).toEqual([
+      "bounty",
+      "stash",
+      "traffic_intersection",
+      "traffic_parking",
+    ]);
+  });
+
+  test("a crossing marker exposes the right-of-way knobs the lane graph reads", () => {
+    const definition = getSceneKind("traffic_intersection");
+    expect(definition?.target).toBe("marker");
+    expect(definition?.schema.fields.find((f) => f.key === "rightOfWay")?.type).toBe("select");
+    expect(getSceneKind("traffic_parking")?.target).toBe("marker");
   });
 
   test("a placed stash carries an editable payout default", () => {

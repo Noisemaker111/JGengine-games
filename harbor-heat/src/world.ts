@@ -1,4 +1,5 @@
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
+import { skyFromDocument } from "@jgengine/core/editor/environment";
 import {
   environment,
   ocean,
@@ -9,13 +10,17 @@ import {
   type EnvironmentWorldFeature,
   type TerrainMaterialRegion,
 } from "@jgengine/core/world/features";
+import { editorLayers } from "./editorLayers";
 import { GROUND_MAPS } from "./game/assets";
 import { DISTRICTS, ROADS, SHORE_X, WORLD_D, WORLD_W } from "./game/world/districts";
+
+/** The sky the scene document authors; the day/night cycle runs on it. */
+const authoredSky = skyFromDocument(editorLayers);
 
 export const streets = ROADS.map((segment) =>
   road({
     path: [segment.from, segment.to],
-    width: 9,
+    width: segment.width,
     color: "#33363f",
     markingColor: "#f6cf4a",
     elevation: segment.from[0] === segment.to[0] ? 0.08 : 0.16,
@@ -124,20 +129,24 @@ export const world: EnvironmentWorldFeature = environment({
       material: { maps: GROUND_MAPS, repeat: 2.4, strength: 0.5, tint: 0.18 },
     },
   }),
-  // `zenithColor`/`horizonColor` are the NOON keyframe of the day-night curve, not a constant: at
-  // any other `time.start` they are cross-faded with the engine's dawn/dusk presets, which is why an
-  // authored tropical blue used to render as a pink haze. `game.config.ts` starts the clock at
-  // exactly midday so these are the colours that actually reach the dome.
+  // The authored environment block owns the day/night cycle: `zenithColor`/`horizonColor` are its
+  // NOON keyframe, and the cycle cross-fades them through the engine's dawn/dusk/night presets — which
+  // is why an authored tropical blue used to render as a pink haze when the clock started elsewhere.
+  // `game.config.ts` starts the clock at exactly midday so these are the colours that reach the dome,
+  // and `sunAzimuth`/`sunElevation` put the dome's sun where the authored key light already stands.
+  // Fog stays on the game's `backdrop` (its colour is the cycle's noon fog, its range the sky's).
   sky: sky({
-    preset: "day",
-    timeOfDay: true,
-    zenithColor: "#1f6fc4",
-    horizonColor: "#eadcc4",
     hazeStrength: 0.18,
     sunGlowStrength: 0.9,
     gradientExponent: 0.34,
     cloudiness: 0.3,
     radius: 620,
+    ...(authoredSky ?? {
+      preset: "day",
+      timeOfDay: true,
+      zenithColor: "#1f6fc4",
+      horizonColor: "#eadcc4",
+    }),
   }),
   // A squall far out over the Gulf: atmosphere on the horizon the boulevard looks into, well clear
   // of the sun-drenched city itself.

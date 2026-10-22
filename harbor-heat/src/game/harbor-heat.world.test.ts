@@ -39,11 +39,11 @@ describe("harbor-heat authored scene parity", () => {
     ]);
   });
 
-  test("nine street segments keep their order and endpoints", () => {
+  test("nine street segments keep their order, endpoints and authored class", () => {
     expect(ROADS).toHaveLength(9);
-    expect(ROADS[0]).toEqual({ from: [-180, -280], to: [-180, 280] });
-    expect(ROADS[4]).toEqual({ from: [-180, -240], to: [180, -240] });
-    expect(ROADS[8]).toEqual({ from: [-180, 240], to: [180, 240] });
+    expect(ROADS[0]).toEqual({ from: [-180, -280], to: [-180, 280], width: 14, level: "avenue" });
+    expect(ROADS[4]).toEqual({ from: [-180, -240], to: [180, -240], width: 9, level: "street" });
+    expect(ROADS[8]).toEqual({ from: [-180, 240], to: [180, 240], width: 9, level: "street" });
   });
 
   test("the eleven race checkpoints match the authored loop", () => {
@@ -191,9 +191,11 @@ describe("harbor-heat world", () => {
     }
   });
 
-  test("nine street ribbons ride the road primitive", () => {
+  test("nine street ribbons ride the road primitive at their authored widths", () => {
     expect(summary.counts.roads).toBe(9);
-    expect(summary.roads.every((r) => r.width === 9)).toBe(true);
+    // Avenues carry four lanes (two each way), side streets two; both widths are authored in the doc.
+    expect(summary.roads.filter((r) => r.width === 14)).toHaveLength(4);
+    expect(summary.roads.filter((r) => r.width === 9)).toHaveLength(5);
     expect(summary.roads.reduce((sum, r) => sum + r.length, 0)).toBeGreaterThan(4000);
   });
 
