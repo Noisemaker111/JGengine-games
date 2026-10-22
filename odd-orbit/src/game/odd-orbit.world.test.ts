@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { findLibraryMaterial } from "@jgengine/assets/catalogs/materialLibrary";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
 import { createGameContext, type GameContext } from "@jgengine/core/runtime/gameContext";
 import { editableTerrainFromSnapshot } from "@jgengine/core/world/terraform";
@@ -28,6 +29,20 @@ describe("odd-orbit world", () => {
     const summary = summarizeEnvironment(world);
     expect(summary.isEmpty).toBe(false);
     expect(summary.terrain).toBeDefined();
+  });
+
+  test("habitat ground is a named shared-library scan, not a flat colour", () => {
+    if (world.kind !== "environment") throw new Error("expected environment world");
+    const material = world.terrain?.detail === false ? undefined : world.terrain?.detail?.material;
+    expect(material).toBeDefined();
+    const match = /^\/materials\/([a-z0-9-]+)\/color\.jpg$/.exec(material?.maps.color ?? "");
+    expect(match).not.toBeNull();
+    const entry = findLibraryMaterial("ground/gravel");
+    expect(entry).not.toBeNull();
+    expect(match![1]).toBe(entry?.source);
+    expect(material?.maps.normal).toBeDefined();
+    expect(material?.repeat).toBeGreaterThan(0);
+    expect(material?.strength).toBeGreaterThan(0);
   });
 
   test("authored home and garden surfaces reach the world without moving starter content or ground", () => {
