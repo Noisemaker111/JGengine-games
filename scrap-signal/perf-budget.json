@@ -1,0 +1,7 @@
+{
+  "draws": 820,
+  "triangles": 1992600,
+  "nodes": 8400,
+  "programsLinked": 3,
+  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 745 draws / 1,811,446 triangles / 7,631 nodes. These limits carry headroom over that measurement. 3 programs link after warmup as late materials appear, so that is the measured ceiling here. Re-measure this game and update this file in the same PR as any content change."
+}
