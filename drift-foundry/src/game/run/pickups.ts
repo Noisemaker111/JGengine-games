@@ -1,4 +1,3 @@
-import type { InstalledPart } from "@jgengine/core/item/modularItem";
 import type { PartIconId, DriftFoundryPartDef } from "../parts/catalog";
 import { PARTS, partById } from "../parts/catalog";
 import { partInSlotId, swapPart } from "../parts/build";
@@ -11,18 +10,18 @@ export interface PickupDef {
 
 export type PickupGrant = { status: "rejected" } | {
   status: "accepted";
-  installed: readonly InstalledPart[];
+  installed: readonly DriftFoundryPartDef[];
   part: DriftFoundryPartDef;
   ejected: DriftFoundryPartDef | null;
 };
 
-/** Consume only after the real modular install accepts the requested part. */
-export function grantPickup(pickup: PickupDef, installed: readonly InstalledPart[], collected: ReadonlySet<string>): PickupGrant {
+/** Consume only after the swap accepts the requested part into its slot. */
+export function grantPickup(pickup: PickupDef, installed: readonly DriftFoundryPartDef[], collected: ReadonlySet<string>): PickupGrant {
   if (collected.has(pickup.id)) return { status: "rejected" };
   const part = partById(pickup.partId);
   if (part === null) return { status: "rejected" };
   const swapped = swapPart(installed, part);
-  if (partInSlotId(swapped.installed, part.category) !== part.id) return { status: "rejected" };
+  if (partInSlotId(swapped.installed, part.slot) !== part.id) return { status: "rejected" };
   return { status: "accepted", ...swapped, part };
 }
 

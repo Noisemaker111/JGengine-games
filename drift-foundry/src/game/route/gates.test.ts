@@ -1,19 +1,14 @@
 import { describe, expect, test } from "bun:test";
 
-import type { InstalledPart } from "@jgengine/core/item/modularItem";
-
 import { tuningFrom } from "../parts/build";
 import { partById } from "../parts/catalog";
 import { blockedZ, firstUnsatisfiedGate, gateSatisfied, ROUTE_GATES } from "./gates";
 import { CORRIDOR_LANE_SPAN, EXIT_Z } from "../run/constants";
 
 const NO_PARTS = tuningFrom([]);
-const PLOW_ONLY = tuningFrom([{ slotId: "front", part: partById("plow_blade")! }]);
-const JUMP_ONLY = tuningFrom([{ slotId: "wheels", part: partById("coil_springs")! }]);
-const FULLY_KITTED: readonly InstalledPart[] = [
-  { slotId: "front", part: partById("plow_blade")! },
-  { slotId: "wheels", part: partById("coil_springs")! },
-];
+const PLOW_ONLY = tuningFrom([partById("plow_blade")!]);
+const JUMP_ONLY = tuningFrom([partById("coil_springs")!]);
+const FULLY_KITTED = [partById("plow_blade")!, partById("coil_springs")!];
 const PLOW_AND_JUMP = tuningFrom(FULLY_KITTED);
 
 /** How far a straight run down the centerline gets before a barricade clamps it. */

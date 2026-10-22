@@ -1,4 +1,6 @@
 export const CORRIDOR_HALF_WIDTH = 20;
+/** Paved haul strip inside the corridor; beyond it the kart is on the dirt shoulders. */
+export const HAUL_ROAD_HALF_WIDTH = 7.5;
 export const MID_LANE_HALF_WIDTH = 9;
 export const LEFT_LANE_X: readonly [number, number] = [-18, -10];
 export const RIGHT_LANE_X: readonly [number, number] = [10, 18];

@@ -1,12 +1,15 @@
 import { createGameFeed } from "@jgengine/core/game/feed";
 import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
-import type { InstalledPart } from "@jgengine/core/item/modularItem";
+import { damagedAxis, type VehicleDamageEffectResolved, type VehicleDamageZoneState } from "@jgengine/core/physics/vehicleDamage";
 import { defineStore } from "@jgengine/core/store/defineStore";
 
 import { activeSurge, compactorGap, compactorZAt, type CompactorSurge } from "../compactor/schedule";
 import { resolveCrusherContact } from "../compactor/contact";
 import { partInSlotId, tuningFrom, type KartTuning } from "../parts/build";
-import { partById, PART_SLOTS, type PartSlotId, type DriftFoundryPartDef } from "../parts/catalog";
+import type { DriftFoundryPartDef } from "../parts/catalog";
+import { PART_SLOTS, partById, type PartSlotId } from "../parts/catalog";
+import { createKartDamage, impactImpulse, noseHitPoint } from "../vehicle/damage";
+import { surfaceAt, type SurfaceSample } from "../vehicle/surface";
 import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
 import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
@@ -49,6 +52,10 @@ export interface SessionSnapshot {
   compactorSurge: CompactorSurge | null;
   installed: Readonly<Record<PartSlotId, DriftFoundryPartDef | null>>;
   tuning: KartTuning;
+  /** Ground under the kart: which yard, and how much grip it is giving. */
+  surface: SurfaceSample;
+  /** Front-corner damage, one entry per authored zone - a bent nose reads here and in `tuning.feel`. */
+  damage: readonly VehicleDamageZoneState[];
   ticker: readonly RadioLine[];
   nearMissCount: number;
   closestGap: number;
@@ -88,7 +95,7 @@ export function createRunSession(
   let personalBest: PersonalBest = "unchanged";
   let parkedRun = readParkedRun(storage);
   let runTime = 0;
-  let installed: readonly InstalledPart[] = [];
+  let installed: readonly DriftFoundryPartDef[] = [];
   let collected = new Set<string>();
   let gateAnnounced = new Set<string>();
   let announcedSurge: string | null = null;
@@ -101,11 +108,27 @@ export function createRunSession(
   let radioCounter = 0;
   let outcome: RunOutcome | null = null;
 
+  // Handling is composed from the installed parts and the damage baked into the body, then handed to
+  // the sim as one object. The controller retunes by reference, so an installed part or a bent nose
+  // changes the numbers without the kart losing its momentum.
+  const damage = createKartDamage();
+  let damageEffect: VehicleDamageEffectResolved = damage.effect();
+  let tuning: KartTuning = tuningFrom(installed);
+  /** One barricade hit per approach: pinned against a gate must not grind damage tick after tick. */
+  let gateImpactArmed = true;
+
+  function rebuildTuning(): void {
+    tuning = tuningFrom(installed, damage.total() > 0 ? damageEffect : undefined);
+  }
+
   const vehicle: VehicleController = createVehicleController({ position: SPAWN_POSITION, heading: SPAWN_HEADING });
   let pose: VehiclePose = {
     position: SPAWN_POSITION,
     heading: SPAWN_HEADING,
     speedKmh: 0,
+    slip: 0,
+    surface: 1,
+    loadGrip: 1,
     airborne: false,
     blockedByGate: false,
   };
@@ -133,20 +156,20 @@ export function createRunSession(
     if (found === null) return;
     const incoming = partById(found.partId);
     // Preserve safe route-capability lessons; engine/frame swaps are commitments.
-    if (incoming !== null && (incoming.category === "engine" || incoming.category === "frame") && partInSlotId(installed, incoming.category) !== null && !consent) return;
+    if (incoming !== null && (incoming.slot === "engine" || incoming.slot === "frame") && partInSlotId(installed, incoming.slot) !== null && !consent) return;
     const grant = grantPickup(found, installed, collected);
     if (grant.status !== "accepted") return;
     const { part, ejected } = grant;
     installed = grant.installed;
+    rebuildTuning();
     collected.add(found.id);
     notify(part.radioLine, "success");
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
-    if (part.stats.armor > 0) armorSaveArmed = true;
+    if ((part.grants?.armor ?? 0) > 0) armorSaveArmed = true;
   }
 
   function announceGates(): void {
-    const tuning = tuningFrom(installed);
     for (const gate of ROUTE_GATES) {
       if (gateAnnounced.has(gate.id)) continue;
       if (!inLane(pose.position[0], gate.laneX)) continue;
@@ -173,15 +196,19 @@ export function createRunSession(
     radioFeed.hydrate({});
     outcome = null;
     personalBest = "unchanged";
+    damage.reset();
+    damageEffect = damage.effect();
+    rebuildTuning();
+    gateImpactArmed = true;
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
-    pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, airborne: false, blockedByGate: false };
+    pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
   }
 
   reset();
 
   function parkRun(): void {
     if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
-    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.part.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
+    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
     if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; notify("PARKED RUN SAVED — CONTINUE FROM THE PIT", "success"); }
     else notify("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN", "warn");
   }
@@ -213,7 +240,9 @@ export function createRunSession(
         compactorGap: compactorGap(pose.position[2], compactorZAt(runTime)),
         compactorSurge: activeSurge(runTime),
         installed: installedBySlot(),
-        tuning: tuningFrom(installed),
+        tuning,
+        surface: surfaceAt(pose.position[0], pose.position[2]),
+        damage: damage.zones(),
         ticker: radioFeed.recent("radio").map((entry) => entry.data as RadioLine),
         nearMissCount,
         closestGap: Number.isFinite(closestGap) ? closestGap : 0,
@@ -238,7 +267,11 @@ export function createRunSession(
           wasNear = checkpoint.wasNear;
           announcedSurge = checkpoint.announcedSurge;
           vehicle.resetTo(checkpoint.position, checkpoint.heading);
-          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, airborne: false, blockedByGate: false };
+          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
+          // A parked build is restored undamaged: the checkpoint stores parts, not dents.
+          damage.reset();
+          damageEffect = damage.effect();
+          rebuildTuning();
           pushRadio("PARKED RUN RESTORED — YOUR BUILD IS STILL BOLTED ON");
         }
         phase = "running";
@@ -261,8 +294,23 @@ export function createRunSession(
       dt = Math.max(0, Math.min(dt, 0.05));
       runTime += dt;
 
-      const tuning = tuningFrom(installed);
-      pose = vehicle.tick(dt, axis, tuning, input, groundHeightAt);
+      // A bent frame pulls the wheel on its own; the last stage of a nose zone adds that bias here.
+      const approachKmh = pose.speedKmh;
+      pose = vehicle.tick(dt, damagedAxis({ ...axis, handbrake: axis.handbrake ?? 0 }, damageEffect), tuning, input, groundHeightAt);
+
+      // A barricade the build cannot clear stops the kart on the nose. One impulse per approach at the
+      // approach speed: leaning on a gate afterwards must not keep folding metal.
+      if (!pose.blockedByGate) gateImpactArmed = true;
+      else if (gateImpactArmed) {
+        gateImpactArmed = false;
+        const transitions = damage.hit(noseHitPoint(axis.steer), impactImpulse(approachKmh));
+        if (transitions.length > 0) {
+          damageEffect = damage.effect();
+          rebuildTuning();
+          notify("FRONT END FOLDED — SHE PULLS WHEN YOU STEER", "warn");
+          pushRadio(transitions[0]!.stage >= 2 ? "NOSE IS FOLDED FLAT — BABY HER HOME" : "CLIPPED THE BARRIER — FRONT END'S BENT");
+        }
+      }
 
       applyPickup(input.salvageSwap === true);
       announceGates();

@@ -5,6 +5,15 @@ import { EXIT_Z, ZONE_A_END, ZONE_B_END } from "../run/constants";
 
 export type ZoneId = "canyons" | "flats" | "gantry";
 
+/** What the yard's own ground is made of: the grip the tires find on the paved strip. */
+export interface ZoneSurface {
+  id: string;
+  /** Reads on the HUD and in test evidence: which surface the kart is actually on. */
+  label: string;
+  /** Grip multiplier handed to the vehicle sim's `surfaceFriction` (1 = the reference surface). */
+  grip: number;
+}
+
 export interface ZoneDef {
   id: ZoneId;
   label: string;
@@ -20,6 +29,8 @@ export interface ZoneDef {
   palette: BuildingPaletteOverrides;
   /** Ground palette for the zone's terrain band. */
   ground: TerrainColors;
+  /** Yard surface under the tires - oil, concrete or gravel decide how much grip the kart gets. */
+  surface: ZoneSurface;
   fog: BiomeFog;
   sky: BiomeSky;
 }
@@ -58,6 +69,7 @@ export const ZONES: readonly ZoneDef[] = [
       clothesline: "#d98a3d",
     },
     ground: { low: "#3a2d21", high: "#6e5136", waterline: "#3a2d21" },
+    surface: { id: "oil", label: "OIL-SLICK YARD", grip: 0.96 },
     fog: { color: "#7a4423", near: 55, far: 300 },
     sky: { horizonColor: "#e8802e", zenithColor: "#5e3620" },
   },
@@ -86,6 +98,7 @@ export const ZONES: readonly ZoneDef[] = [
       clothesline: "#cfd8dc",
     },
     ground: { low: "#37383a", high: "#665f52", waterline: "#37383a" },
+    surface: { id: "concrete", label: "CONCRETE YARD", grip: 1 },
     fog: { color: "#6b5c48", near: 55, far: 290 },
     sky: { horizonColor: "#d99154", zenithColor: "#4a4239" },
   },
@@ -114,6 +127,7 @@ export const ZONES: readonly ZoneDef[] = [
       clothesline: "#f0c419",
     },
     ground: { low: "#3a3325", high: "#6f5c3d", waterline: "#3a3325" },
+    surface: { id: "gravel", label: "GRAVEL YARD", grip: 0.93 },
     fog: { color: "#8a6222", near: 50, far: 280 },
     sky: { horizonColor: "#ffae44", zenithColor: "#6b4c1e" },
   },

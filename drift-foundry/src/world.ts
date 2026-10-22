@@ -12,7 +12,7 @@ import {
 
 import { YARD_FLOOR_MATERIAL } from "./game/assets";
 import { SALVAGE_FACADE_KIT } from "./game/art/facades";
-import { CORRIDOR_HALF_WIDTH, EXIT_Z } from "./game/run/constants";
+import { CORRIDOR_HALF_WIDTH, EXIT_Z, HAUL_ROAD_HALF_WIDTH } from "./game/run/constants";
 import { ZONES, type ZoneDef } from "./game/zones/catalog";
 
 /** Haul road runs the whole corridor and a little past both ends so neither cap is a visible seam. */
@@ -119,7 +119,7 @@ export const world: WorldFeature = environment({
       ],
       // Narrower than the drivable corridor on purpose: a haul strip with textured dirt shoulders
       // either side, rather than one untextured slab filling the near frame.
-      width: 15,
+      width: HAUL_ROAD_HALF_WIDTH * 2,
       color: "#453a30",
       markings: true,
       markingColor: "#e8c24a",
