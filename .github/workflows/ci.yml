@@ -34,7 +34,9 @@ jobs:
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
-      - run: bun run check:capabilities
+      - run: bun run check:capabilities --summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: bun run check-types
       - run: bun run test
       - run: bun run capabilities:probe

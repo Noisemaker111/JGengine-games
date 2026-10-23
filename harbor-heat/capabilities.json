@@ -12,6 +12,9 @@
     "mission-validation",
     "mount-game",
     "offscreen-world",
+    "perception-service",
+    "police-response",
+    "police-roads",
     "traffic"
   ],
   "probes": {
@@ -26,40 +29,141 @@
     ]
   },
   "declines": {
-    "agents": "Not adopted: this game does not run the engine agents system.",
-    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
-    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
-    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
-    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
-    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
-    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
-    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
-    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
-    "game-save": "Not adopted: this game does not run the engine game-save system.",
-    "game-save-digest": "Not adopted: this game does not run the engine game-save-digest system.",
-    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
-    "loans": "Not adopted: this game does not run the engine loans system.",
-    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
-    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
-    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
-    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
-    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
-    "police-response": "Not adopted: this game does not run the engine police-response system.",
-    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
-    "ride-appeal": "Not adopted: this game does not run the engine ride-appeal system.",
-    "ride-choice": "Not adopted: this game does not run the engine ride-choice system.",
-    "ride-sim": "Not adopted: this game does not run the engine ride-sim system.",
-    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
-    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
-    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
-    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
-    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
-    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
-    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
-    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
-    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
-    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
-    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
-    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+    "agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."
+    },
+    "cover-field": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
+    },
+    "cover-points-from-solids": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
+    },
+    "cover-points-near": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
+    },
+    "cover-score": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
+    },
+    "cover-select": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
+    },
+    "damage-runtime": {
+      "kind": "debt",
+      "reason": "game/commands.ts subtracts per-weapon amounts from enemy health with no damage table; adopt the shared damage table.",
+      "issue": 138
+    },
+    "damage-target-unknown": {
+      "kind": "debt",
+      "reason": "Crew hits never validate a resistance or armor profile; adopt the shared damage table with its unknown-target refusal.",
+      "issue": 138
+    },
+    "equipment-slot-inventory": {
+      "kind": "debt",
+      "reason": "inventories.ts and loadouts.ts hand-place gear into slots with their own kind rules; adopt the shared equipment slots.",
+      "issue": 139
+    },
+    "game-save": {
+      "kind": "debt",
+      "reason": "saveCompatibility.ts repairs this game's own save shape by hand on load; adopt the shared save document's migrations.",
+      "issue": 140
+    },
+    "game-save-digest": {
+      "kind": "debt",
+      "reason": "The repaired save carries no state digest for a determinism test; adopt the shared save document's digest.",
+      "issue": 140
+    },
+    "loan-schedule": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of harbor-heat: the crew earns and spends, and no loan is drawn or serviced."
+    },
+    "loans": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of harbor-heat: the crew earns and spends, and no loan is drawn or serviced."
+    },
+    "nav-crowd": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of harbor-heat: people walk authored streets and cars follow lanes, and no navigation mesh is baked."
+    },
+    "nav-runtime": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of harbor-heat: people walk authored streets and cars follow lanes, and no navigation mesh is baked."
+    },
+    "navmesh-from-scene": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of harbor-heat: people walk authored streets and cars follow lanes, and no navigation mesh is baked."
+    },
+    "near-agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."
+    },
+    "ride-appeal": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of harbor-heat: no ride or queue exists in an open city."
+    },
+    "ride-choice": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of harbor-heat: no ride or queue exists in an open city."
+    },
+    "ride-sim": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of harbor-heat: no ride or queue exists in an open city."
+    },
+    "rvo-avoidance": {
+      "kind": "not-applicable",
+      "reason": "Crowd steering is not part of harbor-heat: residents keep to authored routes without reciprocal avoidance."
+    },
+    "skill-tree": {
+      "kind": "not-applicable",
+      "reason": "Skill tree is not part of harbor-heat: standing rises through the shared career track, and there is no player skill tree."
+    },
+    "squad-combat": {
+      "kind": "not-applicable",
+      "reason": "Squad combat is not part of harbor-heat: fights are one-on-one, and no squad holds cover or suppresses."
+    },
+    "status-runtime": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of harbor-heat: damage lands directly, and nobody is burned, shocked or slowed."
+    },
+    "status-unknown": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of harbor-heat: damage lands directly, and nobody is burned, shocked or slowed."
+    },
+    "supply-demand-pricing": {
+      "kind": "not-applicable",
+      "reason": "Market pricing is not part of harbor-heat: vendors run on the shared shop stock rather than a demand-priced market."
+    },
+    "transaction-ledger": {
+      "kind": "debt",
+      "reason": "Payouts, fees and purchases adjust cash directly in jobs and shops; adopt the shared transaction ledger.",
+      "issue": 141
+    },
+    "utility-brain": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."
+    },
+    "vehicle-damage": {
+      "kind": "debt",
+      "reason": "handroll/driving.ts applies an inline hull amount on a hard crash with no zone or handling change; adopt the shared vehicle damage.",
+      "issue": 142
+    },
+    "visitor-population": {
+      "kind": "not-applicable",
+      "reason": "Park population is not part of harbor-heat: the city has residents, not a counted visitor population."
+    },
+    "wait-queue": {
+      "kind": "not-applicable",
+      "reason": "Queue is not part of harbor-heat: nothing measured forms a line in the city."
+    },
+    "weapon-system": {
+      "kind": "debt",
+      "reason": "items/weapons/catalog.ts carries fire intervals, magazines and ammo rules itself; adopt the shared weapon runtime.",
+      "issue": 138
+    }
   }
 }

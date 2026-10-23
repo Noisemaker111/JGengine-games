@@ -2,10 +2,15 @@
   "adopts": [
     "agents",
     "audio-probe",
+    "mission-events",
+    "mission-rewards",
+    "mission-runtime",
+    "mission-validation",
     "mount-game",
     "ride-appeal",
     "ride-choice",
-    "ride-sim"
+    "ride-sim",
+    "wait-queue"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [
@@ -13,47 +18,158 @@
     ]
   },
   "declines": {
-    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
-    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
-    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
-    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
-    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
-    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
-    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
-    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
-    "game-save": "Not adopted: this game does not run the engine game-save system.",
-    "game-save-digest": "Not adopted: this game does not run the engine game-save-digest system.",
-    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
-    "loans": "Not adopted: this game does not run the engine loans system.",
-    "loot-comparison": "Not adopted: this game does not run the engine loot-comparison system.",
-    "loot-generation": "Not adopted: this game does not run the engine loot-generation system.",
-    "loot-roller": "Not adopted: this game does not run the engine loot-roller system.",
-    "loot-score": "Not adopted: this game does not run the engine loot-score system.",
-    "loot-validation": "Not adopted: this game does not run the engine loot-validation system.",
-    "mission-events": "Not adopted: this game does not run the engine mission-events system.",
-    "mission-rewards": "Not adopted: this game does not run the engine mission-rewards system.",
-    "mission-runtime": "Not adopted: this game does not run the engine mission-runtime system.",
-    "mission-validation": "Not adopted: this game does not run the engine mission-validation system.",
-    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
-    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
-    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
-    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
-    "offscreen-world": "Not adopted: this game does not run the engine offscreen-world system.",
-    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
-    "police-response": "Not adopted: this game does not run the engine police-response system.",
-    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
-    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
-    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
-    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
-    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
-    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
-    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
-    "traffic": "Not adopted: this game does not run the engine traffic system.",
-    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
-    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
-    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
-    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
-    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
-    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+    "cover-field": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of brightway-park: a park has no combat, so nothing seeks or holds cover."
+    },
+    "cover-points-from-solids": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of brightway-park: a park has no combat, so nothing seeks or holds cover."
+    },
+    "cover-points-near": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of brightway-park: a park has no combat, so nothing seeks or holds cover."
+    },
+    "cover-score": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of brightway-park: a park has no combat, so nothing seeks or holds cover."
+    },
+    "cover-select": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of brightway-park: a park has no combat, so nothing seeks or holds cover."
+    },
+    "damage-runtime": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of brightway-park: nothing in the park takes a hit, so no armor profile or hit zone is authored."
+    },
+    "damage-target-unknown": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of brightway-park: nothing in the park takes a hit, so no armor profile or hit zone is authored."
+    },
+    "equipment-slot-inventory": {
+      "kind": "not-applicable",
+      "reason": "Equipment slots is not part of brightway-park: visitors carry no gear and the player owns no equipment."
+    },
+    "game-save": {
+      "kind": "debt",
+      "reason": "persistence.ts writes its own ParkSave snapshot and backup key; adopt the shared save document for the park's sections.",
+      "issue": 126
+    },
+    "game-save-digest": {
+      "kind": "debt",
+      "reason": "The park's save has no state digest, so a determinism test cannot compare snapshots; adopt the shared save document's digest.",
+      "issue": 126
+    },
+    "loan-schedule": {
+      "kind": "debt",
+      "reason": "The park's loans repay on its own day-by-day schedule; adopt the shared loan book's schedule in minor units.",
+      "issue": 127
+    },
+    "loans": {
+      "kind": "debt",
+      "reason": "loans are amortised per day in loan.ts while the money moves through the shared ledger; adopt the shared loan book for those loans.",
+      "issue": 127
+    },
+    "loot-comparison": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of brightway-park: guests spend cash on tickets and food, and no item ever drops."
+    },
+    "loot-generation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of brightway-park: guests spend cash on tickets and food, and no item ever drops."
+    },
+    "loot-roller": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of brightway-park: guests spend cash on tickets and food, and no item ever drops."
+    },
+    "loot-score": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of brightway-park: guests spend cash on tickets and food, and no item ever drops."
+    },
+    "loot-validation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of brightway-park: guests spend cash on tickets and food, and no item ever drops."
+    },
+    "nav-crowd": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of brightway-park: guests steer to authored ride and stall targets without a baked navigation mesh."
+    },
+    "nav-runtime": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of brightway-park: guests steer to authored ride and stall targets without a baked navigation mesh."
+    },
+    "navmesh-from-scene": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of brightway-park: guests steer to authored ride and stall targets without a baked navigation mesh."
+    },
+    "near-agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of brightway-park: guests run the shared agent loop and ride choice, and no nav-crowd or utility-brain layer is authored."
+    },
+    "offscreen-world": {
+      "kind": "not-applicable",
+      "reason": "Offscreen simulation is not part of brightway-park: every guest is a real agent on the paths, and no cheap far-away state exists."
+    },
+    "perception-service": {
+      "kind": "not-applicable",
+      "reason": "Perception is not part of brightway-park: guests react to the park's rating and mood, never to sight or sound."
+    },
+    "police-response": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of brightway-park: a park has no police response, witnesses or heat."
+    },
+    "police-roads": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of brightway-park: a park has no police response, witnesses or heat."
+    },
+    "rvo-avoidance": {
+      "kind": "not-applicable",
+      "reason": "Crowd steering is not part of brightway-park: guests use the shared agent loop's movement and never crowd-steer."
+    },
+    "skill-tree": {
+      "kind": "not-applicable",
+      "reason": "Skill tree is not part of brightway-park: unlocks are milestone gates on the park's standing, not a skill tree."
+    },
+    "squad-combat": {
+      "kind": "not-applicable",
+      "reason": "Squad combat is not part of brightway-park: there are no squads or fights in a park builder."
+    },
+    "status-runtime": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of brightway-park: mood is the only running effect, and no being is burned, shocked or slowed."
+    },
+    "status-unknown": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of brightway-park: mood is the only running effect, and no being is burned, shocked or slowed."
+    },
+    "supply-demand-pricing": {
+      "kind": "not-applicable",
+      "reason": "Market pricing is not part of brightway-park: the player sets ticket and stall prices, and no stock against demand moves them."
+    },
+    "traffic": {
+      "kind": "not-applicable",
+      "reason": "Traffic is not part of brightway-park: visitors arrive on foot through the gate, and no road traffic is simulated."
+    },
+    "transaction-ledger": {
+      "kind": "not-applicable",
+      "reason": "Transaction ledger is not part of brightway-park: park money already moves through the shared resource ledger, so a transaction ledger would be a second one."
+    },
+    "utility-brain": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of brightway-park: guests run the shared agent loop and ride choice, and no nav-crowd or utility-brain layer is authored."
+    },
+    "vehicle-damage": {
+      "kind": "not-applicable",
+      "reason": "Vehicle damage is not part of brightway-park: no vehicle is driven or crashed in a park."
+    },
+    "visitor-population": {
+      "kind": "debt",
+      "reason": "The park population is spawned, capped and counted by hand in sim/guests.ts; adopt the shared park population for on-site and daily counts.",
+      "issue": 128
+    },
+    "weapon-system": {
+      "kind": "not-applicable",
+      "reason": "Weapon runtime is not part of brightway-park: a park builder has no weapons, ammo or reload."
+    }
   }
 }

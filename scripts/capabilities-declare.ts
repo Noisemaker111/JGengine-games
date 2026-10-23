@@ -3,8 +3,10 @@
  *
  * The generated file is the starting point, not a verdict: adoption comes from
  * a real import of the capability's module (or a barrel-exported API name), and
- * every decline gets a reason. A game owner edits the reasons and drops
- * over-broad adoptions; the gate then enforces that the file stays complete.
+ * every decline is seeded as a TODO that fails the gate. A game owner replaces
+ * each one with `not-applicable` (the domain is absent) or `debt` (the game has
+ * the domain and has not adopted the shared system) plus the open issue that
+ * tracks adopting it; the gate then enforces that the file stays complete.
  *
  * Usage: bun run capabilities:declare [game...] [--force]
  */
@@ -46,7 +48,7 @@ for (const game of games) {
   const probes = Object.keys(declaration.probes ?? {}).length;
   console.log(`capabilities:declare OK ${game} - ${adopted} adopted, ${declined} declined, ${probes} probed`);
   console.log(
-    `  Review ${path}: a declared probe must report at boot; drop the entry for a system that only starts on demand.`,
+    `  Review ${path}: a declared probe must report at boot. Every decline is a TODO until you say "not-applicable" (this game has no such domain) or "debt" (it has the domain and has not adopted the shared system, with the open issue that tracks it).`,
   );
 }
 

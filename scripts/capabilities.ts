@@ -19,6 +19,106 @@ export const DECLINE_MIN = 20;
 export const LEDGER_FILE = "capabilities.json";
 export const DECLARATION_FILE = "capabilities.json";
 
+/**
+ * Which of the two real answers a game gave. `not-applicable` means the capability
+ * has no counterpart in this game at all; `debt` means the game has the domain and
+ * has not adopted the shared system yet, so it must name the issue that tracks it.
+ */
+export const DECLINE_KINDS = ["not-applicable", "debt"] as const;
+export type DeclineKind = (typeof DECLINE_KINDS)[number];
+
+export interface Decline {
+  kind: DeclineKind;
+  /** Names the capability's domain (or the gap) in this game's own words. */
+  reason: string;
+  /** Debt only: the open issue in this repo that tracks adoption. */
+  issue?: number;
+}
+
+/** The domain a capability belongs to; a decline reason must name it. */
+export const CAPABILITY_DOMAINS: Record<string, string> = {
+  agents: "agent loop",
+  "near-agents": "agent loop",
+  "utility-brain": "agent loop",
+  "perception-service": "perception",
+  "nav-crowd": "navigation",
+  "nav-runtime": "navigation",
+  "navmesh-from-scene": "navigation",
+  "rvo-avoidance": "crowd steering",
+  traffic: "traffic",
+  "police-response": "police heat",
+  "police-roads": "police heat",
+  "cover-field": "cover",
+  "cover-points-from-solids": "cover",
+  "cover-points-near": "cover",
+  "cover-score": "cover",
+  "cover-select": "cover",
+  "damage-runtime": "damage table",
+  "damage-target-unknown": "damage table",
+  "weapon-system": "weapon runtime",
+  "status-runtime": "status effects",
+  "status-unknown": "status effects",
+  "squad-combat": "squad combat",
+  "equipment-slot-inventory": "equipment slots",
+  "game-save": "save document",
+  "game-save-digest": "save document",
+  loans: "loans",
+  "loan-schedule": "loans",
+  "supply-demand-pricing": "market pricing",
+  "transaction-ledger": "transaction ledger",
+  "loot-generation": "loot rolling",
+  "loot-roller": "loot rolling",
+  "loot-score": "loot rolling",
+  "loot-validation": "loot rolling",
+  "loot-comparison": "loot rolling",
+  "mission-events": "mission runtime",
+  "mission-rewards": "mission runtime",
+  "mission-runtime": "mission runtime",
+  "mission-validation": "mission runtime",
+  "skill-tree": "skill tree",
+  "ride-appeal": "ride simulation",
+  "ride-choice": "ride simulation",
+  "ride-sim": "ride simulation",
+  "visitor-population": "park population",
+  "wait-queue": "queue",
+  "offscreen-world": "offscreen simulation",
+  "vehicle-damage": "vehicle damage",
+  "audio-probe": "audio mix",
+  "mount-game": "game host",
+};
+
+/** A capability whose id is new still needs a domain; its module path supplies one. */
+export function domainOf(id: string, module: string): string {
+  const known = CAPABILITY_DOMAINS[id];
+  if (known !== undefined) return known;
+  const parts = module.replace(/^@jgengine\/[^/]+\//, "").split("/");
+  return parts.length > 1 && parts[0] !== undefined && parts[0] !== "" ? parts[0] : id;
+}
+
+/**
+ * Sentences that fit every game at once, so they say nothing. The first two are the
+ * template this ledger replaced; a decline has to name its domain instead.
+ */
+const BANNED_REASONS: Array<{ pattern: RegExp; why: string }> = [
+  { pattern: /^\s*not adopted\b/i, why: 'the old "Not adopted: this game does not run..." template' },
+  { pattern: /does not (?:run|use) the engine\b/i, why: "the engine-boilerplate sentence" },
+  { pattern: /\bTODO\b/i, why: "a TODO placeholder" },
+  { pattern: /(?:^|[.\s])(?:n\/a|not applicable)\.?$/i, why: "a bare not-applicable label" },
+];
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+}
+
+/** True when the reason names the domain (plural and possessive forms included). */
+export function namesDomain(reason: string, domain: string): boolean {
+  return new RegExp(`\\b${escapeRegExp(domain)}`, "i").test(reason);
+}
+
+export interface IssueState {
+  state: "open" | "closed" | "missing";
+}
+
 export interface CapabilityProbe {
   kind: "devtools" | "window";
   /** The global to read for a `window` probe, such as `__jgengineAudio`. */
@@ -31,6 +131,8 @@ export interface CapabilityEntry {
   packages: string[];
   /** `@jgengine/<pkg>/<module>` that publishes this capability. */
   module: string;
+  /** The subsystem a decline has to name, such as `damage table` or `save document`. */
+  domain: string;
   /** True when the owning package ships a live probe; only these need a game decision. */
   gameFacing: boolean;
   probe: CapabilityProbe | null;
@@ -48,7 +150,7 @@ export interface Declaration {
   adopts: string[];
   /** Boot probe names keyed by the module that can prove the system live. */
   probes?: Record<string, string[]>;
-  declines: Record<string, string>;
+  declines: Record<string, Decline>;
 }
 
 export interface GameDeclaration {
@@ -186,6 +288,7 @@ export function deriveLedger(root: string): Ledger {
       id,
       packages: [...entry.packages].sort(),
       module: entry.module,
+      domain: domainOf(id, entry.module),
       gameFacing: entry.probe !== null,
       probe: entry.probe,
       intent: entry.intent,
@@ -196,7 +299,7 @@ export function deriveLedger(root: string): Ledger {
     generatedBy: "bun run capabilities:sync",
     engineVersion: installed.version,
     gameFacingRule:
-      "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it with a reason.",
+      "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it as not-applicable (its domain does not exist here) or debt (this game has the domain and has not adopted the shared system, so an open issue tracks it).",
     capabilities,
   };
 }
@@ -331,7 +434,7 @@ export function moduleApiNames(root: string, entry: CapabilityEntry): string[] {
   return [...(moduleIndex(root).get(entry.module)?.api ?? [])];
 }
 
-/** Seed a declaration from source evidence; declines carry a real reason. */
+/** Seed a declaration from source evidence; every decline starts unclassified. */
 export function seedDeclaration(root: string, game: string, ledger: Ledger): Declaration {
   const evidence = collectEvidence(root, game, ledger);
   let hasAudioConfig = false;
@@ -341,7 +444,7 @@ export function seedDeclaration(root: string, game: string, ledger: Ledger): Dec
 
   const adopts: string[] = [];
   const probeModules = new Map<string, Set<string>>();
-  const declines: Record<string, string> = {};
+  const declines: Record<string, Decline> = {};
 
   for (const entry of ledger.capabilities) {
     if (!entry.gameFacing) continue;
@@ -357,7 +460,12 @@ export function seedDeclaration(root: string, game: string, ledger: Ledger): Dec
       if (found.size > 0) probeModules.set(entry.module, found);
       continue;
     }
-    declines[entry.id] = `Not adopted: this game does not run the engine ${entry.id} system.`;
+    // A placeholder that fails the gate: only the game's owner knows whether this
+    // game has no such domain or has not adopted it yet.
+    declines[entry.id] = {
+      kind: "not-applicable",
+      reason: `TODO: say why this game needs no ${entry.domain}, or record it as debt with its issue.`,
+    };
   }
 
   return {
@@ -395,25 +503,56 @@ export interface DeclarationProblem {
   message: string;
 }
 
+export interface GameTally {
+  game: string;
+  adopted: number;
+  notApplicable: number;
+  debt: number;
+}
+
+export interface DebtEntry {
+  game: string;
+  capability: string;
+  issue: number;
+}
+
 export interface DeclarationReport {
   problems: DeclarationProblem[];
   /** Adopted capabilities whose module has no boot probe: declaration-level only for now. */
   declarationLevel: Array<{ game: string; capability: string; module: string }>;
   adopted: number;
-  declined: number;
+  notApplicable: number;
+  debt: number;
+  tallies: GameTally[];
+  debtEntries: DebtEntry[];
 }
 
-/** The four adoption-gate cases, plus unknown ids and double declarations. */
-export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): DeclarationReport {
+/**
+ * The adoption gate: every game-facing capability is adopted, or declined as
+ * `not-applicable` (the domain is absent here) or `debt` (the game has the domain
+ * and has not adopted the shared system, with an open issue that tracks adoption).
+ *
+ * `issues` maps the debt issue numbers to their state in this repo; pass it to
+ * enforce ownership. Without it the entries are only checked for the number.
+ */
+export function checkDeclarations(
+  ledger: Ledger,
+  games: GameDeclaration[],
+  issues?: Map<number, IssueState>,
+): DeclarationReport {
   const known = new Map(
     ledger.capabilities.filter((entry) => entry.gameFacing).map((entry) => [entry.id, entry]),
   );
   const problems: DeclarationProblem[] = [];
   const declarationLevel: DeclarationReport["declarationLevel"] = [];
+  const tallies: GameTally[] = [];
+  const debtEntries: DebtEntry[] = [];
+  const reasons = new Map<string, Array<{ game: string; capability: string; module: string }>>();
   let adopted = 0;
-  let declined = 0;
 
   for (const { game, declaration } of games) {
+    const tally: GameTally = { game, adopted: 0, notApplicable: 0, debt: 0 };
+    tallies.push(tally);
     if (declaration === null) {
       problems.push({
         game,
@@ -447,12 +586,13 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
         });
       }
       adopted += 1;
+      tally.adopted += 1;
       if (!probedModules.has(entry.module)) {
         declarationLevel.push({ game, capability: id, module: entry.module });
       }
     }
 
-    for (const [id, reason] of Object.entries(declaration.declines)) {
+    for (const [id, decline] of Object.entries(declaration.declines)) {
       const entry = known.get(id);
       if (entry === undefined) {
         problems.push({
@@ -464,14 +604,107 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
         continue;
       }
       if (adoptSet.has(id)) continue;
-      declined += 1;
-      if (reason.trim().length < DECLINE_MIN) {
+
+      if (typeof decline !== "object" || decline === null || typeof decline.reason !== "string") {
         problems.push({
           game,
           capability: id,
           module: entry.module,
-          message: `${game} declines "${id}" (${entry.module}) with a ${reason.trim().length}-character reason; write ${DECLINE_MIN}+ characters of why, or adopt it`,
+          message: `${game} declines "${id}" (${entry.module}) with a bare string - every decline is {"kind": "not-applicable" | "debt", "reason": "..."} so "we do not need it" and "we have not got to it" stay apart`,
         });
+        continue;
+      }
+
+      const reason = decline.reason.trim();
+      if (!DECLINE_KINDS.includes(decline.kind)) {
+        problems.push({
+          game,
+          capability: id,
+          module: entry.module,
+          message: `${game} declines "${id}" (${entry.module}) as kind "${String(decline.kind)}" - say "not-applicable" (this game has no ${entry.domain}) or "debt" (it has the ${entry.domain} and has not adopted the shared system)`,
+        });
+      }
+      if (reason.length < DECLINE_MIN) {
+        problems.push({
+          game,
+          capability: id,
+          module: entry.module,
+          message: `${game} declines "${id}" (${entry.module}) with a ${reason.length}-character reason; write ${DECLINE_MIN}+ characters that name the ${entry.domain} or the gap`,
+        });
+      } else {
+        const banned = BANNED_REASONS.find((item) => item.pattern.test(reason));
+        if (banned !== undefined) {
+          problems.push({
+            game,
+            capability: id,
+            module: entry.module,
+            message: `${game} declines "${id}" (${entry.module}) with ${banned.why} - say what this game does in the ${entry.domain} domain instead`,
+          });
+        } else if (!namesDomain(reason, entry.domain)) {
+          problems.push({
+            game,
+            capability: id,
+            module: entry.module,
+            message: `${game} declines "${id}" (${entry.module}) without naming the ${entry.domain} domain - write what this game has (or lacks) there, in words that include "${entry.domain}"`,
+          });
+        }
+      }
+
+      if (decline.kind === "debt") {
+        tally.debt += 1;
+        const issue = decline.issue;
+        if (typeof issue !== "number" || !Number.isSafeInteger(issue) || issue <= 0) {
+          problems.push({
+            game,
+            capability: id,
+            module: entry.module,
+            message: `${game} records debt on "${id}" (${entry.module}) with no owner - a debt entry needs the number of the open issue that tracks adopting it`,
+          });
+        } else {
+          debtEntries.push({ game, capability: id, issue });
+          if (issues !== undefined) {
+            const state = issues.get(issue);
+            if (state === undefined) {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this run did not find in the repo - it may have been transferred or deleted`,
+              });
+            } else if (state.state === "missing") {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this repo does not have - point it at the issue that tracks the ${entry.domain} work`,
+              });
+            } else if (state.state === "closed") {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which is closed - adopt it, or replace the debt with not-applicable naming the ${entry.domain}`,
+              });
+            }
+          }
+        }
+      } else if (decline.kind === "not-applicable") {
+        tally.notApplicable += 1;
+        if (decline.issue !== undefined) {
+          problems.push({
+            game,
+            capability: id,
+            module: entry.module,
+            message: `${game} declines "${id}" (${entry.module}) as not-applicable but names issue #${String(decline.issue)} - a missing ${entry.domain} needs no owner; record it as debt if the game has the domain`,
+          });
+        }
+      }
+
+      const key = reason.toLowerCase().replace(/\s+/g, " ");
+      if (key !== "") {
+        const seen = reasons.get(key) ?? [];
+        seen.push({ game, capability: id, module: entry.module });
+        reasons.set(key, seen);
       }
     }
 
@@ -482,7 +715,7 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
         game,
         capability: entry.id,
         module: entry.module,
-        message: `${game} does not declare game-facing capability "${entry.id}" (${entry.module}) - adopt it, or decline it with a ${DECLINE_MIN}+ character reason`,
+        message: `${game} does not declare game-facing capability "${entry.id}" (${entry.module}) - adopt it, or decline it as not-applicable or debt with a ${DECLINE_MIN}+ character reason`,
       });
     }
 
@@ -509,7 +742,54 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
     }
   }
 
-  return { problems, declarationLevel, adopted, declined };
+  for (const [reason, entries] of reasons) {
+    const shared = [...new Set(entries.map((entry) => entry.game))];
+    if (shared.length < 2) continue;
+    for (const entry of entries) {
+      problems.push({
+        game: entry.game,
+        capability: entry.capability,
+        module: entry.module,
+        message: `${entry.game} gives the same decline reason as ${shared.filter((name) => name !== entry.game).join(", ")} for "${entry.capability}" ("${reason.slice(0, 60)}...") - a reason shared between games is a template; say what happens in this game`,
+      });
+    }
+  }
+
+  return {
+    problems,
+    declarationLevel,
+    adopted,
+    notApplicable: tallies.reduce((sum, tally) => sum + tally.notApplicable, 0),
+    debt: tallies.reduce((sum, tally) => sum + tally.debt, 0),
+    tallies,
+    debtEntries,
+  };
+}
+
+/** The per-game table: adopted / not-applicable / debt, with the debt total last. */
+export function renderSummary(report: DeclarationReport, ledger: Ledger): string {
+  const gameFacing = ledger.capabilities.filter((entry) => entry.gameFacing).length;
+  const name = Math.max(4, ...report.tallies.map((tally) => tally.game.length));
+  const cells = report.tallies.map((tally) => [
+    tally.game.padEnd(name),
+    String(tally.adopted).padStart(7),
+    String(tally.notApplicable).padStart(15),
+    String(tally.debt).padStart(5),
+  ]);
+  const total = [
+    "TOTAL".padEnd(name),
+    String(report.adopted).padStart(7),
+    String(report.notApplicable).padStart(15),
+    String(report.debt).padStart(5),
+  ];
+  const lines = [
+    `capability adoption - ${gameFacing} game-facing capabilities, engine ${ledger.engineVersion}`,
+    `${"game".padEnd(name)}  adopt            n/a   debt`,
+    ...cells.map((row) => row.join("  ")),
+    total.join("  "),
+    `debt is the number that has to come down: ${report.debt} entr${report.debt === 1 ? "y" : "ies"} across ${new Set(report.debtEntries.map((entry) => entry.game)).size} game(s)`,
+  ];
+  return lines.join("\n");
 }
 
 /** Is the checked-in ledger behind the installed packages? */
