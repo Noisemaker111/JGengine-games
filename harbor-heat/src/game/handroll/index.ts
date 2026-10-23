@@ -36,6 +36,8 @@ export function createHandroll(): Handroll {
     drivingVehicleId: () => driving.drivingVehicleId(),
     carSpeedKmh: () => driving.carSpeedKmh(),
     telemetry: () => driving.telemetry(),
+    pursuitSave: () => pursuit.snapshot(),
+    restorePursuit: (ctx, state) => pursuit.restore(ctx, state),
     addHeat: (ctx, amount) => pursuit.addHeat(ctx, amount),
     clearWanted: (ctx) => pursuit.clearWanted(ctx),
     wanted: () => pursuit.wanted(),

@@ -45,7 +45,7 @@ function heatSweep() {
   return [{ kind: "fact" as const, fact: POLICE_TIER_FACT, atLeast: COURIER_HEAT_TIER, to: "heat_sweep", message: "HHPD swept the drop while you were hot — the parcel went back to dispatch." }];
 }
 
-interface CourierState {
+export interface CourierState {
   phase: "idle" | "running" | "won" | "lost";
   route: number;
   remaining: number;

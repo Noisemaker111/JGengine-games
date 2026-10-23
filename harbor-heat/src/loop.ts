@@ -44,78 +44,25 @@ import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic"
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
+import {
+  convoyRunners,
+  mission,
+  patchMission,
+  resetMissionState,
+} from "./game/runState";
+import { harborSave, holdSavesUntil, loadHarborSave, saveHarborState } from "./game/save";
 import { createWaveRunner } from "@jgengine/core/ai/waveRunner";
 import { attachWaveFeedback } from "@jgengine/shell/audio/eventFeedback";
 import { perContext } from "@jgengine/core/runtime/perContext";
 
 const AGGRO_RADIUS = 18;
 const GANGER_SHOT_RANGE = 14;
-const CONVOY_TOTAL = 10;
 const CICADA_STAGE_ID = "cicada_stage_car";
 const RACE_BANNER_SEC = 6;
-
-/** One dock reinforcement per six seconds, ten of them: the convoy is a wave manifest, not a counter. */
-const CONVOY_WAVES = Array.from({ length: CONVOY_TOTAL }, () => ({
-  budget: 1,
-  duration: 6,
-  entries: [{ id: "ganger_dock", cost: 1 }],
-}));
-
-/**
- * The Carmine convoy as the engine's wave runner: the director owns the cadence and the alive cap,
- * the sink places each request on the dock ring, and `attachWaveFeedback` announces the wave.
- */
-const convoyRunners = perContext((ctx: GameContext) =>
-  createWaveRunner({
-    waves: CONVOY_WAVES,
-    maxAlive: 4,
-    seed: 20260712,
-    onSpawn(request) {
-      const wave = request.wave + 1;
-      const angle = (wave / CONVOY_TOTAL) * Math.PI * 2;
-      const x = DOCK_FIGHT_CENTER[0] + Math.sin(angle) * 22;
-      const z = DOCK_FIGHT_CENTER[2] + Math.cos(angle) * 22;
-      ctx.scene.entity.spawn("ganger_dock", {
-        id: `convoy_${wave}`,
-        position: [x, ctx.world.groundHeightAt(x, z), z],
-        role: "npc",
-      });
-    },
-  }),
-);
 
 const convoyFeedback = perContext((ctx: GameContext) => ({
   detach: attachWaveFeedback(convoyRunners(ctx), ctx.game.feedback),
 }));
-
-/**
- * Per-run mission timers. In the store rather than module scope so a server host, a test, and two
- * split-screen contexts each get their own — module-level `let` is shared by every context in the
- * process.
- */
-interface MissionState {
-  kingpinSpawned: boolean;
-  bustedHold: number;
-  raceSettled: boolean;
-  raceClearAt: number;
-}
-
-const FRESH_MISSION: MissionState = {
-  kingpinSpawned: false,
-  bustedHold: 0,
-  raceSettled: false,
-  raceClearAt: 0,
-};
-
-const missionStore = defineStore<MissionState>("harbor.mission", () => ({ ...FRESH_MISSION }));
-
-function mission(ctx: GameContext): MissionState {
-  return missionStore.read(ctx);
-}
-
-function patchMission(ctx: GameContext, patch: Partial<MissionState>): void {
-  missionStore.write(ctx, { ...mission(ctx), ...patch });
-}
 
 /**
  * Keep simulation and touch controls behind the title, pause, settings and result gates.
@@ -124,9 +71,7 @@ function syncPhase(ctx: GameContext): void {
   syncSession(ctx, startedStore.read(ctx) === true);
 }
 
-export function resetMissionState(ctx: GameContext): void {
-  missionStore.write(ctx, { ...FRESH_MISSION });
-}
+export { resetMissionState };
 
 function tickGangers(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
@@ -397,7 +342,8 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   const courier = courierStore.read(ctx);
   if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
   setupCourierLandmarks(ctx);
-  handrollOf(ctx).clearWanted(ctx);
+  // Heat is not cleared here any more: the wanted section restored it and the HUD reads the primitive,
+  // so a reload mid-pursuit keeps the tier and the search area (engine #2243).
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player !== null) {
     // A save written mid-drive persists the seated rider state — restore on foot, rendered (#1299).
@@ -410,7 +356,10 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
 }
 
 async function resumeFromSave(ctx: GameContext): Promise<void> {
-  if (!(await loadSavedProgress(ctx))) return;
+  const world = await loadSavedProgress(ctx);
+  // The document loads after the world snapshot so its sections are the run's authority.
+  const run = await loadHarborSave(ctx);
+  if (!world && !run) return;
   normalizeAfterRestore(ctx, startedThisBoot(ctx).value);
 }
 
@@ -478,11 +427,20 @@ function onNewPlayer(ctx: GameContext): void {
   // Boot at the title screen (menu phase) so the shell's touch dock stays hidden;
   // `game.start` and a restored session flip it to `playing`.
   syncPhase(ctx);
-  void resumeFromSave(ctx);
+  holdSavesUntil(ctx, resumeFromSave(ctx));
 }
+
+/** World seconds between document autosaves; the write itself is the ledger's own debounce. */
+const DOCUMENT_AUTOSAVE_SEC = 3;
+const lastDocumentSave = perContext(() => ({ at: 0 }));
 
 function onTick(ctx: GameContext, dt: number): void {
   if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
+  const docClock = lastDocumentSave(ctx);
+  if (ctx.time.now() - docClock.at >= DOCUMENT_AUTOSAVE_SEC) {
+    docClock.at = ctx.time.now();
+    harborSave(ctx).touch();
+  }
   handrollOf(ctx).tick(ctx, dt);
   tickTraffic(ctx, dt);
   tickResidents(ctx, dt);
