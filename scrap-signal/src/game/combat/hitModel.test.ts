@@ -103,6 +103,26 @@ describe("shared damage model reproduces the old hit numbers", () => {
     expect(runtime.statusesOf("t").map((status) => status.status)).toEqual(["flux"]);
   });
 
+  test("the three shipped weapon/armour pairs keep their old hit and kill time", () => {
+    // Golden numbers from the pre-adoption arithmetic (`base + round(base × (mult − 1))`), read off
+    // the real catalog guns and enemy profiles. Same integer, same shots, same milliseconds.
+    const cases = [
+      { gun: gun("incendiary", 14, 2), surface: "armor", hp: 110, intervalMs: 260, magSize: 12, reloadMs: 1200, hit: 11, shots: 10, killMs: 2340 },
+      { gun: gun("corrosive", 42, 2.5), surface: "armor", hp: 340, intervalMs: 900, magSize: 5, reloadMs: 2600, hit: 63, shots: 6, killMs: 7100 },
+      { gun: gun("shock", 6, 1.7), surface: "shield", hp: 240, intervalMs: 92, magSize: 28, reloadMs: 1600, hit: 12, shots: 20, killMs: 1748 },
+    ] as const;
+    for (const entry of cases) {
+      const runtime = createDamageRuntime({ table: DAMAGE_TABLE, zones: zonesFor(entry.gun), rng: () => 0.999 });
+      runtime.registerTarget("t", { resistance: entry.surface });
+      const landed = Math.round(runtime.hit({ target: "t", type: entry.gun.element, base: entry.gun.weapon.damage }).damage);
+      expect(landed).toBe(entry.hit);
+      const shots = Math.ceil(entry.hp / landed);
+      const reloads = Math.floor((shots - 1) / entry.magSize);
+      expect(shots).toBe(entry.shots);
+      expect(Math.round((shots - 1) * entry.intervalMs + reloads * entry.reloadMs)).toBe(entry.killMs);
+    }
+  });
+
   test("a hit on an unregistered body is refused, not dealt as its base", () => {
     const runtime = createDamageRuntime({
       table: DAMAGE_TABLE,
