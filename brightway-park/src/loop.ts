@@ -2,15 +2,12 @@ import type { GameLoop } from "@jgengine/core/game/defineGame";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { CLOSE_FRACTION, DAY_LENGTH, OPEN_FRACTION } from "./game/catalog";
+import { DAY_LENGTH } from "./game/catalog";
 import { session } from "./game/session";
 import { disposeWorld, setupWorld } from "./game/world/setup";
-import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
-import { spawnGuests, tickGuests, tickRidePark } from "./game/sim/guests";
-import { tickStaff } from "./game/staff";
+import { economyDayTick } from "./game/sim/economy";
+import { registerCaptureCommands, stepPark } from "./game/capture";
 import { savePark } from "./game/persistence";
-import { tickScenario } from "./game/scenarios";
-import { syncAmbience } from "./game/audio";
 
 // Midnight is a simulation event, scheduled after restoring the clock.
 function scheduleMidnight(ctx: GameContext): void {
@@ -22,46 +19,16 @@ function scheduleMidnight(ctx: GameContext): void {
   });
 }
 
-function updateOpenState(ctx: GameContext): void {
-  const fraction = ctx.time.calendar().dayFraction;
-  const wantOpen = !session.gameOver && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
-  if (wantOpen === session.open) return;
-  session.open = wantOpen;
-  ctx.game.notices.push({ text: wantOpen ? `Day ${session.day} — gates open!` : "Gates closed for the night", tone: "info" });
-  if (wantOpen) ctx.game.audio.play("gates");
-}
-
 export const loop: GameLoop<GameContext> = {
   onInit(ctx) {
     setupWorld(ctx);
+    registerCaptureCommands(ctx);
     setGamePhase(ctx, "menu");
     scheduleMidnight(ctx);
   },
   onNewPlayer() {},
   onDispose: disposeWorld,
   onTick(ctx, dt) {
-    syncAmbience(ctx);
-    if (!session.started || session.gameOver || dt <= 0) return;
-    updateOpenState(ctx);
-    const metrics = currentMetrics();
-    // The rides run their own cycles and lines; their boardings, breakdowns and repairs land on
-    // the guests and the till through the sink in `sim/guests`.
-    tickRidePark(ctx, dt);
-    spawnGuests(ctx, dt, metrics.totalAppeal);
-    tickStaff(ctx, dt);
-    tickGuests(ctx, dt, metrics.tracks);
-    tickRating(ctx, dt, metrics);
-    tickScenario(ctx, dt);
-    // The blue ribbon is free play's own goal; a scenario has its own win and fail states.
-    if (session.scenario === null && !session.won && metrics.rides >= 3 && session.rating >= 220 &&
-        session.happinessAvg >= 50 && session.litter <= 40 &&
-        session.day > 1 && session.revenueYesterday >= session.upkeepYesterday) {
-      session.won = true;
-      ctx.time.pause();
-      setGamePhase(ctx, "paused");
-      syncAmbience(ctx);
-      ctx.game.audio.play("ribbon");
-      savePark(ctx);
-    }
+    stepPark(ctx, dt);
   },
 };

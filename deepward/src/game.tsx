@@ -263,6 +263,10 @@ export const game = defineGame({
       title: [],
       pause: ["deepward.enter", { name: "deepward.pause", input: { paused: true } }],
       counter: ["deepward.enter", "deepward.openStash"],
+      // `deepward.stage` (dev-only) departs through the garage and searches three lockers through the
+      // real 1.4 s channel, so the shot lands in a vault room with a loaded cache. `drive --state
+      // mid-dive` reaches the same place without walking the vault.
+      "mid-dive": ["deepward.enter", "deepward.stage"],
     },
   },
   orientation: "landscape",

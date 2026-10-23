@@ -165,6 +165,12 @@ export const game = defineGame({
       // The boss shot: pick a character, then open the front's last wave with the Foreman one shot
       // above its second phase. The phase change itself is the next real hit.
       boss: [{ name: "character.pick", input: { characterId: "gunk" } }, "front.capture"],
+      // The opening wave already on the field: both crews spawned and converging, so a fight shot
+      // does not have to walk to the wreck and wait for the meeting. `front.capture` is dev-only.
+      "front-fight": [
+        { name: "character.pick", input: { characterId: "gunk" } },
+        { name: "front.capture", input: { mode: "fight" } },
+      ],
     },
     probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx) }),
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth

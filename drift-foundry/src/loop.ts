@@ -6,6 +6,7 @@ import { upgradeBodies } from "./game/art/upgrades";
 import { impactBursts } from "./game/impact";
 import { RIVAL_DEFS } from "./game/race/opponents";
 import { createRunSession, runSessionStore, type RunSession } from "./game/run/session";
+import { registerCaptureCommands } from "./game/capture";
 import { createWorldRuntime, driveInputStore, worldRuntimeStore } from "./game/run/store";
 import { createDriveInput } from "./game/vehicle/input";
 import { placeExitGate, placeGateBarricades, placePickupMarkers, placeZoneDressing, syncCompactorRow, syncPickupMarkers, syncClearedGates } from "./game/world/setup";
@@ -39,6 +40,7 @@ export function onInit(ctx: GameContext): void {
 
   const input = createDriveInput();
   driveInputStore.write(ctx, input);
+  registerCaptureCommands(ctx);
 }
 
 export function onNewPlayer(ctx: GameContext): void {

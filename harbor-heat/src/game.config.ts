@@ -70,7 +70,13 @@ export const game = defineGame({
   capture: {
     play: ["game.start"],
     // The dispatch poster is the first thing a player sees; a capture state keeps it reproducible.
-    states: { title: [] },
+    // `chase` (dev-only `chase.stage`) puts the player in a car with a witnessed crime, four stars
+    // and HHPD cruisers already on the scene - the state a pursuit proof needs, without committing
+    // crimes in front of a pedestrian and waiting for the response.
+    states: {
+      title: [],
+      chase: ["game.start", { name: "chase.stage", input: { mode: "chase" } }],
+    },
     views: {
       boulevard: {
         description: "Mainsail Boulevard looking down the palm boulevard — beach and Gulf on the left, deco blocks on the right.",

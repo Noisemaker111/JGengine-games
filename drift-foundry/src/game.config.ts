@@ -29,7 +29,14 @@ export const game = defineGame({
   touch: false,
   capture: {
     play: ["startRun"],
-    states: { title: [] },
+    // `mid-run` is the corridor driven quickly: 14 s of throttle with the pickups, gates, crusher
+    // and rivals all live. `result` keeps driving to the finish the gauntlet actually gives (an
+    // escape in 42 s from the stock build), so the result card carries a real line, not a number.
+    states: {
+      title: [],
+      "mid-run": ["startRun", { name: "run.stage", input: { mode: "midrun" } }],
+      result: ["startRun", { name: "run.stage", input: { mode: "result" } }],
+    },
     views: {
       corridor: {
         description: "Raised three-quarter down the canyon at the canyons/flats seam — zone palettes, wall silhouettes, haul road.",

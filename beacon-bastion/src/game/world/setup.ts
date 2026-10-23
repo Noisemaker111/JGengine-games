@@ -9,6 +9,7 @@ import { currentWaveNumber, resetSession, session } from "../session";
 import { resetProjectiles } from "../combat/pendingProjectiles";
 import { KEEP_POINT } from "./path";
 import { registerWaveCommands } from "../waves/director";
+import { registerCaptureCommands } from "../capture";
 import { killBounty } from "../waves/bounty";
 import {
   legacy,
@@ -64,6 +65,7 @@ export function setupWorld(ctx: GameContext): void {
   restartDefense(ctx);
   registerBuildCommands(ctx);
   registerWaveCommands(ctx);
+  registerCaptureCommands(ctx);
   // One command that opens a run from the title, so a capture or a host can start play without a menu click.
   ctx.game.commands.define("run.begin", { apply: (state) => {
     if (gamePhase(state) !== "playing") beginRun(state);
