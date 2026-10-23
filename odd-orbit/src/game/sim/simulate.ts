@@ -4,7 +4,7 @@ import type { SceneObject } from "@jgengine/core/scene/objectStore";
 import { householdBook, memberAgent, syncBook, syncMember } from "../agents";
 
 import { DAY_LENGTH } from "../../world";
-import { FURNITURE_BY_ID, WORK_EARN_PER_SECOND, type FurnitureRole } from "../objects/catalog";
+import { FURNITURE_BY_ID, type FurnitureRole } from "../objects/catalog";
 import { clamp, lowestNeed, type NeedId } from "../needs/needs";
 import { householdStore } from "../session/store";
 import { noteEvent, pairKey, type HouseholdState, type MemberState } from "../session/types";
@@ -12,8 +12,11 @@ import { chooseDesire, isIdleish, SOCIAL_RANGE, SOCIAL_SECONDS, USE_FULL, type R
 import { advanceLifeEvents } from "./events";
 import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
 import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWindow } from "./schedule";
-import { bloomHarvest } from "./bloom";
 import { stationShortfall } from "./goal";
+import {
+  bloomHarvestIn, careerView, MASTERY_LABEL, rungProgressIn, STATION_NAME,
+  yieldRateIn, type CareerView,
+} from "../careers";
 
 function positionOf(ctx: GameContext, id: string): [number, number, number] | null {
   const entity = ctx.scene.entity.get(id);
@@ -92,23 +95,36 @@ function concern(ctx: GameContext, state: HouseholdState, member: MemberState, t
   member.concern = text;
 }
 
-function finishShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number): void {
+function finishShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number, view: CareerView): void {
   if (member.shiftDay === state.day) return;
   member.shiftDay = state.day;
   member.completedShifts += 1;
-  noteEvent(state, ctx.game.notices, `${member.name} finished a ${member.lifestyle === "yield" ? "Yield" : "Bloom"} shift.`, "success");
+  const station = member.lifestyle;
+  const changes = view.standing.apply(member.id, station === "yield" ? "shift:yield" : "shift:bloom");
+  state.standing = view.standing.snapshot();
+  const mastery = changes.find((change) => change.trackId === station);
+  const levelUp = mastery !== undefined && mastery.previousTier !== mastery.tier;
+  const tierId = view.standing.tier(member.id, station).id;
+  const level = levelUp ? ` ${STATION_NAME[station]} mastery now ${MASTERY_LABEL[tierId] ?? "I"}.` : "";
+  noteEvent(state, ctx.game.notices, `${member.name} finished a ${station === "yield" ? "Yield" : "Bloom"} shift.${level}`, "success");
+  const progress = rungProgressIn(view, member);
+  if (progress.canPromote) {
+    noteEvent(state, ctx.game.notices, `${member.name}'s ${progress.career.label} ${progress.nextLabel} rung is open (${progress.have} standing).`, "success");
+  }
   const at = positionOf(ctx, member.id);
   if (at !== null) ctx.game.audio.play("shift", at);
   if (member.completedShifts === FLEX_AFTER_SHIFTS) noteEvent(state, ctx.game.notices, `${member.name} earned flex hours: paid shifts can now run 08–18.`, "success");
 }
 
-function closeMissedShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number): void {
+function closeMissedShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number, view: CareerView): void {
   const hour = ((now % DAY_LENGTH) / DAY_LENGTH) * 24;
   if (member.shiftDay >= state.day || hour < shiftWindow(member).end) return;
   const finished = member.lifestyle === "yield" ? member.workToday >= SHIFT_SECONDS : member.harvestToday > 0;
   member.shiftDay = state.day;
   if (finished) return;
   member.missedShifts += 1;
+  view.standing.apply(member.id, "missed");
+  state.standing = view.standing.snapshot();
   member.stress = clamp(member.stress + 12);
   concern(ctx, state, member, member.lifestyle === "yield" ? "Yield window closed; unfinished work earned only partial pay" : "Bloom window closed; no harvest today");
 }
@@ -149,8 +165,9 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   const state = householdStore.read(ctx);
   if (state.order.length === 0) return;
   const objects = ctx.scene.object.list();
+  const view = careerView(state);
   if (Math.floor(now / DAY_LENGTH) > state.day) {
-    for (const id of state.order) closeMissedShift(ctx, state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001);
+    for (const id of state.order) closeMissedShift(ctx, state, state.members[id]!, state.day * DAY_LENGTH + DAY_LENGTH - 0.001, view);
   }
   const dayBefore = state.day;
   settleHouseholdDay(state, objects, now, ctx.game.notices);
@@ -173,12 +190,12 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
       member.concern = null;
       noteEvent(state, ctx.game.notices, `${member.name} recovered and can take paid shifts again.`, "success");
     }
-    closeMissedShift(ctx, state, member, now);
+    closeMissedShift(ctx, state, member, now, view);
   }
   const book = householdBook(state);
   for (const id of state.order) {
     const member = state.members[id];
-    if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt, book);
+    if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt, book, view);
   }
   stepSocialPairs(ctx, state, now, dt, book);
   advanceLifeEvents(state, now, ctx.game.notices);
@@ -193,10 +210,11 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
     const member = state.members[id];
     if (member !== undefined) syncMember(member, ctx.rng);
   }
+  if (state.standing !== undefined) state.standing = view.standing.snapshot();
   householdStore.write(ctx, { ...state, members: { ...state.members } });
 }
 
-function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], availability: RoleAvailability, now: number, dt: number, book: RelationshipBook): void {
+function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], availability: RoleAvailability, now: number, dt: number, book: RelationshipBook, view: CareerView): void {
   const agent = memberAgent(member, ctx.rng);
   const speed = (2.1 * (0.7 + member.bodyPlan.limbCount * 0.06)) / member.bodyPlan.size * (member.recovering ? 0.65 : 1);
   const action = member.action;
@@ -252,17 +270,18 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       return;
     }
     if (action.goal === "work") {
-      const before = creditAmount(member.workToday * WORK_EARN_PER_SECOND);
+      const rate = yieldRateIn(view, member);
+      const before = creditAmount(member.workToday * rate);
       const worked = Math.min(dt, SHIFT_SECONDS - member.workToday);
       member.workToday += worked;
       if (member.workToday > SHIFT_SECONDS - 1e-8) member.workToday = SHIFT_SECONDS;
-      const earned = creditAmount(member.workToday * WORK_EARN_PER_SECOND) - before;
+      const earned = creditAmount(member.workToday * rate) - before;
       state.credits = creditAmount(state.credits + earned);
       state.dayIncome = creditAmount(state.dayIncome + earned);
       agent.needs.refill("energy", -0.55 * worked);
       agent.needs.refill("hunger", -0.2 * worked);
       member.stress = clamp(member.stress + worked);
-      if (member.workToday >= SHIFT_SECONDS) { finishShift(ctx, state, member, now); releaseMember(member); }
+      if (member.workToday >= SHIFT_SECONDS) { finishShift(ctx, state, member, now, view); releaseMember(member); }
       return;
     }
     const goal = action.goal;
@@ -286,7 +305,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
           return position !== null && Math.hypot(position[0] - obj.position[0], position[2] - obj.position[2]) <= def.useRadius
             && ((other.action.kind === "use" && other.action.objId === obj.instanceId) || other.harvestToday > 0);
         });
-        const { rations: harvest, credits: income } = bloomHarvest(member.bloomCrop ?? "pantry", friend);
+        const { rations: harvest, credits: income } = bloomHarvestIn(view, member, member.bloomCrop ?? "pantry", friend);
         member.harvestToday = harvest;
         state.pantry = Math.min(PANTRY_CAP, state.pantry + harvest);
         state.dayHarvest += harvest;
@@ -294,7 +313,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         state.dayIncome = creditAmount(state.dayIncome + income);
         noteEvent(state, ctx.game.notices, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, "success");
         ctx.game.audio.play("harvest", [obj.position[0], obj.position[1], obj.position[2]]);
-        finishShift(ctx, state, member, now);
+        finishShift(ctx, state, member, now, view);
         releaseMember(member);
       }
       return;

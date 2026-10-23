@@ -2,9 +2,10 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { generateBodyPlan } from "../creatures/bodyPlan";
 import { makeNamer } from "../creatures/names";
-import { ALIEN_KIND, JOBS } from "../entities/aliens/catalog";
+import { ALIEN_KIND } from "../entities/aliens/catalog";
+import { type CareerId } from "../careers";
 import { householdStore } from "../session/store";
-import { createHousehold, pairKey, type HouseholdState, type MemberState } from "../session/types";
+import { createHousehold, pairKey, type HouseholdState, type Lifestyle, type MemberState } from "../session/types";
 import { emptyNeeds } from "../needs/needs";
 import { householdBook, resetAgents, resetBook, syncBook } from "../agents";
 import { LIFE_EVENT_SECONDS } from "./events";
@@ -13,6 +14,12 @@ import { SCENE_PLACEMENTS } from "../../editorLayers";
 
 const MEMBER_COUNT = 4;
 const SPAWN_RING = 3.5;
+
+/** Starting posts alternate within each rhythm, so the household opens with both ladders in use. */
+const STARTING_POSTS: Record<Lifestyle, readonly CareerId[]> = {
+  yield: ["Signal-keeper", "Tinkerer"],
+  bloom: ["Botanist", "Forager"],
+};
 
 export function setupWorld(ctx: GameContext): void {
   const current = householdStore.read(ctx);
@@ -36,6 +43,9 @@ export function setupWorld(ctx: GameContext): void {
   const namer = makeNamer(state.seed);
   for (let i = 0; i < MEMBER_COUNT; i++) {
     const id = `alien:${i}`;
+    const lifestyle: Lifestyle = i % 2 === 0 ? "yield" : "bloom";
+    const posts = STARTING_POSTS[lifestyle];
+    const job = posts[Math.floor(i / 2) % posts.length]!;
     const bodyPlan = generateBodyPlan(`${state.seed}:${i}`);
     const angle = (i / MEMBER_COUNT) * Math.PI * 2;
     const x = Math.cos(angle) * SPAWN_RING;
@@ -53,12 +63,12 @@ export function setupWorld(ctx: GameContext): void {
       id,
       name: namer(),
       bodyPlan,
-      job: JOBS[i % JOBS.length],
+      job,
       needs: emptyNeeds(),
       action: { kind: "idle" },
       assignedByPlayer: false,
       actionUntil: 0,
-      lifestyle: i % 2 === 0 ? "yield" : "bloom",
+      lifestyle,
       stress: 0,
       recovering: false,
       workToday: 0,

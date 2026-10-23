@@ -4,11 +4,14 @@ import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { NEEDS } from "../../needs/needs";
 import { moodOfNeeds, bondWord, householdBook } from "../../agents";
+import {
+  bloomHarvestIn, careerView, postRows, rungProgressIn, stationPayIn, STATION_NAME, yieldShiftValue,
+  RUNG_NAMES,
+} from "../../careers";
 import { householdStore } from "../../session/store";
 import { pairKey } from "../../session/types";
 import { activeGoalLabel, waitingForStation } from "../../sim/simulate";
 import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShiftLabel } from "../../sim/schedule";
-import { bloomHarvest } from "../../sim/bloom";
 import { FURNITURE_BY_ID } from "../../objects/catalog";
 import { shiftIsOpen } from "../../sim/schedule";
 import { AlienSwatch, MoodBadge, NeedBar } from "./bits";
@@ -20,9 +23,14 @@ export function Inspector() {
   const id = household.selectedMemberId;
   const member = id ? household.members[id] : null;
   if (!member || !id) return null;
+  const view = careerView(household);
+  const progress = rungProgressIn(view, member);
+  const yieldPay = stationPayIn(view, member, "yield");
+  const bloomPay = stationPayIn(view, member, "bloom");
   const cropLocked = member.shiftProgress > 0 || member.harvestToday > 0;
   const crop = member.bloomCrop ?? "pantry";
-  const reward = bloomHarvest(crop, false);
+  const reward = bloomHarvestIn(view, member, crop, false);
+  const posts = postRows(household, member);
   const hasPaidStation = objects.some(object => member.lifestyle === "bloom" ? object.catalogId === "bloom_planter" : FURNITURE_BY_ID[object.catalogId]?.role === "work");
   const paidReason = !hasPaidStation ? `Add a ${member.lifestyle === "bloom" ? "Bloom Planter" : "Yield Console"} with Furnish` : member.recovering ? "Recover before paid work" : member.shiftDay === household.day ? "Today's paid shift is finished or missed" : !shiftIsOpen(member, clock.now) ? `Paid window: ${scheduleLabel(member)}` : null;
   const care = [{ goal:"hunger", label:"Nourish", detail:"Uses 1 ration" }, { goal:"energy", label:"Rest", detail:"Lowers stress" }, { goal:"fun", label:"Play", detail:"Lowers stress" }] as const;
@@ -47,8 +55,14 @@ export function Inspector() {
     <h3>Daily rhythm</h3><p className="orbit-fine">{scheduleLabel(member)} · {member.completedShifts} completed / {member.missedShifts} missed shifts</p>
     <div className="orbit-lifestyles" role="group" aria-label="Daily schedule">{LIFESTYLES.map(lifestyle => <HudButton key={lifestyle.id} disabled={member.lifestyle !== lifestyle.id && !canChangeLifestyle(member)} aria-pressed={member.lifestyle === lifestyle.id} onClick={() => commands.run("member.lifestyle", { id, lifestyle:lifestyle.id })}><strong>{lifestyle.label}</strong><span>{lifestyle.blurb}</span></HudButton>)}</div>
     {!canChangeLifestyle(member) && <p className="orbit-fine">Today’s paid shift is committed. Change rhythm tomorrow.</p>}
-    {member.lifestyle === "bloom" && <><h3>Choose today's crop</h3><div className="orbit-lifestyles" role="group" aria-label="Bloom crop">{(["pantry","export"] as const).map(choice => { const output = bloomHarvest(choice,false); return <HudButton key={choice} aria-pressed={crop === choice} disabled={cropLocked && crop !== choice} onClick={() => commands.run("member.bloomCrop", { id, crop:choice })}><strong>{choice === "pantry" ? "Pantry crop" : "Export crop"}</strong><span>{output.rations} rations · {output.credits} credits</span></HudButton>; })}</div><p className="orbit-fine">Export trades 3 rations for 12 extra credits. Friends tending nearby add 1 ration and 12 credits. {cropLocked ? "Crop committed until tomorrow." : "Choose before tending starts."}</p></>}
-    <HudButton className="orbit-paid-action" disabled={paidReason !== null || shiftLabel !== null} onClick={() => commands.run("member.direct", { id, goal: member.lifestyle === "bloom" ? "tend" : "work" })}>{shiftLabel ?? (member.lifestyle === "bloom" ? `Tend ${crop} crop · ${reward.rations} rations + ${reward.credits} credits` : "Start Yield shift · earn up to 100 credits")}</HudButton>
+    {member.lifestyle === "bloom" && <><h3>Choose today's crop</h3><div className="orbit-lifestyles" role="group" aria-label="Bloom crop">{(["pantry","export"] as const).map(choice => { const output = bloomHarvestIn(view, member, choice, false); return <HudButton key={choice} aria-pressed={crop === choice} disabled={cropLocked && crop !== choice} onClick={() => commands.run("member.bloomCrop", { id, crop:choice })}><strong>{choice === "pantry" ? "Pantry crop" : "Export crop"}</strong><span>{output.rations} rations · {output.credits} credits</span></HudButton>; })}</div><p className="orbit-fine">Export trades 3 rations for 12 extra credits. Friends tending nearby add 1 ration and 12 credits. {cropLocked ? "Crop committed until tomorrow." : "Choose before tending starts."}</p></>}
+    <h3>Post & mastery</h3>
+    <p className="orbit-fine">{progress.career.label} · {RUNG_NAMES[progress.rung - 1]} (rung {progress.rung}/3) · household standing {progress.have}</p>
+    <p className="orbit-fine">Yield {yieldPay.masteryLabel} · pay x{yieldPay.factor.toFixed(2)} on a console. Bloom {bloomPay.masteryLabel} · pay x{bloomPay.factor.toFixed(2)} on a planter{bloomPay.rations > 0 ? `, +${bloomPay.rations} ration${bloomPay.rations === 1 ? "" : "s"}` : ""}.</p>
+    <div className="orbit-posts" role="group" aria-label="Posts">{posts.map(row => <HudButton key={row.career.id} aria-pressed={row.current} disabled={row.current || !row.open} onClick={() => commands.run("member.career", { id, career: row.career.id })}>{row.career.label}<small>{row.current ? `${STATION_NAME[row.career.station === "either" ? (member.lifestyle === "bloom" ? "bloom" : "yield") : row.career.station]} post` : row.open ? `${row.career.station === "either" ? "either station" : `${STATION_NAME[row.career.station]} family`}` : `${row.needs} standing`}</small></HudButton>)}</div>
+    <HudButton disabled={!progress.canPromote} onClick={() => commands.run("member.promote", { id })}>{progress.canPromote ? `Promote to ${progress.career.label} ${progress.nextLabel} · pay x${(progress.nextRung === 3 ? progress.career.native[2] : progress.career.native[1]).toFixed(2)}` : progress.reason}</HudButton>
+    <p className="orbit-fine">A shift raises mastery and household standing. Rungs cost standing, never credits; a Bloom Master adds a ration to every harvest.</p>
+    <HudButton className="orbit-paid-action" disabled={paidReason !== null || shiftLabel !== null} onClick={() => commands.run("member.direct", { id, goal: member.lifestyle === "bloom" ? "tend" : "work" })}>{shiftLabel ?? (member.lifestyle === "bloom" ? `Tend ${crop} crop · ${reward.rations} rations + ${reward.credits} credits` : `Start Yield shift · earn up to ${yieldShiftValue(household, member)} credits`)}</HudButton>
     <p className="orbit-fine">{paidReason ?? (shiftLabel !== null ? "Shift under way. Care needs can interrupt it." : "20 seconds at the station. Care needs can interrupt your shift.")}</p>
     <div className="orbit-shift"><span>Shift progress</span><progress max={SHIFT_SECONDS} value={shiftProgress}/><span>{Math.round(shiftProgress)} / {SHIFT_SECONDS}s</span></div>
     <p className="orbit-fine">Today: {member.workToday.toFixed(0)} seconds worked · {member.harvestToday} rations grown</p>

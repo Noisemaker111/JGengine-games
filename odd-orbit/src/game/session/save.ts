@@ -13,6 +13,7 @@ import { LIFE_EVENT_SECONDS } from "../sim/events";
 import { createHouseholdEconomy, PANTRY_CAP } from "../sim/economy";
 import { householdStore } from "./store";
 import { resetAgents, resetBook } from "../agents";
+import { alignLegacyPosts, CAREER_NODE_IDS, STANDING_TRACKS } from "../careers";
 import { pairKey, type HouseholdState } from "./types";
 
 export const ORBIT_SAVE_KEY = "odd-orbit.household-save.v1";
@@ -83,7 +84,27 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   if (!object(h.relationships) || !keys(h.relationships, pairs) || !Object.values(h.relationships).every(value => number(value, -100, 100))) return false;
   if (h.familiarity !== undefined && (!object(h.familiarity) || !keys(h.familiarity, pairs) || !Object.values(h.familiarity).every(value => number(value, 0, 1)))) return false;
   if (h.milestones !== undefined) return false;
+  if (h.standing !== undefined && !validStanding(h)) return false;
+  if (h.careers !== undefined && !validCareers(h.careers)) return false;
   return integer(h.eventSeq);
+}
+
+/** Standing records: known beings on the three authored tracks, inside the ledger's bounds. */
+function validStanding(h: Record<string, any>): boolean {
+  if (!object(h.standing) || !keys(h.standing, ["records"]) || !object(h.standing.records)) return false;
+  for (const [actor, row] of Object.entries(h.standing.records)) {
+    if (!(h.order as string[]).includes(actor) || !object(row)) return false;
+    for (const [track, score] of Object.entries(row)) {
+      if (!(STANDING_TRACKS as readonly string[]).includes(track) || !number(score, -999, 999)) return false;
+    }
+  }
+  return true;
+}
+
+/** Post rungs: authored node ids only, each owned at most once. */
+function validCareers(value: unknown): boolean {
+  if (!object(value) || !keys(value, ["ranks"]) || !object(value.ranks)) return false;
+  return Object.entries(value.ranks).every(([node, rank]) => CAREER_NODE_IDS.has(node) && integer(rank, 0, 2));
 }
 
 /** Reject the entire save before any subsystem can hydrate a partial damaged world. */
@@ -113,6 +134,13 @@ export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   const legacy = detached.household as HouseholdState & { events?: unknown; milestones?: unknown };
   delete legacy.events;
   delete legacy.milestones;
+  // A save from before posts existed: keep its standing empty and line each post up with its rhythm,
+  // so nobody loses the station their household already ran.
+  if (legacy.standing === undefined || legacy.careers === undefined) {
+    legacy.standing = { records: {} };
+    legacy.careers = { ranks: {} };
+    alignLegacyPosts(legacy);
+  }
   resetAgents();
   resetBook();
   ctx.time.hydrate(detached.clock);
