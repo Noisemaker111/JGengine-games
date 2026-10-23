@@ -28,6 +28,7 @@ export function TitleGate() {
 
   if (phase !== "menu") return null;
 
+  const loading = view.mode === "loading";
   const summary = `Life ${view.home.life} · ${view.home.extractions} return${view.home.extractions === 1 ? "" : "s"} · ${view.home.stash.length} banked`;
 
   return (
@@ -40,11 +41,11 @@ export function TitleGate() {
           {
             id: "continue",
             label: "Continue",
-            hint: saved ? summary : "No saved Marrow on this profile",
+            hint: loading ? "Reading the Marrow record" : saved ? summary : "No saved Marrow on this profile",
             primary: saved,
-            disabled: !saved,
+            disabled: !saved || loading,
           },
-          { id: "enter", label: "Enter Marrow", hint: "Walk to the garage and take the rail to Bellwether" },
+          { id: "enter", label: "Enter Marrow", hint: "Walk to the garage and take the rail to Bellwether", disabled: loading },
           { id: "settings", label: "Settings & controls", hint: "Sound, picture and the shift's keys" },
           { id: "credits", label: "Credits" },
         ]}
@@ -63,13 +64,15 @@ export function TitleGate() {
           }
           setCredits(true);
         }}
-        footer={<span>Marrow / {saved ? "record found" : "no saved record"}</span>}
+        footer={<span>Marrow / {loading ? "reading record" : saved ? "record found" : "no saved record"}</span>}
         controlHint="Arrows move · Enter select"
       >
         <p className="dw-title-note">
-          {saved
-            ? "Continue re-reads the saved record; nothing you carry on a dive is safe until it is banked."
-            : "A fresh Marrow. Departure writes the first record; from then on Continue appears here."}
+          {loading
+            ? "Reading the last Marrow record: the stash, the scrip and any dive still in progress."
+            : saved
+              ? "Continue re-reads the saved record. A dive still in progress resumes from its last checkpoint."
+              : "A fresh Marrow. Departure writes the first record; from then on Continue appears here."}
         </p>
       </TitleMenu>
 

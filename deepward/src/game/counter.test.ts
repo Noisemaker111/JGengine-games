@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { openSave, validHome, type StoragePort } from "./save";
+import { openRecord, validHome, type RunHooks, type StoragePort } from "./save";
 import { buySupply, counterRows, dismantle, haulScrip, marrowStanding, OPERATOR, priceOf, SCRIP, settleEconomy } from "./counter";
 import { depart, newDive, newHome, settle, takeLoot, type Dive, type Home } from "./state";
 import { breakdownValue, kindOf, rollItem, type ItemKind } from "./items";
@@ -7,6 +7,13 @@ import { breakdownValue, kindOf, rollItem, type ItemKind } from "./items";
 function memory(): StoragePort {
   const data = new Map<string, string>();
   return { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, value); } };
+}
+/** The record's run section is not part of these money rules; a stub stands in for the live view. */
+const stub: RunHooks = { snapshot: () => null as never, restore: () => {} };
+async function open(storage: StoragePort) {
+  const record = openRecord(storage, stub);
+  await record.load();
+  return record;
 }
 function standingAt(score: number): Home {
   const standing = marrowStanding();
@@ -74,34 +81,35 @@ describe("Marrow's counter", () => {
     expect(rifle.stash[0]!.level).toBe(2);
   });
 
-  test("a purchase survives the save's own validation and a reload", () => {
+  test("a purchase survives the save's own validation and a reload", async () => {
     const storage = memory();
-    const session = openSave(storage);
+    const session = await open(storage);
     const rich = { ...session.home, revision: session.home.revision + 1, bank: { ...session.home.bank, banked: 200 } };
     expect(validHome(rich)).toBe(true);
-    session.commit(rich);
-    session.commit(buySupply(session.home, "wire"));
-    const reloaded = openSave(storage);
+    await session.commit(rich);
+    await session.commit(buySupply(session.home, "wire"));
+    const reloaded = await open(storage);
     expect(reloaded.home.stash).toHaveLength(1);
     expect(reloaded.home.bank.banked).toBe(200 - priceOf("wire", 0));
     expect(reloaded.home.bank.banked).toBeLessThan(200);
   });
 
-  test("a whole dive banks scrip through settle and keeps the haul on a loss", () => {
+  test("a whole dive banks scrip through settle and keeps the haul on a loss", async () => {
     const storage = memory();
-    const session = openSave(storage);
-    session.commit(depart(session.home));
-    session.commit(settle(session.home, carried("wire", "wire"), "extracted", "Returned by rail"));
-    expect(openSave(storage).home.bank.banked).toBe(haulScrip([rollItem("wire", 1, "deepward:1:wire", "1:wire")]));
-    expect(openSave(storage).home.standing.records[OPERATOR]?.marrow).toBe(14);
+    const session = await open(storage);
+    await session.commit(depart(session.home));
+    await session.commit(settle(session.home, carried("wire", "wire"), "extracted", "Returned by rail"));
+    const reloaded = await open(storage);
+    expect(reloaded.home.bank.banked).toBe(haulScrip([rollItem("wire", 1, "deepward:1:wire", "1:wire")]));
+    expect(reloaded.home.standing.records[OPERATOR]?.marrow).toBe(14);
   });
 
-  test("a lost Life banks nothing and takes its standing with it", () => {
+  test("a lost Life banks nothing and takes its standing with it", async () => {
     const storage = memory();
-    const session = openSave(storage);
-    session.commit(depart(session.home));
-    session.commit(settle(session.home, carried("ink", "ink"), "lost", "The print took that Life"));
-    const reloaded = openSave(storage);
+    const session = await open(storage);
+    await session.commit(depart(session.home));
+    await session.commit(settle(session.home, carried("ink", "ink"), "lost", "The print took that Life"));
+    const reloaded = await open(storage);
     expect(reloaded.home.bank.banked).toBe(0);
     expect(reloaded.home.bank.lost).toBe(haulScrip([rollItem("ink", 1, "deepward:1:ink", "1:ink")]));
     expect(reloaded.home.stash).toEqual([]);
