@@ -5,6 +5,8 @@ import { game } from "../game.config";
 import { loop } from "../loop";
 import { content } from "./content";
 import { createHandroll, handrollOf } from "./handroll";
+import { cruiserGoal } from "./handroll/pursuit";
+import { paceBandFactor } from "@jgengine/core/ai/driver";
 import { RESIDENTS, residentAt, residentStats, tickResidents } from "./world/residents";
 import { advanceBehaviors } from "@jgengine/core/scene/behaviorRuntime";
 
@@ -133,6 +135,35 @@ describe("handroll drivable-vehicle adoption", () => {
     // cop_patrol fires every 1.2s; over 2.5s expect shots at t≈0, 1.2, 2.4.
     for (let i = 0; i < 150; i += 1) handroll.tick(ctx, STEP);
     expect(shots).toBe(3);
+  });
+
+  test("a cruiser's chase goal carries the shared pace band: pushed when the player is far, eased at the bumper", () => {
+    const facing = { position: [0, 0, 0] as const, heading: 0 };
+    const far = cruiserGoal(facing, [0, 0, 40]);
+    expect(paceBandFactor(far.paceBand!, far.paceGap!)).toBeGreaterThan(1);
+    // Cruise is held below the car's top speed, so the push has somewhere to go and the cap holds.
+    expect(far.speedLimit).toBeLessThan(40);
+    const near = cruiserGoal(facing, [0, 0, 2]);
+    expect(paceBandFactor(near.paceBand!, near.paceGap!)).toBeLessThan(0.2);
+    // A cruiser that has run past the player counts as ahead and eases rather than ramming back.
+    const overshot = cruiserGoal(facing, [0, 0, -10]);
+    expect(paceBandFactor(overshot.paceBand!, overshot.paceGap!)).toBeLessThan(0.2);
+  });
+
+  test("interceptors close on the player from the spawn ring instead of driving off", () => {
+    const ctx = boot();
+    const handroll = createHandroll();
+    ctx.scene.entity.setPose(HERO, { position: [0, 0, 0] });
+    // Five stars so the cruisers engage and the spawn ring drops one 70 m out.
+    handroll.addHeat(ctx, 500);
+    handroll.tick(ctx, STEP);
+    const cruiser = ctx.scene.entity.list().find((entity) => entity.id.startsWith("cruiser_"));
+    expect(cruiser).toBeDefined();
+
+    const gap = (): number => Math.hypot(cruiser!.position[0], cruiser!.position[2]);
+    expect(gap()).toBeGreaterThan(40);
+    for (let tick = 0; tick < 60 * 8; tick += 1) handroll.tick(ctx, STEP);
+    expect(gap()).toBeLessThan(8);
   });
 
   test("clearWanted resets heat and stars", () => {
