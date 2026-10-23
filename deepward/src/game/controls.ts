@@ -232,6 +232,7 @@ export function registerControls(ctx: GameContext): void {
   // UI commands share the apply functions. Only fire also consumes held input,
   // through its existing cooldown; discrete actions stay on the shell's press path.
   // Capture and UI share the stash sheet the world interaction opens.
+  ctx.game.commands.define("deepward.enter", { apply(state) { enterFromTitle(state); } });
   ctx.game.commands.define("deepward.openStash", { apply(state) {
     const v = viewStore.read(state);
     if (v.mode !== "home" || v.paused) return;

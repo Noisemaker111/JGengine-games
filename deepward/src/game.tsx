@@ -252,7 +252,7 @@ export const game = defineGame({
   capture: {
     probe: captureProbe,
     // The stash sheet with the fitter's counter: scrip, standing and the locked shelves.
-    states: { counter: ["deepward.openStash"] },
+    states: { counter: ["deepward.enter", "deepward.openStash"] },
   },
   orientation: "landscape",
 });

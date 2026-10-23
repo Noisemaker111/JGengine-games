@@ -46,7 +46,7 @@ export function StartScreen({ onStart, onCredits, onBuy, records }: {
           <strong>{row.part?.label ?? row.slot}</strong>
           <small>{row.owned ? "fully built" : row.locked ? `locked / needs ${row.needs} standing` : `${row.price} cr`}</small>
           <HudButton disabled={row.owned || row.locked || row.price === null || row.price > career.credits} onClick={() => onBuy(row.slot)}>
-            {row.owned ? "BUILT" : row.locked ? `LOCKED ${row.needs}` : `BUY ${row.price}`}
+            {row.owned ? "BUILT" : row.locked ? `LOCKED ${row.needs}` : row.price !== null && row.price > career.credits ? `NEED ${row.price - career.credits}` : `BUY ${row.price}`}
           </HudButton>
           <p>{row.part?.blurb ?? "Every rung of this ladder is already bolted on."}</p>
         </article>)}</div>

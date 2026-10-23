@@ -140,7 +140,7 @@ export function GameUI() {
       <div className="dw-counter">{counter.map(row => <article className="dw-supply" key={row.supply.kind}>
         <ItemMark kind={row.supply.kind} size={32} /><div><strong>{row.supply.label}</strong><p>{row.supply.blurb}</p>
           <small>{row.price} {SCRIP.unit} / unit{row.locked ? ` / locked, needs ${row.needs} standing` : ""}</small>
-          <HudButton disabled={row.locked || row.price > view.home.bank.banked} onClick={() => command("buy", { kind: row.supply.kind })}>{row.locked ? `Locked / ${marrowTier.id} standing` : row.price > view.home.bank.banked ? `Need ${row.price - view.home.bank.banked} more` : `Buy for ${row.price}`}</HudButton></div>
+          <HudButton disabled={row.locked || row.price > view.home.bank.banked} onClick={() => command("buy", { kind: row.supply.kind })}>{row.locked ? "Locked" : row.price > view.home.bank.banked ? `Need ${row.price - view.home.bank.banked} more` : `Buy for ${row.price}`}</HudButton></div>
       </article>)}</div>
       <h3>Refit the next departure</h3><p>Both refits need a copper spool. Spending it here means another rail journey for the other refit. Installed refits survive every Life.</p>
       {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article className="dw-refit" key={id}>
