@@ -47,8 +47,10 @@ failures append to `native-events.jsonl`. This endpoint is absent from builds.
 
 Bankruptcy and closed-park command guards pass focused simulation tests with
 forced debt; a three-day bankruptcy was not reached through native play. Coaster
-track art currently uses straight segments and the train stays at its station.
-The next useful batch is connected track turns, train travel and economy tuning.
+track art still uses straight segments, and no guest in the starter park chose
+the coaster during these captures, so the train's lap was verified in the ride
+sim rather than seen moving in the browser. The next useful batch is guest ride
+choice noise, connected track turns and economy tuning.
 
 The published shell retains the initial menu's empty action map. Brightway routes
 its discrete keyboard actions locally, honoring the shell's persisted binding
