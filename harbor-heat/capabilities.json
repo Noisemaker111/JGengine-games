@@ -15,9 +15,6 @@
     "traffic"
   ],
   "probes": {
-    "@jgengine/core/mission/mission": [
-      "harbor-heat courier"
-    ],
     "@jgengine/core/nav/traffic": [
       "harbor.traffic"
     ],

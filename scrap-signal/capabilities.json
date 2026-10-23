@@ -13,9 +13,6 @@
     "mount-game"
   ],
   "probes": {
-    "@jgengine/core/mission/mission": [
-      "scrap-signal mast"
-    ],
     "@jgengine/shell/audio/audioProbe": [
       "window:__jgengineAudio"
     ]

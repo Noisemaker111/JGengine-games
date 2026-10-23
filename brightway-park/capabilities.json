@@ -8,9 +8,6 @@
     "ride-sim"
   ],
   "probes": {
-    "@jgengine/core/agents/agent": [
-      "park.staff.*"
-    ],
     "@jgengine/shell/audio/audioProbe": [
       "window:__jgengineAudio"
     ]
