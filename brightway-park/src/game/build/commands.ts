@@ -9,6 +9,9 @@ import { archiveSave, savePark } from "../persistence";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
 import { syncAmbience } from "../audio";
+import { payOffLoan, takeLoan } from "../sim/economy";
+import { ridePrice, serviceRide, setRidePrice } from "../rides";
+import { beginScenario, endScenario, replayScenario } from "../scenarios";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -162,6 +165,88 @@ export function registerBuildCommands(ctx: GameContext): void {
       session.ticketPrice = Math.max(4, Math.min(60, session.ticketPrice + input.delta));
       if (session.ticketPrice !== before) state.game.audio.play("ticket");
       savePark(state);
+      bump(state);
+    },
+  });
+
+  // A ride's own ticket: the guests weigh it against the walk and the line they can see.
+  ctx.game.commands.define<{ id: string; delta: number }>("ride.price", {
+    apply(state, input) {
+      if (!session.started || session.gameOver || !Number.isFinite(input.delta)) return;
+      const def = buildableDef(input.id);
+      if (def.ride === undefined) return;
+      const before = ridePrice(input.id);
+      setRidePrice(input.id, before + input.delta);
+      if (ridePrice(input.id) !== before) state.game.audio.play("ticket");
+      savePark(state);
+      bump(state);
+    },
+  });
+
+  // Pay a ride's maintenance before it breaks: the shared sim clears the wear, the till pays.
+  ctx.game.commands.define<{ id: string }>("ride.service", {
+    apply(state, input) {
+      if (!session.started || session.gameOver) return;
+      const placed = session.placed.get(input.id);
+      if (placed === undefined) return;
+      const result = serviceRide(input.id);
+      if (result === null) return;
+      if (result.cost > 0) session.cash -= result.cost;
+      state.game.notices.push({
+        text: result.cost > 0
+          ? `Serviced ${buildableDef(placed.catalogId).label} · -$${result.cost} · ${result.wear} cycles cleared`
+          : `${buildableDef(placed.catalogId).label} has no wear to clear`,
+        tone: result.cost > 0 ? "success" : "info",
+      });
+      if (result.cost > 0) state.game.audio.play("place", [placed.x, 0, placed.z]);
+      savePark(state);
+      bump(state);
+    },
+  });
+
+  ctx.game.commands.define("park.loan", {
+    apply(state) {
+      if (!session.started || session.gameOver) return;
+      const amount = takeLoan();
+      if (amount <= 0) {
+        state.game.notices.push({ text: "The park is already carrying a loan", tone: "deny" });
+        return;
+      }
+      state.game.notices.push({ text: `Loan taken · +$${amount} · repaid nightly with 3% interest`, tone: "info" });
+      state.game.audio.play("ticket");
+      savePark(state);
+      bump(state);
+    },
+  });
+
+  ctx.game.commands.define("park.repay", {
+    apply(state) {
+      if (!session.started || session.gameOver || session.loan === null) return;
+      const paid = payOffLoan();
+      state.game.notices.push({ text: paid > 0 ? `Paid $${paid} off the loan` : "Not enough cash to pay the loan down", tone: paid > 0 ? "success" : "deny" });
+      if (paid > 0) state.game.audio.play("sell");
+      savePark(state);
+      bump(state);
+    },
+  });
+
+  ctx.game.commands.define<{ id: string }>("park.scenario", {
+    apply(state, input) {
+      if (!beginScenario(state, input.id)) return;
+      bump(state);
+    },
+  });
+
+  ctx.game.commands.define("park.replay", {
+    apply(state) {
+      if (!replayScenario(state)) return;
+      bump(state);
+    },
+  });
+
+  ctx.game.commands.define("park.freeplay", {
+    apply(state) {
+      endScenario(state);
       bump(state);
     },
   });

@@ -6,6 +6,8 @@ import {
 import type { AgentSnapshot } from "@jgengine/core/agents/agent";
 
 import { DAY_LENGTH, STARTING_CASH } from "./catalog";
+import type { LoanState } from "./loan";
+import type { ScenarioState } from "./scenarios";
 
 /**
  * The park's money as a serializable scheduled-transaction ledger. The daily upkeep+restock
@@ -13,8 +15,8 @@ import { DAY_LENGTH, STARTING_CASH } from "./catalog";
  * amount is `0` because the real per-day cost comes from live park metrics via a policy at
  * settlement time (see `settleDailyUpkeep`).
  */
-export function createParkLedger(day = 1, cash = STARTING_CASH): ResourceLedger {
-  const ledger = addScheduledRule(createResourceLedger({ accounts: { park: { cash } } }), {
+export function createParkLedger(day = 1, cash = STARTING_CASH, hasLoan = false): ResourceLedger {
+  let ledger = addScheduledRule(createResourceLedger({ accounts: { park: { cash } } }), {
     id: "daily-upkeep",
     currency: "cash",
     amount: 0,
@@ -22,11 +24,26 @@ export function createParkLedger(day = 1, cash = STARTING_CASH): ResourceLedger 
     startSeconds: DAY_LENGTH,
     source: "park",
   });
+  // A loan is the same shared ledger: one more rule, whose amount the settlement policy reads.
+  if (hasLoan) {
+    ledger = addScheduledRule(ledger, {
+      id: "loan-payment",
+      currency: "cash",
+      amount: 0,
+      everySeconds: DAY_LENGTH,
+      startSeconds: DAY_LENGTH,
+      source: "park",
+    });
+  }
   // Each completed day settles exactly one cycle. Rebuild this canonical rule
   // from the save's day rather than accepting arbitrary saved financial rules.
   ledger.nowSeconds = (day - 1) * DAY_LENGTH;
   ledger.cursors["daily-upkeep"]!.nextDueSeconds = day * DAY_LENGTH;
   ledger.cursors["daily-upkeep"]!.fired = day - 1;
+  if (hasLoan) {
+    ledger.cursors["loan-payment"]!.nextDueSeconds = day * DAY_LENGTH;
+    ledger.cursors["loan-payment"]!.fired = day - 1;
+  }
   return ledger;
 }
 
@@ -40,7 +57,7 @@ export interface PlacedObject {
   occupants: number;
 }
 
-export type GuestPhase = "seeking" | "busy" | "leaving";
+export type GuestPhase = "seeking" | "busy" | "queued" | "riding" | "leaving";
 
 export interface GuestState {
   id: string;
@@ -94,6 +111,16 @@ export interface Session {
   saveStatus: string;
   won: boolean;
   winDismissed: boolean;
+  /** A ride's own ticket price, by catalog id; the catalog default applies until the park sets one. */
+  ridePrices: Record<string, number>;
+  /** The park's outstanding loan, or null when it owes nothing. */
+  loan: LoanState | null;
+  /** The scenario being played, or null in free play. */
+  scenario: ScenarioState | null;
+  /** Visitors through the gate since the scenario began. */
+  scenarioVisitors: number;
+  /** Gate, ride and stall takings since the scenario began. */
+  scenarioRevenue: number;
 }
 
 function freshSession(): Session {
@@ -126,6 +153,11 @@ function freshSession(): Session {
     saveStatus: "Saved on builds, ticket changes, pause and day close",
     won: false,
     winDismissed: false,
+    ridePrices: {},
+    loan: null,
+    scenario: null,
+    scenarioVisitors: 0,
+    scenarioRevenue: 0,
   };
 }
 

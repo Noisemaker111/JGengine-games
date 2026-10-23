@@ -6,11 +6,12 @@ import {
 } from "@jgengine/core/agents/agent";
 import type { MoodTier } from "@jgengine/core/agents/mood";
 import type { NeedDefinition } from "@jgengine/core/sim/needs";
-import { rideAppeal, type RideTaste } from "@jgengine/core/sim/rides";
+import { rideAppeal, rideQueueCostWeight, type RideTaste } from "@jgengine/core/sim/rides";
 
 import { CLOSE_FRACTION, DAY_LENGTH, ENTRANCE, OPEN_FRACTION } from "./catalog";
 import { buildableDef } from "./objects/catalog";
 import { guestRidePreference } from "./sim/rideExperience";
+import { ridePrice, rideView } from "./rides";
 import { session, type GuestState, type PlacedObject, type StaffState } from "./session";
 
 /**
@@ -20,18 +21,27 @@ import { session, type GuestState, type PlacedObject, type StaffState } from "./
 export const GUEST_NEEDS: readonly NeedDefinition[] = [
   { id: "hunger", max: 100, min: 0, rate: 0.3, start: 85 },
   { id: "thirst", max: 100, min: 0, rate: 0.4, start: 82 },
-  { id: "fun", max: 100, min: 0, rate: 0.25, start: 70 },
+  { id: "fun", max: 100, min: 0, rate: 0.45, start: 70 },
   { id: "souvenir", max: 100, min: 0, rate: 0.05, start: 90 },
   { id: "energy", max: 100, min: 0, rate: 0.08, start: 88 },
 ];
 
-const needTerm = (need: string) => ({ need, curve: { kind: "linear" as const, from: 0.15, to: 0.95 } });
+/**
+ * Needs are *fullness* meters and the shared response curve is already urgency-shaped (full meter,
+ * lower appeal), so a term samples satisfaction directly - no `invert`.
+ */
+const needTerm = (need: string, weight = 1) => ({
+  need,
+  weight,
+  curve: { kind: "linear" as const, from: 0.15, to: 0.95 },
+});
 
 export const GUEST_OPTIONS = [
   { id: "hunger", terms: [needTerm("hunger")] },
   { id: "thirst", terms: [needTerm("thirst")] },
   { id: "souvenir", base: 0.05, terms: [needTerm("souvenir")] },
-  { id: "ride", base: 0.3, terms: [needTerm("fun")] },
+  // A ride is the park's headline: a bored guest should want it more than a stroll.
+  { id: "ride", base: 0.55, terms: [needTerm("fun", 1)] },
   { id: "energy", base: 0.05, terms: [needTerm("energy")] },
   { id: "wander", base: 0.15 },
 ];
@@ -45,15 +55,17 @@ export const GUEST_MOOD_TIERS: readonly MoodTier[] = [
   { at: 0, id: "miserable", label: "Miserable" },
 ];
 
-/** A point of score is about 33 s of walking, 50 s of queueing, or one dud ride. */
-const WALK_COST = 0.03;
+/** A point of score is about 125 s of walking, 45 s of queueing, or one dud ride. */
+const WALK_COST = 0.008;
 const QUEUE_COST = 0.02;
-const RIDE_GAP_COST = 0.5;
+const RIDE_GAP_COST = 0.3;
+/** A dollar of ride ticket weighs about as much as 25 s of walking. */
+const PRICE_COST = 0.04;
 
 /** What a guest tolerates, in the shared ride-choice shape, from its own audience card. */
 export function guestTaste(kind: string): RideTaste {
   const preference = guestRidePreference(kind);
-  return { intensityComfort: preference.thrill, nauseaComfort: 6, queueTolerance: 45 };
+  return { intensityComfort: preference.thrill, nauseaComfort: 6, queueTolerance: 70 };
 }
 
 const agents = new Map<string, Agent>();
@@ -119,8 +131,8 @@ const MIDWAY: AgentTarget = { option: "wander", target: "midway" };
 
 /**
  * The world as one guest sees it this tick: every stall whose need is still empty, every ride it can
- * board, and the midway as an always-available fallback. Walk, queue and how well the ride suits this
- * guest become one cost, and a sold-out stall or a full ride is simply absent from the list.
+ * afford, and the midway as an always-available fallback. Walk, the line the ride actually reports and
+ * the ride's ticket become one cost, priced against this guest's own queue tolerance.
  */
 export function guestTargets(
   guest: GuestState,
@@ -128,6 +140,8 @@ export function guestTargets(
   at: readonly [number, number, number],
 ): AgentTarget[] {
   const targets: AgentTarget[] = [];
+  const taste = guestTaste(guest.kind);
+  const queueWeight = rideQueueCostWeight(taste);
   for (const obj of session.placed.values()) {
     const def = buildableDef(obj.catalogId);
     const distance = Math.hypot(obj.x - at[0], obj.z - at[2]);
@@ -141,14 +155,19 @@ export function guestTargets(
       });
       continue;
     }
-    if (def.ride === undefined || obj.occupants >= def.ride.capacity) continue;
-    const ratings = { excitement: def.appeal, intensity: def.ride.thrill, nausea: 2 };
-    const appeal = rideAppeal(ratings, guestTaste(guest.kind));
-    const queueSeconds = (obj.occupants / Math.max(1, def.ride.capacity)) * 20;
+    if (def.ride === undefined) continue;
+    const price = ridePrice(obj.catalogId);
+    if (guest.money < price) continue;
+    const view = rideView(obj.id);
+    if (view === null) continue;
+    const appeal = rideAppeal(view.ratings, taste);
+    // The line's own measured wait, plus a penalty for standing in front of a ride that is down.
+    const waitPenalty = view.queue.wait.seconds * queueWeight;
+    const brokenPenalty = view.phase === "broken" ? 14 : 0;
     targets.push({
       option: "ride",
       target: obj.id,
-      cost: distance * WALK_COST + queueSeconds * QUEUE_COST + (1 - appeal) * RIDE_GAP_COST,
+      cost: distance * WALK_COST + waitPenalty + brokenPenalty + (1 - appeal) * RIDE_GAP_COST + price * PRICE_COST,
       fallback: MIDWAY,
     });
   }
@@ -156,12 +175,11 @@ export function guestTargets(
   return targets;
 }
 
-/** What a ride gives a guest in fun, from its ratings and that guest's taste. */
-export function rideFun(kind: string, obj: PlacedObject, tracks: number): number {
-  const def = buildableDef(obj.catalogId);
-  if (def.ride === undefined) return 0;
-  const ratings = { excitement: def.appeal, intensity: def.ride.thrill, nausea: 2 };
-  return 12 * rideAppeal(ratings, guestTaste(kind)) - 4 + tracks * 0.15;
+/** What a ride gives a guest in fun, from its live ratings and that guest's taste. */
+export function rideFun(kind: string, obj: PlacedObject, _tracks: number): number {
+  const view = rideView(obj.id);
+  if (view === null) return 0;
+  return 12 * rideAppeal(view.ratings, guestTaste(kind)) - 4;
 }
 
 /** The live agent a HUD reads without creating one - `null` before the guest has been ticked. */
