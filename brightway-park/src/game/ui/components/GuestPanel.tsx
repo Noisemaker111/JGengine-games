@@ -13,6 +13,8 @@ function activity(targetId: string | null, phase: string): string {
   const obj = targetId === null ? undefined : session.placed.get(targetId);
   const name = obj === undefined ? null : buildableDef(obj.catalogId).label;
   if (phase === "leaving") return "Leaving the park";
+  if (phase === "riding") return name === null ? "On a ride" : `Riding the ${name}`;
+  if (phase === "queued") return name === null ? "In line" : `Waiting in line for the ${name}`;
   if (phase === "busy") return name === null ? "Enjoying the midway" : `On the ${name}`;
   if (name !== null) return `Heading for the ${name}`;
   return "Looking for something to do";

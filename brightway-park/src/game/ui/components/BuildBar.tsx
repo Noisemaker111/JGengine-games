@@ -10,7 +10,7 @@ import {
   CATEGORY_ORDER,
   type BuildCategory,
 } from "../../objects/catalog";
-import { MILESTONES } from "../../catalog";
+import { MILESTONES } from "../../progression";
 import { session } from "../../session";
 import { placementHintStore } from "../../build/placementHint";
 import { useStore } from "@jgengine/react/store";

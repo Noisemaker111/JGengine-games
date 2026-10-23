@@ -1,20 +1,26 @@
 import type { AgentSnapshot } from "@jgengine/core/agents/agent";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { ClockSnapshot } from "@jgengine/core/time/simClock";
+import type { RideSystemSnapshot } from "@jgengine/core/sim/rides";
+import type { MissionRuntimeSnapshot } from "@jgengine/core/mission/mission";
 import { rngStateOf, restoreRng } from "@jgengine/core/random/rng";
 import { guestAgentState, syncAgentStates } from "./agents";
 import { BUILDABLES, buildableDef } from "./objects/catalog";
 import { GUEST_KINDS } from "./entities/guests/catalog";
 import { blockCenter, footprintCells } from "./build/placement";
-import { withinPark, MILESTONES } from "./catalog";
+import { withinPark } from "./catalog";
+import { MILESTONES, parkStanding } from "./progression";
+import { restoreRides, rideSnapshot, syncRidePark } from "./sim/rides";
+import { restoreScenario, scenarioSnapshot, type ScenarioState } from "./scenarios";
+import type { LoanState } from "./sim/finance";
 import { createParkLedger, session, type GuestState, type PlacedObject, type StaffState } from "./session";
 import { restoreStaff } from "./staff";
 
 export const SAVE_KEY = "brightway-park.save.v1";
-const numbers = ["cash", "rating", "happinessAvg", "litter", "ticketPrice", "day", "guestsToday", "revenueToday", "revenueYesterday", "upkeepYesterday", "spawnAcc", "guestSeq", "objectSeq", "bankruptDays"] as const;
+const numbers = ["cash", "rating", "happinessAvg", "litter", "ticketPrice", "day", "guestsToday", "revenueToday", "revenueYesterday", "upkeepYesterday", "spawnAcc", "guestSeq", "objectSeq", "bankruptDays", "scenarioVisitors", "scenarioRevenue"] as const;
 type Stats = Record<typeof numbers[number], number>;
 export interface ParkSave {
-  version: 2;
+  version: 3;
   stats: Stats;
   placed: PlacedObject[];
   guests: { state: GuestState; position: [number, number, number] }[];
@@ -25,6 +31,16 @@ export interface ParkSave {
   won: boolean;
   winDismissed: boolean;
   rng?: number | null;
+  /** The loan book, or null when the park owes nothing. */
+  loan: LoanState | null;
+  /** Ride tickets the park has set, by catalog id. */
+  ridePrices: Record<string, number>;
+  /** Park rating standing, as the shared standing snapshot. */
+  standing: { records: Record<string, Record<string, number>> };
+  /** Every ride's cycle, wear and line. */
+  rides: RideSystemSnapshot | null;
+  scenario: ScenarioState | null;
+  mission: MissionRuntimeSnapshot | null;
 }
 const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
 const record = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -83,8 +99,8 @@ export function decodeSave(raw: string): ParkSave | null {
       guests: unknown[];
       staff?: unknown;
     };
-    if (s.version !== 1 && s.version !== 2) return null;
-    if (!s.stats || !numbers.every(k => finite(s.stats[k]))) return null;
+    if (s.version !== 1 && s.version !== 2 && s.version !== 3) return null;
+    if (!s.stats || !numbers.every(k => finite(s.stats[k]) || (s.version < 3 && (k === "scenarioVisitors" || k === "scenarioRevenue")))) return null;
     if (!Number.isInteger(s.stats.day) || s.stats.day < 1 || s.stats.ticketPrice < 4 || s.stats.ticketPrice > 60) return null;
     if (!s.clock || !finite(s.clock.now) || s.clock.now < 0 || typeof s.clock.paused !== "boolean" || ![1,2,4].includes(s.clock.playSpeed) || s.clock.timescale !== 1) return null;
     if (!Array.isArray(s.unlocks) || !s.unlocks.every(id => MILESTONES.some(m => m.unlock === id))) return null;
@@ -125,7 +141,7 @@ export function decodeSave(raw: string): ParkSave | null {
       guests.push({ state, position: position as [number, number, number] });
     }
     const staff: StaffState[] = [];
-    if (s.version === 2) {
+    if (s.version === 2 || s.version === 3) {
       if (!Array.isArray(s.staff)) return null;
       for (const entry of s.staff as StaffState[]) {
         if (!entry || typeof entry.id !== "string" || typeof entry.postId !== "string" || !validAgent(entry.agent)) return null;
@@ -133,20 +149,74 @@ export function decodeSave(raw: string): ParkSave | null {
         staff.push(entry);
       }
     }
-    return { ...s, version: 2, guests, staff };
+    const loan = s.version >= 3 && record(s.loan)
+      ? {
+          principal: finite(s.loan.principal) ? s.loan.principal : 0,
+          outstanding: finite(s.loan.outstanding) ? s.loan.outstanding : 0,
+          dailyRate: finite(s.loan.dailyRate) ? s.loan.dailyRate : 0,
+          termDays: finite(s.loan.termDays) ? s.loan.termDays : 0,
+          daysPaid: finite(s.loan.daysPaid) ? s.loan.daysPaid : 0,
+          payment: finite(s.loan.payment) ? s.loan.payment : 0,
+          totalInterest: finite(s.loan.totalInterest) ? s.loan.totalInterest : 0,
+        }
+      : null;
+    const ridePrices: Record<string, number> = {};
+    if (s.version >= 3 && record(s.ridePrices)) {
+      for (const [catalogId, price] of Object.entries(s.ridePrices)) {
+        if (Object.hasOwn(BUILDABLES, catalogId) && finite(price)) ridePrices[catalogId] = price;
+      }
+    }
+    const standing = s.version >= 3 && record(s.standing) && record(s.standing.records)
+      ? (s.standing as ParkSave["standing"])
+      : { records: {} };
+    const rides = s.version >= 3 && record(s.rides) && Array.isArray(s.rides.rides)
+      ? (s.rides as unknown as RideSystemSnapshot)
+      : null;
+    const scenario = s.version >= 3 && record(s.scenario) && typeof s.scenario.id === "string"
+      ? {
+          id: s.scenario.id,
+          result: s.scenario.result === "won" || s.scenario.result === "failed" ? s.scenario.result : null,
+          outcome: typeof s.scenario.outcome === "string" ? s.scenario.outcome : null,
+          reason: typeof s.scenario.reason === "string" ? s.scenario.reason : null,
+        }
+      : null;
+    const mission = s.version >= 3 && record(s.mission) && finite((s.mission as { ticks?: unknown }).ticks)
+      ? (s.mission as unknown as MissionRuntimeSnapshot)
+      : null;
+    const statsSource = s.stats as unknown as Record<string, number>;
+    const stats = Object.fromEntries(numbers.map(k => [k, finite(statsSource[k]) ? statsSource[k] : 0])) as Stats;
+    return {
+      ...s,
+      version: 3,
+      stats,
+      guests,
+      staff,
+      loan,
+      ridePrices,
+      standing,
+      rides,
+      scenario,
+      mission,
+    };
   } catch { return null; }
 }
 
 export function snapshotPark(ctx: GameContext): ParkSave {
   syncAgentStates();
   return {
-    version: 2, stats: Object.fromEntries(numbers.map(k => [k,session[k]])) as Stats,
+    version: 3, stats: Object.fromEntries(numbers.map(k => [k,session[k]])) as Stats,
     placed: [...session.placed.values()].map(p => ({...p})),
     guests: [...session.guests.values()].map(g => ({state:{...g},position:[...(ctx.scene.entity.get(g.id)?.position ?? [0,0,58])] as [number,number,number]})),
     staff: [...session.staff.values()].map(state => ({...state, agent: state.agent})),
     clock: ctx.time.snapshot(), unlocks: [...(ctx.game.unlocks?.list(ctx.player.userId) ?? [])],
     gameOver: session.gameOver, won: session.won, winDismissed: session.winDismissed,
     rng: rngStateOf(ctx.rng),
+    loan: session.loan,
+    ridePrices: { ...session.ridePrices },
+    standing: parkStanding.snapshot(),
+    rides: rideSnapshot(),
+    scenario: session.scenario,
+    mission: scenarioSnapshot(),
   };
 }
 
@@ -168,8 +238,8 @@ export function restorePark(ctx: GameContext): boolean {
   if (!raw) return false;
   const s = decodeSave(raw);
   if (!s) { session.saveStatus = "Existing save could not be read; it has been preserved"; return false; }
-  Object.assign(session,s.stats,{gameOver:s.gameOver,won:s.won,winDismissed:s.winDismissed,hasSave:true});
-  session.ledger = createParkLedger(s.stats.day, s.stats.cash);
+  Object.assign(session,s.stats,{gameOver:s.gameOver,won:s.won,winDismissed:s.winDismissed,hasSave:true,loan:s.loan,ridePrices:s.ridePrices,scenario:s.scenario});
+  session.ledger = createParkLedger(s.stats.day, s.stats.cash, s.loan !== null);
   for (const p of s.placed) {
     session.placed.set(p.id,p);
     const def=buildableDef(p.catalogId), [dx,dz]=blockCenter(def,0,0);
@@ -182,6 +252,10 @@ export function restorePark(ctx: GameContext): boolean {
   }
   restoreStaff(ctx, s.staff);
   for(const unlock of s.unlocks) ctx.game.unlocks?.grant(ctx.player.userId,unlock);
+  parkStanding.restore(s.standing);
+  if (s.rides !== null) restoreRides(s.rides);
+  else syncRidePark(ctx.rng);
+  restoreScenario(s.mission);
   ctx.time.hydrate({...s.clock,paused:true});
   if (s.rng !== undefined && s.rng !== null) restoreRng(ctx.rng,s.rng);
   session.saveStatus = `Saved park - day ${session.day}, $${Math.round(session.cash).toLocaleString()}`;

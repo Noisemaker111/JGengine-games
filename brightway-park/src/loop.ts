@@ -6,9 +6,10 @@ import { CLOSE_FRACTION, DAY_LENGTH, OPEN_FRACTION } from "./game/catalog";
 import { session } from "./game/session";
 import { disposeWorld, setupWorld } from "./game/world/setup";
 import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
-import { spawnGuests, tickGuests } from "./game/sim/guests";
+import { spawnGuests, tickGuests, tickRidePark } from "./game/sim/guests";
 import { tickStaff } from "./game/staff";
 import { savePark } from "./game/persistence";
+import { tickScenario } from "./game/scenarios";
 import { syncAmbience } from "./game/audio";
 
 // Midnight is a simulation event, scheduled after restoring the clock.
@@ -43,11 +44,16 @@ export const loop: GameLoop<GameContext> = {
     if (!session.started || session.gameOver || dt <= 0) return;
     updateOpenState(ctx);
     const metrics = currentMetrics();
+    // The rides run their own cycles and lines; their boardings, breakdowns and repairs land on
+    // the guests and the till through the sink in `sim/guests`.
+    tickRidePark(ctx, dt);
     spawnGuests(ctx, dt, metrics.totalAppeal);
     tickStaff(ctx, dt);
     tickGuests(ctx, dt, metrics.tracks);
     tickRating(ctx, dt, metrics);
-    if (!session.won && metrics.rides >= 3 && session.rating >= 220 &&
+    tickScenario(ctx, dt);
+    // The blue ribbon is free play's own goal; a scenario has its own win and fail states.
+    if (session.scenario === null && !session.won && metrics.rides >= 3 && session.rating >= 220 &&
         session.happinessAvg >= 50 && session.litter <= 40 &&
         session.day > 1 && session.revenueYesterday >= session.upkeepYesterday) {
       session.won = true;

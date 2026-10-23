@@ -7,9 +7,15 @@ export interface ParkMetrics {
   tracks: number;
   scenery: number;
   cleaning: number;
+  mechanics: number;
   variety: number;
   totalAppeal: number;
+  /** Every object's upkeep per day, wages included. */
   dailyUpkeep: number;
+  /** The staff share of `dailyUpkeep`. */
+  wages: number;
+  /** Ticket machines, rides and scenery: upkeep that is not a wage. */
+  facilitiesUpkeep: number;
 }
 
 export function coasterThrill(tracks: number): number {
@@ -27,7 +33,9 @@ export function computeMetrics(placed: readonly PlacedObject[]): ParkMetrics {
   let tracks = 0;
   let scenery = 0;
   let cleaning = 0;
+  let mechanics = 0;
   let dailyUpkeep = 0;
+  let wages = 0;
   const rideKinds = new Set<string>();
   const stallNeeds = new Set<string>();
   for (const obj of placed) {
@@ -36,6 +44,8 @@ export function computeMetrics(placed: readonly PlacedObject[]): ParkMetrics {
     if (def.category === "track") tracks += 1;
     if (def.category === "scenery" || def.category === "path") scenery += 1;
     if (def.staff !== undefined) cleaning += def.staff.cleaning;
+    if (def.staff?.repair !== undefined) mechanics += 1;
+    if (def.category === "staff") wages += def.upkeep;
     if (def.category === "ride") {
       rides += 1;
       rideKinds.add(def.id);
@@ -48,7 +58,7 @@ export function computeMetrics(placed: readonly PlacedObject[]): ParkMetrics {
   let totalAppeal = 0;
   for (const obj of placed) totalAppeal += objectAppeal(buildableDef(obj.catalogId), tracks);
   const variety = rideKinds.size + stallNeeds.size;
-  return { rides, stalls, tracks, scenery, cleaning, variety, totalAppeal, dailyUpkeep };
+  return { rides, stalls, tracks, scenery, cleaning, mechanics, variety, totalAppeal, dailyUpkeep, wages, facilitiesUpkeep: dailyUpkeep - wages };
 }
 
 export function ratingTarget(

@@ -1,16 +1,15 @@
-import { MILESTONES, type Milestone } from "../catalog";
-
-/** The first milestone the park's rating has not yet reached, or null when all are unlocked. */
-export function nextMilestone(rating: number): Milestone | null {
-  return MILESTONES.find((m) => rating < m.rating) ?? null;
-}
+import { milestoneContents, nextMilestone } from "../progression";
 
 /**
- * Plain-language next step for the objective card, derived from MILESTONES.
- * Names the action (raise rating) and the reward (the unlock) so a new player knows what to do.
+ * Plain-language next step for the objective card, derived from the milestone gates.
+ * Names the action (raise rating) and the reward (the content that appears) so a new player knows
+ * what to do and what changes when they do it.
  */
 export function nextStepText(rating: number): string | null {
   const next = nextMilestone(rating);
   if (next === null) return null;
-  return `Raise rating to ${next.rating} ★ — add scenery and keep guests happy to unlock ${next.label}`;
+  const contents = milestoneContents(next.unlock);
+  return `Raise rating to ${next.rating} ★ — add scenery and keep guests happy to unlock ${contents.length > 0 ? contents.join(" & ") : next.label}`;
 }
+
+export { nextMilestone };

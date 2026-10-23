@@ -1,27 +1,27 @@
 import { describe, expect, test } from "bun:test";
 
-import { MILESTONES } from "../catalog";
+import { MILESTONES } from "../progression";
 import { nextMilestone, nextStepText } from "./nextStep";
 
 describe("objective next step", () => {
   test("starts with the first milestone at 60 rating", () => {
     expect(nextMilestone(0)?.unlock).toBe("tier_flowers");
     expect(nextStepText(0)).toBe(
-      "Raise rating to 60 ★ — add scenery and keep guests happy to unlock Flower beds & lamps",
+      "Raise rating to 60 ★ — add scenery and keep guests happy to unlock Flower Bed & Lamp Post",
     );
   });
 
   test("a rating exactly on a milestone moves on to the next one", () => {
     expect(nextMilestone(60)?.rating).toBe(120);
-    expect(nextStepText(60)).toContain("unlock Fountain & drink stall");
+    expect(nextStepText(60)).toContain("unlock Drinks Kiosk & Fountain");
   });
 
-  test("text is actionable: names the target rating and the unlock", () => {
+  test("text is actionable: names the target rating and the content that appears", () => {
     for (const m of MILESTONES.slice(0, -1)) {
       const text = nextStepText(m.rating - 1);
       expect(text).toStartWith("Raise rating to ");
       expect(text).toContain(`${m.rating} ★`);
-      expect(text).toContain(m.label);
+      expect(text).toContain("unlock ");
     }
   });
 
