@@ -19,4 +19,10 @@ export const keybinds: ActionCodesMap = {
   researchWeapons: ["KeyZ"],
   researchArmor: ["KeyX"],
   heroAbility: ["KeyC"],
+  heroMuster: ["Digit4"],
+  heroVolley: ["Digit5"],
+  heroWard: ["Digit6"],
+  // The level-up card's two options, so a pick never needs the mouse mid-battle.
+  heroPickFirst: ["Digit7"],
+  heroPickSecond: ["Digit8"],
 };

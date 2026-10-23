@@ -5,11 +5,12 @@ import { useEntityStat, useGame } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 
-import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
+import { hudStore, type ArmyUnit, type HeroKitEntry, type HudSnapshot } from "../../hudStore";
 import { campaignOrdinal, type CampaignReadout } from "../../campaign";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
 import { UPGRADES, WEAPON_DMG_PER_RANK, ARMOR_REDUCE_PER_RANK } from "../../upgrades";
-import { HERO_DMG_PER_LEVEL, THUNDERCLAP_COOLDOWN, THUNDERCLAP_COST } from "../../hero";
+import { HERO_DMG_PER_LEVEL } from "../../hero";
+import type { HeroActView, HeroOffer } from "../../heroActs";
 import { Icon } from "../icons";
 import { Minimap } from "./Minimap";
 import { ROSTER_METRICS, rosterFit, rosterPage } from "../rosterPage";
@@ -261,6 +262,51 @@ function researchFoot(hud: HudSnapshot, id: string): string {
   return costFoot(up.cost(rank).gold, up.cost(rank).lumber);
 }
 
+/** One of Bram's acts: its mana and cooldown in the tooltip, its readiness on the tile. */
+function ActSlot({ act, setTip }: { act: HeroActView | undefined; setTip: (t: Tip | null) => void }) {
+  const { commands } = useGame();
+  if (act === undefined) {
+    return <Slot icon="thunder" hotkey="·" foot="—" tone="locked" setTip={setTip} tip={{ title: "Hero act", desc: "Bram's acts appear here once he takes the field.", chips: [] }} />;
+  }
+  const tone: "ready" | "active" | "locked" = !act.owned ? "locked" : act.ready ? "ready" : "locked";
+  const foot = !act.owned ? "—" : act.ready ? "READY" : `${act.remaining}s`;
+  return (
+    <Slot
+      icon={act.icon}
+      hotkey={act.hotkey}
+      foot={foot}
+      tone={tone}
+      setTip={setTip}
+      onClick={() => commands.run("hero.act", { act: act.id })}
+      tip={{
+        title: act.owned ? act.label : `${act.label} — not in Bram's kit`,
+        desc: act.owned ? act.blurb : `${act.blurb} Take it at a level-up to add it to the command card.`,
+        chips: act.owned
+          ? [{ icon: "mana", text: String(act.manaCost) }, { icon: "stopwatch", text: `${act.cooldownSeconds}s` }]
+          : [],
+      }}
+    />
+  );
+}
+
+/** The picks Bram carries, as one command-card cell: a count on the tile, the kit in the tooltip. */
+function KitSlot({ kit, setTip }: { kit: HeroKitEntry[]; setTip: (t: Tip | null) => void }) {
+  const tip: Tip = kit.length === 0
+    ? { title: "Field kit", desc: "Bram's kit is empty. Every level-up offers two picks: an act for the command card or an item he carries.", chips: [] }
+    : { title: `Field kit — ${kit.length} pick${kit.length === 1 ? "" : "s"}`, desc: kit.map((pick) => `${pick.label}: ${pick.blurb}`).join("  ·  "), chips: [] };
+  return (
+    <Slot
+      icon="medal"
+      hotkey="·"
+      foot={kit.length === 0 ? "KIT" : `${kit.length} KIT`}
+      badge={kit.length > 0 ? String(kit.length) : undefined}
+      tone={kit.length > 0 ? "active" : "locked"}
+      setTip={setTip}
+      tip={tip}
+    />
+  );
+}
+
 /** The 3×4 gold-glyph command grid — recruit / construct / powers — with a shared hover tooltip. */
 function CommandGrid() {
   const hud = useHud();
@@ -280,7 +326,7 @@ function CommandGrid() {
           ) : null}
         </HudSurface>
       ) : null}
-      <div className="grid grid-cols-4 grid-rows-3 gap-1.5">
+      <div className="grid grid-cols-4 grid-rows-4 gap-1.5">
         <Slot icon="peasant" hotkey="1" foot={costFoot(TRAINABLE.peasant!.cost.gold)} tone={trainTone(hud, "peasant")} setTip={setTip} onClick={() => commands.run("train.peasant", {})}
           tip={{ title: "Train Peasant", desc: "Worker — mines gold, cuts lumber, and raises buildings.", chips: costChips(TRAINABLE.peasant!.cost.gold, TRAINABLE.peasant!.cost.lumber) }} />
         <Slot icon="footman" hotkey="2" foot={barracksFoot("footman")} tone={trainTone(hud, "footman")} setTip={setTip} onClick={() => commands.run("train.footman", {})}
@@ -302,9 +348,14 @@ function CommandGrid() {
           tip={{ title: `${UPGRADES.weapons!.label} — L${hud.weaponsRank}/${UPGRADES.weapons!.maxRank}`, desc: `+${WEAPON_DMG_PER_RANK} damage to your whole army per rank.`, chips: costChips(UPGRADES.weapons!.cost(hud.weaponsRank).gold, UPGRADES.weapons!.cost(hud.weaponsRank).lumber) }} />
         <Slot icon="armor" hotkey="X" badge={hud.armorRank > 0 ? String(hud.armorRank) : undefined} foot={researchFoot(hud, "armor")} tone={researchTone(hud, "armor")} setTip={setTip} onClick={() => commands.run("research.armor", {})}
           tip={{ title: `${UPGRADES.armor!.label} — L${hud.armorRank}/${UPGRADES.armor!.maxRank}`, desc: `−${ARMOR_REDUCE_PER_RANK} damage taken by your whole army per rank.`, chips: costChips(UPGRADES.armor!.cost(hud.armorRank).gold, UPGRADES.armor!.cost(hud.armorRank).lumber) }} />
-        <Slot icon="thunder" hotkey="C" foot={hud.abilityReady ? "READY" : hud.abilityCd > 0 ? `${hud.abilityCd}s` : "—"} tone={hud.abilityReady ? "active" : "locked"} setTip={setTip} onClick={() => commands.run("hero.ability", {})}
-          tip={{ title: "Thunder Clap", desc: "Bram slams the ground, bursting every Marauder around him.", chips: [{ icon: "mana", text: String(THUNDERCLAP_COST) }, { icon: "stopwatch", text: `${THUNDERCLAP_COOLDOWN}s` }] }} />
+        <ActSlot act={hud.heroActs.find((entry) => entry.id === "thunderclap")} setTip={setTip} />
         <Slot icon="hold" hotkey="V" tone={hud.phase === "playing" ? "ready" : "locked"} setTip={setTip} onClick={() => commands.run("unit.hold", {})} tip={{ title: "Hold Army", desc: "All combat troops stop and attack only enemies within weapon reach. Workers keep harvesting.", chips: [] }} />
+
+        {/* Bram's picked acts: one card cell each, locked until a level-up adds them. */}
+        <ActSlot act={hud.heroActs.find((entry) => entry.id === "banner")} setTip={setTip} />
+        <ActSlot act={hud.heroActs.find((entry) => entry.id === "volley")} setTip={setTip} />
+        <ActSlot act={hud.heroActs.find((entry) => entry.id === "ward")} setTip={setTip} />
+        <KitSlot kit={hud.heroKit} setTip={setTip} />
       </div>
     </div>
   );
@@ -485,6 +536,47 @@ function Console() {
   );
 }
 
+/** The level-up card: two options, an act for the command card or an item Bram carries. */
+function LevelUpCard({ offer }: { offer: HeroOffer }) {
+  const { commands } = useGame();
+  return (
+    <HudSurface elevation="modal" className={"absolute bottom-[17rem] left-1/2 z-30 w-[30rem] -translate-x-1/2 px-4 py-3 pointer-events-auto " + FRAME}>
+      <Corners />
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Bram reaches level {offer.level}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-300/70">Choose one</span>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {offer.options.map((option, index) => {
+          const disabled = !option.allocatable || option.taken;
+          return (
+            <HudButton
+              key={option.id}
+              disabled={disabled}
+              onClick={() => commands.run("hero.pick", { id: option.id })}
+              aria-label={`${option.label} — ${option.kind === "active" ? "act" : "item"}`}
+              className={"ec-levelup-option flex items-start gap-2.5 rounded-md border-2 px-2.5 py-2 text-left " + (disabled ? "border-slate-600/50 bg-slate-900/70" : "border-amber-500/70 bg-[#171410]/95 hover:border-amber-300")}
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-amber-600/40 bg-gradient-to-b from-[#26231a] to-[#0b0c10]">
+                <Icon name={option.icon} className={"h-7 w-7 " + (disabled ? "text-slate-600" : "text-amber-300")} />
+              </span>
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className="flex items-center justify-between gap-2">
+                  <span className={"truncate text-[13px] font-bold " + (disabled ? "text-slate-400" : "text-amber-100")}>{option.label}</span>
+                  <span className="shrink-0 rounded border border-slate-500/40 px-1 text-[9px] font-black tabular-nums text-slate-300">{index + 7}</span>
+                </span>
+                <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-wider text-sky-300/80">{option.taken ? "In the kit" : option.kind === "active" ? "Act" : "Item"}</span>
+                <span className="mt-0.5 block text-[10px] leading-snug text-slate-300">{option.blurb}</span>
+              </span>
+            </HudButton>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[10px] leading-snug text-slate-400">Picks are saved with the campaign: Bram carries them into the next mission.</p>
+    </HudSurface>
+  );
+}
+
 /** Order reports and refusals go to the engine notice feed (`ctx.game.notices`), which the shell draws. */
 export function RtsHud(): ReactNode {
   const hud = useHud();
@@ -493,6 +585,7 @@ export function RtsHud(): ReactNode {
       <TopBar />
       <ObjectivesPanel />
       <Console />
+      {hud.heroOffer !== null && hud.phase === "playing" ? <LevelUpCard offer={hud.heroOffer} /> : null}
       {(hud.rallyArmed || hud.attackMoveArmed) && <div className="ec-order-mode">{hud.rallyArmed ? "Rally point" : "Attack-move"} · Right-click a destination · Esc to cancel</div>}
     </>
   );

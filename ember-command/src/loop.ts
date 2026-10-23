@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { restoreCampaign } from "./game/campaign";
+import { loadHeroPicks, pendingHeroOffer } from "./game/heroActs";
 import { matchRunning, session } from "./game/session";
 import { setupSkirmish } from "./game/world/scene";
 
@@ -23,6 +24,8 @@ async function resumeCampaign(ctx: GameContext): Promise<void> {
   if (!(await save.load())) return;
   if (!session.started) setupSkirmish(ctx);
   restoreCampaign(ctx);
+  // The saved kit is the one piece of hero state the campaign carries into this battle.
+  loadHeroPicks(ctx);
 }
 
 /** @internal No avatar — Ember Command is a commander-view RTS, so a joining player controls the army. */
@@ -42,5 +45,14 @@ export function onTick(ctx: GameContext, _dt: number): void {
   if (ctx.input.justPressed("buildTower")) ctx.game.commands.run("build.arm", { type: "guard_tower" });
   if (ctx.input.justPressed("researchWeapons")) ctx.game.commands.run("research.weapons", {});
   if (ctx.input.justPressed("researchArmor")) ctx.game.commands.run("research.armor", {});
-  if (ctx.input.justPressed("heroAbility")) ctx.game.commands.run("hero.ability", {});
+  if (ctx.input.justPressed("heroAbility")) ctx.game.commands.run("hero.act", { act: "thunderclap" });
+  if (ctx.input.justPressed("heroMuster")) ctx.game.commands.run("hero.act", { act: "banner" });
+  if (ctx.input.justPressed("heroVolley")) ctx.game.commands.run("hero.act", { act: "volley" });
+  if (ctx.input.justPressed("heroWard")) ctx.game.commands.run("hero.act", { act: "ward" });
+  // The level-up card answers to 7 and 8 while it is open, so a pick never waits on the mouse.
+  const offer = pendingHeroOffer(ctx);
+  if (offer !== null) {
+    if (ctx.input.justPressed("heroPickFirst")) ctx.game.commands.run("hero.pick", { id: offer.options[0].id });
+    if (ctx.input.justPressed("heroPickSecond")) ctx.game.commands.run("hero.pick", { id: offer.options[1].id });
+  }
 }

@@ -14,6 +14,7 @@ import type { BuildSpec } from "./building";
 import { combatantDef, type CombatantKind } from "./catalog";
 import { ENEMY_WAVE_FIRST_DELAY, TOWN_HALL_FOOD, type Faction } from "./tuning";
 import type { ResearchSpec } from "./upgrades";
+import type { HeroActsRuntime } from "./heroActs";
 
 /** A commanded intent for one unit. Serializable plain data — no closures, no entity refs. */
 export type UnitCommand =
@@ -75,8 +76,9 @@ export interface SessionState {
   hunt: SoundHunt | null;
   /** Where every living enemy unit stood on the last director tick, so a noise can find its neighbours. */
   enemyPositions: Record<string, { x: number; z: number }>;
-  /** Hero ability state. Mana/XP/level live on the hero entity pools; only the cooldown is here. */
-  heroState: { abilityCooldown: number };
+  /** Bram's battle runtime — act cooldowns, timed line buffs and the live pick tree. Built on first
+   * use and dropped with the session, so a restaged battle starts with fresh cooldowns. */
+  heroActs: HeroActsRuntime | null;
   over: boolean;
   victory: boolean;
   trainSeq: number;
@@ -118,7 +120,7 @@ function fresh(): SessionState {
     senses: null,
     hunt: null,
     enemyPositions: {},
-    heroState: { abilityCooldown: 0 },
+    heroActs: null,
     over: false,
     victory: false,
     trainSeq: 0,
