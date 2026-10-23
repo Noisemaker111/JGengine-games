@@ -26,7 +26,7 @@ export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion
     <p className="park-save-note">{session.saveStatus}. Saves stay in this browser.</p>
     <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={onCloseSettings}>Back to the park</HudButton>
   </ParkDialog>;
-  if(session.scenario!==null&&session.scenario.result!==null) {
+  if(session.scenario!==null&&session.scenario.result!==null&&session.started) {
     const won=session.scenario.result==="won";
     return <ParkDialog title={won?"Scenario complete":"Scenario failed"}>{logo}
       <div className="park-section-label">{won?"BRIGHT DAYS AHEAD":"THE GATES CLOSE"}</div>

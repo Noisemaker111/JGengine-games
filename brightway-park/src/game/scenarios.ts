@@ -70,13 +70,13 @@ export const SCENARIOS: readonly ScenarioDef[] = [
   {
     id: "star_attraction",
     title: "Star Attraction",
-    blurb: "Three days to turn a handful of rides into a 220-star park people talk about.",
-    goal: "Reach a 220 star rating by the end of day three",
+    blurb: "Three days to turn a handful of rides into a 420-star park people talk about.",
+    goal: "Reach a 420 star rating by the end of day three",
     cash: 7000,
     mission: {
       id: "star_attraction",
       title: "Star Attraction",
-      description: "Reach a park rating of 220 within three days with guests still smiling.",
+      description: "Reach a park rating of 420 within three days with guests still smiling.",
       fail: [
         { id: "walkout", message: "The crowd turned miserable and stopped coming." },
         { id: "broke", message: "The park ran out of cash chasing the rating." },
@@ -86,15 +86,15 @@ export const SCENARIOS: readonly ScenarioDef[] = [
         {
           id: "season",
           kind: "survive",
-          label: "Reach 220 stars by the end of day three",
+          label: "Reach 420 stars by the end of day three",
           duration: DAY_LENGTH * 3,
           failOn: [
-            { kind: "fact", fact: "mood", atMost: 30, to: "walkout", message: "Guest mood collapsed below 30%." },
+            { kind: "fact", fact: "mood", atMost: 20, to: "walkout", message: "Guest mood collapsed below 20%." },
             { kind: "fact", fact: "cash", atMost: 0, to: "broke", message: "The till ran dry." },
           ],
           branches: [
-            { to: "done", when: { fact: "rating", atLeast: 220 }, label: "Star attraction" },
-            { to: "quiet", when: { fact: "rating" }, label: "Short of 220 stars" },
+            { to: "done", when: { fact: "rating", atLeast: 420 }, label: "Star attraction" },
+            { to: "quiet", when: { fact: "rating" }, label: "Short of 420 stars" },
           ],
         },
       ],

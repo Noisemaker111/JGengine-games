@@ -2,7 +2,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { RideTickSink } from "@jgengine/core/sim/rides";
 
 import { guestCap } from "../catalog";
-import { buildableDef } from "../objects/catalog";
+import { buildableDef, type BuildableDef } from "../objects/catalog";
 import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
 import { nextGuestId, session, type GuestState, type PlacedObject } from "../session";
 import {
@@ -28,6 +28,11 @@ const BROWSE_SECONDS = 3;
 const TARGET_PATIENCE = 25;
 const LEAVE_PATIENCE = 30;
 const QUEUE_CHECK_SECONDS = 8;
+
+/** How close a guest must get to a structure: a ride's own footprint keeps it out of the middle. */
+function arriveRadius(def: BuildableDef): number {
+  return Math.max(ARRIVE_DISTANCE, def.footprint / 2 + 1.4);
+}
 
 function distance2(ax: number, az: number, bx: number, bz: number): number {
   return Math.hypot(ax - bx, az - bz);
@@ -133,6 +138,24 @@ function moveGuest(ctx: GameContext, guest: GuestState, target: readonly [number
   return distance2(next[0], next[2], target[0], target[2]) <= ARRIVE_DISTANCE;
 }
 
+/** Walk to a structure and say when the guest is close enough to use it. */
+function moveToStructure(
+  ctx: GameContext,
+  guest: GuestState,
+  target: readonly [number, number, number],
+  def: BuildableDef,
+  dt: number,
+): boolean {
+  const next = ctx.scene.entity.moveToward(guest.id, target, {
+    speed: GUEST_WALK_SPEED,
+    dt,
+    stopDistance: 0,
+  });
+  if (next === null) return false;
+  ctx.scene.entity.setPose(guest.id, { position: next });
+  return distance2(next[0], next[2], target[0], target[2]) <= arriveRadius(def);
+}
+
 function despawnGuest(ctx: GameContext, guest: GuestState): void {
   releaseOccupant(guest);
   if (guest.targetId !== null) leaveRide(guest.targetId, guest.id);
@@ -143,9 +166,10 @@ function despawnGuest(ctx: GameContext, guest: GuestState): void {
   ctx.scene.entity.despawn(guest.id);
 }
 
-/** Where the next guest in line stands: a line that runs out from the ride's door. */
+/** Where the next guest in line stands: a line that runs out from the ride's own footprint. */
 function queueSpot(obj: PlacedObject, index: number): [number, number, number] {
-  return [obj.x, 0, obj.z - 3 - Math.max(0, index) * 1.15];
+  const radius = arriveRadius(buildableDef(obj.catalogId));
+  return [obj.x, 0, obj.z - radius - Math.max(0, index) * 1.15];
 }
 
 /** The line a guest is standing in: its own measured wait, or a sold-out stall's crowd. */
@@ -155,10 +179,12 @@ function queuePenalty(guest: GuestState): number {
   if (obj === undefined) return 0;
   const def = buildableDef(obj.catalogId);
   if (def.ride !== undefined) {
+    // Standing in line is what wears a guest down; walking towards a ride is not a wait yet.
+    if (guest.phase !== "queued") return 0;
     const view = rideView(obj.id);
     if (view === null) return 0;
     const seconds = view.queue.wait.seconds + (view.phase === "broken" ? 45 : 0);
-    return -Math.min(28, seconds * 0.22);
+    return -Math.min(14, seconds * 0.18);
   }
   return def.stall !== undefined && obj.stock <= 0 ? -12 : 0;
 }
@@ -349,10 +375,12 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
         guest.target = null;
         guest.phase = "seeking";
       } else {
-        const arrived = moveGuest(ctx, guest, guest.target, dt);
+        const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
+        const def = obj === undefined ? undefined : buildableDef(obj.catalogId);
+        const arrived = obj !== undefined && def !== undefined
+          ? moveToStructure(ctx, guest, guest.target, def, dt)
+          : moveGuest(ctx, guest, guest.target, dt);
         if (arrived && guest.targetId !== null) {
-          const obj = session.placed.get(guest.targetId);
-          const def = obj === undefined ? undefined : buildableDef(obj.catalogId);
           if (obj !== undefined && def?.ride !== undefined) {
             arriveAtRide(ctx, guest, obj);
           } else {

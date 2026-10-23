@@ -4,8 +4,9 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 
 import { content } from "../content";
+import { agentOf } from "../agents";
 import { resetSession, session, type PlacedObject } from "../session";
-import { tickRidePark } from "./guests";
+import { tickRidePark, tickGuests, seedGuests } from "./guests";
 import { joinRide, resetRides, rideBoard, rideStats, rideView, serviceRide, syncRidePark } from "./rides";
 
 function context() {
@@ -65,6 +66,28 @@ describe("brightway-park rides on the shared ride sim", () => {
     // The head of the line boards on the next tick and the line shrinks.
     tickRidePark(ctx, 0.1);
     expect(rideView("ride_carousel#1")!.queue.size).toBeLessThan(repaired.queue.size);
+  });
+
+  test("a guest that reaches a ride joins its line, boards, and pays its ticket", () => {
+    const ctx = context();
+    session.placed.set("ride_carousel#1", carousel());
+    syncRidePark(() => 1);
+    seedGuests(ctx, 1);
+    const guest = [...session.guests.values()][0]!;
+    const agent = agentOf(guest, ctx.rng);
+    agent.needs.refill("fun", -agent.needs.value("fun"));
+    ctx.scene.entity.setPose(guest.id, { position: [0, 0, 56] });
+    const cashBefore = session.cash;
+
+    for (let i = 0; i < 900; i += 1) {
+      tickRidePark(ctx, 0.1);
+      tickGuests(ctx, 0.1, 14);
+    }
+
+    const view = rideView("ride_carousel#1")!;
+    expect(view.cycles).toBeGreaterThan(0);
+    expect(guest.visits).toBeGreaterThan(0);
+    expect(session.cash).toBeGreaterThan(cashBefore);
   });
 
   test("servicing a ride clears the wear a breakdown curve reads", () => {

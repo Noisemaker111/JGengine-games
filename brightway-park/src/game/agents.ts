@@ -21,18 +21,27 @@ import { session, type GuestState, type PlacedObject, type StaffState } from "./
 export const GUEST_NEEDS: readonly NeedDefinition[] = [
   { id: "hunger", max: 100, min: 0, rate: 0.3, start: 85 },
   { id: "thirst", max: 100, min: 0, rate: 0.4, start: 82 },
-  { id: "fun", max: 100, min: 0, rate: 0.25, start: 70 },
+  { id: "fun", max: 100, min: 0, rate: 0.45, start: 70 },
   { id: "souvenir", max: 100, min: 0, rate: 0.05, start: 90 },
   { id: "energy", max: 100, min: 0, rate: 0.08, start: 88 },
 ];
 
-const needTerm = (need: string) => ({ need, curve: { kind: "linear" as const, from: 0.15, to: 0.95 } });
+/**
+ * Needs are *fullness* meters and the shared response curve is already urgency-shaped (full meter,
+ * lower appeal), so a term samples satisfaction directly - no `invert`.
+ */
+const needTerm = (need: string, weight = 1) => ({
+  need,
+  weight,
+  curve: { kind: "linear" as const, from: 0.15, to: 0.95 },
+});
 
 export const GUEST_OPTIONS = [
   { id: "hunger", terms: [needTerm("hunger")] },
   { id: "thirst", terms: [needTerm("thirst")] },
   { id: "souvenir", base: 0.05, terms: [needTerm("souvenir")] },
-  { id: "ride", base: 0.3, terms: [needTerm("fun")] },
+  // A ride is the park's headline: a bored guest should want it more than a stroll.
+  { id: "ride", base: 0.55, terms: [needTerm("fun", 1)] },
   { id: "energy", base: 0.05, terms: [needTerm("energy")] },
   { id: "wander", base: 0.15 },
 ];
@@ -46,17 +55,17 @@ export const GUEST_MOOD_TIERS: readonly MoodTier[] = [
   { at: 0, id: "miserable", label: "Miserable" },
 ];
 
-/** A point of score is about 33 s of walking, 50 s of queueing, or one dud ride. */
-const WALK_COST = 0.03;
+/** A point of score is about 125 s of walking, 45 s of queueing, or one dud ride. */
+const WALK_COST = 0.008;
 const QUEUE_COST = 0.02;
-const RIDE_GAP_COST = 0.5;
-/** A dollar of ride ticket weighs about as much as 20 s of walking. */
-const PRICE_COST = 0.05;
+const RIDE_GAP_COST = 0.3;
+/** A dollar of ride ticket weighs about as much as 25 s of walking. */
+const PRICE_COST = 0.04;
 
 /** What a guest tolerates, in the shared ride-choice shape, from its own audience card. */
 export function guestTaste(kind: string): RideTaste {
   const preference = guestRidePreference(kind);
-  return { intensityComfort: preference.thrill, nauseaComfort: 6, queueTolerance: 45 };
+  return { intensityComfort: preference.thrill, nauseaComfort: 6, queueTolerance: 70 };
 }
 
 const agents = new Map<string, Agent>();

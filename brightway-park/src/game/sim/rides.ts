@@ -118,7 +118,7 @@ export function syncRidePark(rng: () => number): void {
   const previous = park.system;
   const saved = previous?.snapshot() ?? null;
   previous?.dispose();
-  const next = createRideSystem({ rides: definitions, rng, devtoolsName: "park.rides" });
+  const next = createRideSystem({ rides: definitions, rng, devtoolsName: "park.rides", queueSeedServiceSeconds: 3 });
   if (saved !== null) {
     const byId = new Map(saved.rides.map((entry) => [entry.definition.id, entry]));
     next.restore({
@@ -151,7 +151,7 @@ export function syncRidePark(rng: () => number): void {
 /** The live sim, created empty when the park has no rides yet. */
 export function rideSystem(): RideSystem {
   if (park.system === null) {
-    park.system = createRideSystem({ rides: [], rng: () => 0.5, devtoolsName: "park.rides" });
+    park.system = createRideSystem({ rides: [], rng: () => 0.5, devtoolsName: "park.rides", queueSeedServiceSeconds: 3 });
     park.key = "";
   }
   return park.system;
@@ -203,7 +203,7 @@ export function rideSnapshot(): RideSystemSnapshot {
 export function restoreRides(snapshot: RideSystemSnapshot): void {
   resetRides();
   const definitions = desiredDefinitions();
-  const system = createRideSystem({ rides: definitions, rng: () => 0.5, devtoolsName: "park.rides" });
+  const system = createRideSystem({ rides: definitions, rng: () => 0.5, devtoolsName: "park.rides", queueSeedServiceSeconds: 3 });
   system.restore(snapshot);
   park.system = system;
   park.key = definitionKey(definitions);

@@ -50,7 +50,7 @@ describe("brightway-park scenarios on the shared mission runtime", () => {
     expect(failed.reason).toContain("till ran dry");
   });
 
-  test("Star Attraction fails when the crowd turns miserable, and wins at 220 stars", () => {
+  test("Star Attraction fails when the crowd turns miserable, and wins at 420 stars", () => {
     const park = runtime();
     park.start("star_attraction");
     const walked = park.tick(10, { facts: facts({ mood: 20 }) });
@@ -58,7 +58,7 @@ describe("brightway-park scenarios on the shared mission runtime", () => {
 
     const second = runtime();
     second.start("star_attraction");
-    const won = second.tick(DAY_LENGTH * 3, { facts: facts({ rating: 240, mood: 70 }) });
+    const won = second.tick(DAY_LENGTH * 3, { facts: facts({ rating: 450, mood: 70 }) });
     expect(kinds(won)).toContain("completed");
   });
 
