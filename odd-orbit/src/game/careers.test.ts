@@ -60,7 +60,7 @@ test("household standing gates the next rung and a purchase raises the shift's p
   const state = householdStore.read(ctx);
   const member = state.members["alien:0"]!;
   expect(careerOf(member).id).toBe("Signal-keeper");
-  expect(rungProgress(state, member)).toMatchObject({ rung: 1, nextRung: 2, canPromote: false, needs: 4, have: 0 });
+  expect(rungProgress(state, member)).toMatchObject({ rung: 1, nextRung: 2, canPromote: false, needs: 3, have: 0 });
   expect(promote(state, member)).toMatchObject({ ok: false });
   const before = yieldShiftValue(state, member);
   expect(before).toBe(100);

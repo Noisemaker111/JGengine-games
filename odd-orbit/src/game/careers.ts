@@ -121,8 +121,8 @@ export function rungNode(career: CareerId, rung: 2 | 3): string {
 
 /** Every rung node, in one place so a save can validate the ranks it stores. */
 export const CAREER_NODES = CAREERS.flatMap((career) => [
-  { id: rungNode(career.id, 2), label: `${career.label} ${RUNG_NAMES[1]}`, cost: { kind: "const", value: 0 } as const, maxRank: 1, standing: { trackId: "orbit", min: 4 } },
-  { id: rungNode(career.id, 3), label: `${career.label} ${RUNG_NAMES[2]}`, cost: { kind: "const", value: 0 } as const, maxRank: 1, requires: [rungNode(career.id, 2)], standing: { trackId: "orbit", min: 12 } },
+  { id: rungNode(career.id, 2), label: `${career.label} ${RUNG_NAMES[1]}`, cost: { kind: "const", value: 0 } as const, maxRank: 1, standing: { trackId: "orbit", min: 3 } },
+  { id: rungNode(career.id, 3), label: `${career.label} ${RUNG_NAMES[2]}`, cost: { kind: "const", value: 0 } as const, maxRank: 1, requires: [rungNode(career.id, 2)], standing: { trackId: "orbit", min: 9 } },
 ]);
 
 export const CAREER_NODE_IDS: ReadonlySet<string> = new Set(CAREER_NODES.map((node) => node.id));
