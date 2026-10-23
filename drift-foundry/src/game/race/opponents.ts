@@ -1,5 +1,13 @@
 import { difficultyProfile, type DifficultyProfile, type DifficultyTier } from "@jgengine/core/ai/difficulty";
-import { createDriverState, driveStep, pathTargetAhead, type DrivePathPoint, type DriverState, type DriverTuning } from "@jgengine/core/ai/driver";
+import {
+  createDriverState,
+  driveStep,
+  pathTargetAhead,
+  type DrivePathPoint,
+  type DriverState,
+  type DriverTuning,
+  type PaceBand,
+} from "@jgengine/core/ai/driver";
 import { seededRng, type SeededRng } from "@jgengine/core/random/rng";
 
 import { tuningFrom, type KartTuning } from "../parts/build";
@@ -90,32 +98,11 @@ const RECOVER_SECONDS = 1.2;
 const CAR_SIGHT = 12;
 
 /**
- * The field's pace aid, applied as a `DriverGoal.speedLimit` on the shared `ai/driver` goal - the
- * same knob a formation or a speed zone uses. A kart far ahead eases off, a kart far behind gets a
- * push, both ramped from the player's bumper so a side-by-side fight is decided by driving. Per-car
- * `band` scales it, so the expert concedes least. No engine owner exists for catch-up pacing yet (see
- * the PR's engine seam); these are authored numbers, not a second driving system.
+ * The field's pace aid, as a shared `PaceBand` on the driver goal: a kart far ahead of the player
+ * eases off, a kart far behind gets a push, and the dead zone keeps a side-by-side fight decided by
+ * driving. Per-car `band` is the share of that aid the driver accepts, so the expert concedes least.
  */
-const PACE_BAND = {
-  /** Metres ahead of the player where a rival is fully eased. */
-  easeOffAt: 30,
-  /** Fraction of top speed shed at that distance. */
-  easeOff: 0.12,
-  /** Metres behind the player where a rival is fully pushed. */
-  pushAt: 20,
-  /** Fraction of top speed added at that distance. */
-  push: 0.08,
-} as const;
-
-/** Pace multiplier for a rival `gap` metres ahead of the player (negative = behind). */
-export function paceBand(gap: number, band = 1): number {
-  if (gap > PACE_BAND.easeOffAt) return 1 - PACE_BAND.easeOff * band;
-  if (gap > 0) return 1 - (PACE_BAND.easeOff * band * gap) / PACE_BAND.easeOffAt;
-  if (gap < -PACE_BAND.pushAt) return 1 + PACE_BAND.push * band;
-  return 1 + (PACE_BAND.push * band * -gap) / PACE_BAND.pushAt;
-}
-
-
+const RIVAL_PACE: PaceBand = { tolerance: 0, easeAt: 30, ease: 0.12, pushAt: 20, push: 0.08 };
 export interface RivalBody {
   id: string;
   name: string;
@@ -167,6 +154,8 @@ interface Rival {
   tuning: KartTuning;
   profile: DifficultyProfile;
   driving: DriverTuning;
+  /** This kart's share of the field's pace aid, built once so the tick allocates nothing. */
+  pace: PaceBand;
   driver: DriverState;
   rng: SeededRng;
   line: readonly DrivePathPoint[];
@@ -191,6 +180,7 @@ function createRival(def: RivalDef, groundHeightAt: (x: number, z: number) => nu
       stuckSeconds: 1.2,
       reverseSeconds: 0.9,
     },
+    pace: { ...RIVAL_PACE, scale: def.band },
     driver: createDriverState(def.grid.x, def.grid.z + def.lookahead),
     rng: seededRng(`${seed}:rival:${def.id}`),
     line: rivalLine(def),
@@ -258,9 +248,10 @@ export function createOpponentField(options: {
         const goal = {
           x: target?.[0] ?? rival.pose.position[0],
           z: target?.[1] ?? rival.pose.position[2],
-          // Rubber band on the shared goal's own speed limit: the field stays reachable without ever
+          // The field's catch-up band on the shared goal: the kart stays reachable without ever
           // driving faster than its authored build allows.
-          speedLimit: rival.driving.maxSpeed * paceBand(rival.pose.position[2] - player[2], rival.def.band),
+          paceGap: rival.pose.position[2] - player[2],
+          paceBand: rival.pace,
         };
         const others = [{ x: player[0], z: player[2] }, ...rivals.filter((entry) => entry !== rival).map((entry) => ({ x: entry.pose.position[0], z: entry.pose.position[2] }))];
         const step = driveStep(

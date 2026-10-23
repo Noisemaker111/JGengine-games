@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { EXIT_Z } from "../run/constants";
 import { ROUTE_GATES } from "../route/gates";
-import { createOpponentField, lineOffsetAt, paceBand, RIVAL_DEFS, rivalLine } from "./opponents";
+import { createOpponentField, lineOffsetAt, RIVAL_DEFS, rivalLine } from "./opponents";
 
 const DT = 1 / 60;
 const PLAYER_PARKED: readonly [number, number, number] = [0, 0, 4];
@@ -60,21 +60,7 @@ describe("drift-foundry rivals", () => {
     }
   });
 
-  test("the pace band eases a leader, pushes a chaser, and no kart gets both", () => {
-    expect(paceBand(0)).toBe(1);
-    // Further ahead eases more, and a clamped floor keeps a runaway leader at a real speed.
-    expect(paceBand(40)).toBeLessThan(paceBand(10));
-    expect(paceBand(400)).toBeCloseTo(paceBand(40), 6);
-    expect(paceBand(40)).toBeGreaterThan(0.85);
-    // A kart behind the player gets a push, bounded.
-    expect(paceBand(-30)).toBeGreaterThan(1);
-    expect(paceBand(-400)).toBeCloseTo(paceBand(-30), 6);
-    expect(paceBand(-400)).toBeLessThan(1.1);
-    // The honest expert concedes less than the rookie with the same gap.
-    expect(paceBand(40, 0.5)).toBeGreaterThan(paceBand(40, 1));
-  });
-
-  test("the band is felt on the track: a chaser covers more ground than a leader over the same ticks", () => {
+  test("the pace band is felt on the track: a chaser covers more ground than a leader over the same ticks", () => {
     const ahead = createOpponentField({ seed: "band" });
     const behind = createOpponentField({ seed: "band" });
     const startAhead = ahead.positions();
