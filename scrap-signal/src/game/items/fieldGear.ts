@@ -165,7 +165,18 @@ function stashNames(): string[] {
 }
 
 function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: ItemDrop | null): FieldGearView {
-  const comparison = compareToEquipped(drop, worn, { lowerIsBetter: ["fireIntervalMs", "spread", "reloadMs"] });
+  const comparison = compareToEquipped(drop, worn, {
+    lowerIsBetter: ["fireIntervalMs", "spread", "reloadMs"],
+    weights: { damage: 10, fireIntervalMs: 0.05, spread: 5, magSize: 0.4, reloadMs: 0.02, critChance: 25 },
+  });
+  const label: Record<string, string> = {
+    damage: "damage",
+    fireIntervalMs: "fire rate",
+    spread: "spread",
+    critChance: "crit",
+    magSize: "mag",
+    reloadMs: "reload",
+  };
   const mass = haul.mass();
   const view: FieldGearView = {
     dropId: drop.id,
@@ -174,7 +185,11 @@ function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: Ite
     manufacturer: drop.manufacturer,
     level: drop.level,
     mass: drop.mass ?? 3,
-    affixes: drop.affixes.map((affix) => `${affix.stat} ${affix.value > 0 ? "+" : ""}${Math.round(affix.value * 100) / 100}`),
+    affixes: drop.affixes.map((affix) =>
+      affix.op === "mul"
+        ? `${label[affix.stat] ?? affix.stat} x${Math.round(affix.value * 100) / 100}`
+        : `${label[affix.stat] ?? affix.stat} +${Math.round(affix.value * 10) / 10}`,
+    ),
     deltas: comparison.deltas,
     better: comparison.better,
     carried,
