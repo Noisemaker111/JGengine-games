@@ -44,16 +44,22 @@ export const game = defineGame({
   pointer: { moveCommand: "tower.build" },
   capture: {
     play: ["run.begin"],
+    // Every state starts from the boot title, so each one opens the run first - without that the builds
+    // land behind the title and the shot is the menu, not the state.
     states: {
+      title: [],
+      pause: ["run.begin", "run.pause"],
       "two-towers": [
+        "run.begin",
         "buildTower1",
         { name: "tower.build", input: { point: [-12, 0, -3.2] } },
         "buildTower1",
         "buildTower2",
         { name: "tower.build", input: { point: [0, 0, 4] } },
       ],
-      "cannon-plot-1": ["buildTower2", { name: "tower.build", input: { point: [-36, 0, -15.2] } }, "buildTower2"],
+      "cannon-plot-1": ["run.begin", "buildTower2", { name: "tower.build", input: { point: [-36, 0, -15.2] } }, "buildTower2"],
       "inspect-tower": [
+        "run.begin",
         "buildTower2",
         { name: "tower.build", input: { point: [0, 0, 4] } },
         "buildTower2",

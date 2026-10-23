@@ -9,7 +9,7 @@ import { resetSession, session } from "../session";
 import { resetProjectiles } from "../combat/pendingProjectiles";
 import { KEEP_POINT } from "./path";
 import { registerWaveCommands } from "../waves/director";
-import { beginRun } from "../menu";
+import { beginRun, pauseRun } from "../menu";
 
 function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   if (event.catalogId === BASE_CATALOG_ID) {
@@ -49,6 +49,11 @@ export function setupWorld(ctx: GameContext): void {
   // One command that opens a run from the title, so a capture or a host can start play without a menu click.
   ctx.game.commands.define("run.begin", { apply: (state) => {
     if (gamePhase(state) !== "playing") beginRun(state);
+    return state;
+  } });
+  // The counterpart the pause screen's own Esc path takes, reachable from a capture state.
+  ctx.game.commands.define("run.pause", { apply: (state) => {
+    pauseRun(state);
     return state;
   } });
   ctx.game.commands.define("defense.restart", {
