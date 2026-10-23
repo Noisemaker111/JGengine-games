@@ -14,6 +14,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { editorLayers } from "../../editorLayers";
 import { handrollOf } from "../handroll";
+import { bankContraband, failContraband, loadContraband } from "../items/cargoHaul";
 import { grantCred } from "../progression/cred";
 import { sessionStore, syncSession } from "../session";
 
@@ -205,7 +206,12 @@ export function finishCourier(ctx: GameContext, won: boolean, reason?: string): 
   // The receipt shows everything that landed: the contract's payout plus the extras granted here.
   courierStore.write(ctx, { ...current, phase: won ? "won" : "lost", reward: won ? route.payout + bonus : 0, reason: won ? undefined : reason, completed: current.completed + (won ? 1 : 0), remaining });
   if (bonus > 0) ctx.game.economy.grant(ctx.player.userId, "cash", bonus);
-  if (won) grantCred(ctx, 15);
+  if (won) {
+    grantCred(ctx, 15);
+    bankContraband(ctx);
+  } else {
+    failContraband(ctx);
+  }
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
   ctx.game.audio.play(won ? "delivery_chime" : "delivery_fail");
   syncSession(ctx, true);
@@ -282,6 +288,7 @@ export function registerCourier(ctx: GameContext): void {
       distance: Math.round(Math.hypot(position[0] - route.position[0], position[2] - route.position[1])) });
     syncObjective(state);
     commit(state);
+    loadContraband(state);
     state.game.audio.play("parcel_take");
     void state.game.save?.checkpoint();
   } });

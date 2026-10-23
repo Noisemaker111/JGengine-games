@@ -6,6 +6,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
 import { gunById, rollGun, startReload, reservePhase } from "./handroll";
+import { equipFieldGun, salvageFieldGun, bankFieldHaul } from "./items/fieldLoot";
 import { player } from "./entities/players/catalog";
 import { session } from "./session";
 import {
@@ -228,8 +229,29 @@ export function registerCommands(ctx: GameContext): void {
     },
   });
 
-  ctx.game.commands.define<{ itemId?: string }>("vendor.buyGear", {
+  ctx.game.commands.define<{ dropId?: string }>("loot.equip", {
     apply(state: GameContext, input) {
+      if (input.dropId !== undefined) equipFieldGun(state, input.dropId);
+    },
+  });
+
+  ctx.game.commands.define<{ dropId?: string }>("loot.salvage", {
+    apply(state: GameContext, input) {
+      if (input.dropId === undefined) return;
+      const yieldOut = salvageFieldGun(state, input.dropId);
+      if (yieldOut === null) return;
+      state.game.notices.push({ text: `Salvaged for ${yieldOut.amount} cores.`, tone: "success" });
+    },
+  });
+
+  ctx.game.commands.define("loot.bank", {
+    apply(state: GameContext) {
+      const moved = bankFieldHaul(state);
+      state.game.notices.push({ text: `${moved} gun(s) banked.`, tone: "success" });
+    },
+  });
+
+  ctx.game.commands.define<{ itemId?: string }>("vendor.buyGear", {    apply(state: GameContext, input) {
       if (input.itemId === undefined) return;
       const rejection = state.game.trade!.buy(input.itemId, 1, { shop: "shop_ferralon", inventoryId: "backpack" });
       if (rejection !== null) {

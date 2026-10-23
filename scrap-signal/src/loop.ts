@@ -40,6 +40,7 @@ import {
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
+import { bankFieldHaul, scanFieldGun } from "./game/items/fieldLoot";
 
 const dropRng = seededRng("scrap-gun-drops");
 const RESPAWN_SWEEP_SECONDS = 25;
@@ -194,7 +195,9 @@ function tickZoneAndStations(ctx: GameContext, nowMs: number): void {
   const zone = zoneAt(x, z);
   const currentZone = currentZoneStore.read(ctx);
   if (zone !== null && zone.id !== currentZone?.id) {
+    if (currentZone !== null) bankFieldHaul(ctx);
     currentZoneStore.write(ctx, { id: zone.id, name: zone.name, level: zone.level, atMs: nowMs });
+    scanFieldGun(ctx, `zone:${zone.id}:${Math.floor(nowMs)}`, zone.level);
   }
 
   const discovered = discoveredStationsStore.read(ctx);
@@ -261,6 +264,7 @@ function onNewPlayer(ctx: GameContext): void {
   ctx.game.quest!.accept(ctx.player.userId, QUEST_IDS.ripperControl);
   session.reset(ctx);
   noteEquipped(ctx.player.inventory.state("hotbar").slots[0]?.itemId ?? null);
+  scanFieldGun(ctx, "scrap-field-first", 1);
   void resumeOrStart(ctx);
 }
 
