@@ -2,6 +2,7 @@ import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { AMMO_LABELS, AMMO_STAT_IDS, type AmmoPool } from "./ammo";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
+import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
@@ -162,7 +163,10 @@ export function registerCommands(ctx: GameContext): void {
       if (reservePhase(state) === "dead") return;
       const itemId = selectedGunId(state);
       if (itemId === null) return;
-      state.item.use.use({ from: state.player.userId, itemId, inventoryId: "hotbar", aim: input.aim });
+      const result = state.item.use.use({ from: state.player.userId, itemId, inventoryId: "hotbar", aim: input.aim });
+      // A shot that actually left the barrel is a noise the whole battlefield can hear; a dry
+      // click is not.
+      if (result.error === undefined) noteShotNoise(state, itemId);
     },
   });
 
@@ -409,8 +413,7 @@ export function registerCommands(ctx: GameContext): void {
     },
   });
 
-  ctx.game.commands.define<{ nodeId?: string }>("talent.spend", {
-    apply(state: GameContext, input) {
+  ctx.game.commands.define<{ nodeId?: string }>("talent.spend", {    apply(state: GameContext, input) {
       const tree = talentTree();
       if (tree === null || input.nodeId === undefined) return;
       const before = 1 + bonus("maxHealth");
@@ -424,6 +427,17 @@ export function registerCommands(ctx: GameContext): void {
       applyPassiveEffects(state, before);
     },
   });
+
+  // Dev-only capture affordance: open the front's boss wave with the Foreman one shot above its
+  // second phase, so a capture can photograph the real `advanceBoss` tell. Never shipped.
+  if (import.meta.env.DEV) {
+    ctx.game.commands.define<{ mode?: string }>("front.capture", {
+      apply(state: GameContext, input) {
+        if (input.mode === "fight") stageFrontFight(state);
+        else stageFrontBoss(state);
+      },
+    });
+  }
 }
 
 /**

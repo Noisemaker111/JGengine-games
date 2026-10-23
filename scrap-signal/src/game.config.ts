@@ -9,6 +9,7 @@ import { MAST_BOARD } from "./game/mast";
 import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
 import { audioProbe } from "./game/audio/drive";
+import { frontProbe } from "./game/encounters/front";
 import { content } from "./game/content";
 import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
@@ -159,8 +160,13 @@ function prompts(ctx: GameContext): readonly PositionedPrompt[] {
 export const game = defineGame({
   capture: {
     play: [{ name: "character.pick", input: { characterId: "gunk" } }],
-    states: { title: [] },
-    probe: audioProbe,
+    states: {
+      title: [],
+      // The boss shot: pick a character, then open the front's last wave with the Foreman one shot
+      // above its second phase. The phase change itself is the next real hit.
+      boss: [{ name: "character.pick", input: { characterId: "gunk" } }, "front.capture"],
+    },
+    probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx) }),
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
     // of streamed GLB materials, and every one of those programs compiles on the first drawn frame.
     // On a software renderer that is seconds of work after readiness reports done, and the default
@@ -172,6 +178,12 @@ export const game = defineGame({
         look: "@marker:rustflat_convoy_hauler",
         lookFrom: "24,9,0.6",
         settleMs: 20000,
+      },
+      front: {
+        description: "The Rustflat Front — both crews converging on the convoy wreck.",
+        look: "@marker:front_rustflat_center",
+        lookFrom: "30,12,0.5",
+        settleMs: 16000,
       },
     },
   },
