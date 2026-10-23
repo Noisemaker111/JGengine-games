@@ -55,23 +55,13 @@ function coasterStation(): PlacedObject | null {
   return null;
 }
 
-let circuitSignature = "";
-let circuitCache: CoasterCircuit | null = null;
-
 /**
- * The starter circuit the park's coaster runs, measured from the track it has laid. Cached against
- * the pieces' own coordinates, so a lap only re-measures when the track actually changes.
+ * The circuit the park's coaster runs, measured from the track it has laid. Cheap enough to
+ * re-read each tick: the pieces are a short list and the walk is linear in them.
  */
 export function coasterCircuit(): CoasterCircuit {
   const station = coasterStation();
-  let signature = station === null ? "none" : `${station.x},${station.z}`;
-  const points = trackPoints();
-  points.sort((a, b) => a[0] - b[0] || a[2] - b[2]);
-  for (const point of points) signature += `|${point[0]},${point[2]}`;
-  if (circuitCache !== null && signature === circuitSignature) return circuitCache;
-  circuitSignature = signature;
-  circuitCache = buildCoasterCircuit(points, station === null ? null : [station.x, station.z]);
-  return circuitCache;
+  return buildCoasterCircuit(trackPoints(), station === null ? null : [station.x, station.z]);
 }
 
 /** A ride's three ratings: a coaster's come from its circuit, a flat ride's from its own data. */
