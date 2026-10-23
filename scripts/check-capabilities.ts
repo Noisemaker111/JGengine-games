@@ -8,6 +8,11 @@
  * adopted or declined, and keeps "this game has no such domain" separate from
  * "we have not adopted it yet", which is the debt the ledger exists to surface.
  *
+ * Adopting is not gated on a probe: any capability in the ledger can be adopted,
+ * and the summary counts `adopted (verified)` apart from `adopted (declared)`.
+ * Verified means the game named a boot probe for a capability that ships one;
+ * `capabilities:probe` is what proves those counters live on a running page.
+ *
  * `scripts/debt-budget.json` makes that debt a ratchet: a total and a per-game
  * ceiling that `--write` seeds from the tally and may only lower. More debt than
  * the budget fails, and a budget above the tally fails too, so clearing an entry
@@ -316,7 +321,7 @@ export function runCheck(options: CheckOptions): number {
       adopters.push(entry.game);
       byCapability.set(entry.capability, adopters);
     }
-    sink.log("Capabilities still at declaration level (no boot probe declared):");
+    sink.log("Adopted (declared): no boot probe named, so the running page cannot prove it yet:");
     for (const [capability, adopters] of [...byCapability].sort()) {
       const entry = committed.capabilities.find((item) => item.id === capability);
       sink.log(`  ${capability} (${entry?.module ?? "?"}): ${adopters.join(", ")}`);
@@ -324,7 +329,7 @@ export function runCheck(options: CheckOptions): number {
   }
 
   sink.log(
-    `capability check: OK - ${games.length} games, ${committed.capabilities.filter((entry) => entry.gameFacing).length} game-facing capabilities, ${report.adopted} adopted, ${report.notApplicable} not-applicable, ${report.debt} debt${budget === null ? "" : ` (${BUDGET_REL} budget ${budget.total})`}`,
+    `capability check: OK - ${games.length} games, ${committed.capabilities.filter((entry) => entry.gameFacing).length} game-facing capabilities, ${report.verified} adopted (verified), ${report.declared} adopted (declared), ${report.notApplicable} not-applicable, ${report.debt} debt${budget === null ? "" : ` (${BUDGET_REL} budget ${budget.total})`}`,
   );
   return 0;
 }

@@ -4,9 +4,9 @@
  * A declaration can be true on paper and false in play: a game imports the
  * mission module, declares it adopted, then never mounts the runtime. This
  * half reads the engine's own devtools counters on the running page
- * (`window.__jgengineAgent` -> `debug_snapshot.probes`) and the audio readout
- * (`window.__jgengineAudio`), so an adopted system that is merely imported
- * fails here.
+ * (`window.__jgengineAgent` -> `debug_snapshot.probes`) and each declared
+ * `window.__jgengine*` readout (`window.__jgengineAudio`, `window.__jgengineRun`),
+ * so an adopted system that is merely imported fails here.
  *
  * Capabilities with no probe surface stay at declaration level; `check:capabilities`
  * lists them. This command only checks modules whose declaration names a probe.
@@ -26,6 +26,7 @@ import {
   probeMatches,
   readDeclaration,
   readInstalled,
+  windowProbeVerdict,
   type CapabilityEntry,
   type Declaration,
   type Ledger,
@@ -37,14 +38,7 @@ const wanted = args.filter((arg) => !arg.startsWith("--"));
 const ledger = JSON.parse(readFileSync(`${root}/capabilities.json`, "utf8")) as Ledger;
 const installed = readInstalled(root);
 
-interface LivePage {
-  probes: Record<string, unknown> | null;
-  audio: { rms: number; peak: number; master: number } | null;
-  error?: string;
-}
-
-interface ProbeFailure {
-  game: string;
+interface ProbeFailure {  game: string;
   capability: string;
   module: string;
   reason: string;
@@ -178,14 +172,19 @@ async function pageTarget(debugPort: number, timeoutMs: number): Promise<string>
 
 const READ_PAGE = `(() => {
   const agent = window.__jgengineAgent;
-  const audio = window.__jgengineAudio;
-  let live = null;
-  if (audio !== undefined) {
+  const windows = {};
+  for (const name of ["__jgengineAudio", "__jgengineRun"]) {
+    const probe = window[name];
+    if (probe === undefined) continue;
     try {
-      const level = audio.measure();
-      live = { rms: level.rms, peak: level.peak, master: audio.masterLevel() };
+      if (typeof probe.read === "function") {
+        windows[name] = probe.read();
+      } else {
+        const level = probe.measure();
+        windows[name] = { rms: level.rms, peak: level.peak, master: probe.masterLevel() };
+      }
     } catch (error) {
-      live = { error: String(error) };
+      windows[name] = { error: String(error) };
     }
   }
   let probes = null;
@@ -198,8 +197,15 @@ const READ_PAGE = `(() => {
       error = String(caught);
     }
   }
-  return { ready: agent !== undefined || audio !== undefined, probes, audio: live, error };
+    return { ready: agent !== undefined || Object.keys(windows).length > 0, probes, windows, error };
 })()`;
+
+interface LivePage {
+  probes: Record<string, unknown> | null;
+  /** Every `window.__jgengine*` readout the page answers with, keyed by global name. */
+  windows: Record<string, unknown>;
+  error?: string;
+}
 
 interface Expectations {
   windows: string[];
@@ -246,18 +252,19 @@ async function bootAndRead(
 
     cdp = await Cdp.connect(await pageTarget(debugPort, 30000));
     const started = Date.now();
-    let last: LivePage = { probes: null, audio: null };
+    let last: LivePage = { probes: null, windows: {} };
     while (Date.now() - started < timeoutMs) {
       try {
         const page = await cdp.evaluate<LivePage>(READ_PAGE);
         last = page;
-        const windowsLive = expectations.windows.every((name) => page.audio !== null || name !== "__jgengineAudio");
+        const windowsLive = expectations.windows.every((name) => page.windows?.[name] !== undefined);
         const probesLive =
-          page.probes !== null &&
-          expectations.devtools.every((pattern) => probeMatches(pattern, Object.keys(page.probes ?? {})));
-        if (page.ready && page.probes !== null && windowsLive && probesLive) return page;
+          expectations.devtools.length === 0 ||
+          (page.probes !== null &&
+            expectations.devtools.every((pattern) => probeMatches(pattern, Object.keys(page.probes ?? {}))));
+        if (page.ready && windowsLive && probesLive) return page;
       } catch (error) {
-        last = { probes: null, audio: null, error: String(error) };
+        last = { probes: null, windows: {}, error: String(error) };
       }
       await Bun.sleep(500);
     }
@@ -327,18 +334,17 @@ for (const game of targets) {
     if (info?.probe?.kind === "window") {
       const global = info.probe.global;
       if (global === undefined) continue;
-      const value = page.audio;
-      if (value === null || value === undefined) {
-        gameFailures.push({
-          game,
-          capability,
-          module,
-          reason: `declared adopted, but window.${global} is absent on the running page`,
-        });
-      } else if (!Number.isFinite(value.master)) {
-        gameFailures.push({ game, capability, module, reason: `window.${global} exists but reports no master level` });
+      const readout = page.windows?.[global];
+      const verdict = windowProbeVerdict(global, readout);
+      if (verdict !== null) {
+        gameFailures.push({ game, capability, module, reason: `declared adopted, but ${verdict}` });
       } else {
-        checked.push(`${game}: ${capability} live via window.${global} (master ${value.master.toFixed(2)}, rms ${value.rms.toFixed(3)})`);
+        const counters = Object.entries(readout as Record<string, unknown>)
+          .filter(([, value]) => typeof value === "number")
+          .slice(0, 4)
+          .map(([key, value]) => `${key} ${String(value)}`)
+          .join(", ");
+        checked.push(`${game}: ${capability} live via window.${global} (${counters})`);
       }
       continue;
     }

@@ -10,6 +10,7 @@ import {
   namesDomain,
   probeMatches,
   renderSummary,
+  windowProbeVerdict,
   type Declaration,
   type IssueState,
   type Ledger,
@@ -39,6 +40,15 @@ const ledger: Ledger = {
       gameFacing: true,
       probe: { kind: "window", global: "__jgengineAudio" },
       intent: "read the mix",
+    },
+    {
+      id: "run-loop",
+      packages: ["@jgengine/core"],
+      module: "@jgengine/core/run/runLoop",
+      domain: "run",
+      gameFacing: false,
+      probe: null,
+      intent: "bank or lose what a run carries",
     },
   ],
 };
@@ -77,6 +87,8 @@ describe("missing declaration", () => {
     const report = checkDeclarations(ledger, [{ game: "ember", declaration: declaration() }], OPEN);
     expect(report.problems).toEqual([]);
     expect(report.adopted).toBe(1);
+    expect(report.verified).toBe(1);
+    expect(report.declared).toBe(0);
     expect(report.notApplicable).toBe(1);
     expect(report.debt).toBe(0);
   });
@@ -179,6 +191,61 @@ describe("decline kinds", () => {
   });
 });
 
+describe("adoption without a probe", () => {
+  test("proof: a capability with no probe can be adopted, and counts as declared", () => {
+    const report = checkDeclarations(ledger, [
+      {
+        game: "ember",
+        declaration: declaration({
+          adopts: ["mission-runtime", "run-loop"],
+          probes: { "@jgengine/core/mission/mission": ["campaign"] },
+        }),
+      },
+    ], OPEN);
+    expect(report.problems).toEqual([]);
+    expect(report.adopted).toBe(2);
+    expect(report.verified).toBe(1);
+    expect(report.declared).toBe(1);
+    expect(report.tallies[0]).toEqual({
+      game: "ember",
+      adopted: 2,
+      verified: 1,
+      declared: 1,
+      notApplicable: 1,
+      debt: 0,
+    });
+    expect(report.declarationLevel).toEqual([
+      { game: "ember", capability: "run-loop", module: "@jgengine/core/run/runLoop" },
+    ]);
+  });
+
+  test("a probed capability adopted with its probe named is verified, not declared", () => {
+    const report = checkDeclarations(ledger, [{ game: "ember", declaration: declaration() }], OPEN);
+    expect(report.verified).toBe(1);
+    expect(report.declared).toBe(0);
+    expect(report.declarationLevel).toEqual([]);
+  });
+
+  test("proof: a probed claim still fails when the live counters are absent", () => {
+    // The declaration names the global, but the page answers nothing: `capabilities:probe` fails it.
+    expect(windowProbeVerdict("__jgengineRun", undefined)).toContain("__jgengineRun is absent");
+    expect(windowProbeVerdict("__jgengineRun", null)).toContain("__jgengineRun is absent");
+    expect(windowProbeVerdict("__jgengineRun", {})).toContain("no live counters");
+    expect(windowProbeVerdict("__jgengineRun", { error: "loop not installed" })).toContain("threw loop not installed");
+    expect(windowProbeVerdict("__jgengineAudio", { master: Number.NaN })).toContain("no live counters");
+    // A live readout passes, with the counters the probe prints.
+    expect(windowProbeVerdict("__jgengineRun", { run: 2, carried: 80, banked: 200, lost: 0, best: 200 })).toBeNull();
+    expect(windowProbeVerdict("__jgengineAudio", { rms: 0, peak: 0, master: 0.8 })).toBeNull();
+  });
+
+  test("an id the ledger does not carry is still refused as an adoption", () => {
+    const report = checkDeclarations(ledger, [
+      { game: "ember", declaration: declaration({ adopts: ["mission-runtime", "no-such-system"] }) },
+    ], OPEN);
+    expect(report.problems.some((problem) => problem.message.includes("not a capability in capabilities.json"))).toBe(true);
+  });
+});
+
 describe("debt ownership", () => {
   const debtReason = "We have not adopted the shared audio mix; buses are wired by hand.";
 
@@ -242,7 +309,7 @@ describe("debt ownership", () => {
       },
     ], OPEN);
     expect(report.problems).toEqual([]);
-    expect(report.tallies).toEqual([{ game: "ember", adopted: 0, notApplicable: 1, debt: 1 }]);
+    expect(report.tallies).toEqual([{ game: "ember", adopted: 0, verified: 0, declared: 0, notApplicable: 1, debt: 1 }]);
   });
 });
 
@@ -271,12 +338,29 @@ describe("summary table", () => {
     ], OPEN);
     const table = renderSummary(report, ledger);
     expect(table).toContain("2 game-facing capabilities, engine 1.2.3");
+    expect(table).toContain("adopt (verified)");
+    expect(table).toContain("adopt (declared)");
     expect(table).toContain("ember");
     expect(table).toContain("harbor");
     expect(table).toContain("TOTAL");
-    expect(table).toMatch(/ember\s+1\s+0\s+1/);
-    expect(table).toMatch(/harbor\s+0\s+2\s+0/);
+    expect(table).toMatch(/ember\s+1\s+0\s+0\s+1/);
+    expect(table).toMatch(/harbor\s+0\s+0\s+2\s+0/);
+    expect(table).toMatch(/TOTAL\s+1\s+0\s+2\s+1/);
     expect(table).toContain("1 entry across 1 game(s)");
+  });
+
+  test("a declared-only adoption sits in its own column, apart from a verified one", () => {
+    const report = checkDeclarations(ledger, [
+      {
+        game: "ember",
+        declaration: declaration({
+          adopts: ["mission-runtime", "run-loop"],
+          probes: { "@jgengine/core/mission/mission": ["campaign"] },
+        }),
+      },
+    ], OPEN);
+    const table = renderSummary(report, ledger);
+    expect(table).toMatch(/ember\s+1\s+1\s+1\s+0/);
   });
 });
 
