@@ -118,3 +118,17 @@ html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .dw-item-mark {flex-shrink:0;} .dw-cache-item .dw-item-mark {margin-bottom:3px;} .dw-cache-item>span {font-size:11px;} .dw-cache-item small {margin-top:3px;font-size:9px;}
 @media(max-width:850px){.dw-cache-item {padding:4px!important;} .dw-cache-item .dw-item-mark {width:20px!important;height:20px!important;}}
 @media(max-height:520px){.dw-cache-item {padding:3px!important;} .dw-cache-item .dw-item-mark {width:20px!important;height:20px!important;} .dw-cache-item small {display:none;}}
+
+/* Deepward's front-end: the Marrow platform behind it, the record read on Continue. */
+.dw-title { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+.dw-title > * { pointer-events: auto; }
+.dw-wordmark { display: block; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase; color: #eceddc; }
+.dw-wordmark span { display: block; margin-top: 10px; font: 12px monospace; letter-spacing: 0.3em; color: #d5b879; }
+.dw-title-note { margin: 0; font: 11px monospace; line-height: 1.7; color: #bac7c1; max-width: 46ch; }
+.dw-pause-menu { margin-top: 6px; }
+
+/* A held shift hides its live chrome; only the pause sheet stays on screen. */
+.dw-ui.dw-held > :not(.dw-modal) { visibility: hidden; }
+/* The field theme's global button skin would flatten the SDK pause block; the resume keeps its accent. */
+.dw-pause-menu [data-pause-resume] { background: var(--jg-accent); border-color: var(--jg-accent); color: var(--jg-surface-deep); text-shadow: none; }
+.dw-pause-menu [data-pause-resume]:hover, .dw-pause-menu [data-pause-resume]:focus-visible { background: var(--jg-accent-bright, var(--jg-accent)); filter: brightness(1.08); }

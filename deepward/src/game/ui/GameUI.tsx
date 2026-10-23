@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
-import { CreditsScreen } from "@jgengine/react/creditsScreen";
+import { CreditsPanel } from "@jgengine/react/creditsPanel";
+import { useOptionalGamePhase } from "@jgengine/react/hooks";
+import { PauseMenu } from "@jgengine/react/modals";
 import { useSettings } from "@jgengine/react/settings";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
@@ -11,7 +13,9 @@ import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
+import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
+import { TitleGate } from "./menu/TitleGate";
 import { SAVE_KEY } from "../save";
 
 function grab(): void {
@@ -23,6 +27,7 @@ function grab(): void {
 }
 export function GameUI() {
   const ctx = useGameContext(), view = useStore(viewStore);
+  const phase = useOptionalGamePhase();
   const at = useGameStore(state => state.scene.entity.get(state.player.userId)?.position ?? [0, 0, 14] as const);
   const target = useGameStore(nearby);
   const [selected, setSelected] = useState<string | null>(null);
@@ -34,7 +39,6 @@ export function GameUI() {
     focusKey: view.panel ?? view.mode,
     onClose: view.mode === "home" || view.mode === "dive" ? () => command("close") : undefined,
   });
-  const creditsRef = useDialogBehavior({ open: credits, onClose: () => setCredits(false) });
   useEffect(() => {
     if (view.panel === null && !view.paused && (view.mode === "home" || view.mode === "dive")) {
       document.querySelector("canvas")?.closest<HTMLElement>("[tabindex]")?.focus({ preventScroll: true });
@@ -60,13 +64,15 @@ export function GameUI() {
       window.removeEventListener("storage", storage);
     };
   }, [ctx, credits, settings.isOpen]);
+  // The title owns the frame alone: no live chrome is painted behind a front-end.
+  if (phase === "menu") return <TitleGate />;
   const dive = view.dive;
   const low = dive !== null && dive.oxygen <= 25;
   const weapon = dive?.hand === "service-rifle" ? RIFLE : SIDEARM;
   const chosen = dive?.cache.find(i => i.uid === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: Math.floor(i / CACHE.w) }));
   const close = () => { command("close"); grab(); };
-  return <div className={`dw-ui ${low ? "dw-low" : ""}`} onKeyDown={event => {
+  return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
     if (event.code === "Tab") event.stopPropagation();
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
@@ -148,7 +154,20 @@ export function GameUI() {
       {dive.cache.some(i => i.kind === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><HudButton aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</HudButton><HudButton aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</HudButton></div>}
       <HudButton onClick={() => { command("cache"); grab(); }}>Close cache / Tab</HudButton>
     </HudSurface></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><HudButton onClick={() => { command("pause"); grab(); }}>Resume / Esc</HudButton><HudButton onClick={settings.open}>Settings & controls</HudButton><HudButton onClick={() => setCredits(true)}>Credits</HudButton><HudButton onClick={() => window.location.reload()}>{dive === null ? "Reload saved Marrow" : "Reload / abandon this Life"}</HudButton></HudSurface></div>}
+    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><PauseMenu
+      className="dw-pause-menu"
+      title={null}
+      resumeLabel="Resume / Esc"
+      width={300}
+      // The sheet is already a surface: the block sits flush inside it rather than nesting a second frame.
+      style={{ background: "transparent", border: "none", boxShadow: "none", padding: 0, margin: "0 auto", width: "min(320px, 100%)" }}
+      onResume={() => { command("pause"); grab(); }}
+      items={[
+        { id: "settings", label: "Settings & controls", onSelect: settings.open },
+        { id: "credits", label: "Credits", onSelect: () => setCredits(true) },
+        { id: "reload", label: dive === null ? "Reload saved Marrow" : "Reload / abandon this Life", danger: true, onSelect: () => window.location.reload() },
+      ]}
+    /></HudSurface></div>}
     {view.mode === "reprinting" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
@@ -163,13 +182,6 @@ export function GameUI() {
       {view.mode === "saving" && <HudButton onClick={() => command("retrySave")}>Retry saving this return</HudButton>}
       <HudButton onClick={() => window.location.reload()}>Reload saved Marrow</HudButton>
     </HudSurface></div>}
-    {credits && <div className="dw-modal"><HudSurface ref={creditsRef} elevation="modal" data-hud-window className="dw-sheet" role="dialog" aria-modal="true" aria-label="Deepward credits" tabIndex={-1}>
-      <h2>Deepward / credits</h2>
-      <CreditsScreen document={{ sections: [
-        { heading: "Original Deepward artwork", entries: [{ label: "Deepward", detail: "Original vault geometry, machinery, Fitter rig, signage, item art and synthesized mechanical sound cues." }] },
-        { heading: "Technology", entries: [{ label: "JGengine", detail: "Apache-2.0", href: "https://jgengine.com" }, { label: "React", detail: "MIT" }, { label: "Three.js", detail: "MIT" }] },
-      ] }} />
-      <HudButton onClick={() => setCredits(false)}>Back to shift</HudButton>
-    </HudSurface></div>}
+    {credits && <CreditsPanel document={DEEPWARD_CREDITS} onBack={() => setCredits(false)} title="Deepward / credits" backLabel="Back to the shift" open />}
   </div>;
 }
