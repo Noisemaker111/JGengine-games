@@ -12,7 +12,9 @@ import { MARAUDER_WAVES, MARCH_PLAN } from "./ai/waveManifest";
 
 import type { BuildSpec } from "./building";
 import { combatantDef, type CombatantKind } from "./catalog";
-import { ENEMY_WAVE_FIRST_DELAY, TOWN_HALL_FOOD, type Faction } from "./tuning";
+import { createFogState, type FogState } from "./fog";
+import type { FormationState } from "./formations";
+import { ENEMY_WAVE_FIRST_DELAY, FOG_CELL, TOWN_HALL_FOOD, type Faction } from "./tuning";
 import type { ResearchSpec } from "./upgrades";
 import type { HeroActsRuntime } from "./heroActs";
 
@@ -68,6 +70,10 @@ export interface SessionState {
   supplyCap: number;
   /** Set by the Attack-Move verb; consumed by the next right-click order. */
   attackMoveArmed: boolean;
+  /** The marching shape and the anchor the army holds around it (see `formations.ts`). */
+  formation: FormationState;
+  /** What the Vanguard has explored and what it can see right now (see `fog.ts`). */
+  fog: FogState;
   /** The Marauder plan, its attack waves and the scouting/role bookkeeping. */
   enemyWave: EnemyWaveState;
   /** The Marauders' eyes and ears, shared by every enemy unit. Built on the first plan tick. */
@@ -100,6 +106,8 @@ function fresh(): SessionState {
     buildArmed: null,
     supplyCap: TOWN_HALL_FOOD,
     attackMoveArmed: false,
+    formation: { kind: "line", anchor: { x: 0, z: 0 }, facing: 0, members: [], offsets: {} },
+    fog: createFogState(FOG_CELL),
     enemyWave: {
       // Started on the first plan tick, after the opening grace, so the scout phase's enter event
       // reaches the director instead of being spent while no world exists yet.

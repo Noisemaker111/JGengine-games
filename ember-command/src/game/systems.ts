@@ -7,6 +7,8 @@ import { tickTowers } from "./ai/towers";
 import { nextWaveEta, planPhase, tickEnemyWaves } from "./ai/director";
 import { noteCampaignBuild, noteCampaignTrain, tickCampaign, campaignWavesRunning } from "./campaign";
 import { setupSkirmish } from "./world/scene";
+import { enemyDrawn, refreshSight, sightRadiusFor, type SightSource } from "./fog";
+import { holdFormation } from "./formations";
 import { heroLevel } from "./hero";
 import { heroActViews, carriedHeroPicks, pendingHeroOffer, tickHero } from "./heroActs";
 import { BUILDINGS, combatantDef } from "./catalog";
@@ -68,6 +70,52 @@ const enemyAiSystem: SystemDefinition = defineSystem({
   update(ctx, dt) {
     // A campaign mission decides whether the drums roll; a free skirmish always does.
     if (matchRunning() && campaignWavesRunning(ctx)) tickEnemyWaves(ctx, dt);
+  },
+});
+
+/** Keep the chosen formation: a member that drifted off its slot walks back while it is quiet. */
+const formationSystem: SystemDefinition = defineSystem({
+  id: "ember-command.formation",
+  tick: { type: "frame", stage: "ai" },
+  update(ctx) {
+    if (matchRunning()) holdFormation(ctx);
+  },
+});
+
+/** The Vanguard's eyes this tick: every living friendly unit and building, hero furthest. */
+function playerSightSources(ctx: GameContext): SightSource[] {
+  const eyes: SightSource[] = [];
+  for (const unit of session.units.values()) {
+    if (unit.faction !== "player") continue;
+    const entity = ctx.scene.entity.get(unit.id);
+    if (entity === null) continue;
+    eyes.push({ x: entity.position[0], z: entity.position[2], radius: sightRadiusFor(unit.catalogId, unit.kind) });
+  }
+  return eyes;
+}
+
+/** Marauder units are drawn only inside Vanguard sight; warcamps and keeps stay on the map as known
+ * landmarks. The entity `hidden` flag is engine render-only (stealth cloaks), so positions, AI and
+ * damage keep working for units the player cannot see. */
+function applyEnemyFog(ctx: GameContext): void {
+  for (const unit of session.units.values()) {
+    if (unit.faction !== "enemy" || unit.kind !== "unit") continue;
+    const entity = ctx.scene.entity.get(unit.id);
+    if (entity === null) continue;
+    const hidden = !enemyDrawn(session.fog, entity.position[0], entity.position[2]);
+    if (entity.hidden !== hidden) ctx.scene.entity.update(unit.id, { hidden });
+  }
+}
+
+/** Fog of war: refill the visible grid from friendly eyes (explored only grows) and hide Marauders
+ * outside it. Runs at 5 Hz — the minimap repaints on the same clock, so nothing lags a frame behind. */
+const fogSystem: SystemDefinition = defineSystem({
+  id: "ember-command.fog",
+  tick: { type: "interval", every: 0.2 },
+  update(ctx) {
+    if (!matchRunning()) return;
+    refreshSight(session.fog, playerSightSources(ctx));
+    applyEnemyFog(ctx);
   },
 });
 
@@ -201,6 +249,7 @@ const hudSystem: SystemDefinition = defineSystem({
       playerKeepHp: playerKeep.current,
       playerKeepMax: playerKeep.max,
       attackMoveArmed: session.attackMoveArmed,
+      formation: session.formation.kind,
       wavesSent: session.enemyWave.sent,
       nextWaveIn: Math.max(0, Math.ceil(nextWaveEta())),
       marauderPhase: planPhase(),
@@ -238,7 +287,9 @@ const campaignSystem: SystemDefinition = defineSystem({
 
 export const systems: readonly SystemDefinition[] = [
   aiSystem,
+  formationSystem,
   enemyAiSystem,
+  fogSystem,
   heroSystem,
   productionSystem,
   constructionSystem,

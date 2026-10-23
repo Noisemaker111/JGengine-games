@@ -37,6 +37,10 @@ export function onTick(ctx: GameContext, _dt: number): void {
   if (ctx.input.justPressed("attackMove")) ctx.game.commands.run("unit.attackMove", {});
   if (ctx.input.justPressed("rally")) ctx.game.commands.run("unit.rally", {});
   if (ctx.input.justPressed("hold")) ctx.game.commands.run("unit.hold", {});
+  if (ctx.input.justPressed("formationLine")) ctx.game.commands.run("unit.formation", { kind: "line" });
+  if (ctx.input.justPressed("formationWedge")) ctx.game.commands.run("unit.formation", { kind: "wedge" });
+  if (ctx.input.justPressed("formationColumn")) ctx.game.commands.run("unit.formation", { kind: "column" });
+  if (ctx.input.justPressed("selectArmy")) ctx.game.commands.run("unit.selectArmy", {});
   if (ctx.input.justPressed("trainPeasant")) ctx.game.commands.run("train.peasant", {});
   if (ctx.input.justPressed("trainFootman")) ctx.game.commands.run("train.footman", {});
   if (ctx.input.justPressed("trainRifleman")) ctx.game.commands.run("train.rifleman", {});

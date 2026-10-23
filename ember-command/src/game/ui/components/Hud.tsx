@@ -8,6 +8,7 @@ import { HudSurface } from "@jgengine/react/hudSurface";
 import { hudStore, type ArmyUnit, type HeroKitEntry, type HudSnapshot } from "../../hudStore";
 import { campaignOrdinal, type CampaignReadout } from "../../campaign";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
+import { FORMATIONS } from "../../formations";
 import { UPGRADES, WEAPON_DMG_PER_RANK, ARMOR_REDUCE_PER_RANK } from "../../upgrades";
 import { HERO_DMG_PER_LEVEL } from "../../hero";
 import type { HeroActView, HeroOffer } from "../../heroActs";
@@ -480,6 +481,39 @@ function MapControls() {
   );
 }
 
+/** Formation picker under the minimap: the marching shape the army dresses in and holds. The
+ * active shape is lit; a click (or its hotkey) re-forms a standing group at once and arms the shape
+ * for the next move order. */
+function FormationStrip() {
+  const hud = useHud();
+  const { commands } = useGame();
+  return (
+    <div className="grid grid-cols-3 gap-1">
+      {FORMATIONS.map((option) => {
+        const active = hud.formation === option.id;
+        return (
+          <HudButton
+            key={option.id}
+            data-tone={active ? "active" : "ready"}
+            onClick={() => commands.run("unit.formation", { kind: option.id })}
+            aria-label={`${option.label} formation`}
+            title={`${option.label} (${option.hotkey}) — ${option.blurb}`}
+            className={
+              "relative h-6 rounded border text-[9px] font-black uppercase tracking-wider " +
+              (active
+                ? "border-sky-300/80 bg-sky-400/25 text-sky-100"
+                : "border-slate-600/50 bg-slate-900/70 text-slate-300 hover:border-amber-300/70 hover:text-amber-100")
+            }
+          >
+            <span className="absolute left-0.5 top-0 text-[8px] font-bold text-slate-400">{option.hotkey}</span>
+            {option.label}
+          </HudButton>
+        );
+      })}
+    </div>
+  );
+}
+
 function ProductionLine() {
   const hud = useHud();
   const bits: string[] = [];
@@ -506,9 +540,12 @@ function Console() {
       <HudSurface className={"ec-map-panel relative flex items-stretch gap-2 p-2 " + FRAME}>
         <Corners />
         <MapControls />
-        <div className="relative rounded border border-slate-600/50 bg-black/50 p-1">
-          <Minimap />
-          <span className="pointer-events-none absolute right-1 top-1 text-[9px] font-bold text-sky-200/70">N</span>
+        <div className="flex flex-col gap-1">
+          <div className="relative rounded border border-slate-600/50 bg-black/50 p-1">
+            <Minimap />
+            <span className="pointer-events-none absolute right-1 top-1 text-[9px] font-bold text-sky-200/70">N</span>
+          </div>
+          <FormationStrip />
         </div>
       </HudSurface>
 

@@ -2,18 +2,12 @@ import type { NoticeTone } from "@jgengine/core/game/notices";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import { activeJobs, queuedJobs, enqueue } from "@jgengine/core/gameplay";
-import {
-  assignFormationSlots,
-  boxFormation,
-  facingYaw,
-  placeFormation,
-  type Vec2,
-} from "@jgengine/core/movement/formation";
 
 import { BARRACKS_UNITS, BUILDINGS, combatantDef, COMBATANTS, TRAINABLE } from "./catalog";
 import { BUILD_CONFIG } from "./building";
+import { anchorFormation, FORMATIONS, pruneFormation, reshapeFormation, type FormationKind } from "./formations";
 import { TRAINING_CONFIG } from "./production";
-import { FORMATION_SPACING, NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
+import { NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
 import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
 import { castHeroAct, chooseHeroPick, heroActViews, pendingHeroOffer } from "./heroActs";
@@ -79,20 +73,8 @@ function selectedPlayerUnits(selection: readonly string[]): UnitRuntime[] {
 }
 
 function assignMoveFormation(ctx: GameContext, units: UnitRuntime[], x: number, z: number, attackMove: boolean): void {
-  const members: Vec2[] = units.map((u) => {
-    const ent = ctx.scene.entity.get(u.id);
-    return ent === null ? ([x, z] as Vec2) : ([ent.position[0], ent.position[2]] as Vec2);
-  });
-  const cx = members.reduce((s, m) => s + m[0], 0) / members.length;
-  const cz = members.reduce((s, m) => s + m[1], 0) / members.length;
-  const facing = facingYaw([cx, cz], [x, z]);
-  const slots = placeFormation([x, z], facing, units.length, boxFormation({ spacing: FORMATION_SPACING }));
-  const assignment = assignFormationSlots(members, slots);
-  units.forEach((u, i) => {
-    const slot = slots[assignment[i] ?? i] ?? ([x, z] as Vec2);
-    u.guardPoint = { x: slot[0], z: slot[1] };
-    u.command = attackMove ? { kind: "attackMove", x: slot[0], z: slot[1] } : { kind: "move", x: slot[0], z: slot[1] };
-  });
+  pruneFormation(ctx);
+  anchorFormation(ctx, units, x, z, attackMove);
 }
 
 export function canAffordBuilding(ctx: GameContext, type: string): boolean {
@@ -302,6 +284,34 @@ export function registerCommands(ctx: GameContext): void {
     return state;
   } });
   ctx.game.commands.define<OrderInput>("unit.order", { apply: orderSelection });
+  // Select the whole fielded army — the keyboard half of marquee selection, so an order never
+  // needs a drag across the screen.
+  ctx.game.commands.define("unit.selectArmy", {
+    apply: (state) => {
+      if (!matchRunning()) return state;
+      const ids = livingUnits("player", "unit").map((u) => u.id);
+      state.scene.entity.selection.replace(ids);
+      notify(state, `Army selected: ${count(ids.length, "trooper", "troops")}.`);
+      return state;
+    },
+  });
+  // Choose the marching shape: re-shapes a standing group at once, and arms the shape the next
+  // move order will place a fresh group in.
+  ctx.game.commands.define<{ kind: string }>("unit.formation", {
+    apply: (state, input) => {
+      const option = FORMATIONS.find((entry) => entry.id === input.kind);
+      if (!matchRunning() || option === undefined) return state;
+      reshapeFormation(state, option.id as FormationKind);
+      const dressed = session.formation.members.length;
+      notify(
+        state,
+        dressed > 0
+          ? `${option.label} formation — ${count(dressed, "trooper", "troops")} re-formed around the anchor.`
+          : `${option.label} formation — the next move order dresses the line.`,
+      );
+      return state;
+    },
+  });
   ctx.game.commands.define("unit.attackMove", { apply: armAttackMove });
   ctx.game.commands.define("train.peasant", { apply: (state) => trainUnit(state, "peasant") });
   ctx.game.commands.define("train.footman", { apply: (state) => trainUnit(state, "footman") });
