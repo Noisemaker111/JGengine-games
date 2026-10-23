@@ -6,7 +6,6 @@ import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import { content } from "./content";
 import { resetSession, session } from "./session";
 import {
-  castThunderClap,
   grantHeroXp,
   heroAttackBonus,
   heroLevel,
@@ -14,10 +13,8 @@ import {
   heroXpFor,
   HERO_ID,
   HERO_MAX_LEVEL,
-  THUNDERCLAP_COST,
-  tickHero,
-  thunderClapReady,
 } from "./hero";
+import { castHeroAct, heroActReady, heroActViews, tickHero } from "./heroActs";
 
 function boot(): GameContext {
   const definition = defineGameDefinition({ name: "EmberCommandHeroTest", multiplayer: "off" });
@@ -58,29 +55,29 @@ describe("hero mana + Thunder Clap", () => {
     const nearBefore = statVal(ctx, "near", "health")!.current;
     const farBefore = statVal(ctx, "far", "health")!.current;
 
-    expect(thunderClapReady(ctx)).toBe(true);
-    castThunderClap(ctx);
+    expect(heroActReady(ctx, "thunderclap")).toBe(true);
+    expect(castHeroAct(ctx, "thunderclap").ok).toBe(true);
 
     expect(statVal(ctx, "near", "health")!.current).toBeLessThan(nearBefore); // hit
     expect(statVal(ctx, "far", "health")!.current).toBe(farBefore); // spared
-    expect(statVal(ctx, HERO_ID, "mana")!.current).toBe(100 - THUNDERCLAP_COST);
-    expect(thunderClapReady(ctx)).toBe(false); // on cooldown
+    expect(statVal(ctx, HERO_ID, "mana")!.current).toBe(100 - 40); // the act's mana cost
+    expect(heroActReady(ctx, "thunderclap")).toBe(false); // on cooldown
 
     // A second cast while on cooldown is a no-op.
     const nearMid = statVal(ctx, "near", "health")!.current;
-    castThunderClap(ctx);
+    expect(castHeroAct(ctx, "thunderclap")).toEqual({ ok: false, reason: "cooldown" });
     expect(statVal(ctx, "near", "health")!.current).toBe(nearMid);
   });
 
   test("mana regenerates and the cooldown ticks back to ready", () => {
     const ctx = boot();
     spawnHero(ctx);
-    castThunderClap(ctx);
+    castHeroAct(ctx, "thunderclap");
     const spent = statVal(ctx, HERO_ID, "mana")!.current;
     for (let i = 0; i < 200; i += 1) tickHero(ctx, 0.1); // 20s
     expect(statVal(ctx, HERO_ID, "mana")!.current).toBeGreaterThan(spent);
-    expect(session.heroState.abilityCooldown).toBe(0);
-    expect(thunderClapReady(ctx)).toBe(true);
+    expect(heroActViews(ctx).find((act) => act.id === "thunderclap")!.remaining).toBe(0);
+    expect(heroActReady(ctx, "thunderclap")).toBe(true);
   });
 });
 
@@ -119,7 +116,7 @@ describe("hero XP + leveling", () => {
   test("with no hero on the field, XP and the ability are inert", () => {
     const ctx = boot();
     expect(grantHeroXp(ctx, 500)).toBe(0);
-    expect(thunderClapReady(ctx)).toBe(false);
-    expect(() => castThunderClap(ctx)).not.toThrow();
+    expect(heroActReady(ctx, "thunderclap")).toBe(false);
+    expect(() => castHeroAct(ctx, "thunderclap")).not.toThrow();
   });
 });

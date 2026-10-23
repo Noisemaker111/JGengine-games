@@ -7,7 +7,8 @@ import { tickTowers } from "./ai/towers";
 import { nextWaveEta, planPhase, tickEnemyWaves } from "./ai/director";
 import { noteCampaignBuild, noteCampaignTrain, tickCampaign, campaignWavesRunning } from "./campaign";
 import { setupSkirmish } from "./world/scene";
-import { heroLevel, tickHero, thunderClapReady } from "./hero";
+import { heroLevel } from "./hero";
+import { heroActViews, carriedHeroPicks, pendingHeroOffer, tickHero } from "./heroActs";
 import { BUILDINGS, combatantDef } from "./catalog";
 import { BUILD_CONFIG, type BuildSpec } from "./building";
 import { hudStore } from "./hudStore";
@@ -215,8 +216,9 @@ const hudSystem: SystemDefinition = defineSystem({
       armorHave: upgradeHave("armor"),
       researching: activeJobs(session.research.queue).length + queuedJobs(session.research.queue).length,
       heroLevel: heroLevel(ctx),
-      abilityReady: thunderClapReady(ctx),
-      abilityCd: Math.max(0, Math.ceil(session.heroState.abilityCooldown)),
+      heroActs: heroActViews(ctx),
+      heroOffer: pendingHeroOffer(ctx),
+      heroKit: carriedHeroPicks().map((pick) => ({ id: pick.id, label: pick.label, blurb: pick.blurb, icon: pick.icon, kind: pick.kind })),
       army: armyRoster(ctx),
     });
   },

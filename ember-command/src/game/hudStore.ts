@@ -3,6 +3,7 @@
  * from `session` so React reads an immutable snapshot and only re-renders when a field changes. */
 
 import type { CampaignReadout } from "./campaign";
+import type { HeroActView, HeroOffer } from "./heroActs";
 
 export type MatchPhase = "ready" | "playing" | "paused" | "won" | "lost";
 
@@ -12,6 +13,15 @@ export interface ArmyUnit {
   kind: string;
   hp: number;
   max: number;
+}
+
+/** One pick Bram carries: the command card's kit line and the choice card's option copy. */
+export interface HeroKitEntry {
+  id: string;
+  label: string;
+  blurb: string;
+  icon: string;
+  kind: string;
 }
 
 export interface HudSnapshot {
@@ -50,10 +60,11 @@ export interface HudSnapshot {
   armorRank: number;
   armorHave: number;
   researching: number;
-  /** Hero: current level, whether Thunder Clap can fire, and whole seconds left on its cooldown. */
+  /** Hero: current level, his acts with their cooldowns, the picks he carries and an open offer. */
   heroLevel: number;
-  abilityReady: boolean;
-  abilityCd: number;
+  heroActs: HeroActView[];
+  heroOffer: HeroOffer | null;
+  heroKit: HeroKitEntry[];
   /** Live roster of the player's fielded combat units (for the army row). */
   army: ArmyUnit[];
   /** The vale campaign: the objective card's mission, its clock and the field desk's offer. */
@@ -91,8 +102,9 @@ const initial: HudSnapshot = {
   armorHave: 0,
   researching: 0,
   heroLevel: 1,
-  abilityReady: false,
-  abilityCd: 0,
+  heroActs: [],
+  heroOffer: null,
+  heroKit: [],
   army: [],
   campaign: null,
 };
@@ -125,6 +137,37 @@ function campaignChanged(a: CampaignReadout | null, b: CampaignReadout | null): 
     a.stores.gold !== b.stores.gold ||
     a.stores.lumber !== b.stores.lumber
   );
+}
+
+/** Act slots change on a cast and as the cooldown counts down, so compare the letters the card draws. */
+function actsChanged(a: HeroActView[], b: HeroActView[]): boolean {
+  if (a.length !== b.length) return true;
+  for (let i = 0; i < a.length; i += 1) {
+    const left = a[i]!;
+    const right = b[i]!;
+    if (left.id !== right.id || left.owned !== right.owned || left.ready !== right.ready || left.remaining !== right.remaining) return true;
+  }
+  return false;
+}
+
+/** A kit only grows on a pick, so its ids are enough to tell the card to redraw. */
+function kitChanged(a: HeroKitEntry[], b: HeroKitEntry[]): boolean {
+  if (a.length !== b.length) return true;
+  for (let i = 0; i < a.length; i += 1) if (a[i]!.id !== b[i]!.id) return true;
+  return false;
+}
+
+/** An offer appears on a level-up and leaves on the pick, so its level and two ids are the change. */
+function offerChanged(a: HeroOffer | null, b: HeroOffer | null): boolean {
+  if (a === b) return false;
+  if (a === null || b === null) return true;
+  return a.level !== b.level
+    || a.options[0].id !== b.options[0].id
+    || a.options[1].id !== b.options[1].id
+    || a.options[0].allocatable !== b.options[0].allocatable
+    || a.options[1].allocatable !== b.options[1].allocatable
+    || a.options[0].taken !== b.options[0].taken
+    || a.options[1].taken !== b.options[1].taken;
 }
 
 let snapshot: HudSnapshot = initial;
@@ -161,8 +204,9 @@ function changed(next: HudSnapshot): boolean {
     p.armorHave !== next.armorHave ||
     p.researching !== next.researching ||
     p.heroLevel !== next.heroLevel ||
-    p.abilityReady !== next.abilityReady ||
-    p.abilityCd !== next.abilityCd ||
+    actsChanged(p.heroActs, next.heroActs) ||
+    kitChanged(p.heroKit, next.heroKit) ||
+    offerChanged(p.heroOffer, next.heroOffer) ||
     armyChanged(p.army, next.army) ||
     campaignChanged(p.campaign, next.campaign)
   );
