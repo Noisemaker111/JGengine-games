@@ -1,7 +1,6 @@
 import { earn, openBooks, spend } from "./game/cash";
 import { loadSavedProgress } from "./game/saveCompatibility";
 import { loadScrapSave, saveScrapState, scrapSave } from "./game/save";
-import { loadScrapSave, saveScrapState } from "./game/save";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
