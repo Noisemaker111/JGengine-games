@@ -11,12 +11,16 @@ import {
   bountyPayout,
   bountySpotIndex,
   bountyStore,
-  onBountyKilled,
-  tickBounties,
+  liveBountyTarget,
+  markDistance,
+  settleBounty,
+  stageBounty,
 } from "./bounties";
+import { missionBoard, startBountyMission, takeMark, tickHarborMissions } from "../missions/missions";
+import { registerMissionContracts } from "../missions/register";
 
 function bootContext(): GameContext {
-  return createGameContext({
+  const ctx = createGameContext({
     definition: defineGameDefinition({
       name: "harbor-heat-bounty-test",
       assets: createAssetCatalog(),
@@ -26,6 +30,25 @@ function bootContext(): GameContext {
     content,
     player: { userId: "p1", isNew: true },
   });
+  registerMissionContracts(ctx);
+  return ctx;
+}
+
+function unlock(ctx: GameContext): void {
+  ctx.game.quest!.register(QUESTS);
+  ctx.game.quest!.grant("p1", BOUNTY_UNLOCK_QUEST);
+  ctx.game.quest!.progress("p1", BOUNTY_UNLOCK_QUEST, "clear_gangers", 5);
+  expect(ctx.game.quest!.turnIn("p1", BOUNTY_UNLOCK_QUEST)).toBeNull();
+}
+
+/** Put the mark next to the player, so the pursuit is inside its keep-close distance. */
+function meetMark(ctx: GameContext): string {
+  const targetId = liveBountyTarget(ctx);
+  if (targetId === null) throw new Error("expected a live mark");
+  const player = ctx.scene.entity.get(ctx.player.userId);
+  if (player === null) throw new Error("expected the player");
+  ctx.scene.entity.update(targetId, { position: [player.position[0] + 1, player.position[1], player.position[2]] });
+  return targetId;
 }
 
 describe("harbor-heat bounty contracts", () => {
@@ -46,41 +69,54 @@ describe("harbor-heat bounty contracts", () => {
     const ctx = bootContext();
     ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
     ctx.game.quest!.register(QUESTS);
-    tickBounties(ctx);
-    expect(bountyStore.read(ctx)?.targetId ?? null).toBeNull();
+    expect(stageBounty(ctx)).toBeNull();
   });
 
-  test("stage -> kill pays cash and arms the cooldown at the next spot", () => {
+  test("the chase is a deadline: the mark escaping fails the contract", () => {
     const ctx = bootContext();
     ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
-    ctx.game.quest!.register(QUESTS);
-    ctx.game.quest!.grant("p1", BOUNTY_UNLOCK_QUEST);
-    ctx.game.quest!.progress("p1", BOUNTY_UNLOCK_QUEST, "clear_gangers", 5);
-    expect(ctx.game.quest!.turnIn("p1", BOUNTY_UNLOCK_QUEST)).toBeNull();
+    unlock(ctx);
+    const spot = stageBounty(ctx);
+    expect(spot).not.toBeNull();
+    startBountyMission(ctx, spot!);
+    expect(missionBoard.read(ctx).active).toBe(`bounty_${spot}`);
+    const beforeBounty = ctx.game.economy.balance("p1", "cash");
 
-    tickBounties(ctx);
-    const staged = bountyStore.read(ctx);
-    if (staged === undefined || staged.targetId === null) throw new Error("expected a staged bounty");
-    const target = ctx.scene.entity.get(staged.targetId);
-    if (target === null) throw new Error("expected the bounty target entity");
-    expect(target.name).toBe("bounty_mark");
-    const spot = BOUNTY_SPOTS[0]!;
-    expect(staged.spotId).toBe(spot.id);
-    expect(target.position[0]).toBeCloseTo(spot.position[0]);
-    expect(target.position[2]).toBeCloseTo(spot.position[2]);
+    // Stand still while the mark runs: the contract runs out of time.
+    for (let second = 0; second < 92; second += 1) tickHarborMissions(ctx, 1);
+    expect(missionBoard.read(ctx).active).toBeNull();
+    expect(bountyStore.read(ctx)?.targetId).toBeNull();
+    expect(ctx.game.economy.balance("p1", "cash")).toBe(beforeBounty);
+  });
+
+  test("catching the mark then taking it pays once and arms the next spot", () => {
+    const ctx = bootContext();
+    ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
+    unlock(ctx);
+    const spot = stageBounty(ctx)!;
+    startBountyMission(ctx, spot);
+
+    meetMark(ctx);
+    tickHarborMissions(ctx, 1 / 30);
+    expect(missionBoard.read(ctx).view?.objectiveId).toBe("take");
+    expect(markDistance(ctx)).toBeLessThan(4.5);
 
     const before = ctx.game.economy.balance("p1", "cash");
-    ctx.scene.entity.despawn(staged.targetId);
-    expect(onBountyKilled(ctx, staged.targetId)).toBe(true);
+    expect(takeMark(ctx)).toBe(true);
     expect(ctx.game.economy.balance("p1", "cash") - before).toBe(bountyPayout(0));
-    const settled = bountyStore.read(ctx);
-    expect(settled?.completed).toBe(1);
-    expect(settled?.targetId).toBeNull();
-    expect(settled?.nextAt).toBeGreaterThanOrEqual(BOUNTY_COOLDOWN_SEC);
-
-    // Before the cooldown elapses nothing stages; unrelated kills settle nothing.
-    tickBounties(ctx);
+    expect(bountyStore.read(ctx)?.completed).toBe(1);
     expect(bountyStore.read(ctx)?.targetId).toBeNull();
-    expect(onBountyKilled(ctx, "someone_else")).toBe(false);
+    expect((bountyStore.read(ctx)?.nextAt ?? 0) - ctx.time.now()).toBeCloseTo(BOUNTY_COOLDOWN_SEC, 5);
+    expect(missionBoard.read(ctx).active).toBeNull();
+  });
+
+  test("a settled contract reports through the mission settlement, not a kill counter", () => {
+    const ctx = bootContext();
+    ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
+    unlock(ctx);
+    const beforeBounty = ctx.game.economy.balance("p1", "cash");
+    settleBounty(ctx, { missionId: "bounty_plaza", status: "failed", remaining: 0, elapsed: 90, reason: "the mark got away" });
+    expect(ctx.game.economy.balance("p1", "cash")).toBe(beforeBounty);
+    expect(bountyStore.read(ctx)?.completed).toBe(0);
   });
 });

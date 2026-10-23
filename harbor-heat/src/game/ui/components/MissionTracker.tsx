@@ -4,7 +4,8 @@ import { useStore } from "@jgengine/react/store";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { MISSION_HINTS, QUESTS } from "../../quests/catalog";
 import { BOUNTY_SPOTS } from "../../world/districts";
-import { courierStore } from "../../jobs/courier";
+import { missionBoard } from "../../missions/missions";
+import { ContractCard } from "./ContractCard";
 
 function BountyCard() {
   const bounty = useStore(bountyStore, (v) => v);
@@ -25,8 +26,6 @@ function BountyCard() {
 
 export function MissionTracker() {
   const journal = useQuestJournal();
-  const courier = useStore(courierStore);
-  if (courier.completed === 0 || courier.phase === "running") return null;
   const active = journal.find((q) => q.status === "active");
   if (active === undefined) {
     const allDone = journal.filter((q) => q.status === "completed").length >= QUESTS.length;
@@ -34,9 +33,10 @@ export function MissionTracker() {
       <div className="flex flex-col gap-2">
         {allDone ? (
           <div className="-skew-x-3 border-2 border-black bg-[#ffb020] px-3 py-2 text-sm font-black uppercase text-black shadow-[4px_4px_0_#000]">
-            The Isle is yours — bounties pay, the Ocean Loop runs
+            The Isle is yours - bounties pay, the Ocean Loop runs
           </div>
         ) : null}
+        <ContractCard />
         <BountyCard />
       </div>
     );
@@ -44,6 +44,7 @@ export function MissionTracker() {
   const def = QUESTS.find((q) => q.id === active.questId);
   return (
     <div className="flex flex-col gap-2">
+      <ContractCard />
       <HudSurface className="hh-card w-64" padding="8px 12px" interactive={false}>
         <div className="-mx-3 -mt-2 mb-1 border-b-2 border-black bg-[#c23b3b] px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
           {def?.title ?? active.questId}

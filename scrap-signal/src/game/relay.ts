@@ -5,29 +5,57 @@ import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { rememberHome } from "./entities/enemies/ai";
 import { reservePhase } from "./handroll";
 import { activeCharacter } from "./characters";
+import { RELAY } from "./relaySite";
+import {
+  DEAD_AIR_HOLD_SECONDS,
+  DEAD_AIR_OFFER_RADIUS,
+  deadAirBoard,
+  isDeadAirRunning,
+  nearRelay,
+  onDeadAirSettled,
+  reportDeadAirEvent,
+  resetDeadAir,
+  startDeadAir,
+  tickDeadAir,
+  type DeadAirSettlement,
+} from "./missions/deadAir";
 
-/** Fixed authored location; independent of capture-time spawn overrides. */
-export const RELAY = { x: -505, z: 581, radius: 22, seconds: 150, uploadSeconds: 6 };
-const WAVES = [["ripper_pup", "ripper_pup"], ["bruiser_brat", "bruiser_brat"], ["husk", "ripper_pup", "bruiser_brat"]] as const;
+/**
+ * The Dead Air encounter: authored waves around a contract whose objectives, countdown and fail states
+ * live in the mission runtime. This file owns the ring, the staging and the result card.
+ */
+export { RELAY };
+const WAVES = [["ripper_pup", "ripper_pup", "bruiser_brat"], ["husk", "ripper_pup", "bruiser_brat"], ["husk", "husk", "bruiser_brat"]] as const;
+/** Remaining hold seconds at which waves two and three arrive. */
+const WAVE_AT_REMAINING = [40, 20] as const;
+
 export interface RelayState {
-  phase: "idle" | "defend" | "upload" | "won" | "lost";
+  phase: "idle" | "active" | "won" | "lost";
   wave: number;
   enemies: readonly string[];
+  /** Hold seconds still to run when the contract settled. */
   remaining: number;
-  upload: number;
   rewarded: boolean;
   reason: string;
-  /** Optional so pre-uplink saves restore the clear-first strategy. */
-  overclock?: boolean;
 }
-export const relayStore = defineStore<RelayState>("scrap.deadAir", () => ({ phase: "idle", wave: 0, enemies: [], remaining: RELAY.seconds, upload: 0, rewarded: false, reason: "" }));
+
+export const relayStore = defineStore<RelayState>("scrap.deadAir", () => ({
+  phase: "idle",
+  wave: 0,
+  enemies: [],
+  remaining: DEAD_AIR_HOLD_SECONDS,
+  rewarded: false,
+  reason: "",
+}));
 
 export function relayDistance(ctx: GameContext): number {
   const p = ctx.scene.entity.get(ctx.player.userId)?.position;
   return p === undefined ? Infinity : Math.hypot(p[0] - RELAY.x, p[2] - RELAY.z);
 }
 
-function spawnWave(ctx: GameContext, state: RelayState, wave: number): void {
+function spawnWave(ctx: GameContext, wave: number): void {
+  const state = relayStore.read(ctx);
+  if (state.wave >= wave) return;
   const enemies = WAVES[wave - 1]!.map((catalogId, index) => {
     const angle = -Math.PI / 2 + index * Math.PI * 0.7;
     const x = RELAY.x + Math.cos(angle) * 11;
@@ -38,74 +66,106 @@ function spawnWave(ctx: GameContext, state: RelayState, wave: number): void {
     rememberHome(ctx, id, position);
     return id;
   });
-  relayStore.write(ctx, { ...state, phase: "defend", wave, enemies, upload: 0 });
-  ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: `DEAD AIR — AMBUSH ${wave}/3`, kind: "warn" });
+  relayStore.write(ctx, { ...state, wave, enemies: [...state.enemies, ...enemies] });
+  ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: `DEAD AIR - AMBUSH ${wave}/3`, kind: "warn" });
 }
 
+/** A ring kill credits the mission only when the player was inside the copper ring. */
 export function relayEnemyDied(ctx: GameContext, event: EntityDiedEvent): void {
   const state = relayStore.read(ctx);
-  if (state.phase !== "defend" || !state.enemies.includes(event.instanceId)) return;
-  const enemies = state.enemies.filter((id) => id !== event.instanceId);
-  relayStore.write(ctx, { ...state, enemies, phase: enemies.length === 0 ? "upload" : "defend" });
+  if (state.enemies.includes(event.instanceId)) {
+    relayStore.write(ctx, { ...state, enemies: state.enemies.filter((id) => id !== event.instanceId) });
+  }
+  if (event.reason.kind !== "player_kill" || event.reason.killerUserId !== ctx.player.userId) return;
+  if (!isDeadAirRunning(ctx)) return;
+  const p = ctx.scene.entity.get(ctx.player.userId)?.position;
+  const inside = p !== undefined && Math.hypot(p[0] - RELAY.x, p[2] - RELAY.z) <= RELAY.radius;
+  reportDeadAirEvent(ctx, {
+    kind: "kill",
+    target: event.catalogId,
+    by: "reclaimer",
+    tags: inside ? ["in-ring"] : ["outside-ring"],
+  });
 }
 
-function finish(ctx: GameContext, state: RelayState, won: boolean, reason: string): void {
-  for (const id of state.enemies) ctx.scene.entity.despawn(id);
-  if (won && !state.rewarded) {
+/** Stage the waves the live objective calls for. */
+function stageWaves(ctx: GameContext): void {
+  const board = deadAirBoard.read(ctx);
+  const state = relayStore.read(ctx);
+  if (!board.active) return;
+  if (board.view?.objectiveId === "clear" && state.enemies.length === 0 && state.wave < 1) spawnWave(ctx, 1);
+  if (board.view?.objectiveId !== "hold" || state.enemies.length > 0) return;
+  const remaining = board.view.remaining ?? DEAD_AIR_HOLD_SECONDS;
+  for (const [index, at] of WAVE_AT_REMAINING.entries()) {
+    if (remaining <= at && state.wave <= index + 1) spawnWave(ctx, index + 2);
+  }
+}
+
+/** The contract settled: pay on the first win, show the field report, and stop play. */
+function settle(ctx: GameContext, settlement: DeadAirSettlement): void {
+  const relay = relayStore.read(ctx);
+  if (settlement.won && !relay.rewarded) {
     ctx.game.economy.grant(ctx.player.userId, "cash", 120);
     ctx.game.economy.grant(ctx.player.userId, "cores", 3);
   }
-  relayStore.write(ctx, { ...state, enemies: [], phase: won ? "won" : "lost", rewarded: state.rewarded || won, reason });
+  relayStore.write(ctx, {
+    ...relay,
+    phase: settlement.won ? "won" : "lost",
+    enemies: [],
+    remaining: settlement.remaining,
+    rewarded: relay.rewarded || settlement.won,
+    reason: settlement.reason,
+  });
+  ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: settlement.won ? "CARRIER RESTORED" : "SIGNAL LOST", kind: settlement.won ? "pickup" : "warn" });
   setGamePhase(ctx, "ended");
   ctx.time.pause();
   if (typeof document !== "undefined") document.exitPointerLock?.();
-  // Results are real saved state; reloading cannot award the same contract twice.
   void ctx.game.save?.checkpoint();
 }
 
 export function tickRelay(ctx: GameContext, dt: number): void {
   if (dt <= 0 || gamePhase(ctx) !== "playing") return;
   const state = relayStore.read(ctx);
-  if (state.phase !== "defend" && state.phase !== "upload") return;
-  if (reservePhase(ctx) !== "up") { finish(ctx, state, false, "Your chassis went down before the relay could lock."); return; }
-  const remaining = Math.max(0, state.remaining - dt);
-  if (remaining === 0) { finish(ctx, state, false, "The carrier window closed. Clear the ambushes and stay inside the copper ring to upload."); return; }
-  const inside = relayDistance(ctx) <= RELAY.radius;
-  const shield = ctx.scene.entity.stats.get(ctx.player.userId, "shield")?.current ?? 0;
-  // Fighting remains mandatory. Overclock buys the later upload time with the
-  // same protective resource enemies damage; retreating stops transmission.
-  const channelSeconds = state.phase === "defend" && state.overclock && inside
-    ? Math.min(dt, Math.max(0, (shield - 10) / 6), Math.max(0, RELAY.uploadSeconds - state.upload)) : 0;
-  if (channelSeconds > 0) ctx.scene.entity.stats.delta(ctx.player.userId, "shield", -channelSeconds * 6);
-  const upload = Math.min(RELAY.uploadSeconds, state.upload + (state.phase === "upload" && inside ? dt : channelSeconds));
-  const next = { ...state, remaining, upload };
-  if (state.phase === "upload" && inside && upload >= RELAY.uploadSeconds) {
-    if (state.wave === WAVES.length) finish(ctx, next, true, "Coretown hears you. The salvage carrier is back on the air.");
-    else spawnWave(ctx, next, state.wave + 1);
-  } else relayStore.write(ctx, next);
+  if (state.phase !== "active") return;
+  tickDeadAir(ctx, dt, reservePhase(ctx) === "up");
+  const board = deadAirBoard.read(ctx);
+  if (board.active) {
+    relayStore.write(ctx, { ...relayStore.read(ctx), remaining: board.view?.remaining ?? DEAD_AIR_HOLD_SECONDS });
+    stageWaves(ctx);
+  }
+}
+
+/** Offer the contract once the player is near the ring; the console prompt starts it early. */
+export function offerDeadAir(ctx: GameContext): void {
+  const state = relayStore.read(ctx);
+  if (state.phase === "active" || state.phase === "won") return;
+  if (isDeadAirRunning(ctx) || !nearRelay(ctx)) return;
+  activate(ctx);
+}
+
+function activate(ctx: GameContext): void {
+  relayStore.write(ctx, { ...relayStore.read(ctx), phase: "active", wave: 0, enemies: [], reason: "", remaining: DEAD_AIR_HOLD_SECONDS });
+  startDeadAir(ctx);
 }
 
 export function registerRelay(ctx: GameContext, reconstruct: (ctx: GameContext) => void): void {
-  ctx.game.commands.define("relay.overclock", { apply(state: GameContext) {
+  onDeadAirSettled(ctx, (settlement) => settle(ctx, settlement));
+  ctx.game.commands.define("relay.start", { apply(state) {
     const current = relayStore.read(state);
-    if (gamePhase(state) !== "playing" || !["defend", "upload"].includes(current.phase)) return;
-    relayStore.write(state, { ...current, overclock: !current.overclock });
-    state.scene.entity.floatText({ instanceId: state.player.userId, text: current.overclock ? "SHIELD RESERVED — CLEAR FIRST" : "OVERCLOCK — SHIELD POWERS UPLINK", kind: "warn" });
-  } });
-  ctx.game.commands.define("relay.start", { apply(state: GameContext) {
-    const current = relayStore.read(state);
-    if (gamePhase(state) !== "playing" || activeCharacter() === null || reservePhase(state) !== "up" || relayDistance(state) > 3.8 || ["defend", "upload"].includes(current.phase)) return;
-    // Salvage cartridges supplied by the contract keep a failed attempt recoverable.
+    if (gamePhase(state) !== "playing" || activeCharacter() === null || reservePhase(state) !== "up") return;
+    if (current.phase === "active" || current.phase === "won") return;
+    if (relayDistance(state) > DEAD_AIR_OFFER_RADIUS) return;
     const ammo = state.scene.entity.stats.get(state.player.userId, "ammo_pistol");
     if (ammo !== null && ammo.current < 60) state.scene.entity.stats.delta(state.player.userId, "ammo_pistol", 60 - ammo.current);
-    spawnWave(state, { ...current, remaining: RELAY.seconds, upload: 0, reason: "" }, 1);
+    activate(state);
     void state.game.save?.checkpoint();
   } });
-  ctx.game.commands.define("relay.continue", { apply(state: GameContext) {
+  ctx.game.commands.define("relay.continue", { apply(state) {
     const current = relayStore.read(state);
     if (current.phase !== "won" && current.phase !== "lost") return;
     if (reservePhase(state) !== "up" || (state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 1) <= 1) reconstruct(state);
-    relayStore.write(state, { ...current, phase: "idle", upload: 0 });
+    relayStore.write(state, { ...current, phase: "idle", enemies: [], wave: 0, remaining: DEAD_AIR_HOLD_SECONDS });
+    resetDeadAir(state);
     setGamePhase(state, "playing");
     state.time.play();
     void state.game.save?.checkpoint();

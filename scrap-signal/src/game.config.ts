@@ -39,8 +39,7 @@ const rarityStyle: Record<string, RarityStyle> = {
 
 const staticPrompts: readonly PositionedPrompt[] = [
   { id: "relay:dead-air", position: { x: RELAY.x, z: RELAY.z }, priority: 2,
-    prompt: { radius: 3.8, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "relay.start", input: undefined } } },
-  {
+    prompt: { radius: 3.8, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "relay.start", input: undefined } } },  {
     id: "vendor:rigg",
     position: { x: RIGG_VENDOR_POS[0], z: RIGG_VENDOR_POS[2] },
     prompt: {
@@ -170,7 +169,6 @@ export const game = defineGame({
   inventories,
   input: keybinds,
   // The context-specific relay button lives beside its stakes and progress.
-  touch: { hidden: ["relay.overclock"] },
   server: { mode: "campaign" },
   save: "none",
   persist: true,

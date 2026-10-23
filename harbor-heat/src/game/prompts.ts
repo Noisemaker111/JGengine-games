@@ -4,6 +4,7 @@ import { safehouseStore } from "./commands";
 import { vehicleById } from "./entities/vehicles/catalog";
 import { handrollOf } from "./handroll";
 import { courierPrompts } from "./jobs/courier";
+import { bountyPrompt } from "./missions/missions";
 import { GARAGE_POS, GUNSHOP_POS, MARCO_POS, RACE_ROUTES, SAFEHOUSE_POS } from "./world/districts";
 
 const staticPrompts: readonly PositionedPrompt[] = [
@@ -65,10 +66,15 @@ function safehousePrompt(ctx: GameContext): PositionedPrompt {
   };
 }
 
+function bounty(ctx: GameContext): readonly PositionedPrompt[] {
+  const prompt = bountyPrompt(ctx);
+  return prompt === null ? [] : [prompt];
+}
+
 export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
   if (handrollOf(ctx).drivingVehicleId() !== null) {
     if (handrollOf(ctx).raceActive()) return [];
-    return [...courierPrompts(ctx), ...racePrompts];
+    return [...courierPrompts(ctx), ...bounty(ctx), ...racePrompts];
   }
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return staticPrompts;
@@ -82,9 +88,10 @@ export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
       nearestCar = { id: entity.id, x: entity.position[0], z: entity.position[2] };
     }
   }
-  if (nearestCar === null) return [...courierPrompts(ctx), ...staticPrompts, garagePrompt, safehousePrompt(ctx)];
+  if (nearestCar === null) return [...courierPrompts(ctx), ...bounty(ctx), ...staticPrompts, garagePrompt, safehousePrompt(ctx)];
   return [
     ...courierPrompts(ctx),
+    ...bounty(ctx),
     ...staticPrompts,
     garagePrompt,
     safehousePrompt(ctx),

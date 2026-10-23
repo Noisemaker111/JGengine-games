@@ -19,5 +19,4 @@ export const keybinds: ActionCodesMap = {
   selectSlot3: ["Digit3"],
   selectSlot4: ["Digit4"],
   openSkills: ["KeyK"],
-  "relay.overclock": ["KeyV"],
 };

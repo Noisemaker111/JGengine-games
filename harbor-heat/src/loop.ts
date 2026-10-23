@@ -19,7 +19,17 @@ import { drivingStore, raceStore, handrollOf } from "./game/handroll";
 import { vehicleById } from "./game/entities/vehicles/catalog";
 import { advanceBustedHold, BUSTED_HOLD_SEC, BUSTED_RADIUS, bustedFine, clinicFee } from "./game/failStates";
 import { itemUseHandlers, resetWeaponState } from "./game/items/use-handlers";
-import { onBountyKilled, tickBounties } from "./game/jobs/bounties";
+import { armBountyCooldown, bountyTargetMissing, liveBountyTarget, stageBounty, tickBountyMark } from "./game/jobs/bounties";
+import {
+  registerMissionCommands,
+  reportMarkKilled,
+  resetHarborMissions,
+  restoreHarborMissions,
+  startBountyMission,
+  tickHarborMissions,
+} from "./game/missions/missions";
+import { registerMissionContracts } from "./game/missions/register";
+import { courierCargoLost, courierStore, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
 import { CRED_BY_QUEST, grantCred, RACE_WIN_CRED } from "./game/progression/cred";
@@ -39,7 +49,6 @@ import {
 import { setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
-import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
 const AGGRO_RADIUS = 18;
@@ -91,6 +100,7 @@ function syncPhase(ctx: GameContext): void {
 
 export function resetMissionState(ctx: GameContext): void {
   missionStore.write(ctx, { ...FRESH_MISSION });
+  resetHarborMissions(ctx);
 }
 
 function tickGangers(ctx: GameContext, dt: number): void {
@@ -103,7 +113,7 @@ function tickGangers(ctx: GameContext, dt: number): void {
     if (!hostile) continue;
     const dist = Math.hypot(entity.position[0] - player.position[0], entity.position[2] - player.position[2]);
     if (dist > AGGRO_RADIUS) continue;
-    if (dist > 6) {
+    if (dist > 6 && entity.name !== "bounty_mark") {
       ctx.scene.entity.moveToward(entity.id, player.position, {
         speed: entity.name === "ganger_enforcer" ? 3.8 : 4.4,
         stopDistance: 5,
@@ -324,7 +334,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   ctx.scene.entity.setPose(ctx.player.userId, { position: [HHPD_POS[0], y, HHPD_POS[2]] });
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
-  finishCourier(ctx, false);
+  courierCargoLost(ctx);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
   syncPhase(ctx);
 }
@@ -352,7 +362,7 @@ function tickWasted(ctx: GameContext): void {
   if (fee > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fee);
   handrollOf(ctx).clearWanted(ctx);
   restageAfterWasted(ctx);
-  finishCourier(ctx, false);
+  courierCargoLost(ctx);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
   syncPhase(ctx);
 }
@@ -376,7 +386,8 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   drivingStore.clear(ctx);
   sessionStore.clear(ctx);
   const courier = courierStore.read(ctx);
-  if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
+  courierStore.write(ctx, { ...courier, distance: 0, heading: 0 });
+  restoreHarborMissions(ctx);
   setupCourierLandmarks(ctx);
   handrollOf(ctx).clearWanted(ctx);
   const player = ctx.scene.entity.get(ctx.player.userId);
@@ -421,17 +432,19 @@ function onInit(ctx: GameContext): void {
     if (enemy !== undefined && enemy.bounty > 0) {
       ctx.game.economy.grant(ctx.player.userId, "cash", enemy.bounty);
     }
-    if (dead.instanceId !== undefined) onBountyKilled(ctx, dead.instanceId);
+    if (dead.instanceId !== undefined && dead.instanceId === liveBountyTarget(ctx)) reportMarkKilled(ctx);
     if (catalogId.startsWith("ped_")) handrollOf(ctx).addHeat(ctx, 60);
     if (catalogId.startsWith("cop_") && catalogId !== "car_cop") handrollOf(ctx).addHeat(ctx, 110);
     if (vehicleById(catalogId) !== undefined && dead.instanceId !== undefined) {
       const at = dead.at ?? ctx.scene.entity.get(dead.instanceId)?.position ?? [0, 0, 0];
       handrollOf(ctx).explodeVehicle(ctx, dead.instanceId, at);
       handrollOf(ctx).addHeat(ctx, 45);
+      if (dead.instanceId === handrollOf(ctx).drivingVehicleId()) courierCargoLost(ctx);
     }
   });
 
   registerCommands(ctx);
+  registerMissionContracts(ctx);
   const buildings = setupWorld(ctx);
   setupTraffic(ctx);
   setupResidents(ctx, buildings);
@@ -464,13 +477,17 @@ function onTick(ctx: GameContext, dt: number): void {
   tickGangers(ctx, dt);
   tickMissions(ctx);
   tickMissionSpawns(ctx, dt);
-  tickBounties(ctx);
+  const stagedBounty = stageBounty(ctx);
+  if (stagedBounty !== null) startBountyMission(ctx, stagedBounty);
+  if (bountyTargetMissing(ctx)) armBountyCooldown(ctx);
+  tickBountyMark(ctx, dt);
   tickStashes(ctx);
   tickRaceEconomy(ctx);
   tickBusted(ctx, dt);
   tickPedPanic(ctx, dt);
   tickWasted(ctx);
   tickCourier(ctx, dt);
+  tickHarborMissions(ctx, dt);
 }
 
 function onDispose(ctx: GameContext): void {

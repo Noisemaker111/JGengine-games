@@ -10,7 +10,7 @@ export function SalvageRelay() {
   const ctx = useGameContext();
   const state = useStore(relayStore);
   const rotor = useRef<Group>(null);
-  const live = state.phase === "defend" || state.phase === "upload";
+  const live = state.phase === "active";
   const color = state.rewarded ? "#7ef1bf" : live ? "#ffbb55" : "#64dbea";
   useFrame((_, dt) => { if (rotor.current && !ctx.time.isPaused()) rotor.current.rotation.y += dt * (live ? 1.1 : 0.2); });
   const y = ctx.world.groundHeightAt(RELAY.x, RELAY.z);

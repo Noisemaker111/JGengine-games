@@ -3,7 +3,8 @@ import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
-import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
+import { relayStore, registerRelay, relayEnemyDied, tickRelay, offerDeadAir } from "./game/relay";
+import { restoreDeadAir } from "./game/missions/deadAir";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
@@ -270,6 +271,7 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     const relay = relayStore.read(ctx);
     const ended = relay.phase === "won" || relay.phase === "lost";
+    restoreDeadAir(ctx);
     setGamePhase(ctx, ended ? "ended" : "playing");
     if (ended) ctx.time.pause();
     else ctx.time.play();
@@ -288,6 +290,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickDots(ctx, nowMs);
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
+  offerDeadAir(ctx);
   tickRelay(ctx, dt);
   tickZoneAndStations(ctx, nowMs);
   notePlayerHealth(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? null);

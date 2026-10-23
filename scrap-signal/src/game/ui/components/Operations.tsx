@@ -8,6 +8,7 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { RELAY, relayDistance, relayStore } from "../../relay";
+import { deadAirBoard, DEAD_AIR_HOLD_SECONDS } from "../../missions/deadAir";
 import { characterIdStore, vendorOpenStore, travelOpenStore, skillsOpenStore, blackMarketOpenStore } from "../../stores";
 
 export function Operations() {
@@ -17,6 +18,7 @@ export function Operations() {
   const settings = useSettings();
   const character = useStore(characterIdStore);
   const relay = useStore(relayStore);
+  const board = useStore(deadAirBoard);
   const vendor = useStore(vendorOpenStore);
   const travel = useStore(travelOpenStore);
   const skills = useStore(skillsOpenStore);
@@ -64,15 +66,19 @@ export function Operations() {
     } catch { setSaveMessage("Save failed · your current session is still running"); }
   }
   if (character === null) return null;
-  const active = relay.phase === "defend" || relay.phase === "upload";
+  const view = board.view;
+  const active = relay.phase === "active" && view !== null;
   const result = relay.phase === "won" || relay.phase === "lost";
+  const hold = view?.objectiveId === "hold";
+  const counted = (view?.count ?? 0) > 0;
+  const meter = view === null ? 0 : hold ? (view.remaining ?? 0) / DEAD_AIR_HOLD_SECONDS : counted ? (view.counted / view.count) : view.step / view.steps;
   return <>
     <HudPanel id="dead-air" anchor="top-left" compact="keep" interactive>
       <HudSurface className="signal-contract" padding="var(--signal-contract-pad)">
         <div className="signal-eyebrow">{relay.rewarded ? "Carrier restored" : "Optional salvage contract"}</div>
-        <strong>DEAD AIR <span>{active ? `${relay.wave}/3` : "↗"}</span></strong>
-        <p>{active ? relay.phase === "defend" ? `Clear the ambush · ${relay.enemies.length} hostiles` : distance > RELAY.radius ? "Return to the copper ring to upload" : "Hold position · uploading carrier" : `Copper-ring relay · ${Math.round(distance)} m · north of crash site`}</p>
-        {active ? <><div className="signal-meter"><i style={{ width: `${Math.min(100, relay.upload / RELAY.uploadSeconds * 100)}%` }} /></div><small>{Math.ceil(relay.remaining)}s window · {relay.upload.toFixed(1)}/6s signal banked</small><HudButton className="signal-button signal-small" aria-pressed={relay.overclock === true} onClick={() => commands.run("relay.overclock", {})}>V · {relay.overclock ? "Overclock ON — reserve shield" : "Clear first — enable overclock"}</HudButton><small>{relay.overclock ? "Inside ring: bank signal during combat, costs 6 shield/sec. Stops at 10 shield. Still clear every hostile." : "Clear first keeps your shield. Overclock trades protection for up to 6s less upload per wave."}</small></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
+        <strong>DEAD AIR <span>{active && view !== null ? (relay.wave > 0 ? `${relay.wave}/3` : `${view.step}/${view.steps}`) : "↗"}</span></strong>
+        <p>{active && view !== null ? view.label : `Copper-ring relay · ${Math.round(distance)} m · north of crash site`}</p>
+        {active && view !== null ? <><div className="signal-meter"><i style={{ width: `${Math.min(100, Math.max(0, meter * 100))}%` }} /></div><div><small>{hold ? `${Math.ceil(view.remaining ?? 0)}s left on the ring` : counted ? `${view.counted}/${view.count} cleared from inside the ring · ambush ${relay.wave}/3` : `Step ${view.step} of ${view.steps} · ${relay.enemies.length} hostiles in the ring`}</small></div><div><small>{hold ? "Leaving the copper ring loses the carrier." : "Hostiles killed outside the ring do not count."}</small></div></> : <small>Walk to the console · E to begin{relay.rewarded ? " · replay available" : " · $120 + 3 cores"}</small>}
       </HudSurface>
     </HudPanel>
     <HudPanel id="pause-operation" anchor="top-right" order={-2} compact="keep" interactive>
@@ -91,7 +97,7 @@ export function Operations() {
     {result && <div className="signal-modal" role="dialog" aria-modal="true" aria-label="Dead Air results">
       <HudSurface className="signal-sheet" elevation="modal" padding="var(--signal-sheet-pad)">
         <div className="signal-eyebrow">Dead Air / field report</div><h1>{relay.phase === "won" ? "You broke the silence." : "Carrier lost."}</h1>
-        <p>{relay.reason}</p><div className="signal-result"><span>{relay.phase === "won" ? "03 / 03" : `${relay.wave} / 03`}<small>ambush reached</small></span><span>{Math.ceil(relay.remaining)}s<small>carrier remaining</small></span></div>
+        <p>{relay.reason}</p><div className="signal-result"><span>{relay.phase === "won" ? "03 / 03" : `${relay.wave} / 03`}<small>ambush reached</small></span><span>{Math.ceil(relay.remaining)}s<small>ring time left</small></span></div>
         <p>{relay.phase === "won" ? "Contract secured · $120 + 3 cores on first completion. The campaign and your loot remain yours." : "Your inventory is retained. Reconstruction charges the usual 7% cash fee when your chassis is down."}</p>
         <HudButton autoFocus className="signal-button" onClick={() => { setManual(false); commands.run("relay.continue", {}); }}>Return to the wastes</HudButton>
         <small>The console accepts another attempt when you return.</small>

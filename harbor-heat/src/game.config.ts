@@ -68,7 +68,7 @@ export const game = defineGame({
   GameUI,
   hudTheme: harborTheme,
   capture: {
-    play: ["game.start"],
+    play: ["game.start", "courier.accept"],
     views: {
       boulevard: {
         description: "Mainsail Boulevard looking down the palm boulevard — beach and Gulf on the left, deco blocks on the right.",
