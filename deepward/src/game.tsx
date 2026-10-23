@@ -144,7 +144,12 @@ function Hand() {
     hand.position.copy(camera.position); hand.quaternion.copy(camera.quaternion);
     hand.translateX(0.26); hand.translateY(-0.26); hand.translateZ(-0.55);
   });
-  const pose = view.dive === null ? null : serviceWeaponPose(view.dive);
+  const pose = view.dive === null ? null : serviceWeaponPose({
+    hand: view.dive.hand,
+    reload: view.ammo?.reloadProgress ?? 0,
+    hurt: view.dive.hurt,
+    flash: view.dive.flash,
+  });
   return <group ref={ref} visible={view.mode === "dive"}>
     {pose !== null && view.dive !== null && <group position={pose.at} rotation={pose.turn}><ServiceWeapon kind={view.dive.hand} shadows="none" flash={pose.flash} kick={pose.kick} magazineOffset={pose.magazineOffset} /></group>}
   </group>;

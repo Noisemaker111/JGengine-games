@@ -3,7 +3,8 @@ import { createItemLedger, salvageItem } from "@jgengine/core/loot/salvage";
 import { compareToEquipped } from "@jgengine/core/loot/drop";
 import { BREAKDOWN, COMPARE_OPTIONS, ITEM_CATALOG, RARITIES, breakdownValue, compareToPrepared, itemValue, itemWeight, kindOf, rollItem, weaponStats } from "./items";
 import { CACHE_WEIGHT, bankHaul, canCache, loadOf, loseHaul } from "./haul";
-import { depart, newDive, newHome, settle, takeLoot, weaponOf, type Dive, type ItemKind } from "./state";
+import { depart, newDive, newHome, settle, takeLoot, type Dive, type ItemKind } from "./state";
+import { weaponReadout } from "./combat";
 import { depthAt } from "../world";
 
 const rifle = (level: number, seed: string) => rollItem("service-rifle", level, seed, `dive:${seed}`);
@@ -64,10 +65,10 @@ describe("items roll from the authored table", () => {
     const strong = rifle(4, "hand:strong");
     const plain = rifle(1, "hand:plain");
     const dive: Dive = { ...newDive(1), hand: "service-rifle", cache: [{ ...strong, x: 0, y: 0, rotated: false }] };
-    expect(weaponOf(dive).damage).toBe(Math.round(strong.stats.damage!));
+    expect(weaponReadout(dive).damage).toBe(Math.round(strong.stats.damage!));
     expect(weaponStats(strong).damage).toBeGreaterThan(weaponStats(plain).damage);
-    expect(weaponOf({ ...dive, hand: "sidearm" }).damage).toBe(20);
-    expect(weaponOf(null).damage).toBe(20);
+    expect(weaponReadout({ ...dive, hand: "sidearm" }).damage).toBe(20);
+    expect(weaponReadout(null).damage).toBe(20);
   });
 });
 

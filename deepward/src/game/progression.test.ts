@@ -29,11 +29,11 @@ describe("Marrow refits and reprint ownership", () => {
     expect(() => installRefit(tank, "tank")).toThrow("already installed");
     const reserve = installRefit(original, "reserve");
     expect(reserve.stash.map(kindOf)).toEqual(["polymer"]);
-    expect(newDive(2, reserve).reserve).toBe(30);
+    expect(newDive(2, reserve).reservePool).toBe(30);
     expect(newDive(2, reserve).oxygen).toBe(110);
     expect(newDive(2, tank).oxygen).toBe(145);
     expect(newDive(2, tank).tankSeconds).toBe(145);
-    expect(newDive(2, tank).reserve).toBe(18);
+    expect(newDive(2, tank).reservePool).toBe(18);
   });
   test("empty shelves, unknown recipes and active expeditions cannot spend", () => {
     expect(() => installRefit(newHome(), "tank")).toThrow("Not enough");

@@ -3,12 +3,16 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import type { DamageRuntime } from "@jgengine/core/combat/damageRuntime";
+import type { WeaponAmmo, WeaponSystem } from "@jgengine/core/combat/weaponSystem";
+import { weaponIntervalMs } from "@jgengine/core/combat/weaponDefinition";
 import { distance, depthAt, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
-import { acknowledgeReprint, ageDive, depart, fits, ITEMS, ledgerOf, newDive, newHome, pack, peekLoot, recoverInterrupted, reloadWeapon, settle, takeLoot, weaponOf, type Dive, type Home, type ItemKind, type Result } from "./state";
+import { acknowledgeReprint, ageDive, depart, fits, ITEMS, ledgerOf, newDive, newHome, pack, peekLoot, recoverInterrupted, settle, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
 import { installRefit, REFITS, type RefitId } from "./progression";
 import { buySupply, dismantle } from "./counter";
 import { canCache, loadOf } from "./haul";
 import { itemValue, kindOf } from "./items";
+import { createDeepwardDamage, createDeepwardWeapon, MAGAZINE, weaponDefinition, weaponReadout } from "./combat";
 import { openSave, type SaveSession } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
@@ -18,20 +22,82 @@ export const keybinds: ActionCodesMap = {
   sprint: ["ShiftLeft"],
   deepwardInteract: ["KeyE"], deepwardFire: ["mouse0"], deepwardReload: ["KeyR"], deepwardCache: ["Tab"],
 };
+/** What a HUD ammo line reads from the held weapon: the shared runtime's own ammo record. */
+export interface AmmoReadout {
+  loaded: number; capacity: number; reserve: number;
+  reloading: boolean; reloadProgress: number;
+}
 export interface View {
-  home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked" | "reprinting";
+  home: Home; dive: Dive | null; mode: "home" | "dive" | "saving" | "blocked" | "reprinting" | "loading";
   panel: "stash" | "cache" | null; paused: boolean; hint: string; error: string;
   rifleUid: string | null;
+  ammo: AmmoReadout | null;
   pending: { kind: Result["kind"]; reason: string } | null;
   trace: { from: Point; to: Point; remaining: number } | null;
 }
-export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null, rifleUid: null }));
-const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator(), airBeat: -1 }));
+export const viewStore = defineStore<View>("deepward.session", () => ({ home: newHome(), dive: null, mode: "home", panel: null, paused: false, hint: "Walk to the Garage. E to take the rail to Bellwether.", error: "", pending: null, trace: null, rifleUid: null, ammo: null }));
+const runtime = perContext(() => ({ save: null as SaveSession | null, aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator(), airBeat: -1, damage: null as DamageRuntime | null, weapon: null as WeaponSystem | null, armed: null as string | null, wantShot: false }));
 /** Station bed is muted while the game is frozen; it is a retained loop, so only its gain changes. */
 const BED_GAIN = 0.45;
 const message = (e: unknown): string => e instanceof Error ? e.message : String(e);
-export function setAim(ctx: GameContext, direction: Point): void { runtime(ctx).aim = direction; }
+export function setAim(ctx: GameContext, direction: Point): void {
+  runtime(ctx).aim = direction;
+  // The shared weapon aims in yaw/pitch; this is the same camera vector the local shot path read.
+  const pitch = Math.asin(Math.max(-1, Math.min(1, direction[1])));
+  runtime(ctx).weapon?.setAim(Math.atan2(direction[0], direction[2]), pitch);
+}
 function playerAt(ctx: GameContext): Point | null { return ctx.scene.entity.get(ctx.player.userId)?.position ?? null; }
+function damageOf(ctx: GameContext): DamageRuntime {
+  const state = runtime(ctx);
+  state.damage ??= createDeepwardDamage(ctx.rng);
+  return state.damage;
+}
+/** The held weapon, retuned to the hand in force so ammo, cadence and reload carry across a swap. */
+function arm(ctx: GameContext, dive: Dive): WeaponSystem {
+  const state = runtime(ctx), definition = weaponDefinition(dive);
+  if (state.weapon === null) {
+    state.weapon = createDeepwardWeapon(definition, {
+      rng: ctx.rng, damage: damageOf(ctx),
+      at: () => playerAt(ctx),
+      print: () => viewStore.read(ctx).dive?.print ?? null,
+    });
+  } else if (state.armed !== definition.id) state.weapon.retune(definition);
+  state.armed = definition.id;
+  return state.weapon;
+}
+/** Ammo as a HUD line reads it, from the shared magazine rather than a copy on the dive. */
+export function ammoOf(weapon: WeaponSystem): AmmoReadout {
+  const ammo: WeaponAmmo = weapon.ammo();
+  return {
+    loaded: ammo.loaded ?? MAGAZINE, capacity: ammo.capacity ?? MAGAZINE, reserve: ammo.reserve ?? 0,
+    reloading: ammo.reload === "reloading", reloadProgress: ammo.reloadFraction,
+  };
+}
+/** A hand swap costs one cycle: the new hand's rate gate restarts, the same wait the L1 had. */
+function restartCadence(weapon: WeaponSystem): void {
+  const state = weapon.snapshot();
+  weapon.restore({ ...state, cadenceElapsedMs: 0, pendingPull: false });
+}
+/** Forget the dive's weapon: a new Life starts with a fresh magazine in the issued hand. */
+function disarm(ctx: GameContext): void {
+  const state = runtime(ctx);
+  state.weapon?.dispose();
+  state.weapon = null; state.armed = null;
+}
+/**
+ * Cool a released trigger. The shared runtime advances its rate gate only while the trigger is down,
+ * and this game fires on the press: without this the gun would need to be held before every shot.
+ * Removing it needs an engine-side cadence tick on a released trigger, so it is written as the one
+ * state edit that does - see the open seam in the PR.
+ */
+function cool(weapon: WeaponSystem, dt: number): void {
+  if (!(dt > 0)) return;
+  const state = weapon.snapshot();
+  const interval = weaponIntervalMs(weapon.definition());
+  if (state.trigger || state.cadenceElapsedMs >= interval) return;
+  weapon.restore({ ...state, cadenceElapsedMs: Math.min(interval, state.cadenceElapsedMs + dt * 1000) });
+}
+
 function playable(ctx: GameContext): boolean {
   const view = viewStore.read(ctx);
   return !view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive");
@@ -53,6 +119,7 @@ function clearLoot(ctx: GameContext): void {
   for (const instanceId of records.values()) ctx.scene.worldItem.consume(instanceId);
   records.clear();
   runtime(ctx).navigation = createNavigator();
+  disarm(ctx);
 }
 function syncPrint(ctx: GameContext, dive: Dive | null): void {
   const present = ctx.scene.entity.get(PRINT_ID);
@@ -68,7 +135,8 @@ function syncPrint(ctx: GameContext, dive: Dive | null): void {
 function syncPlayer(ctx: GameContext, dive: Dive | null): void {
   ctx.scene.entity.stats.set(ctx.player.userId, "health", { current: dive?.health ?? 100 });
   ctx.scene.entity.stats.set(ctx.player.userId, "oxygen", { current: dive?.oxygen ?? 110, max: dive?.tankSeconds ?? 110 });
-  ctx.scene.entity.stats.set(ctx.player.userId, "ammo", { current: dive?.magazine ?? 6 });
+  const weapon = runtime(ctx).weapon;
+  ctx.scene.entity.stats.set(ctx.player.userId, "ammo", { current: dive === null || weapon === null ? MAGAZINE : ammoOf(weapon).loaded });
 }
 /** The authored depth behind a carried source: a salvage locker keeps its room, a stopped Fitter its own floor. */
 function sourceDepth(ctx: GameContext, dive: Dive, source: string, kind: ItemKind): number {
@@ -101,9 +169,10 @@ function begin(ctx: GameContext): void {
     const home = depart(v.home, v.rifleUid);
     save.commit(home); // A failed departure never enters the vault.
     const dive = newDive(home.activeDive!, home, rifle);
-    viewStore.write(ctx, { ...v, home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, rifleUid: null, hint: rifle === null ? "Bellwether / salvage shift. Empty cache; issue sidearm. The rail behind you is the only way home." : "Bellwether / armed shift. Your banked rifle is now at risk and takes three cache squares. Return it by rail to keep it." });
-    teleport(ctx, VAULT_SPAWN);
     clearLoot(ctx);
+    const ammo = ammoOf(arm(ctx, dive));
+    viewStore.write(ctx, { ...v, home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, rifleUid: null, ammo, hint: rifle === null ? "Bellwether / salvage shift. Empty cache; issue sidearm. The rail behind you is the only way home." : "Bellwether / armed shift. Your banked rifle is now at risk and takes three cache squares. Return it by rail to keep it." });
+    teleport(ctx, VAULT_SPAWN);
     for (const loot of SALVAGE) spawnLoot(ctx, loot.id, loot.kind, loot.at, dive.id);
     syncPrint(ctx, dive);
     syncPlayer(ctx, dive);
@@ -163,34 +232,52 @@ function interact(ctx: GameContext): void {
   }
   viewStore.update(ctx, s => ({ ...s, dive: { ...dive, channel: { id: target.id, remaining: 1.4, anchor: at } }, hint: "Searching / stay still. The Fitter can hear you." }));
 }
-function fire(ctx: GameContext): void {
-  const v = viewStore.read(ctx), at = playerAt(ctx), dive = v.dive;
-  if (!playable(ctx) || v.mode !== "dive" || dive === null || at === null || dive.health <= 0 || dive.reload > 0 || dive.shotCooldown > 0) return;
-  if (dive.magazine === 0) { ctx.game.notices.push({ text: "Empty magazine / R to reload.", tone: "deny" }); return; }
-  const weapon = weaponOf(dive);
+/**
+ * Advance the held weapon by `dt` and fold what it fired back into the dive. The shared runtime
+ * owns cadence, reload, ammo and the damage call; the game owns the trigger, the world query and
+ * what a hit means for the Fitter.
+ */
+function shoot(ctx: GameContext, dive: Dive, dt: number, hint: string): { dive: Dive; hint: string; trace: View["trace"] } {
+  const weapon = arm(ctx, dive);
+  cool(weapon, dt);
+  const result = weapon.tick(dt);
+  if (result.shots.length === 0) return { dive, hint, trace: null };
   ctx.game.audio.play("shot");
-  const direction = runtime(ctx).aim;
-  const from: Point = [at[0], 1.62, at[2]], enemy: Point = [dive.print.at[0], 1.1, dive.print.at[2]];
-  const delta = [enemy[0] - from[0], enemy[1] - from[1], enemy[2] - from[2]];
-  const along = delta[0]! * direction[0] + delta[1]! * direction[1] + delta[2]! * direction[2];
-  const miss = Math.hypot(delta[0]! - along * direction[0], delta[1]! - along * direction[1], delta[2]! - along * direction[2]);
-  const hit = dive.print.health > 0 && along > 0 && along < weapon.range && miss <= 0.65 && lineOfSight(at, dive.print.at);
-  const health = hit ? Math.max(0, dive.print.health - weapon.damage) : dive.print.health;
-  const to: Point = hit ? enemy : [from[0] + direction[0] * weapon.range, from[1] + direction[1] * weapon.range, from[2] + direction[2] * weapon.range];
-  const next = { ...dive, magazine: dive.magazine - 1, shotCooldown: weapon.interval, flash: 0.12, channel: null,
+  const shot = result.shots[result.shots.length - 1]!;
+  const delivery = weapon.definition().delivery;
+  const impact = result.impacts[result.impacts.length - 1];
+  const landed = impact?.distance ?? (delivery.kind === "hitscan" ? delivery.maxRange : 0);
+  const direction = shot.directions[0]!;
+  // The tracer ends where the pellet did: on the Fitter, or at the weapon's reach.
+  const to: Point = [shot.origin[0] + direction[0] * landed, shot.origin[1] + direction[1] * landed, shot.origin[2] + direction[2] * landed];
+  let health = dive.print.health;
+  for (const hit of result.impacts) health = Math.max(0, health - hit.resolution.damage);
+  const next: Dive = { ...dive, flash: 0.12, channel: null,
     print: { ...dive.print, health, mode: health > 0 ? "calling" as const : "route" as const, drop: health === 0 ? dive.print.at : dive.print.drop } };
-  viewStore.write(ctx, { ...v, dive: next, trace: { from, to, remaining: 0.09 }, hint: hit ? health === 0 ? "Fitter stopped. Its visible service rifle is yours to carry." : `Hit / Fitter integrity ${health}/80` : "Shot missed / prints follow the sound." });
-  if (health === 0 && dive.print.health > 0) spawnLoot(ctx, "fitter", "service-rifle", dive.print.at, dive.id);
-  syncPrint(ctx, next);
-  syncPlayer(ctx, next);
+  return { dive: next, trace: { from: shot.origin, to, remaining: 0.09 },
+    hint: health < dive.print.health ? health === 0 ? "Fitter stopped. Its visible service rifle is yours to carry." : `Hit / Fitter integrity ${health}/80` : "Shot missed / prints follow the sound." };
+}
+function fire(ctx: GameContext): void {
+  const v = viewStore.read(ctx), dive = v.dive;
+  if (!playable(ctx) || v.mode !== "dive" || dive === null || dive.health <= 0) return;
+  const weapon = arm(ctx, dive);
+  if (weapon.ammo().loaded === 0) { ctx.game.notices.push({ text: "Empty magazine / R to reload.", tone: "deny" }); viewStore.update(ctx, s => ({ ...s, ammo: ammoOf(weapon) })); return; }
+  // A press fires on the press frame when the gun is ready; a press still cooling is dropped, as before.
+  weapon.setTrigger(true);
+  const shot = shoot(ctx, dive, 0, v.hint);
+  if (!ctx.input.isDown("deepwardFire")) weapon.setTrigger(false);
+  viewStore.write(ctx, { ...v, dive: shot.dive, hint: shot.hint, ammo: ammoOf(weapon), trace: shot.trace ?? v.trace });
+  if (shot.dive.print.health === 0 && dive.print.health > 0) spawnLoot(ctx, "fitter", "service-rifle", dive.print.at, dive.id);
+  syncPrint(ctx, shot.dive);
+  syncPlayer(ctx, shot.dive);
 }
 function reload(ctx: GameContext): void {
   const v = viewStore.read(ctx);
-  if (playable(ctx) && v.mode === "dive" && v.dive !== null) {
-    const next = reloadWeapon(v.dive);
-    if (next.reload > v.dive.reload) ctx.game.audio.play("reload");
-    viewStore.write(ctx, { ...v, dive: next });
-  }
+  if (!playable(ctx) || v.mode !== "dive" || v.dive === null) return;
+  const weapon = arm(ctx, v.dive);
+  runtime(ctx).wantShot = false;
+  if (weapon.reload()) ctx.game.audio.play("reload");
+  viewStore.update(ctx, s => ({ ...s, ammo: ammoOf(weapon) }));
 }
 function toggleCache(ctx: GameContext): void {
   const v = viewStore.read(ctx);
@@ -302,9 +389,12 @@ export function registerControls(ctx: GameContext): void {
   } });
   ctx.game.commands.define<{ hand: "sidearm" | "service-rifle" }>("deepward.equip", { apply(state, input) {
     const v = viewStore.read(state), dive = v.dive;
-    if (v.mode !== "dive" || dive === null || dive.reload > 0 || (input.hand !== "sidearm" && input.hand !== "service-rifle")) return;
+    if (v.mode !== "dive" || dive === null || (input.hand !== "sidearm" && input.hand !== "service-rifle")) return;
+    const weapon = arm(state, { ...dive, hand: input.hand });
+    if (weapon.ammo().reload !== "idle") return;
     if (input.hand === "service-rifle" && !dive.cache.some(i => kindOf(i) === "service-rifle")) return;
-    viewStore.write(state, { ...v, dive: { ...dive, hand: input.hand, shotCooldown: 0.5 }, hint: "One hand / equipped. Both guns share the same ammo pool." });
+    restartCadence(weapon);
+    viewStore.write(state, { ...v, dive: { ...dive, hand: input.hand }, ammo: ammoOf(weapon), hint: "One hand / equipped. Both guns share the same ammo pool." });
   } });
 }
 export function initialize(ctx: GameContext): void {
@@ -425,13 +515,24 @@ export function tick(ctx: GameContext, dt: number): void {
       else { dive = { ...dive, channel: null }; ctx.game.notices.push({ text: "The cache grid has no space for that footprint.", tone: "deny" }); }
     } else dive = { ...dive, channel: { ...ch, remaining: ch.remaining - dt } };
   }
-  const trace = v.trace !== null && v.trace.remaining > dt ? { ...v.trace, remaining: v.trace.remaining - dt } : null;
-  viewStore.write(ctx, { ...v, dive, hint, trace });
+  let trace = v.trace !== null && v.trace.remaining > dt ? { ...v.trace, remaining: v.trace.remaining - dt } : null;
+  let ammo = v.ammo;
+  const wasAlive = dive.health > 0;
+  if (dive.health > 0) {
+    const weapon = arm(ctx, dive);
+    ammo = ammoOf(weapon);
+    if (playable(ctx)) {
+      // Held input is the trigger; the shared runtime decides whether this tick fires.
+      weapon.setTrigger(ctx.input.isDown("deepwardFire"));
+      const shot = shoot(ctx, dive, dt, hint);
+      dive = shot.dive; hint = shot.hint; ammo = ammoOf(weapon);
+      if (shot.trace !== null) trace = shot.trace;
+      if (dive.print.health === 0 && wasAlive && dive.health > 0) spawnLoot(ctx, "fitter", "service-rifle", p.at, dive.id);
+    }
+  }
+  viewStore.write(ctx, { ...v, dive, hint, trace, ammo });
   syncPrint(ctx, dive); syncPlayer(ctx, dive);
   if (dive.health <= 0) finish(ctx, "lost", dive.oxygen === 0 ? "Tank exhausted. Bellwether kept the carried haul." : "The Life ended in Bellwether. The carried haul was lost.");
-  // Array bindings deliver brief presses but have no shell repeat policy. Age
-  // cooldown first, then share fire's gates for held input and the press command.
-  else if (ctx.input.isDown("deepwardFire")) fire(ctx);
 }
 
 /** Read-only metrics for the published driver's standalone capture bridge. */
@@ -440,7 +541,7 @@ export function captureProbe(ctx: GameContext): Record<string, number> {
   const load = loadOf(v.dive?.cache ?? []);
   return { x: at?.[0] ?? 0, z: at?.[2] ?? 0, inDive: v.mode === "dive" ? 1 : 0,
     reprinting: v.mode === "reprinting" ? 1 : 0, oxygen: v.dive?.oxygen ?? 0,
-    tankSeconds: v.dive?.tankSeconds ?? 0, reserve: v.dive?.reserve ?? 0,
+    tankSeconds: v.dive?.tankSeconds ?? 0, reserve: v.ammo?.reserve ?? 0,
     carried: v.dive?.cache.length ?? 0, stash: v.home.stash.length,
     cacheMass: load.mass, cacheRoom: load.remaining, banked: v.home.bank.banked,
     salvaged: Object.keys(v.home.ledger).length, prepared: v.rifleUid === null ? 0 : 1,

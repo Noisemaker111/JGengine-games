@@ -3,7 +3,7 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { physics, VAULT_SPAWN, world } from "../world";
 import { keybinds, registerControls, tick, viewStore } from "./controls";
-import { newDive, RIFLE_BASELINE, SIDEARM, takeLoot } from "./state";
+import { newDive, takeLoot } from "./state";
 
 function diveContext() {
   const definition = defineGameDefinition({
@@ -30,6 +30,9 @@ function advanceFrames(ctx: ReturnType<typeof diveContext>, count: number): void
   for (let frame = 0; frame < count; frame++) ctx.sim.advance(0.05, dt => tick(ctx, dt));
 }
 
+/** The held weapon's live rounds, as the HUD's ammo line reads them. */
+const loaded = (ctx: ReturnType<typeof diveContext>) => viewStore.read(ctx).ammo!.loaded;
+
 test("actual Deepward bindings register action commands and preserve discrete keys", () => {
   const ctx = diveContext();
   expect(keybinds.deepwardFire).toEqual(["mouse0"]);
@@ -44,59 +47,54 @@ test("actual Deepward bindings register action commands and preserve discrete ke
   }
 });
 
-test("action fire accepts one shot with no held input and shares the UI cooldown/reload gates", () => {
+test("a press fires on the press frame and a press while cooling is remembered once the gun is ready", () => {
   const ctx = diveContext();
   // Command-boundary invariant, not a substitute for the parent's native mouse press.
   ctx.input.publish([]);
   advanceFrames(ctx, 1);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(6);
-  expect(ctx.game.commands.run("deepwardFire", {}).status).toBe("applied");
-  const fired = viewStore.read(ctx).dive!;
-  expect(fired.magazine).toBe(5);
-  expect(fired.shotCooldown).toBe(SIDEARM.interval);
-  expect(fired.flash).toBe(0.12);
+  expect(loaded(ctx)).toBe(6);
+  ctx.game.commands.run("deepwardFire", {});
+  expect(loaded(ctx)).toBe(5);
+  expect(viewStore.read(ctx).dive!.flash).toBe(0.12);
+  // The shared weapon remembers a pull made while its rate gate is cooling instead of dropping it.
   ctx.game.commands.run("deepward.fire", {});
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
-
+  expect(loaded(ctx)).toBe(5);
   const frame = ctx.sim.advance(0.05, dt => tick(ctx, dt));
   expect(frame.steps).toBeGreaterThan(1);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(5);
   advanceFrames(ctx, 8);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBe(0);
+  expect(loaded(ctx)).toBe(4);
   ctx.game.commands.run("deepwardReload", {});
-  expect(viewStore.read(ctx).dive!.reload).toBe(1.3);
+  expect(viewStore.read(ctx).ammo!.reloading).toBe(true);
   ctx.game.commands.run("deepwardFire", {});
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(4);
 });
 
-test("held fire and the same-frame action command share one shot, repeat at cooldown, and stop on release", () => {
+test("held fire and the same-frame action command share one shot, repeat at cadence, and stop on release", () => {
   const ctx = diveContext();
   // FrameDriver publishes held input and advances simulation before dispatching
   // the press command. Exercise those public boundaries in that order.
   ctx.input.publish(["deepwardFire"]);
   advanceFrames(ctx, 1);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(5);
   ctx.game.commands.run("deepwardFire", {});
   ctx.game.commands.run("deepward.fire", {});
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(5);
   advanceFrames(ctx, 4);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(5);
   advanceFrames(ctx, 2);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(4);
+  expect(loaded(ctx)).toBe(4);
   expect(viewStore.read(ctx).dive!.flash).toBeGreaterThan(0);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBeGreaterThan(0);
 
   ctx.input.publish([]);
   advanceFrames(ctx, 8);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(4);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBe(0);
+  expect(loaded(ctx)).toBe(4);
   // A frame with no simulation step can dispatch the press first; the next
-  // held-input simulation must still respect that accepted shot's cooldown.
+  // held-input simulation must still respect that accepted shot's cadence.
   ctx.input.publish(["deepwardFire"]);
   ctx.game.commands.run("deepwardFire", {});
   advanceFrames(ctx, 1);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(3);
+  expect(loaded(ctx)).toBe(3);
 });
 
 test("equipped rifle held fire preserves its interval and reload gate, then resumes until release", () => {
@@ -107,30 +105,27 @@ test("equipped rifle held fire preserves its interval and reload gate, then resu
   expect(viewStore.read(ctx).dive!.hand).toBe("service-rifle");
   ctx.input.publish(["deepwardFire"]);
   advanceFrames(ctx, 8);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(6);
+  expect(loaded(ctx)).toBe(6);
   advanceFrames(ctx, 3);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBeGreaterThan(SIDEARM.interval);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBeLessThanOrEqual(RIFLE_BASELINE.interval);
+  expect(loaded(ctx)).toBe(5);
   advanceFrames(ctx, 6);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(5);
   advanceFrames(ctx, 5);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(4);
+  expect(loaded(ctx)).toBe(4);
 
   ctx.game.commands.run("deepwardReload", {});
-  const reserve = viewStore.read(ctx).dive!.reserve;
+  const reserve = viewStore.read(ctx).ammo!.reserve;
   advanceFrames(ctx, 24);
-  expect(viewStore.read(ctx).dive!.reload).toBeGreaterThan(0);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(4);
-  expect(viewStore.read(ctx).dive!.reserve).toBe(reserve);
+  expect(viewStore.read(ctx).ammo!.reloading).toBe(true);
+  expect(loaded(ctx)).toBe(4);
+  expect(viewStore.read(ctx).ammo!.reserve).toBe(reserve);
   advanceFrames(ctx, 3);
-  expect(viewStore.read(ctx).dive!.reload).toBe(0);
-  expect(viewStore.read(ctx).dive!.reserve).toBe(reserve - 2);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(viewStore.read(ctx).ammo!.reloading).toBe(false);
+  expect(viewStore.read(ctx).ammo!.reserve).toBe(reserve - 2);
+  expect(loaded(ctx)).toBe(6);
   ctx.input.publish([]);
   advanceFrames(ctx, 11);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBe(0);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(5);
+  expect(loaded(ctx)).toBe(6);
 });
 
 test("one cache action remains open across held-input simulation steps, with UI close intact", () => {
@@ -142,7 +137,7 @@ test("one cache action remains open across held-input simulation steps, with UI 
   expect(frame.steps).toBeGreaterThan(1);
   expect(viewStore.read(ctx).panel).toBe("cache");
   expect(viewStore.read(ctx).dive!.elapsed).toBeGreaterThan(0);
-  expect(viewStore.read(ctx).dive!.magazine).toBe(6);
+  expect(loaded(ctx)).toBe(6);
   ctx.input.publish(["deepwardCache"]);
   ctx.game.commands.run("deepward.cache", {});
   expect(viewStore.read(ctx).panel).toBeNull();

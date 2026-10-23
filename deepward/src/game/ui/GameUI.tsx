@@ -12,7 +12,8 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
-import { CACHE, footprint, ITEMS, weaponOf } from "../state";
+import { CACHE, footprint, ITEMS } from "../state";
+import { weaponReadout } from "../combat";
 import { loadOf, CACHE_WEIGHT } from "../haul";
 import { breakdownValue, compareToPrepared, itemValue, kindOf, statLines, type Item } from "../items";
 import { REFITS, refitMissing, type RefitId } from "../progression";
@@ -92,7 +93,7 @@ export function GameUI() {
   if (phase === "menu") return <TitleGate />;
   const dive = view.dive;
   const low = dive !== null && dive.oxygen <= 25;
-  const weapon = weaponOf(dive);
+  const weapon = weaponReadout(dive);
   const load = loadOf(dive?.cache ?? []);
   const chosen = dive?.cache.find(i => i.id === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: i / CACHE.w | 0 }));
@@ -138,7 +139,7 @@ export function GameUI() {
         </HudPanel>
         <HudPanel {...placement("vitals")} compact="keep" interactive={false} locked>
           <HudSurface className="dw-vitals" interactive={false}><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
-            <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{dive.reload > 0 ? `RELOADING ${dive.reload.toFixed(1)}s` : `${dive.magazine} / 6`} <small>{dive.reserve} reserve</small></div>
+            <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{view.ammo === null ? "— / —" : view.ammo.reloading ? `RELOADING ${Math.round((1 - view.ammo.reloadProgress) * 1.3 * 10) / 10}s` : `${view.ammo.loaded} / ${view.ammo.capacity}`} <small>{view.ammo?.reserve ?? 0} reserve</small></div>
           </HudSurface>
         </HudPanel>
         <HudPanel {...placement("haul")} compact="keep" locked>
@@ -177,7 +178,7 @@ export function GameUI() {
       <span className="dw-eyebrow">Permanent / saved on return</span><h2>Marrow's stash</h2>
       <p>These exact item instances survived the rail journey. They remain here through deaths and reloads. Each carries the level of the room it came from and whatever its roll turned out to be.</p>
       {prepared !== null && <p className="dw-prepared"><strong>Prepared: {prepared.name}</strong> · {Math.round(prepared.stats.damage ?? 0)} damage · {(1 / (prepared.stats.rate ?? 2)).toFixed(2)}s cycle · {prepared.mass} weight. It is the baseline every other rifle is compared against.</p>}
-      <h3>Choose the next shift</h3><p>Travel light with the issue sidearm and twelve free cache squares, or risk a recovered rifle for {Math.round(prepared?.stats.damage ?? 30)} damage per shot instead of {weaponOf(null).damage}. A rifle fills three squares and is lost on death or dive reload. Returning banks the same rifle again.</p>
+      <h3>Choose the next shift</h3><p>Travel light with the issue sidearm and twelve free cache squares, or risk a recovered rifle for {Math.round(prepared?.stats.damage ?? 30)} damage per shot instead of {weaponReadout(null).damage}. A rifle fills three squares and is lost on death or dive reload. Returning banks the same rifle again.</p>
       <HudButton aria-pressed={view.rifleUid === null} onClick={() => command("prepareRifle", { uid: null })}>Travel light / keep rifles safe</HudButton>
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.id}>
         <ItemMark kind={kindOf(item)} size={38} /><div><strong>{item.name}</strong><p>{RARITY_LABEL[item.rarity] ?? item.rarity} · level {item.level} · {ITEMS[kindOf(item)].maker} · {ITEMS[kindOf(item)].found}</p><small>{ITEMS[kindOf(item)].detail}</small>
