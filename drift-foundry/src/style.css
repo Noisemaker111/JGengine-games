@@ -92,3 +92,11 @@
 .df-salvage-choice p { margin:6px 0; font-size:12px; }
 .df-salvage-choice b { font-size:12px; color:#f1cd69; }
 @media (max-width:760px) { .df-salvage-choice { top:140px; right:10px; width:42vw; padding:8px; font-size:11px; } .df-salvage-choice p,.df-salvage-choice b { font-size:11px; } }
+
+.df-garage { margin-top:14px; border-top:1px solid #758d9640; padding-top:12px; }
+.df-garage-list { display:grid; gap:8px; margin-top:8px; }
+.df-garage-list article { display:grid; grid-template-columns:1fr auto; gap:2px 12px; align-items:center; border:1px solid #758d9640; padding:8px 10px; }
+.df-garage-list article p { grid-column:1/-1; font-size:10px; color:#758d96; margin:2px 0 0; }
+.df-garage-list article small { font-size:10px; color:#5de0ce; }
+.df-garage-list article strong { font-size:12px; letter-spacing:1px; }
+.df-garage-list article button { grid-column:2; grid-row:1/3; }

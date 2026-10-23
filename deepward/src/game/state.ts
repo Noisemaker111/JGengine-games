@@ -1,4 +1,7 @@
 import { PRINT_SPAWN, type Point } from "../world";
+import { settleEconomy } from "./economy";
+import type { CareerBankState } from "@jgengine/core/progression/careerBank";
+import type { StandingState } from "@jgengine/core/progression/standing";
 
 export type ItemKind = "wire" | "polymer" | "cells" | "ink" | "service-rifle";
 export const ITEMS: Record<ItemKind, { name: string; maker: string; rarity: string; found: string; w: number; h: number; color: string; detail: string }> = {
@@ -14,10 +17,14 @@ export const CACHE = { w: 4, h: 3 };
 export const TANK_SECONDS = 110;
 export const SIDEARM = { damage: 20, range: 24, interval: 0.32, label: "Kessler / issue sidearm" };
 export const RIFLE = { damage: 30, range: 30, interval: 0.5, label: "Kessler / service rifle" };
-export interface Result { kind: "extracted" | "lost"; dive: number; count: number | null; reason: string }
+export interface Result { kind: "extracted" | "lost"; dive: number; count: number | null; reason: string; scrip?: number }
 export interface Home {
-  version: 2; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
+  version: 3; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
   activeDive: number | null; stash: Item[]; extractions: number; deaths: number; last: Result | null;
+  /** Career scrip: what the counter keeps, and what a Life's haul becomes. */
+  bank: CareerBankState;
+  /** Marrow's standing, moved by returning and by dying. */
+  standing: StandingState;
 }
 export interface Dive {
   id: number; elapsed: number; tankSeconds: number; oxygen: number; health: number; cache: PackedItem[];
@@ -26,7 +33,13 @@ export interface Dive {
   print: { at: Point; health: number; mode: "route" | "calling" | "winding"; attack: number; cooldown: number; drop: Point | null };
   channel: { id: string; remaining: number; anchor: Point } | null;
 }
-export function newHome(): Home { return { version: 2, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null }; }
+export function newHome(): Home {
+  return {
+    version: 3, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null,
+    bank: { banked: 0, haul: 0, deposited: 0, lost: 0, bestHaul: 0, runs: 0 },
+    standing: { records: {} },
+  };
+}
 export function depart(home: Home, rifleUid: string | null = null): Home {
   if (home.reprintPending) throw new Error("Acknowledge the reprint before departing");
   if (home.activeDive !== null) throw new Error("A dive is already outstanding");
@@ -68,10 +81,12 @@ export function takeLoot(dive: Dive, source: string, kind: ItemKind): Dive | nul
 export function settle(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Result["kind"], reason: string): Home {
   if (home.activeDive !== dive.id) throw new Error("Dive already settled or superseded");
   const hauled: Item[] = kind === "extracted" ? dive.cache.map(({ uid, kind, level }) => ({ uid, kind, level })) : [];
+  const economy = settleEconomy(home, dive.cache, kind);
   return { ...home, revision: home.revision + 1, activeDive: null, reprintPending: kind === "lost",
     stash: [...home.stash, ...hauled], extractions: home.extractions + (kind === "extracted" ? 1 : 0),
     deaths: home.deaths + (kind === "lost" ? 1 : 0), life: home.life + (kind === "lost" ? 1 : 0),
-    last: { kind, dive: dive.id, count: dive.cache.length, reason } };
+    bank: economy.bank, standing: economy.standing,
+    last: { kind, dive: dive.id, count: dive.cache.length, reason, scrip: economy.scrip } };
 }
 export function recoverInterrupted(home: Home): Home {
   if (home.activeDive === null) return home;

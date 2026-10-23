@@ -249,6 +249,10 @@ export const game = defineGame({
   backdrop: { background: C.black, fog: { color: C.black, near: 24, far: 75 } },
   // Lamp housings and amber signage sit near the bloom threshold; a high strength smeared the ceiling into haze.
   postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 } },
-  capture: { probe: captureProbe },
+  capture: {
+    probe: captureProbe,
+    // The stash sheet with the fitter's counter: scrip, standing and the locked shelves.
+    states: { counter: ["deepward.openStash"] },
+  },
   orientation: "landscape",
 });
