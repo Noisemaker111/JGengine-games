@@ -3,7 +3,7 @@ import { tickDrivableVehicle } from "@jgengine/core/physics/drivableVehicle";
 import { advanceHeat, createHeatState, type HeatConfig, type HeatGain, type HeatState } from "@jgengine/core/ai/heatSystem";
 import { advancePursuit, armPursuit, createPursuitState, type PursuitState } from "@jgengine/core/ai/pursuit";
 import { DIFFICULTY_TIERS, type DifficultyProfile } from "@jgengine/core/ai/difficulty";
-import { createDriverState, driveStep, type DriverState, type DriverTuning } from "@jgengine/core/ai/driver";
+import { createDriverState, driveStep, type DriverState, type DriverTuning, type PaceBand } from "@jgengine/core/ai/driver";
 import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
@@ -23,6 +23,17 @@ const CRUISER_TUNING: DriverTuning = (() => {
   const def = vehicleById("car_cop");
   return { maxSpeed: def !== undefined && def.dynamics.type === "ground" ? def.dynamics.tuning.topSpeed : 35 };
 })();
+
+/** Fraction of the interceptor's top speed it holds on a straight; the chase band pushes past it. */
+const CRUISER_CRUISE = 0.8;
+
+/**
+ * The interceptors' chase band: hold a tail three metres off the player's bumper, so a cruiser that
+ * falls behind opens up and one that closes backs off instead of riding through the car. Unlike the
+ * race band this one is aimed at a moving target rather than a field position, and its push is what
+ * lets a cruiser cruise below top speed and still reel a fast player in.
+ */
+const CRUISER_PACE: PaceBand = { margin: -3, tolerance: 1.5, easeAt: 4, ease: 0.45, pushAt: 30, push: 0.65 };
 
 const HEAT_CONFIG: HeatConfig = {
   levels: [1, 2, 3, 4, 5].map((level) => ({ level, threshold: level * 100, pursuerBudget: level * 2 })),
@@ -208,11 +219,20 @@ export function createPursuit(driving: Driving): Pursuit {
       }
       const [vx, vz] = vehicle.velocity();
       const forwardSpeed = vx * Math.sin(pose.heading) + vz * Math.cos(pose.heading);
+      // Signed chase gap: positive when the player is behind the cruiser (an overshoot), negative
+      // while the cruiser is still closing, so the band eases a car that has run past the target.
+      const ahead = (target[0] - pose.position[0]) * Math.sin(pose.heading) + (target[2] - pose.position[2]) * Math.cos(pose.heading);
       const drive = driveStep(
         driver,
         dt,
         { x: pose.position[0], z: pose.position[2], heading: pose.heading, speed: forwardSpeed },
-        { x: target[0], z: target[2] },
+        {
+          x: target[0],
+          z: target[2],
+          speedLimit: CRUISER_TUNING.maxSpeed * CRUISER_CRUISE,
+          paceGap: -ahead,
+          paceBand: CRUISER_PACE,
+        },
         skill,
         CRUISER_TUNING,
         rng,
