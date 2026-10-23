@@ -11,49 +11,182 @@
     ]
   },
   "declines": {
-    "agents": "Not adopted: this game does not run the engine agents system.",
-    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
-    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
-    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
-    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
-    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
-    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
-    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
-    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
-    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
-    "loans": "Not adopted: this game does not run the engine loans system.",
-    "loot-comparison": "Not adopted: this game does not run the engine loot-comparison system.",
-    "loot-generation": "Not adopted: this game does not run the engine loot-generation system.",
-    "loot-roller": "Not adopted: this game does not run the engine loot-roller system.",
-    "loot-score": "Not adopted: this game does not run the engine loot-score system.",
-    "loot-validation": "Not adopted: this game does not run the engine loot-validation system.",
-    "mission-events": "Not adopted: this game does not run the engine mission-events system.",
-    "mission-rewards": "Not adopted: this game does not run the engine mission-rewards system.",
-    "mission-runtime": "Not adopted: this game does not run the engine mission-runtime system.",
-    "mission-validation": "Not adopted: this game does not run the engine mission-validation system.",
-    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
-    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
-    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
-    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
-    "offscreen-world": "Not adopted: this game does not run the engine offscreen-world system.",
-    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
-    "police-response": "Not adopted: this game does not run the engine police-response system.",
-    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
-    "ride-appeal": "Not adopted: this game does not run the engine ride-appeal system.",
-    "ride-choice": "Not adopted: this game does not run the engine ride-choice system.",
-    "ride-sim": "Not adopted: this game does not run the engine ride-sim system.",
-    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
-    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
-    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
-    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
-    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
-    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
-    "traffic": "Not adopted: this game does not run the engine traffic system.",
-    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
-    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
-    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
-    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
-    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
-    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+    "agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of beacon-bastion: raiders are wave state on a lane, not beings with needs, thoughts or mood."
+    },
+    "cover-field": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of beacon-bastion: tower defense resolves at plot and lane range, and nothing takes positional cover."
+    },
+    "cover-points-from-solids": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of beacon-bastion: tower defense resolves at plot and lane range, and nothing takes positional cover."
+    },
+    "cover-points-near": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of beacon-bastion: tower defense resolves at plot and lane range, and nothing takes positional cover."
+    },
+    "cover-score": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of beacon-bastion: tower defense resolves at plot and lane range, and nothing takes positional cover."
+    },
+    "cover-select": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of beacon-bastion: tower defense resolves at plot and lane range, and nothing takes positional cover."
+    },
+    "damage-runtime": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of beacon-bastion: tower shots apply authored damage through the shared entity effect, with no armor profile or hit zone."
+    },
+    "damage-target-unknown": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of beacon-bastion: tower shots apply authored damage through the shared entity effect, with no armor profile or hit zone."
+    },
+    "equipment-slot-inventory": {
+      "kind": "not-applicable",
+      "reason": "Equipment slots is not part of beacon-bastion: the player owns no carried gear; gold buys towers and tower levels."
+    },
+    "loan-schedule": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of beacon-bastion: gold comes from kills and a trickle, and no loan is ever drawn."
+    },
+    "loans": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of beacon-bastion: gold comes from kills and a trickle, and no loan is ever drawn."
+    },
+    "loot-comparison": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of beacon-bastion: a kill pays a gold bounty and no item ever drops or rolls."
+    },
+    "loot-generation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of beacon-bastion: a kill pays a gold bounty and no item ever drops or rolls."
+    },
+    "loot-roller": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of beacon-bastion: a kill pays a gold bounty and no item ever drops or rolls."
+    },
+    "loot-score": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of beacon-bastion: a kill pays a gold bounty and no item ever drops or rolls."
+    },
+    "loot-validation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of beacon-bastion: a kill pays a gold bounty and no item ever drops or rolls."
+    },
+    "mission-events": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of beacon-bastion: waves run on the encounter director, and there are no objectives to complete."
+    },
+    "mission-rewards": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of beacon-bastion: waves run on the encounter director, and there are no objectives to complete."
+    },
+    "mission-runtime": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of beacon-bastion: waves run on the encounter director, and there are no objectives to complete."
+    },
+    "mission-validation": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of beacon-bastion: waves run on the encounter director, and there are no objectives to complete."
+    },
+    "nav-crowd": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of beacon-bastion: raiders follow one authored lane through the shared path follower."
+    },
+    "nav-runtime": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of beacon-bastion: raiders follow one authored lane through the shared path follower."
+    },
+    "navmesh-from-scene": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of beacon-bastion: raiders follow one authored lane through the shared path follower."
+    },
+    "near-agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of beacon-bastion: raiders are wave state on a lane, not beings with needs, thoughts or mood."
+    },
+    "offscreen-world": {
+      "kind": "not-applicable",
+      "reason": "Offscreen simulation is not part of beacon-bastion: every raider is a real body on the approach, and nothing is simulated far away."
+    },
+    "perception-service": {
+      "kind": "not-applicable",
+      "reason": "Perception is not part of beacon-bastion: towers pick targets by range and policy, with no sight, sound or memory."
+    },
+    "police-response": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of beacon-bastion: a siege has no law, witness or heat track."
+    },
+    "police-roads": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of beacon-bastion: a siege has no law, witness or heat track."
+    },
+    "ride-appeal": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of beacon-bastion: towers and raiders are the whole cast, and no ride or queue exists."
+    },
+    "ride-choice": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of beacon-bastion: towers and raiders are the whole cast, and no ride or queue exists."
+    },
+    "ride-sim": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of beacon-bastion: towers and raiders are the whole cast, and no ride or queue exists."
+    },
+    "rvo-avoidance": {
+      "kind": "not-applicable",
+      "reason": "Crowd steering is not part of beacon-bastion: raiders queue along a spline and never steer around each other."
+    },
+    "skill-tree": {
+      "kind": "not-applicable",
+      "reason": "Skill tree is not part of beacon-bastion: progression is per-tower levels bought with gold, not a point-spend tree."
+    },
+    "squad-combat": {
+      "kind": "not-applicable",
+      "reason": "Squad combat is not part of beacon-bastion: raiders arrive in waves with no squad roles, flanking or suppression."
+    },
+    "status-runtime": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of beacon-bastion: one tower slow rides shared speed stat sources, and no data-defined status set is authored."
+    },
+    "status-unknown": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of beacon-bastion: one tower slow rides shared speed stat sources, and no data-defined status set is authored."
+    },
+    "supply-demand-pricing": {
+      "kind": "not-applicable",
+      "reason": "Market pricing is not part of beacon-bastion: tower prices are fixed catalog costs, not a market with stock and demand."
+    },
+    "traffic": {
+      "kind": "not-applicable",
+      "reason": "Traffic is not part of beacon-bastion: the only moving things are raiders on foot."
+    },
+    "transaction-ledger": {
+      "kind": "debt",
+      "reason": "Gold for kills, builds, upgrades, refunds and the trickle is added and subtracted in session state; adopt the shared transaction ledger.",
+      "issue": 125
+    },
+    "utility-brain": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of beacon-bastion: raiders are wave state on a lane, not beings with needs, thoughts or mood."
+    },
+    "vehicle-damage": {
+      "kind": "not-applicable",
+      "reason": "Vehicle damage is not part of beacon-bastion: nothing is driven or wrecked in a lane defense."
+    },
+    "visitor-population": {
+      "kind": "not-applicable",
+      "reason": "Park population is not part of beacon-bastion: there are no visitors to count or schedule."
+    },
+    "wait-queue": {
+      "kind": "not-applicable",
+      "reason": "Queue is not part of beacon-bastion: no measured line forms anywhere in a lane defense."
+    },
+    "weapon-system": {
+      "kind": "not-applicable",
+      "reason": "Weapon runtime is not part of beacon-bastion: towers fire on a fixed cadence with no ammo, reload or recoil model."
+    }
   }
 }

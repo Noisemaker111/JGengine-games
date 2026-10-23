@@ -1,55 +1,203 @@
 {
   "adopts": [
+    "audio-probe",
     "mount-game"
   ],
   "probes": {},
   "declines": {
-    "agents": "Not adopted: this game does not run the engine agents system.",
-    "audio-probe": "Not adopted: this game does not run the engine audio-probe system.",
-    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
-    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
-    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
-    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
-    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
-    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
-    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
-    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
-    "game-save": "Not adopted: this game does not run the engine game-save system.",
-    "game-save-digest": "Not adopted: this game does not run the engine game-save-digest system.",
-    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
-    "loans": "Not adopted: this game does not run the engine loans system.",
-    "loot-comparison": "Not adopted: this game does not run the engine loot-comparison system.",
-    "loot-generation": "Not adopted: this game does not run the engine loot-generation system.",
-    "loot-roller": "Not adopted: this game does not run the engine loot-roller system.",
-    "loot-score": "Not adopted: this game does not run the engine loot-score system.",
-    "loot-validation": "Not adopted: this game does not run the engine loot-validation system.",
-    "mission-events": "Not adopted: this game does not run the engine mission-events system.",
-    "mission-rewards": "Not adopted: this game does not run the engine mission-rewards system.",
-    "mission-runtime": "Not adopted: this game does not run the engine mission-runtime system.",
-    "mission-validation": "Not adopted: this game does not run the engine mission-validation system.",
-    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
-    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
-    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
-    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
-    "offscreen-world": "Not adopted: this game does not run the engine offscreen-world system.",
-    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
-    "police-response": "Not adopted: this game does not run the engine police-response system.",
-    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
-    "ride-appeal": "Not adopted: this game does not run the engine ride-appeal system.",
-    "ride-choice": "Not adopted: this game does not run the engine ride-choice system.",
-    "ride-sim": "Not adopted: this game does not run the engine ride-sim system.",
-    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
-    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
-    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
-    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
-    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
-    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
-    "traffic": "Not adopted: this game does not run the engine traffic system.",
-    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
-    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
-    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
-    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
-    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
-    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+    "agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."
+    },
+    "cover-field": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
+    },
+    "cover-points-from-solids": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
+    },
+    "cover-points-near": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
+    },
+    "cover-score": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
+    },
+    "cover-select": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
+    },
+    "damage-runtime": {
+      "kind": "debt",
+      "reason": "Hits subtract from health in controls.ts with no damage table, hit zone or armor profile; adopt the shared damage table.",
+      "issue": 129
+    },
+    "damage-target-unknown": {
+      "kind": "debt",
+      "reason": "The local hit path never validates a target's resistance profile; adopt the shared damage table with its unknown-target refusal.",
+      "issue": 129
+    },
+    "equipment-slot-inventory": {
+      "kind": "not-applicable",
+      "reason": "Equipment slots is not part of deepward: one held weapon and a pack grid, with nothing worn in equipment slots."
+    },
+    "game-save": {
+      "kind": "debt",
+      "reason": "save.ts writes its own Marrow document and validates every field by hand; adopt the shared save document.",
+      "issue": 132
+    },
+    "game-save-digest": {
+      "kind": "debt",
+      "reason": "The hand-written save has no state digest to compare between runs; adopt the shared save document's digest.",
+      "issue": 132
+    },
+    "loan-schedule": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of deepward: Marrow pays scrip per item, and no loan is drawn."
+    },
+    "loans": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of deepward: Marrow pays scrip per item, and no loan is drawn."
+    },
+    "loot-comparison": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of deepward: drops are authored per item kind in state.ts, and nothing rolls rarity or affixes."
+    },
+    "loot-generation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of deepward: drops are authored per item kind in state.ts, and nothing rolls rarity or affixes."
+    },
+    "loot-roller": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of deepward: drops are authored per item kind in state.ts, and nothing rolls rarity or affixes."
+    },
+    "loot-score": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of deepward: drops are authored per item kind in state.ts, and nothing rolls rarity or affixes."
+    },
+    "loot-validation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of deepward: drops are authored per item kind in state.ts, and nothing rolls rarity or affixes."
+    },
+    "mission-events": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of deepward: a dive is a run loop with a return condition, not an objective state machine."
+    },
+    "mission-rewards": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of deepward: a dive is a run loop with a return condition, not an objective state machine."
+    },
+    "mission-runtime": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of deepward: a dive is a run loop with a return condition, not an objective state machine."
+    },
+    "mission-validation": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of deepward: a dive is a run loop with a return condition, not an objective state machine."
+    },
+    "nav-crowd": {
+      "kind": "debt",
+      "reason": "The station has one walker on a local grid route; adopt the shared navigation runtime and its crowd step.",
+      "issue": 131
+    },
+    "nav-runtime": {
+      "kind": "debt",
+      "reason": "navigation.ts bakes its own 0.5 m grid and runs a local A*; adopt the shared navigation runtime.",
+      "issue": 131
+    },
+    "navmesh-from-scene": {
+      "kind": "debt",
+      "reason": "The route graph is derived at runtime from world bounds; adopt the shared navigation from the editor's baked mesh.",
+      "issue": 131
+    },
+    "near-agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."
+    },
+    "offscreen-world": {
+      "kind": "not-applicable",
+      "reason": "Offscreen simulation is not part of deepward: the station is one small room set, and no far-away bodies are simulated."
+    },
+    "perception-service": {
+      "kind": "debt",
+      "reason": "The fitter hears shots through an inline sound check and line of sight; adopt the shared perception service.",
+      "issue": 130
+    },
+    "police-response": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of deepward: Bellwether has no police, witnesses or heat track."
+    },
+    "police-roads": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of deepward: Bellwether has no police, witnesses or heat track."
+    },
+    "ride-appeal": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of deepward: no ride or queue exists on the station."
+    },
+    "ride-choice": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of deepward: no ride or queue exists on the station."
+    },
+    "ride-sim": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of deepward: no ride or queue exists on the station."
+    },
+    "rvo-avoidance": {
+      "kind": "not-applicable",
+      "reason": "Crowd steering is not part of deepward: at most one fitter walks the station, and nothing needs crowd steering."
+    },
+    "skill-tree": {
+      "kind": "not-applicable",
+      "reason": "Skill tree is not part of deepward: refits are crafted from salvage through the shared recipe, not spent from a skill tree."
+    },
+    "squad-combat": {
+      "kind": "not-applicable",
+      "reason": "Squad combat is not part of deepward: one fitter and one diver fight, and no squad tactics exist."
+    },
+    "status-runtime": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of deepward: steam and a drained tank deal direct damage, and no status is applied or ticked."
+    },
+    "status-unknown": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of deepward: steam and a drained tank deal direct damage, and no status is applied or ticked."
+    },
+    "supply-demand-pricing": {
+      "kind": "not-applicable",
+      "reason": "Market pricing is not part of deepward: the counter pays fixed scrip values, and no market prices goods."
+    },
+    "traffic": {
+      "kind": "not-applicable",
+      "reason": "Traffic is not part of deepward: nothing drives on the station."
+    },
+    "transaction-ledger": {
+      "kind": "debt",
+      "reason": "Scrip is banked and settled in counter.ts without a ledger of reasons; adopt the shared transaction ledger.",
+      "issue": 133
+    },
+    "utility-brain": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."
+    },
+    "vehicle-damage": {
+      "kind": "not-applicable",
+      "reason": "Vehicle damage is not part of deepward: there is no vehicle to damage."
+    },
+    "visitor-population": {
+      "kind": "not-applicable",
+      "reason": "Park population is not part of deepward: no visitors exist to populate anything."
+    },
+    "wait-queue": {
+      "kind": "not-applicable",
+      "reason": "Queue is not part of deepward: nothing queues at the receiving rail."
+    },
+    "weapon-system": {
+      "kind": "debt",
+      "reason": "SIDEARM and RIFLE carry their own damage, range, cadence and reload in state.ts; adopt the shared weapon runtime.",
+      "issue": 129
+    }
   }
 }

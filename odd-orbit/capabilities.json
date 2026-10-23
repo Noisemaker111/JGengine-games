@@ -10,50 +10,188 @@
     ]
   },
   "declines": {
-    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
-    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
-    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
-    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
-    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
-    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
-    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
-    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
-    "game-save": "Not adopted: this game does not run the engine game-save system.",
-    "game-save-digest": "Not adopted: this game does not run the engine game-save-digest system.",
-    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
-    "loans": "Not adopted: this game does not run the engine loans system.",
-    "loot-comparison": "Not adopted: this game does not run the engine loot-comparison system.",
-    "loot-generation": "Not adopted: this game does not run the engine loot-generation system.",
-    "loot-roller": "Not adopted: this game does not run the engine loot-roller system.",
-    "loot-score": "Not adopted: this game does not run the engine loot-score system.",
-    "loot-validation": "Not adopted: this game does not run the engine loot-validation system.",
-    "mission-events": "Not adopted: this game does not run the engine mission-events system.",
-    "mission-rewards": "Not adopted: this game does not run the engine mission-rewards system.",
-    "mission-runtime": "Not adopted: this game does not run the engine mission-runtime system.",
-    "mission-validation": "Not adopted: this game does not run the engine mission-validation system.",
-    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
-    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
-    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
-    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
-    "offscreen-world": "Not adopted: this game does not run the engine offscreen-world system.",
-    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
-    "police-response": "Not adopted: this game does not run the engine police-response system.",
-    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
-    "ride-appeal": "Not adopted: this game does not run the engine ride-appeal system.",
-    "ride-choice": "Not adopted: this game does not run the engine ride-choice system.",
-    "ride-sim": "Not adopted: this game does not run the engine ride-sim system.",
-    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
-    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
-    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
-    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
-    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
-    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
-    "traffic": "Not adopted: this game does not run the engine traffic system.",
-    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
-    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
-    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
-    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
-    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
-    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+    "cover-field": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of odd-orbit: a household has no combat, so nothing takes cover."
+    },
+    "cover-points-from-solids": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of odd-orbit: a household has no combat, so nothing takes cover."
+    },
+    "cover-points-near": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of odd-orbit: a household has no combat, so nothing takes cover."
+    },
+    "cover-score": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of odd-orbit: a household has no combat, so nothing takes cover."
+    },
+    "cover-select": {
+      "kind": "not-applicable",
+      "reason": "Cover is not part of odd-orbit: a household has no combat, so nothing takes cover."
+    },
+    "damage-runtime": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of odd-orbit: nobody is hit in a household, so no armor profile or hit zone exists."
+    },
+    "damage-target-unknown": {
+      "kind": "not-applicable",
+      "reason": "Damage table is not part of odd-orbit: nobody is hit in a household, so no armor profile or hit zone exists."
+    },
+    "equipment-slot-inventory": {
+      "kind": "not-applicable",
+      "reason": "Equipment slots is not part of odd-orbit: beings carry nothing, and furniture is placed rather than equipped."
+    },
+    "game-save": {
+      "kind": "debt",
+      "reason": "session/save.ts writes its own household snapshot and validates every field by hand; adopt the shared save document.",
+      "issue": 144
+    },
+    "game-save-digest": {
+      "kind": "debt",
+      "reason": "The household save has no state digest to compare before and after a day; adopt the shared save document's digest.",
+      "issue": 144
+    },
+    "loan-schedule": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of odd-orbit: bills and relief are scheduled against the shared ledger, and no loan is drawn."
+    },
+    "loans": {
+      "kind": "not-applicable",
+      "reason": "Loans is not part of odd-orbit: bills and relief are scheduled against the shared ledger, and no loan is drawn."
+    },
+    "loot-comparison": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of odd-orbit: nothing drops in a household."
+    },
+    "loot-generation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of odd-orbit: nothing drops in a household."
+    },
+    "loot-roller": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of odd-orbit: nothing drops in a household."
+    },
+    "loot-score": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of odd-orbit: nothing drops in a household."
+    },
+    "loot-validation": {
+      "kind": "not-applicable",
+      "reason": "Loot rolling is not part of odd-orbit: nothing drops in a household."
+    },
+    "mission-events": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of odd-orbit: day goals name a station to walk to, and no objective state machine runs."
+    },
+    "mission-rewards": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of odd-orbit: day goals name a station to walk to, and no objective state machine runs."
+    },
+    "mission-runtime": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of odd-orbit: day goals name a station to walk to, and no objective state machine runs."
+    },
+    "mission-validation": {
+      "kind": "not-applicable",
+      "reason": "Mission runtime is not part of odd-orbit: day goals name a station to walk to, and no objective state machine runs."
+    },
+    "nav-crowd": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of odd-orbit: beings walk to furniture without a navigation mesh."
+    },
+    "nav-runtime": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of odd-orbit: beings walk to furniture without a navigation mesh."
+    },
+    "navmesh-from-scene": {
+      "kind": "not-applicable",
+      "reason": "Navigation is not part of odd-orbit: beings walk to furniture without a navigation mesh."
+    },
+    "near-agents": {
+      "kind": "not-applicable",
+      "reason": "Agent loop is not part of odd-orbit: beings are on-screen room-mates driven by the shared agent loop, and no nav-crowd near-agent layer exists."
+    },
+    "offscreen-world": {
+      "kind": "not-applicable",
+      "reason": "Offscreen simulation is not part of odd-orbit: the habitat is one loaded room set."
+    },
+    "perception-service": {
+      "kind": "not-applicable",
+      "reason": "Perception is not part of odd-orbit: beings read furniture and needs, never sight or sound."
+    },
+    "police-response": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of odd-orbit: a household has no police or heat."
+    },
+    "police-roads": {
+      "kind": "not-applicable",
+      "reason": "Police heat is not part of odd-orbit: a household has no police or heat."
+    },
+    "ride-appeal": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of odd-orbit: no ride or queue exists in a habitat."
+    },
+    "ride-choice": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of odd-orbit: no ride or queue exists in a habitat."
+    },
+    "ride-sim": {
+      "kind": "not-applicable",
+      "reason": "Ride simulation is not part of odd-orbit: no ride or queue exists in a habitat."
+    },
+    "rvo-avoidance": {
+      "kind": "not-applicable",
+      "reason": "Crowd steering is not part of odd-orbit: room-mates walk around furniture without reciprocal avoidance."
+    },
+    "skill-tree": {
+      "kind": "not-applicable",
+      "reason": "Skill tree is not part of odd-orbit: there is no experience or point pool to spend."
+    },
+    "squad-combat": {
+      "kind": "not-applicable",
+      "reason": "Squad combat is not part of odd-orbit: nobody fights in a household sim."
+    },
+    "status-runtime": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of odd-orbit: mood and needs shift, and nothing is burned, shocked or slowed."
+    },
+    "status-unknown": {
+      "kind": "not-applicable",
+      "reason": "Status effects is not part of odd-orbit: mood and needs shift, and nothing is burned, shocked or slowed."
+    },
+    "supply-demand-pricing": {
+      "kind": "not-applicable",
+      "reason": "Market pricing is not part of odd-orbit: rations and bills have fixed catalog prices."
+    },
+    "traffic": {
+      "kind": "not-applicable",
+      "reason": "Traffic is not part of odd-orbit: nothing drives on a habitat deck."
+    },
+    "transaction-ledger": {
+      "kind": "not-applicable",
+      "reason": "Transaction ledger is not part of odd-orbit: household money already moves through the shared resource ledger."
+    },
+    "utility-brain": {
+      "kind": "debt",
+      "reason": "Beings choose actions from needs in sim/ai.ts inside their own agent loop; adopt the shared utility brain.",
+      "issue": 143
+    },
+    "vehicle-damage": {
+      "kind": "not-applicable",
+      "reason": "Vehicle damage is not part of odd-orbit: no vehicle exists on the deck."
+    },
+    "visitor-population": {
+      "kind": "not-applicable",
+      "reason": "Park population is not part of odd-orbit: a household has members, not a visitor population."
+    },
+    "wait-queue": {
+      "kind": "not-applicable",
+      "reason": "Queue is not part of odd-orbit: nothing queues in a habitat."
+    },
+    "weapon-system": {
+      "kind": "not-applicable",
+      "reason": "Weapon runtime is not part of odd-orbit: no weapon is carried or fired in a household."
+    }
   }
 }
