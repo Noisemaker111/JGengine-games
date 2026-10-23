@@ -106,8 +106,16 @@ describe("handroll drivable-vehicle adoption", () => {
   test("witnessed heat gains escalate stars, unwitnessed gains do not", () => {
     const ctx = boot();
     const handroll = createHandroll();
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("ped_beach", {
+      id: "ped_heat_witness",
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
 
-    handroll.addHeat(ctx, 250);
+    handroll.tick(ctx, STEP);
+    handroll.addHeat(ctx, 150);
     handroll.tick(ctx, STEP);
     expect(handroll.wanted().stars).toBe(2);
     expect(handroll.wanted().peakStars).toBe(2);
@@ -120,6 +128,8 @@ describe("handroll drivable-vehicle adoption", () => {
     ctx.scene.entity.hasLineOfSight = () => true;
     ctx.scene.entity.setPose(HERO, { position: [0, 0, 0] });
     ctx.scene.entity.spawn("cop_patrol", { id: "cop_x", position: [1.5, 0, 0], role: "npc" });
+    // A witness and one crime so the search exists: officers only engage someone the search is about.
+    ctx.scene.entity.spawn("ped_beach", { id: "ped_shot_witness", position: [4, 0, 0], rotationY: -Math.PI / 2, role: "npc" });
 
     // Count only the damage this cop deals to the player.
     const realEffect = ctx.scene.entity.effect.bind(ctx.scene.entity);
@@ -138,6 +148,14 @@ describe("handroll drivable-vehicle adoption", () => {
   test("clearWanted resets heat and stars", () => {
     const ctx = boot();
     const handroll = createHandroll();
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("ped_beach", {
+      id: "ped_clear_witness",
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
+    handroll.tick(ctx, STEP);
     handroll.addHeat(ctx, 150);
     handroll.tick(ctx, STEP);
     expect(handroll.wanted().stars).toBeGreaterThan(0);

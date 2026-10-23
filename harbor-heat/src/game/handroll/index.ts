@@ -5,6 +5,7 @@ import { createRace } from "./race";
 import type { Handroll } from "./shared";
 
 export {
+  MAX_HEAT,
   MAX_STARS,
   PURSUIT_STARS,
   RIVAL_RACER_ID,
@@ -13,6 +14,7 @@ export {
   wantedStore,
   type Handroll,
   type RaceSnapshot,
+  type SearchAreaSnapshot,
   type VehicleTelemetry,
   type WantedSnapshot,
 } from "./shared";

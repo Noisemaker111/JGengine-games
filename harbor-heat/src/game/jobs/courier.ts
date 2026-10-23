@@ -35,6 +35,14 @@ export const DELIVERY_ROUTES = [
 /** The pursuer and the runner the mission tracks by id, whichever body the player is in. */
 const PLAYER_ACTOR = "harbor_player";
 const THIEF = "parcel_thief";
+/** HHPD tier at which a live courier run is swept: officers working the block, 2 pips. */
+export const COURIER_HEAT_TIER = 2;
+/** The world fact the mission machine reads for that sweep; the heat slice owns the number. */
+const POLICE_TIER_FACT = "police_tier";
+
+function heatSweep() {
+  return [{ kind: "fact" as const, fact: POLICE_TIER_FACT, atLeast: COURIER_HEAT_TIER, to: "heat_sweep", message: "HHPD swept the drop while you were hot — the parcel went back to dispatch." }];
+}
 
 interface CourierState {
   phase: "idle" | "running" | "won" | "lost";
@@ -99,9 +107,12 @@ function routeMission(route: (typeof DELIVERY_ROUTES)[number], index: number, ru
         label: `Hand the parcel to ${route.recipient}`,
         timeout: courierDeadline(route.seconds, rush),
         onTimeout: failLate,
-        failOn: rush
-          ? [{ kind: "fact", fact: "cargo_condition", atMost: 0, to: "cargo_lost", message: "Rough driving spoiled the cargo." }]
-          : [],
+        failOn: [
+          ...heatSweep(),
+          ...(rush
+            ? [{ kind: "fact" as const, fact: "cargo_condition", atMost: 0, to: "cargo_lost", message: "Rough driving spoiled the cargo." }]
+            : []),
+        ],
         next: "recover",
       },
       {
@@ -116,13 +127,17 @@ function routeMission(route: (typeof DELIVERY_ROUTES)[number], index: number, ru
         label: "Catch the runner who grabbed the parcel — alive",
         timeout: 60,
         onTimeout: "cargo_lost",
-        failOn: [{ kind: "actor-died", actor: THIEF, to: "cargo_lost", message: "The runner went down and the parcel burned with them." }],
+        failOn: [
+          ...heatSweep(),
+          { kind: "actor-died", actor: THIEF, to: "cargo_lost", message: "The runner went down and the parcel burned with them." },
+        ],
         next: "done",
       },
     ],
     fail: [
       { id: failLate, message: rush ? "The rush deadline expired and the $60 bond is forfeited." : "The deadline expired and the parcel went back to dispatch." },
       { id: "cargo_lost", message: "The parcel is gone." },
+      { id: "heat_sweep", message: "HHPD swept the drop while you were hot. The parcel went back to dispatch." },
     ],
     rewards: { economy: { cash: route.payout } },
   };
@@ -213,7 +228,9 @@ export function finishCourier(ctx: GameContext, won: boolean, reason?: string): 
     failContraband(ctx);
   }
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
-  ctx.game.audio.play(won ? "delivery_chime" : "delivery_fail");
+  // The engine answers the moment: objective for a clean delivery, deny for a swept or spoiled one.
+  if (won) ctx.game.feedback.cue("objective", `Delivered to ${route.recipient} — $${route.payout + bonus}.`);
+  else ctx.game.feedback.cue("deny", reason ?? "The parcel is gone.");
   syncSession(ctx, true);
   void ctx.game.save?.checkpoint();
 }
@@ -256,7 +273,10 @@ function moveThief(ctx: GameContext, dt: number): void {
 function handleMissionEvents(ctx: GameContext, events: readonly MissionEvent[]): void {
   for (const event of events) {
     if (event.kind === "objective") {
-      if (event.objectiveId === "recover") spawnThief(ctx);
+      if (event.objectiveId === "recover") {
+        spawnThief(ctx);
+        ctx.game.feedback.cue("objective", "Parcel handed over — catch the runner.");
+      }
     } else if (event.kind === "reward") {
       applyMissionRewards(event.rewards, {
         grantEconomy: (currencyId, amount) => ctx.game.economy.grant(ctx.player.userId, currencyId, amount),
@@ -272,14 +292,25 @@ function handleMissionEvents(ctx: GameContext, events: readonly MissionEvent[]):
 }
 
 export function registerCourier(ctx: GameContext): void {
-  ctx.game.commands.define<{ service?: string }>("courier.accept", { apply(state, input) {
+  ctx.game.commands.define<{ service?: string }>("courier.accept", {
+    // Refusals are the command's own answer, so the shell shows them once and plays the deny cue.
+    validate(state, input) {
+      const current = courierStore.read(state);
+      if (current.phase === "running" || courierRuntime(state).state()?.status === "active") {
+        return { reason: "already-running", message: "Finish the parcel you are already carrying." };
+      }
+      if (!near(state, DISPATCH, 9)) return { reason: "not-at-dispatch", message: "Take a parcel from the dispatch booth." };
+      if (input?.service !== "rush") return null;
+      if (current.completed < 1) return { reason: "rush-locked", message: "Complete a standard delivery first." };
+      if (state.game.economy.balance(state.player.userId, "cash") < RUSH_BOND) {
+        return { reason: "no-bond", message: `Fragile rush needs a $${RUSH_BOND} bond.` };
+      }
+      return null;
+    },
+    apply(state, input) {
     const current = courierStore.read(state);
-    if (current.phase === "running" || courierRuntime(state).state()?.status === "active" || !near(state, DISPATCH, 9)) return;
     const rush = input?.service === "rush";
-    if (rush && (current.completed < 1 || state.game.economy.charge(state.player.userId, "cash", RUSH_BOND) !== null)) {
-      state.game.notices.push({ text: current.completed < 1 ? "Complete a standard delivery first." : "Fragile rush needs a $60 bond. Standard parcels are free.", tone: "deny" });
-      return;
-    }
+    if (rush) state.game.economy.charge(state.player.userId, "cash", RUSH_BOND);
     const routeIndex = current.completed % DELIVERY_ROUTES.length;
     const route = DELIVERY_ROUTES[routeIndex]!;
     const position = courierPosition(state)!;
@@ -289,25 +320,26 @@ export function registerCourier(ctx: GameContext): void {
     syncObjective(state);
     commit(state);
     loadContraband(state);
-    state.game.audio.play("parcel_take");
+    state.game.feedback.cue("pickup", `Parcel taken — ${route.label}, $${route.payout}.`);
     void state.game.save?.checkpoint();
   } });
-  ctx.game.commands.define("courier.deliver", { apply(state) {
-    const current = courierStore.read(state);
-    if (current.phase !== "running") return;
-    const runtime = courierRuntime(state);
-    const mission = runtime.state();
-    if (mission === null || mission.objective !== "deliver") return;
-    const route = routeOf(current);
-    if (!near(state, route.position, 8)) return;
-    if (handrollOf(state).carSpeedKmh() > 8) {
-      state.game.notices.push({ text: "Slow down to deliver.", tone: "deny" });
-      return;
-    }
-    handleMissionEvents(state, runtime.signal(mission.missionId, "deliver"));
-    commit(state);
-    void state.game.save?.checkpoint();
-  } });
+  ctx.game.commands.define("courier.deliver", {
+    validate(state) {
+      const current = courierStore.read(state);
+      if (current.phase !== "running") return { reason: "no-parcel", message: "You are not carrying a parcel." };
+      const mission = courierRuntime(state).state();
+      if (mission === null || mission.objective !== "deliver") return { reason: "no-handoff", message: "Nothing to hand over yet." };
+      if (!near(state, routeOf(current).position, 8)) return { reason: "not-at-drop", message: "Take the parcel to the drop." };
+      if (handrollOf(state).carSpeedKmh() > 8) return { reason: "moving", message: "Slow down to deliver." };
+      return null;
+    },
+    apply(state) {
+      const mission = courierRuntime(state).state()!;
+      handleMissionEvents(state, courierRuntime(state).signal(mission.missionId, "deliver"));
+      commit(state);
+      void state.game.save?.checkpoint();
+    },
+  });
   ctx.game.commands.define("courier.dismiss", { apply(state) {
     const current = courierStore.read(state);
     if (current.phase === "running") return;
@@ -340,7 +372,7 @@ export function tickCourier(ctx: GameContext, dt: number): void {
       [PLAYER_ACTOR]: position === null ? {} : { position: { x: position[0], y: position[1], z: position[2] } },
       [THIEF]: thiefFact,
     },
-    facts: { cargo_condition: condition },
+    facts: { cargo_condition: condition, [POLICE_TIER_FACT]: handrollOf(ctx).wanted().stars },
   });
   courierStore.write(ctx, {
     ...current,
@@ -389,3 +421,4 @@ export function setupCourierLandmarks(ctx: GameContext): void {
     ctx.scene.object.place(catalog, i === 0 ? x - 3 : x, ctx.world.groundHeightAt(x, z), z);
   });
 }
+

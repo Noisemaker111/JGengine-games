@@ -1,13 +1,27 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 
+/** The last-sighting circle HHPD is working; `center` is world XZ, `radius` metres. */
+export interface SearchAreaSnapshot {
+  center: readonly [number, number];
+  radius: number;
+  lastSeenAt: number;
+}
+
 export interface WantedSnapshot {
   heat: number;
+  /** Escalation tier, 0 (clean) to {@link MAX_STARS}. */
   stars: number;
   peakStars: number;
+  /** What HHPD is doing about it right now. */
+  response: "patrol" | "investigate" | "pursue" | "roadblock";
+  /** Where the search is, from the last sighting; null while clean. */
+  search: SearchAreaSnapshot | null;
 }
 
 export const MAX_STARS = 5;
+/** Heat at the top tier; the HUD bar is a fraction of this. */
+export const MAX_HEAT = MAX_STARS * 100;
 export const PURSUIT_STARS = 3;
 export const RIVAL_RACER_ID = "race_rival";
 
