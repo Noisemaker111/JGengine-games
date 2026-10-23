@@ -52,6 +52,7 @@ export function Inspector() {
     <p className="orbit-fine">Yield {yieldPay.masteryLabel} · pay x{yieldPay.factor.toFixed(2)} on a console. Bloom {bloomPay.masteryLabel} · pay x{bloomPay.factor.toFixed(2)} on a planter{bloomPay.rations > 0 ? `, +${bloomPay.rations} ration${bloomPay.rations === 1 ? "" : "s"}` : ""}.</p>
     <div className="orbit-posts" role="group" aria-label="Posts">{posts.map(row => <HudButton key={row.career.id} aria-pressed={row.current} disabled={row.current || !row.open} onClick={() => commands.run("member.career", { id, career: row.career.id })}>{row.career.label}<small>{row.current ? `${STATION_NAME[row.career.station === "either" ? (member.lifestyle === "bloom" ? "bloom" : "yield") : row.career.station]} post` : row.open ? `${row.career.station === "either" ? "either station" : `${STATION_NAME[row.career.station]} family`}` : `${row.needs} standing`}</small></HudButton>)}</div>
     <HudButton disabled={!progress.canPromote} onClick={() => commands.run("member.promote", { id })}>{progress.canPromote ? `Promote to ${progress.career.label} ${progress.nextLabel} · pay x${(progress.nextRung === 3 ? progress.career.native[2] : progress.career.native[1]).toFixed(2)}` : progress.reason}</HudButton>
+    {member.concern && <p role="status" className="orbit-warning">{member.concern}</p>}
     <p className="orbit-fine">A shift raises mastery and household standing. Rungs cost standing, never credits; a Bloom Master adds a ration to every harvest.</p>
     <h3>Care now</h3><div className="orbit-care" role="group" aria-label="Direct care">{care.map(action => {
       const available = objects.some(object => FURNITURE_BY_ID[object.catalogId]?.role === action.goal && (action.goal !== "fun" || object.catalogId !== "bloom_planter"));
@@ -70,7 +71,6 @@ export function Inspector() {
     <h3>Relationships</h3><p className="orbit-fine">Conversations ease stress. Two stressed beings may dispute instead.</p>
     <div className="orbit-bonds">{bonds.map(bond => <div key={bond.id}><span><strong>{bond.name}</strong><small>{bondWord(book, id, bond.id)} · {Math.round(bond.value)}</small></span><HudButton onClick={() => commands.run("member.socialize", { id, withId:bond.id })}>Talk</HudButton></div>)}</div>
     <p className="orbit-fine">Select a furnishing in the habitat to direct this being. A Bond Ring used alone can only restore Social to 55.</p>
-    {member.concern && <p role="status" className="orbit-warning">{member.concern}</p>}
     </div>
   </HudSurface>;
 }
