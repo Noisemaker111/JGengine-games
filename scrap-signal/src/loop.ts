@@ -1,4 +1,7 @@
+import { earn, openBooks, spend } from "./game/cash";
 import { loadSavedProgress } from "./game/saveCompatibility";
+import { loadScrapSave, saveScrapState, scrapSave } from "./game/save";
+import { loadScrapSave, saveScrapState } from "./game/save";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
@@ -7,6 +10,7 @@ import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/rel
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
+import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/damage";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
@@ -84,7 +88,7 @@ function grantCores(ctx: GameContext, event: EntityDiedEvent): void {
   else if (def.family === "boss") amount = 8;
   else if (def.elite) amount = 1 + Math.floor(dropRng() * 3);
   if (amount === 0) return;
-  ctx.game.economy.grant(ctx.player.userId, "cores", amount);
+  earn(ctx, "cores", amount, "kill-cores", def.id);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: `+${amount} CORES`, kind: "pickup" });
 }
 
@@ -158,7 +162,7 @@ function respawnAtNewU(ctx: GameContext): void {
   const userId = ctx.player.userId;
   const cash = ctx.game.economy.balance(userId, "cash");
   const fee = Math.floor(cash * 0.07);
-  if (fee > 0) ctx.game.economy.charge(userId, "cash", fee);
+  if (fee > 0) spend(ctx, "cash", fee, "respawn-fee");
   const station = nearestDiscoveredStation(ctx);
   const y = ctx.world.groundHeightAt(station.x, station.z);
   ctx.scene.entity.update(userId, {
@@ -199,6 +203,7 @@ function tickZoneAndStations(ctx: GameContext, nowMs: number): void {
     if (currentZone !== null) bankFieldHaul(ctx);
     currentZoneStore.write(ctx, { id: zone.id, name: zone.name, level: zone.level, atMs: nowMs });
     scanFieldGun(ctx, `zone:${zone.id}:${Math.floor(nowMs)}`, zone.level);
+    void saveScrapState(ctx);
   }
 
   const discovered = discoveredStationsStore.read(ctx);
@@ -241,11 +246,16 @@ function onInit(ctx: GameContext): void {
     const reward = quests.find((quest) => quest.id === event.questId)?.rewards;
     if (reward?.xp !== undefined) grantXp(ctx, event.userId, reward.xp.amount);
     ctx.scene.entity.floatText({ instanceId: event.userId, text: "MISSION COMPLETE", kind: "pickup" });
-    void ctx.game.save?.checkpoint();
+    void saveScrapState(ctx);
   });
 
   startAmbience(ctx);
   setupWorld(ctx);
+  syncCombatTargets(ctx);
+  // Mount the three boot-probed systems: the damage model (its devtools probe reports every hit), the
+  // save document and the scrip journal. Each is per-context state that the world snapshot cannot see.
+  void scrapSave(ctx);
+  openBooks(ctx);
   ctx.time.every(RESPAWN_SWEEP_SECONDS, () => respawnClusters(ctx));
 }
 
@@ -260,6 +270,8 @@ function onNewPlayer(ctx: GameContext): void {
     role: "player",
   });
   if (ctx.player.isNew) ctx.player.applyLoadout(ctx.player.userId, "starterKit");
+  resetCombat(ctx);
+  syncCombatTargets(ctx);
   ctx.game.quest!.accept(ctx.player.userId, MAIN_QUEST_IDS[0]!);
   ctx.game.quest!.accept(ctx.player.userId, QUEST_IDS.bruiserSurvey);
   ctx.game.quest!.accept(ctx.player.userId, QUEST_IDS.ripperControl);
@@ -277,8 +289,10 @@ function onNewPlayer(ctx: GameContext): void {
  * select — but never override a phase the capture harness's `character.pick` may have set concurrently.
  */
 async function resumeOrStart(ctx: GameContext): Promise<void> {
-  if ((await loadSavedProgress(ctx)) && resumeBuild(ctx)) {
-    session.selectSlot(ctx, selectedSlotStore.read(ctx));
+  const worldLoaded = await loadSavedProgress(ctx);
+  const systemsLoaded = worldLoaded ? await loadScrapSave(ctx) : false;
+  if (worldLoaded && (systemsLoaded || resumeBuild(ctx))) {
+    if (!systemsLoaded) session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     restoreMastWatch(ctx);
     const relay = relayStore.read(ctx);
@@ -300,7 +314,8 @@ function onTick(ctx: GameContext, dt: number): void {
   tickFront(ctx, dt);
   tickEnemies(ctx, dt);
   tickShields(ctx, nowMs, dt);
-  tickDots(ctx, nowMs);
+  tickDots(ctx, dt);
+  tickCombat(ctx, dt);
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
   tickRelay(ctx, dt);

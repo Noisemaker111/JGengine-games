@@ -1,128 +1,94 @@
-import { resolveMatchup, type DamageMatchup } from "@jgengine/core/combat/damageMatchup";
-import { resolveReceivedDamage, type ReceivedModifier } from "@jgengine/core/combat/receivedDamage";
+import { createDotField, type DotField } from "@jgengine/core/combat/dotField";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
-import { bonus } from "../characters";
-import type { GunDef, GunElement, Surface } from "./guns";
 
-interface DotEntry {
+import { bonus } from "../characters";
+import type { GunDef } from "./guns";
+
+export { isFluxed, FLUX_DAMAGE_MULT } from "../combat/damage";
+
+/**
+ * A proc's burn/shock/corrode instance deals one tick every {@link DOT_INTERVAL_MS}. The old local
+ * loop removed a proc at 4 s before its 4 s tick, so it dealt 7 ticks over 3.5 s; the shared
+ * `dotField` schedules those same 7 ticks, and the duration below is the window that actually deals
+ * damage rather than the longer lifetime that only guarded the untaken tick.
+ */
+export const DOT_INTERVAL_MS = 500;
+export const DOT_DURATION_MS = DOT_INTERVAL_MS * 7;
+
+interface DotRecord {
   targetId: string;
   fromId: string;
-  element: GunElement;
-  dps: number;
-  untilMs: number;
-  nextTickMs: number;
 }
 
-/** Per-session active DOTs and flux windows — reclaimed with the context (#632). */
-const activeDotsOf = perContext(() => [] as DotEntry[]);
-const fluxedUntilOf = perContext(() => new Map<string, number>());
-
-export const DOT_DURATION_MS = 4000;
-export const FLUX_DURATION_MS = 8000;
-export const FLUX_DAMAGE_MULT = 2;
-
-export function isFluxed(ctx: GameContext, targetId: string, nowMs: number): boolean {
-  return (fluxedUntilOf(ctx).get(targetId) ?? 0) > nowMs;
+interface DotRuntime {
+  field: DotField;
+  records: Map<string, DotRecord>;
+  seq: number;
 }
 
-/**
- * Element-vs-surface matchup as core-owned data instead of an inlined if/else. Traits are
- * `shielded` (which overrides surface, matching the original precedence) or the bare surface
- * (`flesh`/`armor`); unlisted element/trait pairs fall through to the identity `default`.
- */
-const ELEMENT_MATCHUP: DamageMatchup<GunElement, "shielded" | Surface> = {
-  entries: {
-    shock: { shielded: { impact: 2 } },
-    incendiary: { shielded: { impact: 0.75 }, armor: { impact: 0.75 }, flesh: { impact: 1.5 } },
-    corrosive: { shielded: { impact: 0.75 }, armor: { impact: 1.5 }, flesh: { impact: 0.9 } },
-    flux: { shielded: { impact: 0.75 } },
-  },
-  default: { impact: 1 },
-};
+/** Per-session damage-over-time instances, reclaimed with the context. */
+const dotsOf = perContext((): DotRuntime => ({ field: createDotField(), records: new Map(), seq: 0 }));
 
-/** Every element except flux — the channels the flux debuff amplifies. */
-const NON_FLUX_ELEMENTS: readonly GunElement[] = [
-  "none",
-  "incendiary",
-  "shock",
-  "corrosive",
-  "explosive",
-];
+/** Per-tick damage a proc deals: half the gun's element DPS, scaled by the DoT talent. */
+export function dotTickDamage(gun: GunDef): number {
+  const dps = Math.round(gun.elementDps * (1 + bonus("dotDamage")));
+  return Math.max(1, Math.round(dps / 2));
+}
 
-/**
- * The flux debuff expressed as a generic receiver-side modifier: while the target carries `flux`,
- * every non-flux channel it receives is amplified. Amplification is data, not a hardcoded branch.
- */
-const FLUX_AMPLIFY: readonly ReceivedModifier[] = [
-  {
-    id: "flux",
-    when: { whileStatus: ["flux"], channels: NON_FLUX_ELEMENTS },
-    policy: { kind: "scale", factor: FLUX_DAMAGE_MULT },
-  },
-];
-
-export function elementalDamageMult(
-  ctx: GameContext,
-  element: GunElement,
-  surface: Surface,
-  targetShielded: boolean,
-  targetId: string,
-  nowMs: number,
-): number {
-  const traits: readonly ("shielded" | Surface)[] = targetShielded ? ["shielded"] : [surface];
-  const base = resolveMatchup(ELEMENT_MATCHUP, element, traits).impact;
-  const received = resolveReceivedDamage({
-    amount: base,
-    context: {
-      channel: element,
-      target: targetId,
-      targetStatuses: isFluxed(ctx, targetId, nowMs) ? ["flux"] : [],
-    },
-    modifiers: FLUX_AMPLIFY,
+/** Queue one independent DoT instance for a proc. Each proc keeps its own timer, as the old array did. */
+export function applyDot(ctx: GameContext, gun: GunDef, fromId: string, targetId: string): void {
+  const dots = dotsOf(ctx);
+  dots.seq += 1;
+  const id = `${targetId}#${dots.seq}`;
+  dots.records.set(id, { targetId, fromId });
+  dots.field.apply(id, {
+    damagePerTick: dotTickDamage(gun),
+    intervalMs: DOT_INTERVAL_MS,
+    durationMs: DOT_DURATION_MS,
+    status: gun.element,
   });
-  return received.amount;
 }
 
+export function activeDotCount(ctx: GameContext): number {
+  return dotsOf(ctx).records.size;
+}
+
+/**
+ * The elemental proc roll and its effect. Flux is applied by the damage model itself (it rides the
+ * hit's status list so the roll keeps its place in the stream); the other elements queue a DoT here.
+ */
 export function applyElementalProc(
   ctx: GameContext,
   rng: () => number,
   gun: GunDef,
   fromId: string,
   targetId: string,
-  nowMs: number,
 ): void {
-  if (gun.element === "none" || gun.element === "explosive") return;
+  if (gun.element === "none" || gun.element === "explosive" || gun.element === "flux") return;
   if (rng() >= gun.elementChance + bonus("elementChance")) return;
-  if (gun.element === "flux") {
-    fluxedUntilOf(ctx).set(targetId, nowMs + FLUX_DURATION_MS);
-    return;
-  }
-  activeDotsOf(ctx).push({
-    targetId,
-    fromId,
-    element: gun.element,
-    dps: Math.round(gun.elementDps * (1 + bonus("dotDamage"))),
-    untilMs: nowMs + DOT_DURATION_MS,
-    nextTickMs: nowMs + 500,
-  });
+  applyDot(ctx, gun, fromId, targetId);
 }
 
-export function tickDots(ctx: GameContext, nowMs: number): void {
-  const activeDots = activeDotsOf(ctx);
-  for (let index = activeDots.length - 1; index >= 0; index -= 1) {
-    const dot = activeDots[index]!;
-    if (nowMs >= dot.untilMs || ctx.scene.entity.get(dot.targetId) === null) {
-      activeDots.splice(index, 1);
+/** Advance every live DoT and route each due tick through the shared effect pipeline. */
+export function tickDots(ctx: GameContext, dtSeconds: number): void {
+  const dots = dotsOf(ctx);
+  for (const tick of dots.field.tick(dtSeconds)) {
+    const record = dots.records.get(tick.id);
+    if (record === undefined) continue;
+    if (ctx.scene.entity.get(record.targetId) === null) {
+      dots.field.cancel(tick.id);
+      dots.records.delete(tick.id);
       continue;
     }
-    if (nowMs < dot.nextTickMs) continue;
-    dot.nextTickMs = nowMs + 500;
-    ctx.scene.entity.effect({
-      from: dot.fromId,
-      to: dot.targetId,
-      effect: "damage",
-      via: { amount: Math.max(1, Math.round(dot.dps / 2)) },
-    });
+    if (tick.damage > 0) {
+      ctx.scene.entity.effect({
+        from: record.fromId,
+        to: record.targetId,
+        effect: "damage",
+        via: { amount: Math.max(1, Math.round(tick.damage)) },
+      });
+    }
+    if (tick.expired) dots.records.delete(tick.id);
   }
 }

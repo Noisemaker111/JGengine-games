@@ -5,6 +5,7 @@ import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { rememberHome } from "./entities/enemies/ai";
 import { reservePhase } from "./handroll";
 import { activeCharacter } from "./characters";
+import { earn } from "./cash";
 
 /** Fixed authored location; independent of capture-time spawn overrides. */
 export const RELAY = { x: -505, z: 581, radius: 22, seconds: 150, uploadSeconds: 6 };
@@ -52,8 +53,8 @@ export function relayEnemyDied(ctx: GameContext, event: EntityDiedEvent): void {
 function finish(ctx: GameContext, state: RelayState, won: boolean, reason: string): void {
   for (const id of state.enemies) ctx.scene.entity.despawn(id);
   if (won && !state.rewarded) {
-    ctx.game.economy.grant(ctx.player.userId, "cash", 120);
-    ctx.game.economy.grant(ctx.player.userId, "cores", 3);
+    earn(ctx, "cash", 120, "relay-reward", "dead-air");
+    earn(ctx, "cores", 3, "relay-reward", "dead-air");
   }
   relayStore.write(ctx, { ...state, enemies: [], phase: won ? "won" : "lost", rewarded: state.rewarded || won, reason });
   setGamePhase(ctx, "ended");

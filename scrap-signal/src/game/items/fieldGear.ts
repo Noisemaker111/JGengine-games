@@ -8,6 +8,7 @@ import { createItemLedger, salvageItem, type SalvageYield } from "@jgengine/core
 import { defineStore } from "@jgengine/core/store/defineStore";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { noteEquipped } from "../feel";
+import { earn } from "../cash";
 import { FAMILY_BASES, MANUFACTURERS, gunById, registerGun, type GunDef, type GunFamily, type Rarity } from "../handroll";
 import { lastPickupStore } from "../stores";
 
@@ -261,7 +262,7 @@ export function salvageFieldGun(ctx: GameContext, dropId: string): SalvageYield 
   if (inventories.count("run", dropId) > 0) inventories.take("run", dropId, 1);
   else inventories.take("stash", dropId, 1);
   saveDrops();
-  ctx.game.economy.grant(ctx.player.userId, result.yield.currency, result.yield.amount);
+  earn(ctx, result.yield.currency, result.yield.amount, "salvage", dropId);
   const current = fieldGearStore.read(ctx);
   if (current !== null) fieldGearStore.write(ctx, { ...current, stash: stashNames() });
   return result.yield;

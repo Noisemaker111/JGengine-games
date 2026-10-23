@@ -3,6 +3,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { AMMO_STAT_IDS } from "../ammo";
 import { bonus } from "../characters";
+import { gunById } from "./roll";
 import type { GunDef } from "./guns";
 
 /** The live mag capacity for a gun after talent `magSize` bonuses — at least one round. */
@@ -106,4 +107,25 @@ export function tickReloads(ctx: GameContext, dtSeconds: number): void {
 /** Spend a gun's per-shot ammo from the magazine; returns false without effect when insufficient. */
 export function consumeRound(ctx: GameContext, gun: GunDef): boolean {
   return magFor(ctx, gun).fire(gun.ammoPerShot);
+}
+
+/** Loaded rounds per live gun, as the save document stores them. */
+export function magazineSave(ctx: GameContext): { gunId: string; loaded: number }[] {
+  return [...magazinesOf(ctx)].map(([gunId, entry]) => ({ gunId, loaded: entry.mag.loaded() }));
+}
+
+/**
+ * Put loaded rounds back on each gun and refill the rest, dropping entries for guns this build no
+ * longer knows. Called after a world restore, so the guns exist in the hotbar again.
+ */
+export function restoreMagazines(ctx: GameContext, saved: readonly { gunId: string; loaded: number }[]): void {
+  const magazines = magazinesOf(ctx);
+  magazines.clear();
+  for (const entry of saved) {
+    const gun = gunById(entry.gunId);
+    if (gun === undefined) continue;
+    const capacity = effectiveMagSize(gun);
+    const loaded = Math.max(0, Math.min(capacity, Math.round(entry.loaded)));
+    magazines.set(gun.id, buildEntry(ctx, gun, capacity, effectiveReloadMs(gun), loaded));
+  }
 }

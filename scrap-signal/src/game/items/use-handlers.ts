@@ -4,13 +4,12 @@ import { seededRng } from "@jgengine/core/random/rng";
 import { cameraShake } from "@jgengine/shell/camera";
 import { AMMO_LABELS } from "../ammo";
 import { bonus } from "../characters";
-import { enemyById } from "../entities/enemies/catalog";
+import { resolveGunHit } from "../combat/damage";
 import { noteHit, noteShot } from "../feel";
 import { playHit, playShot } from "../audio/drive";
 import {
   applyElementalProc,
   consumeRound,
-  elementalDamageMult,
   gunById,
   isReloading,
   magLoaded,
@@ -37,50 +36,31 @@ function warn(ctx: GameContext, from: string, text: string): void {
   ctx.scene.entity.floatText({ instanceId: from, text, kind: "warn" });
 }
 
-function gunDamageMult(): number {
-  return 1 + bonus("gunDamage");
-}
-
 /** Hit-feel tier for a landed shot: kills read heaviest, crits shove harder, plain hits only flinch. */
 export function hitFeel(crit: boolean, killed: boolean): HitReactionConfig | "enemyKilled" {
   if (killed) return "enemyKilled";
   return crit ? { hitstopMs: 30, knockback: 0.35, trauma: 0.08 } : { hitstopMs: 0, knockback: 0.12 };
 }
 
-function applyHitModifiers(
-  ctx: GameContext,
-  from: string,
-  targetId: string,
-  gunId: string,
-  nowMs: number,
-): void {
+/**
+ * One landed pellet: the shared damage model resolves the number (element chart, gun talent, crit),
+ * the world takes it as one application, and the feel cues read the same resolution. Errors out on a
+ * body the damage model has no profile for — that is the wiring check, not a zero-damage hit.
+ */
+function landGunHit(ctx: GameContext, from: string, targetId: string, gunId: string, nowMs: number): void {
   const gun = gunById(gunId);
   if (gun === undefined) return;
-  const targetEntity = ctx.scene.entity.get(targetId);
-  if (targetEntity === null) return;
-  const targetDef = enemyById(targetEntity.name);
-  const surface = targetDef?.surface ?? "flesh";
-  const shield = ctx.scene.entity.stats.get(targetId, "shield");
-  const shielded = shield !== null && shield.current > 0;
-
-  let mult = elementalDamageMult(ctx, gun.element, surface, shielded, targetId, nowMs) * gunDamageMult();
-  const crit = combatRng() < gun.weapon.critChance + bonus("critChance");
-  if (crit) mult *= gun.weapon.critMult + bonus("critDamage");
-
-  const extra = Math.round(gun.weapon.damage * (mult - 1));
-  if (extra !== 0) {
-    ctx.scene.entity.effect({ from, to: targetId, effect: "damage", via: { amount: extra } });
-  }
-  if (crit) {
+  const outcome = resolveGunHit(ctx, gun, from, targetId, gun.elementChance + bonus("elementChance"));
+  if (outcome.crit) {
     ctx.scene.entity.floatText({ instanceId: targetId, text: "CRITICAL!", kind: "warn" });
   }
   const killed = (ctx.scene.entity.stats.get(targetId, "health")?.current ?? 1) <= 0;
-  noteHit(nowMs, crit, killed);
+  noteHit(nowMs, outcome.crit, killed);
   // Body feel through the SDK's shared hit reaction: the target flinches (knockback + shell flinch
   // animation), crits add a light shake, and kills use the calibrated enemyKilled preset.
-  ctx.scene.entity.hitReaction({ from, to: targetId, config: hitFeel(crit, killed) });
-  playHit(ctx, ctx.scene.entity.get(targetId)?.position ?? [0, 0, 0], crit);
-  applyElementalProc(ctx, combatRng, gun, from, targetId, nowMs);
+  ctx.scene.entity.hitReaction({ from, to: targetId, config: hitFeel(outcome.crit, killed) });
+  playHit(ctx, ctx.scene.entity.get(targetId)?.position ?? [0, 0, 0], outcome.crit);
+  applyElementalProc(ctx, combatRng, gun, from, targetId);
 }
 
 const fireGun: ItemUseHandler<GameContext> = {
@@ -112,9 +92,11 @@ const fireGun: ItemUseHandler<GameContext> = {
     cameraShake(Math.min(0.3, 0.05 + gun.weapon.damage / 400), 6);
 
     const aim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
+    // Delivery stays the engine projectile (its cone, ballistics and settled event are what the tracer
+    // and cover rules are built on); damage is the shared model's job, so the projectile itself lands 0.
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: gun.id },
+      via: { item: gun.id, amount: 0 },
       aim,
       effect: "damage",
     });
@@ -124,13 +106,22 @@ const fireGun: ItemUseHandler<GameContext> = {
       ctx.time.after(gun.weapon.projectile.fuseTime, () => {
         const settled = ctx.scene.entity.settleProjectile(shotId);
         if (settled.status !== "settled") return;
+        // A launched round's direct impact was never elemental or critical: it lands its base number.
+        for (const hit of settled.hits) {
+          ctx.scene.entity.effect({
+            from: input.from,
+            to: hit.instanceId,
+            effect: "damage",
+            via: { amount: gun.weapon.damage, item: gun.id },
+          });
+        }
         cameraShake(0.45);
         ctx.scene.entity.effect({
           from: input.from,
           at: settled.at,
           radius: explosion.radius,
           effect: "damage",
-          via: { amount: Math.round(gun.weapon.damage * gunDamageMult()) },
+          via: { amount: Math.round(gun.weapon.damage * (1 + bonus("gunDamage"))) },
         });
       });
       return { state: ctx };
@@ -139,7 +130,7 @@ const fireGun: ItemUseHandler<GameContext> = {
     const settled = ctx.scene.entity.settleProjectile(shotId);
     if (settled.status === "settled") {
       for (const hit of settled.hits) {
-        applyHitModifiers(ctx, input.from, hit.instanceId, gun.id, nowMs);
+        landGunHit(ctx, input.from, hit.instanceId, gun.id, nowMs);
       }
       if (settled.hits.length > 0 && gun.weapon.explosion !== undefined) {
         ctx.scene.entity.effect({
@@ -171,13 +162,21 @@ const throwGrenade: ItemUseHandler<GameContext> = {
     const aim = input.aim ?? { yaw: ctx.scene.entity.get(input.from)?.rotationY ?? 0, pitch: 0 };
     const shotId = ctx.scene.entity.fireProjectile({
       from: input.from,
-      via: { item: "frag_grenade" },
+      via: { item: "frag_grenade", amount: 0 },
       aim,
       effect: "damage",
     });
     ctx.time.after(GRENADE.fuseTime, () => {
       const settled = ctx.scene.entity.settleProjectile(shotId);
       if (settled.status !== "settled") return;
+      for (const hit of settled.hits) {
+        ctx.scene.entity.effect({
+          from: input.from,
+          to: hit.instanceId,
+          effect: "damage",
+          via: { amount: GRENADE.damage, item: "frag_grenade" },
+        });
+      }
       cameraShake(0.5);
       ctx.scene.entity.effect({
         from: input.from,

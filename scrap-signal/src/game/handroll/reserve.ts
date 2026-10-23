@@ -21,6 +21,19 @@ export function reservePhase(ctx: GameContext): ReservePhase {
   return reserveOf(ctx).phase;
 }
 
+/** The reserve state as the save document stores it. */
+export function reserveSave(ctx: GameContext): ReserveState {
+  return { ...reserveOf(ctx) };
+}
+
+/** Put a saved reserve state back on the session and the HUD mirror. */
+export function restoreReserve(ctx: GameContext, state: ReserveState): void {
+  const reserve = reserveOf(ctx);
+  reserve.phase = state.phase === "downed" || state.phase === "dead" ? state.phase : "up";
+  reserve.downedUntilMs = Number.isFinite(state.downedUntilMs) ? state.downedUntilMs : 0;
+  reserveStore.write(ctx, { phase: reserve.phase, untilMs: reserve.downedUntilMs });
+}
+
 export function enterDowned(ctx: GameContext, nowMs: number): void {
   const reserve = reserveOf(ctx);
   reserve.phase = "downed";
