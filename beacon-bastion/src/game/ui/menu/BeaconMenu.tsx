@@ -21,6 +21,7 @@ import {
   beaconSave,
   beaconSlots,
   firstEmptyKeep,
+  keepForNewRun,
   loadSlot,
   prepareKeep,
   refreshBeaconSlots,
@@ -85,6 +86,7 @@ export function BeaconMenu() {
   const [notice, setNotice] = useState<string | null>(null);
   const recent = beaconSlots.mostRecent();
   const emptyKeep = firstEmptyKeep();
+  const newKeep = keepForNewRun();
   const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
 
   const { reset } = router;
@@ -126,7 +128,8 @@ export function BeaconMenu() {
   const whileLoading = async (label: string, work: () => Promise<unknown>) => {
     setBusy(label);
     try {
-      await work();
+      // Long enough to read the tip, short enough that a local document never feels slow.
+      await Promise.all([work(), new Promise((resolve) => setTimeout(resolve, 320))]);
     } finally {
       setBusy(null);
     }
@@ -164,8 +167,12 @@ export function BeaconMenu() {
           {
             id: "new",
             label: "New defense",
-            hint: emptyKeep === null ? "Every keep holds a defense - clear one under Load & save" : `Raise the first tower in ${KEEP_LABEL[emptyKeep] ?? emptyKeep}`,
-            disabled: emptyKeep === null,
+            hint: newKeep === null
+              ? "No keep available"
+              : emptyKeep === newKeep
+                ? `Raise the first tower in ${KEEP_LABEL[newKeep] ?? newKeep}`
+                : `Every keep is held - replaces the oldest (${KEEP_LABEL[newKeep] ?? newKeep})`,
+            disabled: newKeep === null,
           },
           { id: "keeps", label: "Load & save", hint: `${keeps.filter((slot) => !slot.empty).length} of ${keeps.length} keeps held` },
           { id: "settings", label: "Settings", hint: "Sound, picture, controls" },
@@ -180,7 +187,7 @@ export function BeaconMenu() {
             return;
           }
           if (id === "new") {
-            const slot = firstEmptyKeep();
+            const slot = keepForNewRun();
             if (slot === null) return;
             void whileLoading("Raising the keep", async () => {
               await prepareKeep(ctx, slot);
@@ -310,3 +317,4 @@ function SettingsPane({ onBack, onCaptureChange }: { onBack: () => void; onCaptu
     </div>
   );
 }
+

@@ -22,12 +22,13 @@ body,
 
 .bb-wordmark {
   display: block;
-  font-size: clamp(34px, 6vw, 62px);
-  line-height: 0.92;
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1.04;
+  padding-bottom: 4px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--jg-accent);
-  text-shadow: 0 0 22px var(--jg-accent-glow);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.72);
 }
 
 .bb-eyebrow {
@@ -139,4 +140,19 @@ body,
 
 .bb-loading {
   z-index: 40;
+}
+
+/* SaveSlotMenu always renders a Delete action; GameSave 0.29.0 has no delete-slot API
+   (jgengine #2138), so a keep cannot be cleared honestly yet. Hidden until that seam lands. */
+.bb-menu [data-save-slot-delete] { display: none !important; }
+
+
+/* The wordmark sits on a live arena: give the title the keep's own plate so the small type
+   reads over the lit road instead of fighting it. */
+.bb-menu [data-title-menu] {
+  padding: 26px 28px 22px;
+  background: linear-gradient(160deg, rgba(14, 16, 10, 0.86), rgba(8, 9, 6, 0.78));
+  border: 1px solid var(--jg-edge);
+  border-radius: 2px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
 }

@@ -218,6 +218,16 @@ export function firstEmptyKeep(): string | null {
   return empty?.id ?? null;
 }
 
+/** Where a new defense goes: an empty keep, or the oldest one when every keep is already held. */
+export function keepForNewRun(): string | null {
+  const empty = firstEmptyKeep();
+  if (empty !== null) return empty;
+  const held = beaconSlots.list()
+    .filter((slot) => !slot.empty)
+    .sort((a, b) => (a.savedAt ?? 0) - (b.savedAt ?? 0));
+  return held[0]?.id ?? null;
+}
+
 /** The keep `Continue` resumes — the newest document, not a remembered flag. */
 export function newestKeep(): string | null {
   return beaconSlots.mostRecent()?.id ?? null;
