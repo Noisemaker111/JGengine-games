@@ -7,6 +7,7 @@ import { session } from "./game/session";
 import { disposeWorld, setupWorld } from "./game/world/setup";
 import { currentMetrics, economyDayTick, tickRating } from "./game/sim/economy";
 import { spawnGuests, tickGuests } from "./game/sim/guests";
+import { tickStaff } from "./game/staff";
 import { savePark } from "./game/persistence";
 import { syncAmbience } from "./game/audio";
 
@@ -43,6 +44,7 @@ export const loop: GameLoop<GameContext> = {
     updateOpenState(ctx);
     const metrics = currentMetrics();
     spawnGuests(ctx, dt, metrics.totalAppeal);
+    tickStaff(ctx, dt);
     tickGuests(ctx, dt, metrics.tracks);
     tickRating(ctx, dt, metrics);
     if (!session.won && metrics.rides >= 3 && session.rating >= 220 &&

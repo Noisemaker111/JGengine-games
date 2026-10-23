@@ -9,7 +9,7 @@ import { useModelAnimation } from "@jgengine/shell/render/useModelAnimation";
 import { useStore } from "@jgengine/react/store";
 
 import { bodyColor, type AlienBodyPlan } from "../creatures/bodyPlan";
-import { moodOf } from "../needs/needs";
+import { moodOfNeeds } from "../agents";
 import { MOOD_COLORS } from "../palette";
 import { householdStore } from "../session/store";
 import { resolveAlienMeshUrl } from "../models";
@@ -106,7 +106,7 @@ export function AlienMesh({ entity }: { entity: SceneEntity }): ReactNode {
 
   const member = household.members[entity.id];
   const moving = member !== undefined && (member.action.kind === "seek" || member.action.kind === "wander");
-  const mood = member !== undefined ? moodOf(member.needs) : null;
+  const mood = member !== undefined ? moodOfNeeds(member.needs) : null;
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
@@ -158,3 +158,4 @@ export function AlienMesh({ entity }: { entity: SceneEntity }): ReactNode {
     </group>
   );
 }
+

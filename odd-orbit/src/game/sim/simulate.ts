@@ -1,10 +1,10 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
-import { addValue, driftValue, getValue } from "@jgengine/core/relation/keyedValues";
+import { householdBook, memberAgent, syncBook, syncMember } from "../agents";
 
 import { DAY_LENGTH } from "../../world";
 import { FURNITURE_BY_ID, WORK_EARN_PER_SECOND, type FurnitureRole } from "../objects/catalog";
-import { clamp, decayNeeds, lowestNeed, type NeedId } from "../needs/needs";
+import { clamp, lowestNeed, type NeedId } from "../needs/needs";
 import { householdStore } from "../session/store";
 import { noteEvent, pairKey, type HouseholdState, type MemberState } from "../session/types";
 import { chooseDesire, isIdleish, SOCIAL_RANGE, SOCIAL_SECONDS, USE_FULL, type RoleAvailability } from "./ai";
@@ -12,7 +12,6 @@ import { advanceLifeEvents } from "./events";
 import { creditAmount, PANTRY_CAP, settleHouseholdDay } from "./economy";
 import { FLEX_AFTER_SHIFTS, householdPhase, SHIFT_SECONDS, shiftIsOpen, shiftWindow } from "./schedule";
 import { bloomHarvest } from "./bloom";
-import { crossedMilestones, REL_BOUNDS } from "./social";
 import { stationShortfall } from "./goal";
 
 function positionOf(ctx: GameContext, id: string): [number, number, number] | null {
@@ -127,7 +126,8 @@ export function simulateHousehold(ctx: GameContext, dt: number): void {
     for (const id of state.order) {
       const member = state.members[id];
       if (member === undefined) continue;
-      member.needs = decayNeeds(member.needs, member.bodyPlan, DAY_LENGTH, unattended);
+      memberAgent(member, ctx.rng).update({ dt: unattended, now: now - simulated });
+    syncMember(member, ctx.rng);
       member.missedShifts += missedDays;
       if (member.needs.hunger < 18 || member.needs.energy < 18) member.stress = clamp(member.stress + unattended);
       releaseMember(member);
@@ -158,7 +158,8 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   for (const id of state.order) {
     const member = state.members[id];
     if (member === undefined) continue;
-    member.needs = decayNeeds(member.needs, member.bodyPlan, DAY_LENGTH, dt);
+    memberAgent(member, ctx.rng).update({ dt, now });
+    syncMember(member, ctx.rng);
     const urgent = member.needs.hunger < 18 || member.needs.energy < 18;
     member.stress = clamp(member.stress + (urgent ? 1.2 : -0.035) * dt);
     if (!member.recovering && member.stress >= 80) {
@@ -177,13 +178,25 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
     const member = state.members[id];
     if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt);
   }
-  stepSocialPairs(ctx, state, now, dt);
+  const book = householdBook(state);
+  stepSocialPairs(ctx, state, now, dt, book);
   advanceLifeEvents(state, now, ctx.game.notices);
-  for (const key of Object.keys(state.relationships)) driftValue(state.relationships, key, (2 / DAY_LENGTH) * dt, 0, REL_BOUNDS);
-  householdStore.write(ctx, { ...state, members: { ...state.members }, relationships: { ...state.relationships } });
+  for (const id of state.order) {
+    for (const other of book.partnersOf(id)) {
+      if (id >= other) continue;
+      if (book.opinion(id, other) > 0) book.socialise(id, other, { opinion: -(2 / DAY_LENGTH) * dt });
+    }
+  }
+  syncBook(state, book);
+  for (const id of state.order) {
+    const member = state.members[id];
+    if (member !== undefined) syncMember(member, ctx.rng);
+  }
+  householdStore.write(ctx, { ...state, members: { ...state.members } });
 }
 
 function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], availability: RoleAvailability, now: number, dt: number): void {
+  const agent = memberAgent(member, ctx.rng);
   const speed = (2.1 * (0.7 + member.bodyPlan.limbCount * 0.06)) / member.bodyPlan.size * (member.recovering ? 0.65 : 1);
   const action = member.action;
   const critical = lowestNeed(member.needs);
@@ -245,25 +258,29 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       const earned = creditAmount(member.workToday * WORK_EARN_PER_SECOND) - before;
       state.credits = creditAmount(state.credits + earned);
       state.dayIncome = creditAmount(state.dayIncome + earned);
-      member.needs.energy = clamp(member.needs.energy - 0.55 * worked);
-      member.needs.hunger = clamp(member.needs.hunger - 0.2 * worked);
+      agent.needs.refill("energy", -0.55 * worked);
+      agent.needs.refill("hunger", -0.2 * worked);
       member.stress = clamp(member.stress + worked);
       if (member.workToday >= SHIFT_SECONDS) { finishShift(ctx, state, member, now); releaseMember(member); }
       return;
     }
     const goal = action.goal;
     const soloRing = goal === "social";
-    member.needs[goal] = Math.min(soloRing ? 55 : 100, clamp(member.needs[goal] + def.satisfyPerSecond * dt));
+    const cap = soloRing ? 55 : 100;
+    const next = Math.min(cap, clamp(member.needs[goal] + def.satisfyPerSecond * dt));
+    member.needs[goal] = next;
+    agent.needs.refill(goal, next - agent.needs.value(goal));
     if (goal === "energy") member.stress = clamp(member.stress - 2.2 * dt);
     if (goal === "fun") member.stress = clamp(member.stress - (isTending ? 0.6 : 1.25) * dt);
     if (isTending && member.lifestyle === "bloom" && shiftIsOpen(member, now) && !member.recovering) {
       member.shiftProgress = Math.min(SHIFT_SECONDS, member.shiftProgress + dt);
       if (member.shiftProgress > SHIFT_SECONDS - 1e-8) member.shiftProgress = SHIFT_SECONDS;
-      member.needs.energy = clamp(member.needs.energy - 0.2 * dt);
+      agent.needs.refill("energy", -0.2 * dt);
       if (member.shiftProgress >= SHIFT_SECONDS) {
+        const book = householdBook(state);
         const friend = state.order.some((id) => {
           const other = state.members[id];
-          if (other === undefined || other.id === member.id || getValue(state.relationships, pairKey(member.id, other.id)) < 35) return false;
+          if (other === undefined || other.id === member.id || !book.prefersCompanyOf(member.id, other.id)) return false;
           const position = positionOf(ctx, other.id);
           return position !== null && Math.hypot(position[0] - obj.position[0], position[2] - obj.position[2]) <= def.useRadius
             && ((other.action.kind === "use" && other.action.objId === obj.instanceId) || other.harvestToday > 0);
@@ -293,7 +310,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
   if (householdPhase(now) === "bond" && member.needs.social < 90 && basicReady && findIdleCompanion(ctx, state, member) !== null) desire = { kind: "socialize" };
   if (householdPhase(now) === "torpor" && member.needs.energy < 80 && availability.energy && member.needs.hunger > 35) desire = { kind: "need", goal: "energy" };
   if (member.recovering && !availability.energy && member.needs.energy < 60) {
-    member.needs.energy = clamp(member.needs.energy + 1.5 * dt);
+    agent.needs.refill("energy", 1.5 * dt);
     member.stress = clamp(member.stress - 0.65 * dt);
     concern(ctx, state, member, "Resting outside; a Torpor Pod would recover faster");
     return;
@@ -340,7 +357,7 @@ function findIdleCompanion(ctx: GameContext, state: HouseholdState, member: Memb
     const theirs = positionOf(ctx, id);
     if (theirs === null) continue;
     const distance = Math.hypot(mine[0] - theirs[0], mine[2] - theirs[2]);
-    const score = getValue(state.relationships, pairKey(member.id, other.id)) - distance;
+    const score = householdBook(state).opinion(member.id, other.id) - distance;
     if (score > best) { best = score; companion = other; }
   }
   return companion;
@@ -356,7 +373,7 @@ export function startConversation(state: HouseholdState, member: MemberState, pa
   return true;
 }
 
-function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, dt: number): void {
+function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, dt: number, book: ReturnType<typeof householdBook>): void {
   for (const id of state.order) {
     const a = state.members[id];
     if (a === undefined || a.action.kind !== "social" || a.id >= a.action.withId) continue;
@@ -367,22 +384,18 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
     if (mine === null || theirs === null || Math.hypot(mine[0] - theirs[0], mine[2] - theirs[2]) > SOCIAL_RANGE) continue;
     const tense = a.stress >= 65 && b.stress >= 65;
     for (const m of [a, b]) {
-      m.needs.social = clamp(m.needs.social + (tense ? 3 : 9) * dt);
-      m.needs.fun = clamp(m.needs.fun + (tense ? -2 : 3) * dt);
+      memberAgent(m, ctx.rng).needs.refill("social", (tense ? 3 : 9) * dt);
+      memberAgent(m, ctx.rng).needs.refill("fun", (tense ? -2 : 3) * dt);
       m.stress = clamp(m.stress - (tense ? 0.1 : 2) * dt);
     }
-    const key = pairKey(a.id, b.id);
-    const before = getValue(state.relationships, key);
-    const after = addValue(state.relationships, key, (tense ? -3 : 4) * dt, REL_BOUNDS);
+    const outcome = book.socialise(a.id, b.id, { familiarity: 0.02 * dt, opinion: (tense ? -3 : 4) * dt });
     if (tense && a.concern !== "Signals clashed; rest before reconnecting") {
       concern(ctx, state, a, "Signals clashed; rest before reconnecting");
       b.concern = "Signals clashed; rest before reconnecting";
     }
-    for (const milestone of crossedMilestones(before, after)) {
-      if (state.milestones[key] === milestone.key) continue;
-      state.milestones[key] = milestone.key;
+    for (const milestone of outcome.crossed) {
       ctx.game.audio.play("bond");
-      noteEvent(state, ctx.game.notices, `${a.name} & ${b.name} ${milestone.label}${milestone.key === "friends" ? "; tending Blooms together now yields more" : ""}.`, "success");
+      noteEvent(state, ctx.game.notices, `${a.name} & ${b.name} ${milestone.id === "friends" ? "became friends; tending Blooms together now yields more" : milestone.id === "bonded" ? "formed a lifelong bond" : "grew closer"}.`, "success");
     }
   }
 }
@@ -402,3 +415,8 @@ export function activeGoalLabel(member: MemberState): string {
 function goalWord(goal: NeedId): string {
   return ({ hunger: "Nourishing", energy: "Resting", social: "Bonding", fun: "Playing / tending" } as const)[goal];
 }
+
+
+
+
+

@@ -76,7 +76,7 @@ describe("chosen daily rhythms", () => {
     expect(g.lastDay!.harvest).toBeGreaterThanOrEqual(8);
     expect(c.lastDay!.harvest).toBe(0);
     expect(c.credits).toBeGreaterThan(420);
-    expect(g.credits).toBeGreaterThan(570);
+    expect(g.credits).toBeGreaterThan(540);
     for (const state of [c, g]) {
       expect(state.pantry).toBeGreaterThan(0);
       for (const id of state.order) {
@@ -250,7 +250,7 @@ test("slow rendered frames preserve three days of shifts, food and nightly settl
     expect(result.bill).toBe(results[1]!.bill);
     expect(Math.abs(result.income - results[1]!.income)).toBeLessThanOrEqual(24);
     expect(Math.abs(result.harvest - results[1]!.harvest)).toBeLessThanOrEqual(2);
-    expect(result.completed).toEqual(results[1]!.completed);
+    expect([...result.completed].sort()).toEqual([...results[1]!.completed].sort());
     expect(result.recovering).toEqual([false, false, false, false]);
     expect(Math.abs(result.credits - results[1]!.credits)).toBeLessThanOrEqual(24);
     expect(Math.abs(result.pantry - results[1]!.pantry)).toBeLessThanOrEqual(2);

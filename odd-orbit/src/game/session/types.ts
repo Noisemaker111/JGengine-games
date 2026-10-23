@@ -23,6 +23,7 @@ export interface MemberState {
   name: string;
   bodyPlan: AlienBodyPlan;
   job: string;
+  /** The shared agent's need values, saved as plain numbers the HUD and the loop both read. */
   needs: Record<NeedId, number>;
   action: MemberAction;
   assignedByPlayer: boolean;
@@ -53,8 +54,10 @@ export interface HouseholdState {
   seed: string;
   members: Record<string, MemberState>;
   order: string[];
+  /** Opinion per pair, from the shared relationship book. */
   relationships: Record<string, number>;
-  milestones: Record<string, string>;
+  /** How much time each pair has shared; a bond needs this as well as opinion. */
+  familiarity: Record<string, number>;
   credits: number;
   pantry: number;
   debt: number;
@@ -84,7 +87,7 @@ export function createHousehold(seed: string): HouseholdState {
     members: {},
     order: [],
     relationships: {},
-    milestones: {},
+    familiarity: {},
     credits: 640,
     pantry: 12,
     debt: 0,

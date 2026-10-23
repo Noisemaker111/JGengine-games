@@ -6,7 +6,7 @@ import { registerCommands } from "./commands";
 import { content } from "./content";
 import { readOrbitSave, restoreOrbitSave, writeOrbitSave } from "./session/save";
 import { householdStore } from "./session/store";
-import { USE_FULL } from "./sim/ai";
+const USE_FULL = 98;
 import { setupWorld } from "./sim/setup";
 import { simulateHousehold } from "./sim/simulate";
 
@@ -100,3 +100,4 @@ test("clicking another font replaces the meal, while a different goal and releas
   expect(firstMember(ctx).action).toEqual({ kind: "idle" });
   expect(firstMember(ctx).assignedByPlayer).toBe(false);
 });
+

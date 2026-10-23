@@ -2,7 +2,8 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-import { moodOf, NEEDS } from "../../needs/needs";
+import { NEEDS } from "../../needs/needs";
+import { moodOfNeeds } from "../../agents";
 import { householdStore } from "../../session/store";
 import { pairKey } from "../../session/types";
 import { activeGoalLabel, waitingForStation } from "../../sim/simulate";
@@ -10,7 +11,7 @@ import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShif
 import { bloomHarvest } from "../../sim/bloom";
 import { FURNITURE_BY_ID } from "../../objects/catalog";
 import { shiftIsOpen } from "../../sim/schedule";
-import { relationLabel } from "../../sim/social";
+import { relationLabel } from "../../agents";
 import { AlienSwatch, MoodBadge, NeedBar } from "./bits";
 export function Inspector() {
   const household = useStore(householdStore);
@@ -26,7 +27,7 @@ export function Inspector() {
   const hasPaidStation = objects.some(object => member.lifestyle === "bloom" ? object.catalogId === "bloom_planter" : FURNITURE_BY_ID[object.catalogId]?.role === "work");
   const paidReason = !hasPaidStation ? `Add a ${member.lifestyle === "bloom" ? "Bloom Planter" : "Yield Console"} with Furnish` : member.recovering ? "Recover before paid work" : member.shiftDay === household.day ? "Today's paid shift is finished or missed" : !shiftIsOpen(member, clock.now) ? `Paid window: ${scheduleLabel(member)}` : null;
   const care = [{ goal:"hunger", label:"Nourish", detail:"Uses 1 ration" }, { goal:"energy", label:"Rest", detail:"Lowers stress" }, { goal:"fun", label:"Play", detail:"Lowers stress" }] as const;
-  const mood = moodOf(member.needs);
+  const mood = moodOfNeeds(member.needs);
   const shiftProgress = member.lifestyle === "yield" ? member.workToday : member.shiftProgress;
   const shiftLabel = yieldShiftLabel(member, waitingForStation(household, member, objects));
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
@@ -58,3 +59,4 @@ export function Inspector() {
     </div>
   </HudSurface>;
 }
+

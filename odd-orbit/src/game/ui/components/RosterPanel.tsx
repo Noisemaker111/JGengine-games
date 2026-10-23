@@ -2,7 +2,8 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-import { moodOf, NEEDS } from "../../needs/needs";
+import { NEEDS } from "../../needs/needs";
+import { moodOfNeeds } from "../../agents";
 import { householdStore } from "../../session/store";
 import { activeGoalLabel } from "../../sim/simulate";
 import { scheduleLabel } from "../../sim/schedule";
@@ -14,7 +15,7 @@ export function RosterPanel({ compact = false }: { compact?: boolean }) {
   return <HudSurface className={`orbit-roster ${compact ? "compact" : ""}`} as="section" aria-label="Household"><h2>Household <span>{household.order.length} beings</span></h2><div className="orbit-member-list">{household.order.map(id => {
     const member = household.members[id];
     if (!member) return null;
-    const mood = moodOf(member.needs);
+    const mood = moodOfNeeds(member.needs);
     const selected = household.selectedMemberId === id;
     return <HudButton key={id} className={`orbit-member ${selected ? "selected" : ""} ${member.recovering ? "recovering" : ""}`} aria-pressed={selected} onClick={() => commands.run("member.select", { id: selected ? null : id })}>
       <div className="orbit-member-heading"><AlienSwatch plan={member.bodyPlan}/><div><strong>{member.name}</strong><small>{activeGoalLabel(member)}</small></div></div>
@@ -24,3 +25,4 @@ export function RosterPanel({ compact = false }: { compact?: boolean }) {
     </HudButton>;
   })}</div></HudSurface>;
 }
+

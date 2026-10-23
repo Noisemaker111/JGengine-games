@@ -49,6 +49,7 @@ describe("park saves and real command boundaries", () => {
     expect(session.placed.get(built.id)).toEqual(built);
     expect(session.occupied.get("-40,-40")).toBe(built.id);
     expect(snapshotPark(second.ctx).guests).toEqual(saved.guests);
+    expect(snapshotPark(second.ctx).staff).toEqual(saved.staff);
     expect(second.ctx.time.isPaused()).toBe(true);
     second.ui.invoke("park.start");
     second.ui.invoke("build.demolish", { id: built.id });

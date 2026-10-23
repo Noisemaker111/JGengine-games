@@ -6,7 +6,7 @@ import { editorLayers } from "../../editorLayers";
 import { registerBuildCommands } from "../build/commands";
 import { placeObject } from "../build/placement";
 import { buildableDef } from "../objects/catalog";
-import { seedGuests } from "../sim/guests";
+import { seedGuests, resetGuestAgents } from "../sim/guests";
 import { resetSession, session } from "../session";
 import { restorePark, savePark } from "../persistence";
 import { traceNative, tracePark } from "../evidence";
@@ -63,6 +63,7 @@ function seedStarterPark(ctx: GameContext): void {
 
 export function setupWorld(ctx: GameContext): void {
   resetSession();
+  resetGuestAgents();
   registerBuildCommands(ctx);
   if (!restorePark(ctx)) {
     seedStarterPark(ctx);
