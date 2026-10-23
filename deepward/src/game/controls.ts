@@ -550,8 +550,8 @@ async function applyRecord(ctx: GameContext, save: RecordSession, record: RunSna
   // A departure with no run section is a Life the record lost mid-dive; settle it as before.
   if (record === null || record.dive === null) {
     const recovered = recoverInterrupted(home);
-    if (recovered !== home) { viewStore.update(ctx, v => ({ ...v, home: recovered })); await save.commit(recovered); }
-    viewStore.write(ctx, { ...viewStore.read(ctx), home, mode: recovered.reprintPending ? "reprinting" : "home", dive: null, panel: null, paused: false,
+    if (recovered !== home) await save.commit(recovered);
+    viewStore.write(ctx, { ...viewStore.read(ctx), home: recovered, mode: recovered.reprintPending ? "reprinting" : "home", dive: null, panel: null, paused: false,
       pending: null, error: "", trace: null, ammo: null, hint: recovered.last?.reason ?? viewStore.read(ctx).hint });
     teleport(ctx, HOME_SPAWN); clearLoot(ctx); syncPrint(ctx, null); syncPlayer(ctx, null);
     openTitle(ctx);
