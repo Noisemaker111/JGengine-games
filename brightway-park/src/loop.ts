@@ -6,7 +6,7 @@ import { DAY_LENGTH } from "./game/catalog";
 import { session } from "./game/session";
 import { disposeWorld, setupWorld } from "./game/world/setup";
 import { economyDayTick } from "./game/sim/economy";
-import { stepPark } from "./game/sim/step";
+import { registerCaptureCommands, stepPark } from "./game/capture";
 import { savePark } from "./game/persistence";
 
 // Midnight is a simulation event, scheduled after restoring the clock.
@@ -22,6 +22,7 @@ function scheduleMidnight(ctx: GameContext): void {
 export const loop: GameLoop<GameContext> = {
   onInit(ctx) {
     setupWorld(ctx);
+    registerCaptureCommands(ctx);
     setGamePhase(ctx, "menu");
     scheduleMidnight(ctx);
   },

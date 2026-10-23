@@ -45,6 +45,9 @@ export const game = defineGame({
       title: [],
       paused: ["orbit.new", "pauseToggle"],
       "mid-shift": ["orbit.new", { name: "household.stage", input: { mode: "shift" } }],
+      // Four days of the same simulation: mastery tiers and promotion rungs have moved, which is the
+      // roster a career proof needs and the one a lane otherwise plays three days to reach.
+      "mid-week": ["orbit.new", { name: "household.stage", input: { mode: "week" } }],
     },
     probe: (ctx) => {
       const state = householdStore.read(ctx);

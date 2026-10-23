@@ -20,36 +20,35 @@ const CHASE_HEAT = 380;
 export function stageChase(ctx: GameContext, mode: StageMode = "chase", seconds = 10): void {
   void mode;
   const handroll = handrollOf(ctx);
+  // Heat is witness-gated, so the scene includes a bystander: the response system only accepts the
+  // heat it is fed while somebody can see the player commit the crime.
+  const player = ctx.scene.entity.get(ctx.player.userId);
+  if (player !== null && ctx.scene.entity.get(WITNESS_ID) === null) {
+    ctx.scene.entity.spawn("ped_beach", {
+      id: WITNESS_ID,
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
+  }
+  tick(ctx, handroll, STEP * 4);
+  handroll.addHeat(ctx, CHASE_HEAT);
+  // One more beat so the response takes the sighting and locks a search area on the player.
+  tick(ctx, handroll, STEP * 6);
   if (handroll.drivingVehicleId() === null) {
-    const player = ctx.scene.entity.get(ctx.player.userId);
-    const cars = ctx.scene.entity.list()
+    const from = ctx.scene.entity.get(ctx.player.userId);
+    const car = ctx.scene.entity.list()
       .filter((entity) => vehicleById(entity.name) !== undefined && !entity.id.startsWith("cruiser_"))
-      .sort((a, b) => (player === null ? 0 : distance(a.position, player.position) - distance(b.position, player.position)));
-    const car = cars[0];
+      .sort((a, b) => (from === null ? 0 : distance(a.position, from.position) - distance(b.position, from.position)))[0];
     if (car !== undefined) handroll.enterVehicle(ctx, car.id);
   }
-  // Heat is witness-gated, so the scene includes the witnesses: bystanders on the player's flanks
-  // the way a street crime has them, then the response system is fed its own heat input.
-  const anchor = handroll.drivingVehicleId() === null
-    ? ctx.scene.entity.get(ctx.player.userId)?.position ?? null
-    : ctx.scene.entity.get(handroll.drivingVehicleId()!)?.position ?? null;
-  if (anchor !== null) {
-    for (const [index, side] of [[0, -1], [1, 1]] as const) {
-      const id = `ped_witness_${index}`;
-      if (ctx.scene.entity.get(id) !== null) continue;
-      ctx.scene.entity.spawn("ped_beach", {
-        id,
-        position: [anchor[0] + 4 * side, anchor[1], anchor[2]],
-        rotationY: side > 0 ? -Math.PI / 2 : Math.PI / 2,
-        role: "npc",
-      });
-    }
-  }
-  for (let elapsed = 0; elapsed < STEP * 4; elapsed += STEP) {
-    ctx.time.advance(STEP);
-    handroll.tick(ctx, STEP);
-  }
-  handroll.addHeat(ctx, CHASE_HEAT);
+  tick(ctx, handroll, seconds);
+}
+
+/** The bystander whose sighting lets a staged crime raise heat at all. */
+export const WITNESS_ID = "ped_witness_0";
+
+function tick(ctx: GameContext, handroll: ReturnType<typeof handrollOf>, seconds: number): void {
   for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
     ctx.time.advance(STEP);
     handroll.tick(ctx, STEP);

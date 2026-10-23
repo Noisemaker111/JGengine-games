@@ -2,9 +2,10 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { simulateHousehold } from "./sim/simulate";
 import { householdStore } from "./session/store";
+import { DAY_LENGTH } from "../world";
 
 /** What a staged household should look like when the capture takes it. */
-export type StageMode = "shift";
+export type StageMode = "shift" | "week";
 
 /** The half-second step the household sim is written for; `simulateHousehold` clamps longer frames. */
 const STEP = 0.25;
@@ -24,13 +25,25 @@ function advanceToShift(ctx: GameContext, maxSeconds: number): void {
 }
 
 /**
- * Dev-only staging for the mid-shift capture: a lived-in morning with the household at its
- * stations and paid work under way. Play reaches this by starting a household and waiting out
- * the walk; `shoot --state mid-shift` jumps here instead.
+ * Dev-only staging for the played household. `shift` stops at the moment somebody is at a station
+ * on paid work; `week` runs the same simulation four days on, which is where mastery tiers and
+ * promotion rungs move and where the roster stops looking like a fresh household. Play reaches
+ * both by starting a household and waiting; `shoot --state mid-shift|mid-week` jumps here instead.
  */
 export function stageHousehold(ctx: GameContext, mode: StageMode = "shift"): void {
-  void mode;
+  if (mode === "week") {
+    advanceFor(ctx, DAY_LENGTH * 3);
+    return;
+  }
   advanceToShift(ctx, 180);
+}
+
+/** Step the household for a fixed span, at the cadence the sim is written for. */
+function advanceFor(ctx: GameContext, seconds: number): void {
+  for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+    ctx.time.advance(STEP);
+    simulateHousehold(ctx, STEP);
+  }
 }
 
 export function stageReadout(ctx: GameContext): { working: number; walking: number; shifts: number; day: number } {
