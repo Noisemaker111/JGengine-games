@@ -10,6 +10,8 @@ import type { DriftFoundryPartDef } from "../parts/catalog";
 import { PART_SLOTS, partById, type PartSlotId } from "../parts/catalog";
 import { createKartDamage, impactImpulse, noseHitPoint } from "../vehicle/damage";
 import { surfaceAt, type SurfaceSample } from "../vehicle/surface";
+import { createOpponentField, RIVAL_DEFS, type OpponentField, type RivalBody } from "../race/opponents";
+import { createStandings, PLAYER_RACER_ID, type RaceSnapshot, type Standings } from "../race/standings";
 import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
 import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
@@ -33,6 +35,9 @@ export interface RunOutcome {
   closestGap: number;
   armorSaves: number;
   zoneLabel: string;
+  /** Where the player's kart finished in the four-kart field. */
+  place: number;
+  fieldSize: number;
 }
 
 export interface SessionSnapshot {
@@ -63,6 +68,10 @@ export interface SessionSnapshot {
   armorSavesUsed: number;
   outcome: RunOutcome | null;
   collectedIds: ReadonlySet<string>;
+  /** Live four-kart standings: the player's place, the lap, and the field order. */
+  race: RaceSnapshot;
+  /** Where the three yard karts are this tick - the loop poses their entities from this. */
+  rivals: readonly RivalBody[];
 }
 
 export interface RunSession {
@@ -122,6 +131,26 @@ export function createRunSession(
   }
 
   const vehicle: VehicleController = createVehicleController({ position: SPAWN_POSITION, heading: SPAWN_HEADING });
+
+  // The field and its standings run on the same authored corridor and the same composed handling as
+  // the player; `createStandings` wraps the shared race state machine, which owns order, laps and
+  // the finish condition.
+  const opponents: OpponentField = createOpponentField({
+    groundHeightAt,
+    // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
+    // momentum their driver had built up.
+    onPlayerKnock: (dx, dz) => {
+      vehicle.shove(dx, dz);
+      pose = { ...pose, position: [pose.position[0] + dx, pose.position[1], pose.position[2] + dz] };
+    },
+  });
+  const standings: Standings = createStandings({
+    ...Object.fromEntries(RIVAL_DEFS.map((def) => [def.id, def.name])),
+    // Added last so the player starts bottom of the grid, behind all three rivals.
+    [PLAYER_RACER_ID]: "YOU",
+  });
+  const FIELD_SIZE = RIVAL_DEFS.length + 1;
+  let announcedPlace = standings.placeOf(PLAYER_RACER_ID);
   let pose: VehiclePose = {
     position: SPAWN_POSITION,
     heading: SPAWN_HEADING,
@@ -202,6 +231,9 @@ export function createRunSession(
     gateImpactArmed = true;
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
     pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
+    opponents.reset();
+    standings.reset();
+    announcedPlace = standings.placeOf(PLAYER_RACER_ID);
   }
 
   reset();
@@ -250,6 +282,8 @@ export function createRunSession(
         armorSavesUsed,
         outcome,
         collectedIds: collected,
+        race: standings.snapshot(),
+        rivals: opponents.bodies(),
       };
     },
     start() {
@@ -315,6 +349,18 @@ export function createRunSession(
       applyPickup(input.salvageSwap === true);
       announceGates();
 
+      // The field races the same corridor every tick, then the shared race state machine re-orders
+      // the four karts from their positions and tells us if the player's place changed. Its lap timer
+      // is the shared wall clock, so the HUD's lap time and the results screen's splits are one source.
+      opponents.tick(dt, pose.position);
+      standings.tick(dt);
+      standings.update(runTime, { [PLAYER_RACER_ID]: pose.position, ...opponents.positions() });
+      const place = standings.placeOf(PLAYER_RACER_ID);
+      if (place !== announcedPlace) {
+        pushRadio(place < announcedPlace ? `P${place} OF ${FIELD_SIZE} — TOOK HIM` : `P${place} OF ${FIELD_SIZE} — PASSED`);
+        announcedPlace = place;
+      }
+
       const compactorZ = compactorZAt(runTime);
       const surge = activeSurge(runTime);
       if (surge !== null && surge.id !== announcedSurge) {
@@ -350,6 +396,8 @@ export function createRunSession(
           closestGap: Number.isFinite(closestGap) ? closestGap : 0,
           armorSaves: armorSavesUsed,
           zoneLabel: zoneAt(pose.position[2]).label,
+          place: standings.placeOf(PLAYER_RACER_ID),
+          fieldSize: FIELD_SIZE,
         };
         recordOutcome();
         return;
@@ -365,6 +413,8 @@ export function createRunSession(
           closestGap: Number.isFinite(closestGap) ? closestGap : 0,
           armorSaves: armorSavesUsed,
           zoneLabel: zoneAt(pose.position[2]).label,
+          place: standings.placeOf(PLAYER_RACER_ID),
+          fieldSize: FIELD_SIZE,
         };
         recordOutcome();
       }

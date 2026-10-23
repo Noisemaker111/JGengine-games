@@ -28,8 +28,8 @@ export function StartScreen({ onStart, onCredits, records }: { onStart: () => vo
     <HudSurface className="df-card df-title-card" elevation="modal">
       <div className="df-eyebrow">PIT RADIO / CHANNEL 06</div>
       <h1>DRIFT<br/><em>FOUNDRY</em></h1>
-      <p className="df-intro">One welded buggy. Three salvage yards. A compactor that never stops.</p>
-      <p>Empty slots, plow and springs bolt on automatically. Engine and frame replacements are your choice: hold E as you pass to swap, or keep your build. Truck speed costs steering; EV handling costs speed. Jump striped stacks on teal marks. Escape at 470m.</p>
+      <p className="df-intro">One welded buggy. Three yard karts ahead of you. A compactor that never stops.</p>
+      <p>Empty slots, plow and springs bolt on automatically. Engine and frame replacements are your choice: hold E as you pass to swap, or keep your build. Truck speed costs steering; EV handling costs speed. Jump striped stacks on teal marks. TALLY wanders, MOSS weaves, HOBBS holds a clean outside line — beat all three to the 470m gate.</p>
       <div className="df-controls-legend"><span><kbd>W ↑</kbd> Throttle</span><span><kbd>A D</kbd> Steer</span><span><kbd>S ↓</kbd> Brake / reverse</span><span><kbd>Space</kbd> Jump</span><span><kbd>X</kbd> Handbrake drift</span><span><kbd>Shift</kbd> Brace plow</span><span><kbd>P</kbd> Pause</span></div>
       <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes · {records.attempts} finished runs</span></div>
       <p>{parkedRun ? `Parked checkpoint: ${Math.floor(parkedRun.position[2])}m · ${parkedRun.runTime.toFixed(1)}s · ${parkedRun.partIds.length} parts. Continue starts stopped with the compactor clock preserved.` : "To keep a run for later, stop on the ground and pause before returning to the pit."}</p>

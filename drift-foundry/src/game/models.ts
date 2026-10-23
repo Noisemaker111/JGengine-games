@@ -1,7 +1,7 @@
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
 import { assets } from "./assets";
-import { buggyModel, jumpBarrierModel, jumpCueModel, stationModels, upgradeModels } from "./art/models";
+import { buggyModel, jumpBarrierModel, jumpCueModel, rivalKartModels, stationModels, upgradeModels } from "./art/models";
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./entities/catalog";
 import {
   EXIT_GATE_ARCH,
@@ -361,6 +361,7 @@ function pickupMarker(): ModelConfig {
 
 export const entityModels: Record<string, ModelConfig> = {
   ...upgradeModels,
+  ...rivalKartModels,
   [KART_PLAYER_ENTITY]: buggyModel,
   [COMPACTOR_ENTITY]: COMPACTOR_MODEL,
 };

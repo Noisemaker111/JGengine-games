@@ -3,6 +3,13 @@ import { UPGRADE_KINDS } from "./upgrades";
 
 // Module URLs survive both the standalone build and the engine's configured /play host.
 export const buggyModel: ModelConfig = { url: new URL("./row-six-buggy.glb", import.meta.url).href, anchor: "origin" };
+
+/** Rival karts are the same welded buggy in yard paint, so the field reads apart at speed. */
+export const rivalKartModels: Record<string, ModelConfig> = {
+  kart_rival_tally: { ...buggyModel, material: { color: "#2f8f7a", roughness: 0.72 } },
+  kart_rival_moss: { ...buggyModel, material: { color: "#b7a13a", roughness: 0.72 } },
+  kart_rival_hobbs: { ...buggyModel, material: { color: "#7a3fb0", roughness: 0.72 } },
+};
 export const upgradeModels: Record<string, ModelConfig> = {
   [UPGRADE_KINDS.salvage_v6]: { url: new URL("./upgrade-salvage_v6.glb", import.meta.url).href, anchor: "origin" },
   [UPGRADE_KINDS.truck_engine]: { url: new URL("./upgrade-truck_engine.glb", import.meta.url).href, anchor: "origin" },

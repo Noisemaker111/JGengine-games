@@ -49,6 +49,8 @@ export interface VehicleController {
     groundHeightAt: (x: number, z: number) => number,
   ): VehiclePose;
   resetTo(position: readonly [number, number, number], heading: number): void;
+  /** Displace the kart without costing it its momentum - a shove from another bumper. */
+  shove(dx: number, dz: number): void;
 }
 
 /** A braced plow stiffens the whole drivetrain: more push and stopping power, less turn-in. */
@@ -138,6 +140,16 @@ export function createVehicleController(spawn: {
       vehicle.resetTo(position, resetHeading);
       blockedByGate = false;
       airHeight = 0;
+    },
+    shove(dx, dz) {
+      // `restore` carries velocity, so a knock moves the kart and leaves the wheel and pedal work
+      // the driver had built up intact; `resetTo` would stop it dead. The knock still respects the
+      // corridor wall and an uncleared barricade, so contact can never push a kart through a gate.
+      const state = vehicle.snapshot();
+      const x = Math.max(-CORRIDOR_DRIVE_HALF_WIDTH, Math.min(CORRIDOR_DRIVE_HALF_WIDTH, state.x + dx));
+      const candidateZ = state.z + dz;
+      const z = frameTuning === null ? candidateZ : Math.min(candidateZ, blockedZ(x, state.z, candidateZ, frameTuning, airHeight));
+      vehicle.restore({ ...state, x, z });
     },
   };
 }

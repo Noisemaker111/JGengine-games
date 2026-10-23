@@ -3,7 +3,13 @@ import type { GameContextEntityEntry } from "@jgengine/core/runtime/gameContext"
 export const KART_PLAYER_ENTITY = "kart_player";
 export const COMPACTOR_ENTITY = "compactor_wall";
 
+/** The three yard karts that race the corridor with you. */
+export const RIVAL_ENTITY_KINDS = ["kart_rival_tally", "kart_rival_moss", "kart_rival_hobbs"] as const;
+
+const rivalEntry: GameContextEntityEntry = { role: "vehicle" };
+
 export const ENTITY_CATALOG: Record<string, GameContextEntityEntry> = {
   [KART_PLAYER_ENTITY]: { role: "player" },
   [COMPACTOR_ENTITY]: { role: "vehicle" },
+  ...Object.fromEntries(RIVAL_ENTITY_KINDS.map((kind) => [kind, rivalEntry])),
 };

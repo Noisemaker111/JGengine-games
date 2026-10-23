@@ -4,6 +4,7 @@ import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
 import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
 import { impactBursts } from "./game/impact";
+import { RIVAL_DEFS } from "./game/race/opponents";
 import { createRunSession, runSessionStore, type RunSession } from "./game/run/session";
 import { createWorldRuntime, driveInputStore, worldRuntimeStore } from "./game/run/store";
 import { createDriveInput } from "./game/vehicle/input";
@@ -43,6 +44,12 @@ export function onInit(ctx: GameContext): void {
 export function onNewPlayer(ctx: GameContext): void {
   ctx.scene.entity.bind("racers").sync([
     { id: ctx.player.userId, kind: KART_PLAYER_ENTITY, position: [0, 0, 4], role: "player" },
+    ...RIVAL_DEFS.map((def) => ({
+      id: def.id,
+      kind: def.entityKind,
+      position: [def.grid.x, 0, def.grid.z] as [number, number, number],
+      role: "npc" as const,
+    })),
     { id: COMPACTOR_ENTITY, kind: COMPACTOR_ENTITY, position: [0, 0, -35], role: "prop" },
   ]);
 }
@@ -79,6 +86,13 @@ export function onTick(ctx: GameContext, dt: number): void {
   ctx.scene.entity.bind("racers").sync(
     [
       { id: ctx.player.userId, kind: KART_PLAYER_ENTITY, position: snapshot.pose.position, rotationY: snapshot.pose.heading, role: "player" },
+      ...snapshot.rivals.map((rival) => ({
+        id: rival.id,
+        kind: rival.entityKind,
+        position: rival.position,
+        rotationY: rival.heading,
+        role: "npc" as const,
+      })),
       {
         id: COMPACTOR_ENTITY,
         kind: COMPACTOR_ENTITY,
