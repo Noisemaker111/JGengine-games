@@ -37,10 +37,16 @@
 .df-place { min-width:150px; display:flex; flex-direction:column; }
 .df-place b { font-size:22px; line-height:1.2; font-variant-numeric:tabular-nums; }
 .df-place b small { font-size:11px; color:#758d96; }
+.df-place b em { font-style:normal; font-size:9px; letter-spacing:1px; color:#758d96; margin-left:6px; vertical-align:middle; }
 .df-place-field { display:flex; flex-wrap:wrap; gap:4px 8px; margin-top:4px; font-size:9px; letter-spacing:.6px; color:#758d96; }
 .df-place-field i { font-style:normal; color:#edc565; margin-right:3px; }
 .df-place-field .df-you { background:#5de0ce; color:#16282e; padding:0 4px; border-radius:2px; font-weight:800; }
 .df-place-field .df-you i { color:#16282e; }
+/* The results order reuses the HUD field line so the finish reads the same way mid-race and at the flag. */
+.df-field-order { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0 0 14px; font-size:10px; letter-spacing:.8px; color:#758d96; }
+.df-field-order i { font-style:normal; color:#edc565; margin-right:4px; }
+.df-field-order .df-you { background:#5de0ce; color:#16282e; padding:0 5px; border-radius:2px; font-weight:800; }
+.df-field-order .df-you i { color:#16282e; }
 .df-ui .df-danger { border-color:#ff4934; color:#ff9a78; }
 .df-danger .df-gap-track i { background:#ff4934; }
 .df-hud-top nav { margin-left:auto; display:flex; gap:8px; }

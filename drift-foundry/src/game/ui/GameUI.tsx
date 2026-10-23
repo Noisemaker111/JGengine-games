@@ -92,8 +92,8 @@ export function GameUI() {
         <HudSurface className="df-plate df-location" interactive={false}><span className="df-eyebrow">ROW SIX / {snapshot.zone.label}</span><b>{snapshot.runTime.toFixed(1)}<small> SEC</small></b></HudSurface>
         <HudSurface className={`df-plate df-gap ${snapshot.compactorGap < 22 ? "df-danger" : ""}`} interactive={false}><span>COMPACTOR <b>{Math.max(0, Math.round(snapshot.compactorGap))}m</b> BEHIND</span><div className="df-gap-track"><i style={{width: `${Math.min(100, Math.max(0, snapshot.compactorGap / 60 * 100))}%`}}/></div></HudSurface>
         <HudSurface className="df-plate df-place" interactive={false}>
-          <span className="df-eyebrow">LAP {snapshot.race.lap}/{snapshot.race.laps} · POSITION</span>
-          <b>{snapshot.race.place}<small> / {snapshot.race.total}</small></b>
+          <span className="df-eyebrow">LAP {snapshot.race.lap}/{snapshot.race.laps} · {snapshot.race.lapTime.toFixed(1)}s</span>
+          <b>{snapshot.race.place}<small> / {snapshot.race.total}</small><em>POSITION</em></b>
           <div className="df-place-field">{snapshot.race.standings.map(entry => <span key={entry.id} className={entry.id === "player" ? "df-you" : ""}><i>{entry.place}</i>{entry.name}</span>)}</div>
         </HudSurface>
         <nav><HudButton onClick={togglePause} aria-label="Pause run">PAUSE <kbd>P</kbd></HudButton><SettingsTrigger className="df-button" label="Settings">⚙</SettingsTrigger></nav>

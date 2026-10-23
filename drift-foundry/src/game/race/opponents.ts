@@ -28,6 +28,11 @@ export interface RivalDef {
   lookahead: number;
   /** The build bolted onto this kart - the same parts and the same composer the player uses. */
   parts: readonly PartIconId[];
+  /**
+   * How much of the field's pace aid this driver accepts, 0..1. The yard champion runs honest and
+   * barely concedes a lead; the rookie takes the full band, so a bad start is recoverable from.
+   */
+  band: number;
   grid: { x: number; z: number };
   /** Lateral offset from the corridor centreline at spawn, then at each route gate, then the exit. */
   line: readonly number[];
@@ -42,6 +47,7 @@ export const RIVAL_DEFS: readonly RivalDef[] = [
     pace: 0.9,
     lookahead: 5,
     parts: ["ev_conversion", "plow_blade", "coil_springs", "scrap_frame"],
+    band: 1,
     grid: { x: -3.4, z: 12 },
     // No rhythm: drifts across the haul strip gate to gate, so it sheds speed in every correction.
     line: [0, -5, -3.4, -4.6, -3, -4.8, -3.2, -4.4, -3, 0],
@@ -54,6 +60,7 @@ export const RIVAL_DEFS: readonly RivalDef[] = [
     pace: 0.97,
     lookahead: 9,
     parts: ["salvage_v6", "plow_blade", "coil_springs", "scrap_frame"],
+    band: 0.8,
     grid: { x: 3.4, z: 17 },
     // A weaver: takes the free side of each barricade, so it is often off-line and re-aiming.
     line: [0, 3, -2.4, 2.6, -3, 3.2, -2.4, 2.8, -3, 0],
@@ -66,6 +73,7 @@ export const RIVAL_DEFS: readonly RivalDef[] = [
     pace: 1,
     lookahead: 15,
     parts: ["truck_engine", "plow_blade", "coil_springs", "roll_cage"],
+    band: 0.5,
     grid: { x: 0, z: 24 },
     // Holds one wide outside line the whole way: fewest heading changes, so it brakes least.
     line: [0, 5, 5, 4.6, 5, 4.8, 5, 4.8, 5, 0],
@@ -80,6 +88,33 @@ const CONTACT_RADIUS = 1.7;
 const RECOVER_SECONDS = 1.2;
 /** Cars this far ahead in the same lane are what a rival perceives as a blocker. */
 const CAR_SIGHT = 12;
+
+/**
+ * The field's pace aid, applied as a `DriverGoal.speedLimit` on the shared `ai/driver` goal - the
+ * same knob a formation or a speed zone uses. A kart far ahead eases off, a kart far behind gets a
+ * push, both ramped from the player's bumper so a side-by-side fight is decided by driving. Per-car
+ * `band` scales it, so the expert concedes least. No engine owner exists for catch-up pacing yet (see
+ * the PR's engine seam); these are authored numbers, not a second driving system.
+ */
+const PACE_BAND = {
+  /** Metres ahead of the player where a rival is fully eased. */
+  easeOffAt: 30,
+  /** Fraction of top speed shed at that distance. */
+  easeOff: 0.12,
+  /** Metres behind the player where a rival is fully pushed. */
+  pushAt: 20,
+  /** Fraction of top speed added at that distance. */
+  push: 0.08,
+} as const;
+
+/** Pace multiplier for a rival `gap` metres ahead of the player (negative = behind). */
+export function paceBand(gap: number, band = 1): number {
+  if (gap > PACE_BAND.easeOffAt) return 1 - PACE_BAND.easeOff * band;
+  if (gap > 0) return 1 - (PACE_BAND.easeOff * band * gap) / PACE_BAND.easeOffAt;
+  if (gap < -PACE_BAND.pushAt) return 1 + PACE_BAND.push * band;
+  return 1 + (PACE_BAND.push * band * -gap) / PACE_BAND.pushAt;
+}
+
 
 export interface RivalBody {
   id: string;
@@ -202,6 +237,8 @@ export function createOpponentField(options: {
   defs?: readonly RivalDef[];
   /** Seed for every rival's steering jitter. Same seed, same race. */
   seed?: string;
+  /** Receives the player's half of a bumper-to-bumper contact, so a shove costs both karts. */
+  onPlayerKnock?: (dx: number, dz: number) => void;
 } = {}): OpponentField {
   const groundHeightAt = options.groundHeightAt ?? (() => 0);
   const defs = options.defs ?? RIVAL_DEFS;
@@ -218,7 +255,13 @@ export function createOpponentField(options: {
     tick(dt, player) {
       for (const rival of rivals) {
         const target = pathTargetAhead(rival.line, rival.pose.position[0], rival.pose.position[2], rival.def.lookahead);
-        const goal = { x: target?.[0] ?? rival.pose.position[0], z: target?.[1] ?? rival.pose.position[2] };
+        const goal = {
+          x: target?.[0] ?? rival.pose.position[0],
+          z: target?.[1] ?? rival.pose.position[2],
+          // Rubber band on the shared goal's own speed limit: the field stays reachable without ever
+          // driving faster than its authored build allows.
+          speedLimit: rival.driving.maxSpeed * paceBand(rival.pose.position[2] - player[2], rival.def.band),
+        };
         const others = [{ x: player[0], z: player[2] }, ...rivals.filter((entry) => entry !== rival).map((entry) => ({ x: entry.pose.position[0], z: entry.pose.position[2] }))];
         const step = driveStep(
           rival.driver,
@@ -252,7 +295,12 @@ export function createOpponentField(options: {
 
       for (let index = 0; index < rivals.length; index += 1) {
         const rival = rivals[index]!;
-        separate({ x: player[0], z: player[2] }, { x: rival.pose.position[0], z: rival.pose.position[2] }, (dx, dz) => nudge(rival, dx, dz));
+        // Both karts move half the overlap: bumper contact costs the player time too, instead of the
+        // field being free wrecking balls for them to bulldoze.
+        separate({ x: player[0], z: player[2] }, { x: rival.pose.position[0], z: rival.pose.position[2] }, (dx, dz) => {
+          nudge(rival, dx / 2, dz / 2);
+          options.onPlayerKnock?.(-dx / 2, -dz / 2);
+        });
         for (let other = index + 1; other < rivals.length; other += 1) {
           const second = rivals[other]!;
           separate(

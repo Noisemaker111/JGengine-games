@@ -14,8 +14,7 @@ function driveTo(standings: ReturnType<typeof createStandings>, zs: Record<strin
   }
 }
 
-describe("drift-foundry standings", () => {
-  test("the player starts last on the grid and takes the lead when it drives past", () => {
+describe("drift-foundry standings", () => {  test("the player starts last on the grid and takes the lead when it drives past", () => {
     const standings = createStandings(NAMES);
     standings.update(0, {
       [PLAYER_RACER_ID]: [0, 0, 4],
@@ -56,5 +55,37 @@ describe("drift-foundry standings", () => {
     standings.reset();
     expect(standings.finishedOf(PLAYER_RACER_ID)).toBe(false);
     expect(standings.snapshot().finished).toBe(false);
+  });
+
+  test("the race closes only when every kart is home, and the classification keeps its order", () => {
+    const standings = createStandings(NAMES);
+    let now = 0;
+    for (let z = 0; z <= EXIT_Z + 4; z += 1) {
+      now += 0.05;
+      standings.update(now, {
+        [PLAYER_RACER_ID]: [0, 0, z],
+        rival_a: [0, 0, Math.min(z + 9, EXIT_Z + 4)],
+        rival_b: [0, 0, Math.min(z + 5, EXIT_Z + 4)],
+        rival_c: [0, 0, Math.min(z + 2, EXIT_Z + 4)],
+      });
+    }
+    const race = standings.snapshot();
+    // One kart home is not the end of the race: the field must all cross for `finished`.
+    expect(race.finished).toBe(true);
+    // The kart that was furthest up the corridor crossed first.
+    expect(race.standings.map((entry) => entry.id)).toEqual(["rival_a", "rival_b", "rival_c", PLAYER_RACER_ID]);
+    expect(race.standings.every((entry) => entry.finished)).toBe(true);
+    expect(race.place).toBe(4);
+  });
+
+  test("the lap clock is the shared timer: it banks a lap when the flag falls", () => {
+    const standings = createStandings(NAMES);
+    // 30 s of green flag before the player walks the ring.
+    for (let tick = 0; tick < 60; tick += 1) standings.tick(0.5);
+    driveTo(standings, { [PLAYER_RACER_ID]: EXIT_Z + 4, rival_a: 0, rival_b: 0, rival_c: 0 }, 0, EXIT_Z + 4);
+    const race = standings.snapshot();
+    expect(race.lastLap).toBeCloseTo(30, 5);
+    expect(race.lapTime).toBeCloseTo(0, 5);
+    expect(race.splits.length).toBeGreaterThanOrEqual(8);
   });
 });

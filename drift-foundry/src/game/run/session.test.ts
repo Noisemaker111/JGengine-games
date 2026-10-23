@@ -123,7 +123,22 @@ describe("drift-foundry run session", () => {
     expect(snapshot.rivals.every((rival) => rival.position[2] > 20)).toBe(true);
   });
 
-  test("a centerline run with timed jumps collects the route parts and escapes", () => {    const session = createRunSession();
+  test("the same seed over the same drive produces the same race, place included", () => {
+    const first = createRunSession();
+    const second = createRunSession();
+    for (const session of [first, second]) {
+      session.start();
+      driveStraight(session, 12);
+    }
+    expect(first.snapshot().rivals).toEqual(second.snapshot().rivals);
+    expect(first.snapshot().race.standings).toEqual(second.snapshot().race.standings);
+    expect(first.snapshot().race.place).toBe(second.snapshot().race.place);
+    // The race is live, not a field of parked karts: somebody has changed place by now.
+    expect(first.snapshot().rivals.some((rival) => rival.position[2] > 20)).toBe(true);
+  });
+
+  test("a centerline run with timed jumps collects the route parts and escapes", () => {
+    const session = createRunSession();
     session.start();
     driveStraight(session, PAR_SECONDS);
     const snapshot = session.snapshot();

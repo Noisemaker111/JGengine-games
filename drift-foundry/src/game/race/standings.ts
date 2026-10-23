@@ -1,8 +1,10 @@
 import {
+  createLapTimer,
   createRaceState,
-  firstPastPost,
+  everyoneFinishes,
   raceTrack,
   type Checkpoint,
+  type LapTimer,
   type RaceEvent,
   type RaceState,
 } from "@jgengine/core/game/race";
@@ -12,8 +14,8 @@ import { CORRIDOR_DRIVE_HALF_WIDTH, EXIT_Z } from "../run/constants";
 
 /**
  * Live position, lap and finish for the four karts on the corridor. The ordering, splits, lap
- * bookkeeping and finish condition are `@jgengine/core/game/race`; this file only names the
- * corridor's checkpoint ring and keeps the player's place to hand to the HUD.
+ * bookkeeping, the wall clock and the finish condition are `@jgengine/core/game/race`; this file only
+ * names the corridor's checkpoint ring and keeps the player's place to hand to the HUD.
  */
 
 export const PLAYER_RACER_ID = "player";
@@ -35,6 +37,8 @@ export interface RacerStanding {
   place: number;
   lap: number;
   finished: boolean;
+  /** Seconds this racer took from the green light to the flag, once home. */
+  finishTime: number | null;
 }
 
 export interface RaceSnapshot {
@@ -43,11 +47,21 @@ export interface RaceSnapshot {
   lap: number;
   laps: number;
   standings: readonly RacerStanding[];
-  /** True once the first kart is home; the rest still race for position. */
+  /** True once every kart is home - the full classification is final at that point. */
   finished: boolean;
+  /** The player's lap clock this tick, seconds. */
+  lapTime: number;
+  /** The player's last completed lap, `null` before it closes. */
+  lastLap: number | null;
+  /** The player's fastest lap, `null` before the first one closes. */
+  bestLap: number | null;
+  /** Cumulative player split times, one per barricade and one at the flag. */
+  splits: readonly number[];
 }
 
 export interface Standings {
+  /** Advance the player's lap clock one tick, before `update`. */
+  tick(dt: number): void;
   /** Advance the checkpoint ring with this tick's positions; returns the race's events. */
   update(now: number, positions: Record<string, readonly [number, number, number]>): readonly RaceEvent[];
   snapshot(): RaceSnapshot;
@@ -59,10 +73,13 @@ export interface Standings {
 export function createStandings(names: Readonly<Record<string, string>>): Standings {
   const ids = Object.keys(names);
   const track = raceTrack({ checkpoints: CHECKPOINTS, laps: RACE_LAPS });
+  // Every kart must cross before the race closes: the player's own finish ends the run, and the
+  // classification behind them is only honest once the field has actually stopped racing for it.
+  const timer: LapTimer = createLapTimer();
   let race: RaceState = seed();
 
   function seed(): RaceState {
-    const next = createRaceState({ track, win: firstPastPost(1) });
+    const next = createRaceState({ track, win: everyoneFinishes() });
     for (const id of ids) next.addRacer(id);
     return next;
   }
@@ -70,6 +87,7 @@ export function createStandings(names: Readonly<Record<string, string>>): Standi
   function snapshot(): RaceSnapshot {
     const standings = race.standings();
     const player = standings.find((entry) => entry.racerId === PLAYER_RACER_ID);
+    const timing = timer.snapshot();
     return {
       place: player?.position ?? ids.length,
       total: ids.length,
@@ -81,14 +99,28 @@ export function createStandings(names: Readonly<Record<string, string>>): Standi
         place: entry.position,
         lap: entry.lap,
         finished: entry.finished,
+        finishTime: entry.finishTime,
       })),
       finished: race.finished,
+      lapTime: timing.currentLap,
+      lastLap: timing.lastLap,
+      bestLap: timing.bestLap,
+      splits: player?.splits ?? [],
     };
   }
 
   return {
+    tick(dt) {
+      timer.tick(dt);
+    },
     update(now, positions) {
-      return race.update(now, positions);
+      const events = race.update(now, positions);
+      // `createLapTimer` is the shared lap clock; the race state machine only reports that a lap
+      // closed, so closing the timer is the one line this game owes it.
+      for (const event of events) {
+        if (event.type === "lap.completed" && event.racerId === PLAYER_RACER_ID) timer.completeLap();
+      }
+      return events;
     },
     snapshot,
     placeOf(id) {
@@ -99,6 +131,7 @@ export function createStandings(names: Readonly<Record<string, string>>): Standi
     },
     reset() {
       race = seed();
+      timer.reset();
     },
   };
 }

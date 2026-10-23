@@ -135,7 +135,15 @@ export function createRunSession(
   // The field and its standings run on the same authored corridor and the same composed handling as
   // the player; `createStandings` wraps the shared race state machine, which owns order, laps and
   // the finish condition.
-  const opponents: OpponentField = createOpponentField({ groundHeightAt });
+  const opponents: OpponentField = createOpponentField({
+    groundHeightAt,
+    // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
+    // momentum their driver had built up.
+    onPlayerKnock: (dx, dz) => {
+      vehicle.shove(dx, dz);
+      pose = { ...pose, position: [pose.position[0] + dx, pose.position[1], pose.position[2] + dz] };
+    },
+  });
   const standings: Standings = createStandings({
     ...Object.fromEntries(RIVAL_DEFS.map((def) => [def.id, def.name])),
     // Added last so the player starts bottom of the grid, behind all three rivals.
@@ -342,8 +350,10 @@ export function createRunSession(
       announceGates();
 
       // The field races the same corridor every tick, then the shared race state machine re-orders
-      // the four karts from their positions and tells us if the player's place changed.
+      // the four karts from their positions and tells us if the player's place changed. Its lap timer
+      // is the shared wall clock, so the HUD's lap time and the results screen's splits are one source.
       opponents.tick(dt, pose.position);
+      standings.tick(dt);
       standings.update(runTime, { [PLAYER_RACER_ID]: pose.position, ...opponents.positions() });
       const place = standings.placeOf(PLAYER_RACER_ID);
       if (place !== announcedPlace) {
