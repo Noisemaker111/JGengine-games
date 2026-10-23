@@ -540,7 +540,7 @@ function Console() {
 function LevelUpCard({ offer }: { offer: HeroOffer }) {
   const { commands } = useGame();
   return (
-    <HudSurface elevation="modal" className={"absolute bottom-[17rem] left-1/2 z-30 w-[30rem] -translate-x-1/2 px-4 py-3 pointer-events-auto " + FRAME}>
+    <HudSurface elevation="modal" className={"ec-levelup absolute bottom-[17rem] left-1/2 z-30 w-[30rem] -translate-x-1/2 px-4 py-3 pointer-events-auto " + FRAME}>
       <Corners />
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Bram reaches level {offer.level}</span>
