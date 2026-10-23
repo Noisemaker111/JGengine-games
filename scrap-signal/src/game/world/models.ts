@@ -60,6 +60,7 @@ const RIG_BY_ID: Record<string, { kind: RigKind; model: string; fallbackModel?: 
   loader_war: { kind: "machine", model: `${SPACE}/structure_tall`, fallbackModel: `${SPACE}/drill_structure` },
   elite_loader: { kind: "machine", model: `${SPACE}/structure_tall`, fallbackModel: `${SPACE}/lander_A` },
   wreck_maw: { kind: "beast", model: `${SCIFI}/Alien_Cyclop`, fallbackModel: `${SCIFI}/Alien_Scolitex` },
+  foreman_maw: { kind: "beast", model: `${SCIFI}/Alien_Oculichrysalis`, fallbackModel: `${SCIFI}/Alien_Cyclop` },
   captain_rusk: { kind: "humanoid", model: `${CHAR}/Knight`, fallbackModel: `${CHAR}/Barbarian` },
   foundry_heart: { kind: "machine", model: `${SPACE}/lander_A`, fallbackModel: `${SPACE}/structure_tall` },
 };
