@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { installRefit, refitMissing } from "./progression";
 import { acknowledgeReprint, depart, newDive, newHome, settle, takeLoot, type Dive, type ItemKind } from "./state";
-import { openSave, SAVE_KEY, validHome, type StoragePort } from "./save";
+import { openRecord, SAVE_KEY, validHome, type RunHooks, type StoragePort } from "./save";
 import { kindOf } from "./items";
 
 function loot(dive: Dive, source: string, kind: ItemKind): Dive {
@@ -15,8 +15,15 @@ function banked() {
   return settle(home, dive, "extracted", "Rail");
 }
 function memory(home = banked()): StoragePort {
-  let bytes = JSON.stringify(home);
-  return { getItem: () => bytes, setItem: (_, value) => { bytes = value; } };
+  const data = new Map<string, string>([[SAVE_KEY, JSON.stringify(home)]]);
+  return { getItem: key => data.get(key) ?? null, setItem: (key, value) => { data.set(key, value); } };
+}
+/** The record's run section is not part of these refit rules; a stub stands in for the live view. */
+const stub: RunHooks = { snapshot: () => null as never, restore: () => {} };
+async function open(storage: StoragePort) {
+  const record = openRecord(storage, stub);
+  await record.load();
+  return record;
 }
 describe("Marrow refits and reprint ownership", () => {
   test("competing recipes spend exact instances once without changing the input", () => {
@@ -29,39 +36,39 @@ describe("Marrow refits and reprint ownership", () => {
     expect(() => installRefit(tank, "tank")).toThrow("already installed");
     const reserve = installRefit(original, "reserve");
     expect(reserve.stash.map(kindOf)).toEqual(["polymer"]);
-    expect(newDive(2, reserve).reserve).toBe(30);
+    expect(newDive(2, reserve).reservePool).toBe(30);
     expect(newDive(2, reserve).oxygen).toBe(110);
     expect(newDive(2, tank).oxygen).toBe(145);
     expect(newDive(2, tank).tankSeconds).toBe(145);
-    expect(newDive(2, tank).reserve).toBe(18);
+    expect(newDive(2, tank).reservePool).toBe(18);
   });
   test("empty shelves, unknown recipes and active expeditions cannot spend", () => {
     expect(() => installRefit(newHome(), "tank")).toThrow("Not enough");
     expect(() => installRefit(banked(), "bogus" as "tank")).toThrow("Unknown");
     expect(() => installRefit(depart(banked()), "tank")).toThrow("Return");
   });
-  test("purchase acknowledgement follows atomic verified persistence; failed and stale writers retain their view", () => {
-    const storage = memory(), session = openSave(storage), stale = openSave(storage);
-    session.commit(installRefit(session.home, "tank"));
-    expect(openSave(storage).home.refits).toEqual(["tank"]);
-    expect(() => stale.commit(installRefit(stale.home, "reserve"))).toThrow("another window");
-    const blockedStorage = memory(), blocked = openSave(blockedStorage);
+  test("purchase acknowledgement follows atomic verified persistence; failed and stale writers retain their view", async () => {
+    const storage = memory(), session = await open(storage), stale = await open(storage);
+    await session.commit(installRefit(session.home, "tank"));
+    expect((await open(storage)).home.refits).toEqual(["tank"]);
+    await expect(stale.commit(installRefit(stale.home, "reserve"))).rejects.toThrow("another window");
+    const blockedStorage = memory(), blocked = await open(blockedStorage);
     blockedStorage.setItem = () => { throw new Error("quota"); };
-    expect(() => blocked.commit(installRefit(blocked.home, "tank"))).toThrow("quota");
+    await expect(blocked.commit(installRefit(blocked.home, "tank"))).rejects.toThrow("quota");
     expect(blocked.home.refits).toEqual([]);
     expect(blocked.home.stash.length).toBe(3);
   });
-  test("upgrades and old stash survive loss; reprint blocks departure and persists exactly once", () => {
-    const storage = memory(installRefit(banked(), "tank")), session = openSave(storage);
-    session.commit(depart(session.home));
-    session.commit(settle(session.home, loot(newDive(2, session.home), "ink", "ink"), "lost", "No air"));
-    const reloaded = openSave(storage);
+  test("upgrades and old stash survive loss; reprint blocks departure and persists exactly once", async () => {
+    const storage = memory(installRefit(banked(), "tank")), session = await open(storage);
+    await session.commit(depart(session.home));
+    await session.commit(settle(session.home, loot(newDive(2, session.home), "ink", "ink"), "lost", "No air"));
+    const reloaded = await open(storage);
     expect(reloaded.home.deaths).toBe(1);
     expect(reloaded.home.refits).toEqual(["tank"]);
     expect(reloaded.home.stash.map(kindOf)).toEqual(["cells"]);
     expect(() => depart(reloaded.home)).toThrow("Acknowledge");
-    reloaded.commit(acknowledgeReprint(reloaded.home));
-    expect(openSave(storage).home.reprintPending).toBe(false);
+    await reloaded.commit(acknowledgeReprint(reloaded.home));
+    expect((await open(storage)).home.reprintPending).toBe(false);
     expect(() => acknowledgeReprint(reloaded.home)).toThrow();
     expect(newDive(depart(reloaded.home).activeDive!, reloaded.home).oxygen).toBe(145);
   });
@@ -71,18 +78,18 @@ describe("Marrow refits and reprint ownership", () => {
     expect(validHome({ ...banked(), reprintPending: true })).toBe(false);
     expect(validHome({ ...depart(banked()), reprintPending: true })).toBe(false);
   });
-  test("v1 migration preserves loaded bytes until the next durable transition", () => {
+  test("v1 migration preserves loaded bytes until the next durable transition", async () => {
     const { refits, reprintPending, ledger, ...current } = banked();
     const legacy = JSON.stringify({ ...current, version: 1, stash: current.stash.map(item => ({ uid: item.id, kind: kindOf(item), level: 1 })) });
-    let bytes = legacy;
-    const storage = { getItem: () => bytes, setItem: (_: string, value: string) => { bytes = value; } };
-    const session = openSave(storage);
-    expect(session.home.version).toBe(4);
+    const data = new Map<string, string>([[SAVE_KEY, legacy]]);
+    const storage = { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { data.set(key, value); } };
+    const session = await open(storage);
+    expect(session.home.version).toBe(5);
     expect(session.home.refits).toEqual([]);
     expect(session.home.stash).toHaveLength(3);
-    expect(storage.getItem(SAVE_KEY)).toBe(legacy);
-    session.commit(installRefit(session.home, "tank"));
-    expect(JSON.parse(bytes).version).toBe(4);
-    expect(openSave(storage).home.stash.length).toBe(1);
+    expect(data.get(SAVE_KEY)).toBe(legacy);
+    await session.commit(installRefit(session.home, "tank"));
+    expect((await open(storage)).home.stash.length).toBe(1);
+    expect(data.get(SAVE_KEY)).toBe(legacy);
   });
 });

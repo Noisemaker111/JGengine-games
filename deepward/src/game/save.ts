@@ -1,8 +1,30 @@
+import { createGameSave, GAME_SAVE_VERSION, type GameSave, type GameSaveDocument, type GameSaveSystem } from "@jgengine/core/game/gameSave";
+import { localSaveBackend, type SaveBackend } from "@jgengine/core/game/saveStore";
+import type { WeaponSystemState } from "@jgengine/core/combat/weaponSystem";
+import { createTransactionLedger, type LedgerState } from "@jgengine/core/economy/transactionLedger";
+import type { CareerBankState } from "@jgengine/core/progression/careerBank";
+import type { Point } from "../world";
+import { openScripBooks } from "./counter";
 import { ITEMS, itemIssues, rollItem, type Item, type ItemKind } from "./items";
-import { newHome, type Home } from "./state";
+import { newHome, type Dive, type Home, type Result } from "./state";
 
+/** Where v1-v4 records live. They are read once and rewritten as a record under {@link RECORD_KEY}. */
 export const SAVE_KEY = "deepward.marrow.v1";
-export interface StoragePort { getItem(key: string): string | null; setItem(key: string, value: string): void }
+/** The game-save document: one section for the persistent record, one for the live run. */
+export const RECORD_KEY = "deepward.marrow.record";
+export const RECORD_SLOT = "marrow";
+/** The backend key the save store actually writes (`<key>:<slot>`); the storage event and isCurrent compare it. */
+export const RECORD_ENTRY = `${RECORD_KEY}:${RECORD_SLOT}`;
+
+export interface StoragePort {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem?(key: string): void;
+}
+
+const UNREADABLE = "Marrow's save is unreadable. It has been preserved; restore it before diving.";
+const DAMAGED = "Marrow's save is damaged or from another version. It has been preserved.";
+
 const record = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 const natural = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const bankAmount = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -44,6 +66,11 @@ function validStanding(value: unknown): boolean {
   if (!record(value) || !record(value.records)) return false;
   return Object.values(value.records).every(row => record(row) && Object.entries(row).every(([track, score]) => track === "marrow" && typeof score === "number" && Number.isFinite(score)));
 }
+/** The counter's books must be state the shared ledger can actually restore. */
+function validBooks(value: unknown): boolean {
+  if (!record(value)) return false;
+  return createTransactionLedger().restore(value as unknown as LedgerState);
+}
 
 /** The shared fields of every schema version, checked before the version-specific parts. */
 function validShared(value: unknown, versions: readonly number[]): value is Record<string, unknown> {
@@ -70,13 +97,14 @@ export function validHome(value: unknown): value is Home {
   return validHomeShape(value);
 }
 function validHomeShape(value: unknown): value is Home {
-  if (!validShared(value, [4]) || value.version !== 4) return false;
+  if (!validShared(value, [5]) || value.version !== 5) return false;
   if (!currentStash(value)) return false;
   if (!Array.isArray(value.refits)) return false;
   if (!value.refits.every(id => id === "tank" || id === "reserve") || new Set(value.refits).size !== value.refits.length) return false;
   if (typeof value.reprintPending !== "boolean") return false;
   if (!validBank(value.bank) || !validStanding(value.standing)) return false;
   if (!validLedger(value.ledger, value.stash)) return false;
+  if (!validBooks(value.books)) return false;
   return !value.reprintPending || (value.activeDive === null && record(value.last) && value.last.kind === "lost");
 }
 
@@ -85,9 +113,15 @@ interface LegacyItem { uid: string; kind: ItemKind; level: number }
 function legacyItem(value: unknown): value is LegacyItem {
   return record(value) && typeof value.uid === "string" && typeof value.kind === "string" && KINDS.includes(value.kind) && value.level === 1;
 }
-/** Read legacy bytes without writing; the next acknowledged transition migrates atomically. */
+/** Read legacy bytes without writing; the first record write migrates them atomically. */
 function readHome(value: unknown): Home | null {
   if (validHomeShape(value)) return value;
+  if (validShared(value, [4])) {
+    // v4 is this shape without the counter's books: open them at the balance it banked.
+    const { books: _books, ...rest } = value as Record<string, unknown>;
+    const upgraded = { ...rest, version: 5, books: openScripBooks((value.bank as CareerBankState).banked) };
+    return validHomeShape(upgraded) ? upgraded : null;
+  }
   if (!validShared(value, [1, 2, 3])) return null;
   const stash = value.stash;
   if (!Array.isArray(stash) || !stash.every(legacyItem)) return null;
@@ -103,44 +137,154 @@ function migrate(value: Record<string, unknown>, version: number, stash: readonl
     reprintPending: version === 1 ? record(value.last) && value.last.kind === "lost" && value.activeDive === null : value.reprintPending,
   };
   const items = stash.map(entry => rollItem(entry.kind, 1, `deepward:legacy:${entry.uid}`, entry.uid));
-  return { ...(refitted as unknown as Home), version: 4, bank: blank.bank, standing: blank.standing, ledger: {}, stash: items };
+  return { ...(refitted as unknown as Home), version: 5, bank: blank.bank, standing: blank.standing, ledger: {}, books: blank.books, stash: items };
 }
-export interface SaveSession {
-  home: Home;
-  commit(next: Home): void;
+
+/** The live run, as one save section: what the HUD shows and where the diver stands. */
+export interface RunSnapshot {
+  mode: "home" | "dive" | "saving" | "reprinting";
+  dive: Dive | null;
+  rifleUid: string | null;
+  hint: string;
+  pending: { kind: Result["kind"]; reason: string } | null;
+  player: Point | null;
+  /** The held weapon's shared runtime state, so a reload mid-dive keeps its magazine and cadence. */
+  weapon: WeaponSystemState | null;
+  hand: string | null;
+}
+
+/** What save.ts needs from the running game to snapshot and restore the live run. */
+export interface RunHooks {
+  snapshot(): RunSnapshot;
+  restore(next: RunSnapshot | null): void;
+}
+
+export interface RecordSession {
+  readonly home: Home;
+  /** The run section the last load applied, or null for a record with no run. */
+  readonly restoredRun: RunSnapshot | null;
+  load(): Promise<Home>;
+  /**
+   * Commit a settled record. `run` writes a run section other than the live view, so a departure or
+   * a return lands both sections in one document before the screen changes.
+   */
+  commit(next: Home, run?: RunSnapshot | null): Promise<void>;
   isCurrent(): boolean;
+  digest(): string;
+}
+
+function decodeLegacy(raw: string): Home {
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { throw new Error(UNREADABLE); }
+  const home = readHome(parsed);
+  if (home === null) throw new Error(DAMAGED);
+  return home;
+}
+
+/** A stored record's section, checked against the same catalog as the live game. */
+function readRecord(raw: string): GameSaveDocument {
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { throw new Error(UNREADABLE); }
+  if (!record(parsed) || typeof parsed.version !== "number" || !record(parsed.value)) throw new Error(DAMAGED);
+  if (parsed.version !== GAME_SAVE_VERSION) throw new Error(DAMAGED);
+  const document = parsed.value as unknown as GameSaveDocument;
+  if (!record(document.systems)) throw new Error(DAMAGED);
+  if (!validHome(document.systems.marrow)) throw new Error(DAMAGED);
+  return document;
+}
+
+/**
+ * One durable record: a shared game-save document whose sections are the persistent Marrow record
+ * and the live run, so mounted systems snapshot themselves instead of a hand-written shape. The
+ * v1-v4 bytes at {@link SAVE_KEY} are read once and rewritten as a record; the old bytes stay put.
+ */
+export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
+  let home = newHome();
+  let restored: RunSnapshot | null = null;
+  let lastRaw: string | null = null;
+  let legacyRaw: string | null = null;
+  let failure: unknown = null;
+  /** Set for the duration of one commit so the document carries a run other than the live view. */
+  let override: RunSnapshot | null | undefined = undefined;
+
+  const marrow: GameSaveSystem<Home> = {
+    name: "marrow",
+    snapshot: () => home,
+    restore: next => { const loaded = readHome(next); if (loaded !== null) home = loaded; },
+    reset: () => { home = newHome(); },
+  };
+  const live: GameSaveSystem<RunSnapshot> = {
+    name: "run",
+    snapshot: () => override !== undefined ? override as RunSnapshot : run.snapshot(),
+    restore: next => { restored = next; run.restore(next); },
+    reset: () => { restored = null; run.restore(null); },
+  };
+  const save: GameSave = createGameSave({
+    backend: backendOver(storage),
+    game: "deepward",
+    key: RECORD_KEY,
+    slot: RECORD_SLOT,
+    systems: [marrow, live],
+    onError: error => { failure = error; },
+    devtoolsName: "deepward.save",
+  });
+
+  async function flush(): Promise<void> {
+    failure = null;
+    await save.save();
+    if (save.status() === "error" || failure !== null) throw failure instanceof Error ? failure : new Error("Marrow could not verify the written record. Reload before continuing.");
+    lastRaw = storage.getItem(RECORD_ENTRY);
+  }
+
+  function isCurrent(): boolean {
+    const stored = storage.getItem(RECORD_ENTRY);
+    if (stored !== null) return stored === lastRaw;
+    return storage.getItem(SAVE_KEY) === legacyRaw;
+  }
+
+  return {
+    get home() { return home; },
+    get restoredRun() { return restored; },
+    async load(): Promise<Home> {
+      const stored = storage.getItem(RECORD_ENTRY);
+      legacyRaw = storage.getItem(SAVE_KEY);
+      if (stored !== null) {
+        readRecord(stored); // a damaged or future record blocks play instead of silently starting over
+        await save.load();
+      } else if (legacyRaw !== null) {
+        home = decodeLegacy(legacyRaw);
+        await flush(); // the migration is the first record write
+      } else {
+        await save.load(); // no bytes: both systems reset to a fresh Marrow
+      }
+      lastRaw = storage.getItem(RECORD_ENTRY);
+      save.touch();
+      return home;
+    },
+    async commit(next: Home, runSection?: RunSnapshot | null): Promise<void> {
+      if (!validHome(next)) throw new Error("Invalid Marrow save transition");
+      if (!isCurrent()) throw new Error("Marrow changed in another window. Reload before continuing.");
+      const previous = home;
+      home = next;
+      override = runSection;
+      try { await flush(); }
+      catch (error) { home = previous; throw error; }
+      finally { override = undefined; }
+    },
+    isCurrent,
+    digest: () => save.digest(),
+  };
 }
 
 /** Whether a Marrow record is actually on disk - the title's Continue gate, not a remembered flag. */
 export function storedMarrow(storage: StoragePort): boolean {
-  return storage.getItem(SAVE_KEY) !== null;
+  return storage.getItem(RECORD_ENTRY) !== null || storage.getItem(SAVE_KEY) !== null;
 }
-/**
- * A single durable JSON boundary: no per-frame save, wall-clock catch-up, or half-written haul.
- * Compare the exact loaded bytes to reject stale tabs; verify the saved bytes before acknowledging.
- * The storage event stops another live tab immediately. This is local single-writer play.
- */
-export function openSave(storage: StoragePort): SaveSession {
-  let raw = storage.getItem(SAVE_KEY);
-  let home = newHome();
-  if (raw !== null) {
-    let decoded: unknown;
-    try { decoded = JSON.parse(raw); } catch { throw new Error("Marrow's save is unreadable. It has been preserved; restore it before diving."); }
-    const loaded = readHome(decoded);
-    if (loaded === null) throw new Error("Marrow's save is damaged or from another version. It has been preserved.");
-    home = loaded;
-  }
-  return {
-    get home() { return home; },
-    isCurrent() { return storage.getItem(SAVE_KEY) === raw; },
-    commit(next) {
-      if (!validHome(next) || next.revision !== home.revision + 1) throw new Error("Invalid Marrow save transition");
-      if (storage.getItem(SAVE_KEY) !== raw) throw new Error("Marrow changed in another window. Reload before continuing.");
-      const bytes = JSON.stringify(next);
-      storage.setItem(SAVE_KEY, bytes);
-      if (storage.getItem(SAVE_KEY) !== bytes) throw new Error("Marrow could not verify the written save. Reload before continuing.");
-      raw = bytes;
-      home = next;
-    },
-  };
+
+function backendOver(storage: StoragePort): SaveBackend {
+  return localSaveBackend({
+    getItem: key => storage.getItem(key),
+    setItem: (key, value) => { storage.setItem(key, value); },
+    removeItem: key => { storage.removeItem?.(key); },
+  }, { errorMode: "throw" });
 }

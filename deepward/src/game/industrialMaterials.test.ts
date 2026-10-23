@@ -83,11 +83,12 @@ test("tray placard clears close standing sightlines and keeps an exposed face on
   }
 });
 test("weapon presentation settles with accepted state and preserves the original muzzle anchors", () => {
-  const idle = newDive(1), pose = serviceWeaponPose(idle);
+  const idle = { hand: "sidearm" as const, reload: 0, hurt: 0, flash: 0 };
+  const pose = serviceWeaponPose(idle);
   for (const value of [...pose.at, ...pose.turn]) expect(Math.abs(value)).toBe(0);
   expect(pose.flash).toBe(false);
-  expect(serviceWeaponPose({ ...idle, flash: 0.12, shotCooldown: 0.32 }).kick).toBe(1);
-  expect(serviceWeaponPose({ ...idle, hand: "service-rifle", shotCooldown: 0.5 }).kick).toBe(0);
-  expect(serviceWeaponPose({ ...idle, reload: 0.65 }).magazineOffset).toBeGreaterThan(0);
+  expect(serviceWeaponPose({ ...idle, flash: 0.12 }).kick).toBe(1);
+  expect(serviceWeaponPose({ ...idle, hand: "service-rifle", flash: 0 }).kick).toBe(0);
+  expect(serviceWeaponPose({ ...idle, reload: 0.5 }).magazineOffset).toBeGreaterThan(0);
   expect(WEAPON_MUZZLE.sidearm).toEqual([0, 0, -0.22]); expect(WEAPON_MUZZLE["service-rifle"]).toEqual([0, 0, -0.5]);
 });

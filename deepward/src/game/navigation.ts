@@ -1,3 +1,4 @@
+import { createNavGrid, findPath, type NavGrid, type NavPoint } from "@jgengine/core/nav/navGrid";
 import { distance, walkable, WORLD_BOUNDS, type Place, type Point } from "../world";
 
 const CELL = 0.5;
@@ -11,64 +12,52 @@ export function traversable(from: Point, to: Point, place: Place): boolean {
   return true;
 }
 
-type Node = { at: Point; neighbors: number[] };
-const graphs = new Map<Place, Node[]>();
-function graph(place: Place): Node[] {
-  const cached = graphs.get(place);
+/**
+ * The station's route grid: the shared occupancy grid at the game's own 0.5 m cell, marked from
+ * the authored room and machinery footprints. The pathfinder, the corner rule and the straight-run
+ * smoothing are the engine's; only which cells are walkable is Deepward's.
+ */
+const grids = new Map<Place, NavGrid>();
+function grid(place: Place): NavGrid {
+  const cached = grids.get(place);
   if (cached) return cached;
-  const nodes: Node[] = [], keys = new Map<string, number>();
-  for (let x = WORLD_BOUNDS.minX + CELL / 2, ix = 0; x < WORLD_BOUNDS.maxX; x += CELL, ix++) {
-    for (let z = WORLD_BOUNDS.minZ + CELL / 2, iz = 0; z < WORLD_BOUNDS.maxZ; z += CELL, iz++) {
-      if (!walkable(x, z, place)) continue;
-      keys.set(`${ix}:${iz}`, nodes.length);
-      nodes.push({ at: [x, 0, z], neighbors: [] });
+  const map = createNavGrid({ bounds: WORLD_BOUNDS, cellSize: CELL, diagonal: true });
+  for (let row = 0; row < map.rows; row++) {
+    for (let col = 0; col < map.cols; col++) {
+      const [x, z] = map.center(col, row);
+      if (!walkable(x, z, place)) map.setWalkable(col, row, false);
     }
   }
-  for (const [key, id] of keys) {
-    const [x, z] = key.split(":").map(Number);
-    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
-      const neighbor = keys.get(`${x! + dx!}:${z! + dz!}`);
-      if (neighbor !== undefined && traversable(nodes[id]!.at, nodes[neighbor]!.at, place)) nodes[id]!.neighbors.push(neighbor);
-    }
-  }
-  graphs.set(place, nodes);
-  return nodes;
+  grids.set(place, map);
+  return map;
 }
 
-function anchor(nodes: Node[], point: Point, place: Place): number {
-  // Only nearby connections are considered; a wall cannot connect to a distant room.
-  const candidates = nodes.map((node, id) => ({ id, d: distance(point, node.at) })).filter(n => n.d <= CELL * 2).sort((a, b) => a.d - b.d);
-  return candidates.find(n => traversable(point, nodes[n.id]!.at, place))?.id ?? -1;
-}
+const flat = (point: Point): NavPoint => [point[0], point[2]];
+const raise = (point: NavPoint): Point => [point[0], 0, point[1]];
 
 /** Empty means unreachable. This is document-derived routing, not a baked navmesh. */
 export function findRoute(from: Point, to: Point, place: Place): Point[] {
   if (traversable(from, to, place)) return [to];
-  const nodes = graph(place), start = anchor(nodes, from, place), finish = anchor(nodes, to, place);
-  if (start < 0 || finish < 0) return [];
-  const costs = new Map<number, number>([[start, 0]]), previous = new Map<number, number>();
-  const open = new Set([start]), closed = new Set<number>();
-  while (open.size) {
-    let current = -1, score = Infinity;
-    for (const id of open) {
-      const candidate = costs.get(id)! + distance(nodes[id]!.at, nodes[finish]!.at);
-      if (candidate < score) { current = id; score = candidate; }
-    }
-    if (current === finish) {
-      const path: Point[] = [to];
-      let id = finish;
-      while (id !== start) { path.unshift(nodes[id]!.at); id = previous.get(id)!; }
-      path.unshift(nodes[start]!.at);
-      return path;
-    }
-    open.delete(current); closed.add(current);
-    for (const next of nodes[current]!.neighbors) {
-      if (closed.has(next)) continue;
-      const cost = costs.get(current)! + distance(nodes[current]!.at, nodes[next]!.at);
-      if (cost < (costs.get(next) ?? Infinity)) { costs.set(next, cost); previous.set(next, current); open.add(next); }
-    }
-  }
-  return [];
+  const map = grid(place);
+  // Both ends must already stand on this floor. Letting the pathfinder snap a goal would route
+  // across a wall or from the home floor to the vault, which is not a walk the fitter can take.
+  const onFloor = (point: Point) => {
+    const cell = map.cellAt(flat(point));
+    return map.inBounds(cell.col, cell.row) && map.isWalkable(cell.col, cell.row)
+      && traversable(point, raise(map.center(cell.col, cell.row)), place);
+  };
+  if (!onFloor(from) || !onFloor(to)) return [];
+  const path = findPath(map, flat(from), flat(to), {
+    smooth: true,
+    // The grid knows the room; this keeps the route off the authored machinery the same way a
+    // step does, so a smoothed run never cuts a corner the walker cannot take.
+    canTraverse: (a, b) => traversable(raise(a), raise(b), place),
+  });
+  if (path === null || path.length === 0) return [];
+  const points = path.map(raise);
+  // The path ends on the goal's own cell; the caller asked for the exact spot.
+  points[points.length - 1] = to;
+  return points;
 }
 
 export interface Navigator { goal: Point | null; path: Point[] }

@@ -12,15 +12,16 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
-import { CACHE, footprint, ITEMS, weaponOf } from "../state";
+import { CACHE, footprint, ITEMS } from "../state";
+import { weaponReadout } from "../combat";
 import { loadOf, CACHE_WEIGHT } from "../haul";
 import { breakdownValue, compareToPrepared, itemValue, kindOf, statLines, type Item } from "../items";
 import { REFITS, refitMissing, type RefitId } from "../progression";
-import { counterRows, marrowStanding, OPERATOR, SCRIP } from "../counter";
+import { counterRows, marrowStanding, OPERATOR, SCRIP, scripJournal } from "../counter";
 import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
 import { TitleGate } from "./menu/TitleGate";
-import { SAVE_KEY } from "../save";
+import { RECORD_ENTRY, SAVE_KEY } from "../save";
 import { placement } from "./hudPanels";
 
 function grab(): void {
@@ -80,7 +81,7 @@ export function GameUI() {
       event.preventDefault(); event.stopImmediatePropagation();
       ctx.game.commands.run("deepward.pause", {});
     };
-    const storage = (event: StorageEvent) => { if (event.key === SAVE_KEY || event.key === null) storageChanged(ctx); };
+    const storage = (event: StorageEvent) => { if (event.key === SAVE_KEY || event.key === RECORD_ENTRY || event.key === null) storageChanged(ctx); };
     window.addEventListener("keydown", key, true);
     window.addEventListener("storage", storage);
     return () => {
@@ -92,7 +93,7 @@ export function GameUI() {
   if (phase === "menu") return <TitleGate />;
   const dive = view.dive;
   const low = dive !== null && dive.oxygen <= 25;
-  const weapon = weaponOf(dive);
+  const weapon = weaponReadout(dive);
   const load = loadOf(dive?.cache ?? []);
   const chosen = dive?.cache.find(i => i.id === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: i / CACHE.w | 0 }));
@@ -100,6 +101,7 @@ export function GameUI() {
   const marrowTier = marrowLedger.tier(OPERATOR, "marrow");
   const marrowScore = marrowLedger.standing(OPERATOR, "marrow");
   const counter = counterRows(view.home);
+  const journal = scripJournal(view.home, 4);
   const prepared = view.home.stash.find(item => item.id === view.rifleUid) ?? null;
   const close = () => { command("close"); grab(); };
   return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
@@ -138,7 +140,7 @@ export function GameUI() {
         </HudPanel>
         <HudPanel {...placement("vitals")} compact="keep" interactive={false} locked>
           <HudSurface className="dw-vitals" interactive={false}><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
-            <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{dive.reload > 0 ? `RELOADING ${dive.reload.toFixed(1)}s` : `${dive.magazine} / 6`} <small>{dive.reserve} reserve</small></div>
+            <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{view.ammo === null ? "— / —" : view.ammo.reloading ? `RELOADING ${Math.round((1 - view.ammo.reloadProgress) * 1.3 * 10) / 10}s` : `${view.ammo.loaded} / ${view.ammo.capacity}`} <small>{view.ammo?.reserve ?? 0} reserve</small></div>
           </HudSurface>
         </HudPanel>
         <HudPanel {...placement("haul")} compact="keep" locked>
@@ -157,7 +159,7 @@ export function GameUI() {
           <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Rail departure / 06</h2>
           <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
           <dl><div><dt>Scrip</dt><dd>{view.home.bank.banked}</dd></div><div><dt>Standing</dt><dd>{marrowTier.id} / {marrowScore}</dd></div><div><dt>Stash</dt><dd>{view.home.stash.length}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
-          <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death or dive reload loses carried items.</p>
+          <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death loses carried items; a reload resumes from its checkpoint.</p>
           <p className="dw-note">Next departure: {view.rifleUid === null ? "issue sidearm · 12 free cache squares" : `banked ${prepared?.name ?? "service rifle"} · rifle at risk`}. Prepare a rifle at the stash bench.</p>
           {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
         </HudSurface>
@@ -177,7 +179,7 @@ export function GameUI() {
       <span className="dw-eyebrow">Permanent / saved on return</span><h2>Marrow's stash</h2>
       <p>These exact item instances survived the rail journey. They remain here through deaths and reloads. Each carries the level of the room it came from and whatever its roll turned out to be.</p>
       {prepared !== null && <p className="dw-prepared"><strong>Prepared: {prepared.name}</strong> · {Math.round(prepared.stats.damage ?? 0)} damage · {(1 / (prepared.stats.rate ?? 2)).toFixed(2)}s cycle · {prepared.mass} weight. It is the baseline every other rifle is compared against.</p>}
-      <h3>Choose the next shift</h3><p>Travel light with the issue sidearm and twelve free cache squares, or risk a recovered rifle for {Math.round(prepared?.stats.damage ?? 30)} damage per shot instead of {weaponOf(null).damage}. A rifle fills three squares and is lost on death or dive reload. Returning banks the same rifle again.</p>
+      <h3>Choose the next shift</h3><p>Travel light with the issue sidearm and twelve free cache squares, or risk a recovered rifle for {Math.round(prepared?.stats.damage ?? 30)} damage per shot instead of {weaponReadout(null).damage}. A rifle fills three squares and is lost on death. Returning banks the same rifle again.</p>
       <HudButton aria-pressed={view.rifleUid === null} onClick={() => command("prepareRifle", { uid: null })}>Travel light / keep rifles safe</HudButton>
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.id}>
         <ItemMark kind={kindOf(item)} size={38} /><div><strong>{item.name}</strong><p>{RARITY_LABEL[item.rarity] ?? item.rarity} · level {item.level} · {ITEMS[kindOf(item)].maker} · {ITEMS[kindOf(item)].found}</p><small>{ITEMS[kindOf(item)].detail}</small>
@@ -191,6 +193,9 @@ export function GameUI() {
           </div></div>
       </article>)}</div>}
       <h3>Fitter's counter / {view.home.bank.banked} scrip banked</h3><p>Marrow clears operators it trusts. Better standing also prices every shelf a little lower.</p>
+      {journal.length > 0 && <ol className="dw-journal" aria-label="Scrip journal">{journal.map(entry => <li key={entry.seq}>
+        <span>{entry.reason}{entry.ref === undefined ? "" : ` / ${entry.ref}`}</span><strong>{entry.amount > 0 ? "+" : ""}{entry.amount}</strong><small>{entry.balanceAfter} banked</small>
+      </li>)}</ol>}
       <div className="dw-counter">{counter.map(row => <article className="dw-supply" key={row.supply.kind}>
         <ItemMark kind={row.supply.kind} size={32} /><div><strong>{row.supply.label}</strong><p>{row.supply.blurb}</p>
           <small>{row.price} {SCRIP.unit} / unit{row.locked ? ` / locked, needs ${row.needs} standing` : ""}</small>
@@ -221,7 +226,7 @@ export function GameUI() {
       {dive.cache.some(i => kindOf(i) === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><HudButton aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</HudButton><HudButton aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</HudButton></div>}
       <HudButton onClick={() => { command("cache"); grab(); }}>Close cache / Tab</HudButton>
     </HudSurface></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><PauseMenu
+    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading mid-dive resumes from the last checkpoint; dying still loses the haul.</p><PauseMenu
       className="dw-pause-menu"
       title={null}
       resumeLabel="Resume / Esc"
@@ -232,13 +237,13 @@ export function GameUI() {
       items={[
         { id: "settings", label: "Settings & controls", onSelect: settings.open },
         { id: "credits", label: "Credits", onSelect: () => setCredits(true) },
-        { id: "reload", label: dive === null ? "Reload saved Marrow" : "Reload / abandon this Life", danger: true, onSelect: () => window.location.reload() },
+        { id: "reload", label: dive === null ? "Reload saved Marrow" : "Reload / resume this Life", danger: true, onSelect: () => window.location.reload() },
       ]}
     /></HudSurface></div>}
     {view.mode === "reprinting" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
-      <p>Halloway has printed Life {view.home.life}. This loss is already saved; reloading cannot restore the expedition.</p>
+      <p>Halloway has printed Life {view.home.life}. This loss is already saved; accepting the reprint is the only way back to the rail.</p>
       {view.error && <p role="alert">{view.error}</p>}
       <HudButton onClick={() => { command("acknowledgeReprint"); if (viewStore.read(ctx).mode === "home") grab(); }}>Accept reprint / return to Marrow</HudButton>
       <HudButton onClick={() => window.location.reload()}>Reload saved Marrow</HudButton>

@@ -1,23 +1,21 @@
 import { PRINT_SPAWN, type Point } from "../world";
-import { settleEconomy } from "./counter";
+import { FITTER_HEALTH, reserveOf } from "./combat";
+import { openScripBooks, settleEconomy } from "./counter";
 import { bankHaul, canCache, loseHaul } from "./haul";
-import { ITEMS, kindOf, rollItem, weaponStats, type Item, type ItemKind } from "./items";
+import { ITEMS, kindOf, rollItem, type Item, type ItemKind } from "./items";
 import { createItemLedger, type ItemLedgerState } from "@jgengine/core/loot/salvage";
 import type { CareerBankState } from "@jgengine/core/progression/careerBank";
 import type { StandingState } from "@jgengine/core/progression/standing";
+import type { LedgerState } from "@jgengine/core/economy/transactionLedger";
 
 export { ITEMS, type Item, type ItemKind } from "./items";
 
 export interface PackedItem extends Item { x: number; y: number; rotated: boolean }
 export const CACHE = { w: 4, h: 3 };
 export const TANK_SECONDS = 110;
-export const SIDEARM = { damage: 20, range: 24, interval: 0.32, label: "Kessler / issue sidearm" };
-/** The pose model's baseline cycle; a rolled rifle's own rate drives the shot, not this. */
-export const RIFLE_BASELINE = { damage: 30, range: 30, interval: 0.5 };
-export interface Weapon { damage: number; range: number; interval: number; label: string }
 export interface Result { kind: "extracted" | "lost"; dive: number; count: number | null; reason: string; scrip?: number }
 export interface Home {
-  version: 4; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
+  version: 5; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
   activeDive: number | null; stash: Item[]; extractions: number; deaths: number; last: Result | null;
   /** Career scrip: what the counter keeps, and what a Life's haul becomes. */
   bank: CareerBankState;
@@ -25,19 +23,23 @@ export interface Home {
   standing: StandingState;
   /** Instances that left play; a broken-down item can never be equipped or paid again. */
   ledger: ItemLedgerState;
+  /** The counter's books: every scrip movement with its reason and the balance it produced. */
+  books: LedgerState;
 }
 export interface Dive {
   id: number; elapsed: number; tankSeconds: number; oxygen: number; health: number; cache: PackedItem[];
-  collected: string[]; hand: "sidearm" | "service-rifle"; magazine: number; reserve: number;
-  reload: number; shotCooldown: number; flash: number; hurt: number;
+  collected: string[]; hand: "sidearm" | "service-rifle";
+  /** Rounds the refit issued for this dive's one reserve; the held weapon's magazine draws from it. */
+  reservePool: number;
+  flash: number; hurt: number;
   print: { at: Point; health: number; mode: "route" | "calling" | "winding"; attack: number; cooldown: number; drop: Point | null };
   channel: { id: string; remaining: number; anchor: Point } | null;
 }
 export function newHome(): Home {
   return {
-    version: 4, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null,
+    version: 5, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null,
     bank: { banked: 0, haul: 0, deposited: 0, lost: 0, bestHaul: 0, runs: 0 },
-    standing: { records: {} }, ledger: {},
+    standing: { records: {} }, ledger: {}, books: openScripBooks(0),
   };
 }
 export function ledgerOf(home: Home) { return createItemLedger(home.ledger); }
@@ -53,8 +55,9 @@ export function depart(home: Home, rifleUid: string | null = null): Home {
 export function newDive(id: number, home: Pick<Home, "refits"> = { refits: [] }, rifle: Item | null = null): Dive {
   if (rifle !== null && kindOf(rifle) !== "service-rifle") throw new Error("Only a service rifle can be prepared for departure");
   const tankSeconds = home.refits.includes("tank") ? 145 : TANK_SECONDS;
-  return { id, elapsed: 0, tankSeconds, oxygen: tankSeconds, health: 100, cache: rifle === null ? [] : [pack([], rifle)!], collected: [], hand: rifle === null ? "sidearm" : "service-rifle", magazine: 6, reserve: home.refits.includes("reserve") ? 30 : 18, reload: 0, shotCooldown: 0, flash: 0, hurt: 0,
-    print: { at: PRINT_SPAWN, health: 80, mode: "route", attack: 0, cooldown: 0, drop: null }, channel: null };
+  return { id, elapsed: 0, tankSeconds, oxygen: tankSeconds, health: 100, cache: rifle === null ? [] : [pack([], rifle)!], collected: [], hand: rifle === null ? "sidearm" : "service-rifle",
+    reservePool: reserveOf(home.refits), flash: 0, hurt: 0,
+    print: { at: PRINT_SPAWN, health: FITTER_HEALTH, mode: "route", attack: 0, cooldown: 0, drop: null }, channel: null };
 }
 export function footprint(item: Pick<PackedItem, "baseId" | "rotated">): { w: number; h: number } {
   const { w, h } = ITEMS[kindOf(item)];
@@ -93,22 +96,16 @@ export function takeLoot(dive: Dive, source: string, kind: ItemKind, depth = 1):
   if (packed === null) return { ok: false, reason: "grid-full", message: `The cache grid has no room for ${ITEMS[kind].name}. Tab to repack or leave something behind.` };
   return { ok: true, dive: { ...dive, cache: [...dive.cache, packed], collected: [...dive.collected, source], channel: null } };
 }
-/** The rolled rifle actually in hand, so a good affix changes damage and cycle time rather than a label. */
-export function weaponOf(dive: Dive | null): Weapon {
-  if (dive === null || dive.hand !== "service-rifle") return SIDEARM;
-  const rifle = dive.cache.find(item => kindOf(item) === "service-rifle");
-  return rifle === undefined ? SIDEARM : weaponStats(rifle);
-}
 /** Resolve once against the durable departure id. Cache coordinates never enter home storage. */
 export function settle(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Result["kind"], reason: string): Home {
   if (home.activeDive !== dive.id) throw new Error("Dive already settled or superseded");
   const carried: Item[] = dive.cache.map(({ x: _x, y: _y, rotated: _rotated, ...item }) => item);
   const moved = kind === "extracted" ? bankHaul(carried, home.stash) : { banked: [], refused: loseHaul(carried) };
-  const economy = settleEconomy(home, carried, kind);
+  const economy = settleEconomy(home, carried, kind, dive.id);
   return { ...home, revision: home.revision + 1, activeDive: null, reprintPending: kind === "lost",
     stash: [...home.stash, ...moved.banked], extractions: home.extractions + (kind === "extracted" ? 1 : 0),
     deaths: home.deaths + (kind === "lost" ? 1 : 0), life: home.life + (kind === "lost" ? 1 : 0),
-    bank: economy.bank, standing: economy.standing,
+    bank: economy.bank, standing: economy.standing, books: economy.books,
     last: { kind, dive: dive.id, count: dive.cache.length, reason, scrip: economy.scrip } };
 }
 export function recoverInterrupted(home: Home): Home {
@@ -116,19 +113,13 @@ export function recoverInterrupted(home: Home): Home {
   const lost = settle(home, { id: home.activeDive, cache: [] }, "lost", "Radio lost during a dive. The Life ended; its carried haul stayed in Bellwether.");
   return { ...lost, last: { ...lost.last!, count: null } }; // Carried instances were never persisted mid-dive.
 }
-export function reloadWeapon(dive: Dive): Dive {
-  return dive.magazine === 6 || dive.reserve === 0 || dive.reload > 0 ? dive : { ...dive, reload: 1.3, channel: null };
-}
 export function ageDive(dive: Dive, dt: number, steam: boolean): Dive {
   if (!(dt > 0) || !Number.isFinite(dt)) return dive;
   const oxygen = Math.max(0, dive.oxygen - dt);
   const suffocation = Math.max(0, dt - dive.oxygen) * 12;
   const health = Math.max(0, dive.health - suffocation - (steam ? 18 * dt : 0));
-  const reloading = dive.reload > 0 && dive.reload <= dt;
-  const rounds = reloading ? Math.min(6 - dive.magazine, dive.reserve) : 0;
   return { ...dive, elapsed: dive.elapsed + dt, oxygen, health,
-    magazine: dive.magazine + rounds, reserve: dive.reserve - rounds, reload: Math.max(0, dive.reload - dt),
-    shotCooldown: Math.max(0, dive.shotCooldown - dt), flash: Math.max(0, dive.flash - dt),
+    flash: Math.max(0, dive.flash - dt),
     hurt: health < dive.health ? 0.35 : Math.max(0, dive.hurt - dt) };
 }
 
