@@ -13,7 +13,7 @@ import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
-import { counterRows, haulScrip, marrowStanding, OPERATOR, SCRIP } from "../economy";
+import { counterRows, haulScrip, marrowStanding, OPERATOR, SCRIP } from "../counter";
 import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
 import { TitleGate } from "./menu/TitleGate";

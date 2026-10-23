@@ -1,5 +1,5 @@
 import { PRINT_SPAWN, type Point } from "../world";
-import { settleEconomy } from "./economy";
+import { settleEconomy } from "./counter";
 import type { CareerBankState } from "@jgengine/core/progression/careerBank";
 import type { StandingState } from "@jgengine/core/progression/standing";
 

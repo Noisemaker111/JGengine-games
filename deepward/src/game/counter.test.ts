@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { openSave, validHome, type StoragePort } from "./save";
-import { buySupply, counterRows, haulScrip, marrowStanding, OPERATOR, priceOf, SCRIP, settleEconomy } from "./economy";
+import { buySupply, counterRows, haulScrip, marrowStanding, OPERATOR, priceOf, SCRIP, settleEconomy } from "./counter";
 import { depart, newDive, newHome, settle, takeLoot, type Home } from "./state";
 
 function memory(): StoragePort {

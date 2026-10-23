@@ -6,7 +6,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { distance, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
 import { acknowledgeReprint, ageDive, depart, fits, ITEMS, newDive, newHome, pack, recoverInterrupted, reloadWeapon, RIFLE, settle, SIDEARM, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
 import { installRefit, REFITS, type RefitId } from "./progression";
-import { buySupply } from "./economy";
+import { buySupply } from "./counter";
 import { openSave, type SaveSession } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
