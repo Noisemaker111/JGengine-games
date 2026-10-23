@@ -1,6 +1,6 @@
 {
   "generatedBy": "bun run capabilities:sync",
-  "engineVersion": "0.33.0",
+  "engineVersion": "0.34.0",
   "gameFacingRule": "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it with a reason.",
   "capabilities": [
     {
@@ -6466,6 +6466,16 @@
       "gameFacing": false,
       "probe": null,
       "intent": "deterministically select rules from a tagged pool under compatibility/exclusion constraints"
+    },
+    {
+      "id": "run-loop",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/run/runLoop",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "bank or lose what a run carries, with one deterministic change per run"
     },
     {
       "id": "run-modifiers",
