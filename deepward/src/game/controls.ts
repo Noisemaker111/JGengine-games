@@ -245,7 +245,7 @@ export function nearby(ctx: GameContext): { label: string; id: string; kind?: It
     return instanceId !== undefined && ctx.scene.worldItem.get(instanceId) !== null && !dive.collected.includes(s.id) && distance(at, s.at) <= 2.1 && lineOfSight(at, s.at);
   }).sort((a, b) => distance(at, a.at) - distance(at, b.at))[0] ?? null;
 }
-function begin(ctx: GameContext): void {
+function begin(ctx: GameContext): Promise<void> | void {
   const v = viewStore.read(ctx), at = playerAt(ctx), save = runtime(ctx).save;
   if (!playable(ctx) || v.mode !== "home" || at === null || distance(at, GARAGE) > GARAGE_REACH || save === null) return;
   const state = runtime(ctx);
@@ -261,7 +261,7 @@ function begin(ctx: GameContext): void {
   // The departure is written with its dive as one document before the vault opens: a failed
   // write leaves the player at Marrow with the record unchanged.
   state.writing = true;
-  void persist(ctx, home, runOf(ctx, { mode: "dive", dive, rifleUid: null, hint, player: VAULT_SPAWN, weapon: weapon.snapshot(), hand: weapon.definition().id }), () => {
+  return persist(ctx, home, runOf(ctx, { mode: "dive", dive, rifleUid: null, hint, player: VAULT_SPAWN, weapon: weapon.snapshot(), hand: weapon.definition().id }), () => {
     viewStore.write(ctx, { ...viewStore.read(ctx), home, dive, mode: "dive", panel: null, pending: null, error: "", trace: null, rifleUid: null, ammo: ammoOf(weapon), hint });
     teleport(ctx, VAULT_SPAWN);
     for (const loot of SALVAGE) spawnLoot(ctx, loot.id, loot.kind, loot.at, dive.id);
@@ -276,6 +276,28 @@ function begin(ctx: GameContext): void {
       runtime(ctx).writing = false;
       viewStore.update(ctx, s => ({ ...s, error: message(error), hint: "Departure was not saved. Marrow still holds the previous record." }));
     });
+}
+/**
+ * Capture staging for the mid-dive shot: the diver is standing in a vault room with the cache
+ * loaded. The shift itself is a real departure through `begin`, and every item is carried through
+ * the same 1.4 s search channel and cache fit a player uses - the stage only decides where the
+ * diver stands. Dev-only; never reachable in a production build.
+ */
+export async function stageMidDive(ctx: GameContext): Promise<void> {
+  await runtime(ctx).boot;
+  if (viewStore.read(ctx).mode !== "dive") {
+    if (viewStore.read(ctx).mode !== "home" || runtime(ctx).save === null) return;
+    teleport(ctx, GARAGE);
+    run(ctx);
+    await begin(ctx);
+    if (viewStore.read(ctx).mode !== "dive") return;
+  }
+  // Load the pack the way a diver does: search a locker, hold still, let the channel finish.
+  for (const loot of SALVAGE.slice(0, 3)) {
+    teleport(ctx, loot.at);
+    interact(ctx);
+    for (let elapsed = 0; elapsed < 1.8; elapsed += 0.1) tick(ctx, 0.1);
+  }
 }
 function finish(ctx: GameContext, kind: Result["kind"], reason: string): void {
   const v = viewStore.read(ctx);
@@ -397,7 +419,7 @@ function toggleCache(ctx: GameContext): void {
   if (panel !== null) ungrab();
 }
 export function registerControls(ctx: GameContext): void {
-  ctx.game.commands.define("deepward.depart", { apply: begin });
+  ctx.game.commands.define("deepward.depart", { apply: (state) => { void begin(state); return state; } });
   ctx.game.commands.define<{ uid: string | null }>("deepward.prepareRifle", { apply(state, input) {
     const v = viewStore.read(state);
     if (v.mode !== "home" || v.panel !== "stash") return;
@@ -452,6 +474,10 @@ export function registerControls(ctx: GameContext): void {
   // through its existing cooldown; discrete actions stay on the shell's press path.
   // Capture and UI share the stash sheet the world interaction opens.
   ctx.game.commands.define("deepward.enter", { apply(state) { enterFromTitle(state); } });
+  // Dev-only: jump to a loaded mid-dive for the capture that would otherwise be played into.
+  if (import.meta.env.DEV) {
+    ctx.game.commands.define("deepward.stage", { apply(state) { void stageMidDive(state); return state; } });
+  }
   ctx.game.commands.define("deepward.openStash", { apply(state) {
     const v = viewStore.read(state);
     // The capture harness presses this right after Enter; wait for the record like Enter does.

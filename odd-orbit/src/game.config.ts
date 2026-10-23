@@ -10,6 +10,7 @@ import { GameUI } from "./game/ui/GameUI";
 import { orbitTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { editorLayers } from "./editorLayers";
+import { householdStore } from "./game/session/store";
 import { DAY_LENGTH, physics, terrainField, world } from "./world";
 
 export const game = defineGame({
@@ -34,6 +35,27 @@ export const game = defineGame({
   renderEntity,
   pointer: { moveCommand: "world.pointer" },
   touch: { buttons: [] },
+  capture: {
+    // "New household" is `orbit.new`; the boot screen is a real menu, so a play capture has to open it.
+    play: ["orbit.new"],
+    // `mid-shift` (dev-only `household.stage`) runs the household forward to the moment somebody is
+    // at a station on paid work: the roster, concerns and shift readout are a lived morning, not a
+    // fresh boot. Play reaches the same morning by starting a household and waiting out the walk.
+    states: {
+      title: [],
+      paused: ["orbit.new", "pauseToggle"],
+      "mid-shift": ["orbit.new", { name: "household.stage", input: { mode: "shift" } }],
+    },
+    probe: (ctx) => {
+      const state = householdStore.read(ctx);
+      let working = 0;
+      for (const id of state.order) {
+        const member = state.members[id];
+        if (member !== undefined && member.action.kind === "use" && member.action.goal === "work") working += 1;
+      }
+      return { day: state.day, members: state.order.length, working, credits: state.credits };
+    },
+  },
   hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
   lighting: {
     // A warm low key against a cool lilac fill: with the fill as bright as the key everything

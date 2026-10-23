@@ -25,6 +25,7 @@ import { ensureNightMarket } from "./game/items/nightMarket";
 import { onBountyKilled, tickBounties } from "./game/jobs/bounties";
 import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
+import { registerCaptureCommands } from "./game/capture";
 import { CRED_BY_QUEST, grantCred, RACE_WIN_CRED } from "./game/progression/cred";
 import { QUESTS } from "./game/quests/catalog";
 import {
@@ -404,6 +405,7 @@ function onInit(ctx: GameContext): void {
   registerCommands(ctx);
   // The cash journal is live before the first movement, opened at the wallet's balance.
   openBooks(ctx);
+  registerCaptureCommands(ctx);
   convoyFeedback(ctx);
   ensureNightMarket(ctx);
   const buildings = setupWorld(ctx);

@@ -45,6 +45,12 @@ export const game = defineGame({
   // after the map moves — `bun run shoot ember-command --view keep-enemy`.
   capture: {
     play: ["match.start"],
+    // `mission-live` is the campaign mission as the player receives it: `match.start` opens the
+    // next mission from the campaign track, so the objective card, the mission notice and the live
+    // wave are already on screen. Nothing is staged, and nothing needs to be played first.
+    states: {
+      "mission-live": ["match.start"],
+    },
     views: {
       "keep-player": {
         description: "The Vanguard keep and its opening formation.",
