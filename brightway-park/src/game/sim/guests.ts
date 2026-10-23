@@ -18,7 +18,7 @@ import {
   syncAgentStates,
 } from "../agents";
 import { demand } from "./rating";
-import { joinRide, leaveRide, queuePosition, ridePrice, rideView, tickRides, trackPieces } from "./rides";
+import { joinRide, leaveRide, queuePosition, ridePrice, rideView, tickRides, trackPieces } from "../rides";
 
 const ARRIVE_DISTANCE = 2.2;
 const MAX_VISITS = 6;

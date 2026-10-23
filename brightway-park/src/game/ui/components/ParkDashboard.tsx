@@ -4,8 +4,8 @@ import { HudSurface } from "@jgengine/react/hudSurface";
 import { guestCap } from "../../catalog";
 import { session } from "../../session";
 import { currentMetrics } from "../../sim/economy";
-import { loanSummary } from "../../sim/finance";
-import { rideBoard } from "../../sim/rides";
+import { loanSummary } from "../../loan";
+import { rideBoard } from "../../rides";
 import { scenarioView } from "../../scenarios";
 import { nextMilestone, nextStepText } from "../nextStep";
 

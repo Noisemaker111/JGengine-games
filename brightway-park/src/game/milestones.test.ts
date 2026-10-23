@@ -15,7 +15,7 @@ import {
   unlockResolves,
   PARK_ACTOR,
   PARK_TRACK,
-} from "./progression";
+} from "./milestones";
 
 describe("brightway-park milestone gates", () => {
   beforeEach(() => {

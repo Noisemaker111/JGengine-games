@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { MILESTONES } from "../progression";
+import { MILESTONES } from "../milestones";
 import { nextMilestone, nextStepText } from "./nextStep";
 
 describe("objective next step", () => {

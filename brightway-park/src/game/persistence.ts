@@ -9,10 +9,10 @@ import { BUILDABLES, buildableDef } from "./objects/catalog";
 import { GUEST_KINDS } from "./entities/guests/catalog";
 import { blockCenter, footprintCells } from "./build/placement";
 import { withinPark } from "./catalog";
-import { MILESTONES, parkStanding } from "./progression";
-import { restoreRides, rideSnapshot, syncRidePark } from "./sim/rides";
+import { MILESTONES, parkStanding } from "./milestones";
+import { restoreRides, rideSnapshot, syncRidePark } from "./rides";
 import { restoreScenario, scenarioSnapshot, type ScenarioState } from "./scenarios";
-import type { LoanState } from "./sim/finance";
+import type { LoanState } from "./loan";
 import { createParkLedger, session, type GuestState, type PlacedObject, type StaffState } from "./session";
 import { restoreStaff } from "./staff";
 

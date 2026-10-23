@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 
-import { content } from "../content";
-import { agentOf } from "../agents";
-import { resetSession, session, type PlacedObject } from "../session";
-import { tickRidePark, tickGuests, seedGuests } from "./guests";
+import { content } from "./content";
+import { agentOf } from "./agents";
+import { resetSession, session, type PlacedObject } from "./session";
+import { tickRidePark, tickGuests, seedGuests } from "./sim/guests";
 import { joinRide, resetRides, rideBoard, rideStats, rideView, serviceRide, syncRidePark } from "./rides";
 
 function context() {

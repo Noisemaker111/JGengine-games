@@ -11,7 +11,7 @@ import { rideAppeal, rideQueueCostWeight, type RideTaste } from "@jgengine/core/
 import { CLOSE_FRACTION, DAY_LENGTH, ENTRANCE, OPEN_FRACTION } from "./catalog";
 import { buildableDef } from "./objects/catalog";
 import { guestRidePreference } from "./sim/rideExperience";
-import { ridePrice, rideView } from "./sim/rides";
+import { ridePrice, rideView } from "./rides";
 import { session, type GuestState, type PlacedObject, type StaffState } from "./session";
 
 /**

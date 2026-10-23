@@ -11,9 +11,9 @@ import {
   type RideView,
 } from "@jgengine/core/sim/rides";
 
-import { buildableDef } from "../objects/catalog";
-import { session, type PlacedObject } from "../session";
-import { coasterThrill } from "./rating";
+import { buildableDef } from "./objects/catalog";
+import { session, type PlacedObject } from "./session";
+import { coasterThrill } from "./sim/rating";
 
 /**
  * The park's rides run on the shared ride sim (`@jgengine/core/sim/rides`): each ride owns its own

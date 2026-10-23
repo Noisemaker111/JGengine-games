@@ -1,4 +1,4 @@
-import { milestoneContents, nextMilestone } from "../progression";
+import { milestoneContents, nextMilestone } from "../milestones";
 
 /**
  * Plain-language next step for the objective card, derived from the milestone gates.

@@ -5,8 +5,8 @@ import { editorLayers } from "../editorLayers";
 import { buildableDef } from "./objects/catalog";
 import { placeObject } from "./build/placement";
 import { seedGuests, resetGuestAgents } from "./sim/guests";
-import { resetRides } from "./sim/rides";
-import { resetProgression } from "./progression";
+import { resetRides } from "./rides";
+import { resetProgression } from "./milestones";
 import { resetSession, session } from "./session";
 
 const TRACK_PATH_ID = "coaster-track";

@@ -6,7 +6,7 @@ import {
 import type { AgentSnapshot } from "@jgengine/core/agents/agent";
 
 import { DAY_LENGTH, STARTING_CASH } from "./catalog";
-import type { LoanState } from "./sim/finance";
+import type { LoanState } from "./loan";
 import type { ScenarioState } from "./scenarios";
 
 /**

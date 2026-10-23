@@ -7,7 +7,7 @@ import { content } from "../content";
 import { agentOf, clearAgents, guestTargets, liveAgent } from "../agents";
 import { resetSession, session, type PlacedObject } from "../session";
 import { tickStaff } from "../staff";
-import { joinRide, resetRides, syncRidePark } from "./rides";
+import { joinRide, resetRides, syncRidePark } from "../rides";
 import { seedGuests, tickGuests } from "./guests";
 
 function context() {

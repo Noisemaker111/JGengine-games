@@ -6,7 +6,7 @@ import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
 import { coasterThrill } from "../../sim/rating";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
-import { ridePrice, rideView, trackPieces } from "../../sim/rides";
+import { ridePrice, rideView, trackPieces } from "../../rides";
 import { GuestPanel } from "./GuestPanel";
 import { Row } from "./Row";
 

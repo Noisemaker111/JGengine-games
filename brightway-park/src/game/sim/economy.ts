@@ -12,8 +12,8 @@ import { DAY_LENGTH } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { session } from "../session";
 import { syncAmbience } from "../audio";
-import { claimMilestones, milestoneContents, syncStanding } from "../progression";
-import { createLoan, loanDay, LOAN_OFFER } from "./finance";
+import { claimMilestones, milestoneContents, syncStanding } from "../milestones";
+import { createLoan, loanDay, LOAN_OFFER } from "../loan";
 import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
 import { placedList } from "../build/placement";
 

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { createParkLedger } from "../session";
-import { settleDailyUpkeep } from "./economy";
-import { createLoan, loanDay, loanPaymentFor, loanSummary, repayLoan, LOAN_OFFER } from "./finance";
+import { createParkLedger } from "./session";
+import { settleDailyUpkeep } from "./sim/economy";
+import { createLoan, loanDay, loanPaymentFor, loanSummary, repayLoan, LOAN_OFFER } from "./loan";
 
 /** Walk the whole loan book, one day at a time, exactly as the nightly settle does. */
 function runLoan(principal: number, dailyRate: number, termDays: number) {

@@ -10,7 +10,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
 import { syncAmbience } from "../audio";
 import { payOffLoan, takeLoan } from "../sim/economy";
-import { ridePrice, serviceRide, setRidePrice } from "../sim/rides";
+import { ridePrice, serviceRide, setRidePrice } from "../rides";
 import { beginScenario, endScenario, replayScenario } from "../scenarios";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
