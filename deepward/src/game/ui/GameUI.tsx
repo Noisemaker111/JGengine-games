@@ -72,7 +72,7 @@ export function GameUI() {
   const chosen = dive?.cache.find(i => i.uid === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: Math.floor(i / CACHE.w) }));
   const close = () => { command("close"); grab(); };
-  return <div className={`dw-ui ${low ? "dw-low" : ""}`} onKeyDown={event => {
+  return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
     if (event.code === "Tab") event.stopPropagation();
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
@@ -156,8 +156,11 @@ export function GameUI() {
     </HudSurface></div>}
     {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading during a dive ends this Life and loses its haul.</p><PauseMenu
       className="dw-pause-menu"
+      title={null}
       resumeLabel="Resume / Esc"
       width={300}
+      // The sheet is already a surface: the block sits flush inside it rather than nesting a second frame.
+      style={{ background: "transparent", border: "none", boxShadow: "none", padding: 0, margin: "0 auto", width: "min(320px, 100%)" }}
       onResume={() => { command("pause"); grab(); }}
       items={[
         { id: "settings", label: "Settings & controls", onSelect: settings.open },

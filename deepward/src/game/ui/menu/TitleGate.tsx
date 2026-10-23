@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { CreditsPanel } from "@jgengine/react/creditsPanel";
 import { useOptionalGamePhase } from "@jgengine/react/hooks";
-import { LoadingScreen } from "@jgengine/react/loadingScreen";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
 import { TitleMenu } from "@jgengine/react/titleMenu";
@@ -11,12 +10,6 @@ import { continueSaved, enterFromTitle, viewStore } from "../../controls";
 import { DEEPWARD_CREDITS } from "../../credits";
 import { storedMarrow } from "../../save";
 
-const TIPS = [
-  "Air is the clock; the rail behind you is the only way home.",
-  "Banked salvage survives a Life. Carried salvage does not until you return.",
-  "Every return is written before it is acknowledged. A reload cannot undo a loss.",
-];
-
 /** Deepward's front-end: the Marrow platform stands behind the title, frozen until a shift is chosen. */
 export function TitleGate() {
   const ctx = useGameContext();
@@ -24,16 +17,14 @@ export function TitleGate() {
   const settings = useSettings();
   const phase = useOptionalGamePhase();
   const [credits, setCredits] = useState(false);
-  const [opening, setOpening] = useState(false);
 
-  // A real record on disk, not a remembered flag; bumping the Life re-reads it.
-  const saved = useMemo(() => {
-    try {
-      return typeof localStorage !== "undefined" && storedMarrow(localStorage);
-    } catch {
-      return false;
-    }
-  }, [view.home.revision, view.home.life]);
+  // A real record on disk, not a remembered flag.
+  let saved = false;
+  try {
+    saved = typeof localStorage !== "undefined" && storedMarrow(localStorage);
+  } catch {
+    saved = false;
+  }
 
   if (phase !== "menu") return null;
 
@@ -59,7 +50,6 @@ export function TitleGate() {
         ]}
         onSelect={(id) => {
           if (id === "continue") {
-            setOpening(true);
             continueSaved(ctx);
             return;
           }
@@ -82,8 +72,6 @@ export function TitleGate() {
             : "A fresh Marrow. Departure writes the first record; from then on Continue appears here."}
         </p>
       </TitleMenu>
-
-      <LoadingScreen open={opening && phase === "menu"} title="Reading Marrow" tips={TIPS} scrim="blur" />
 
       {credits && (
         <CreditsPanel

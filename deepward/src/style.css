@@ -126,3 +126,9 @@ html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .dw-wordmark span { display: block; margin-top: 10px; font: 12px monospace; letter-spacing: 0.3em; color: #d5b879; }
 .dw-title-note { margin: 0; font: 11px monospace; line-height: 1.7; color: #bac7c1; max-width: 46ch; }
 .dw-pause-menu { margin-top: 6px; }
+
+/* A held shift hides its live chrome; only the pause sheet stays on screen. */
+.dw-ui.dw-held > :not(.dw-modal) { visibility: hidden; }
+/* The field theme's global button skin would flatten the SDK pause block; the resume keeps its accent. */
+.dw-pause-menu [data-pause-resume] { background: var(--jg-accent); border-color: var(--jg-accent); color: var(--jg-surface-deep); text-shadow: none; }
+.dw-pause-menu [data-pause-resume]:hover, .dw-pause-menu [data-pause-resume]:focus-visible { background: var(--jg-accent-bright, var(--jg-accent)); filter: brightness(1.08); }
