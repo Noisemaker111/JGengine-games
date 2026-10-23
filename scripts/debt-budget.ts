@@ -178,15 +178,22 @@ export function evaluateBudget(
 export function describeBreach(breach: BudgetBreach): string[] {
   const noun = breach.actual === 1 ? "entry" : "entries";
   const over = breach.actual - breach.budget;
-  const first = breach.entries[0];
+  const byIssue = new Map<number, string[]>();
+  for (const entry of breach.entries) {
+    const capabilities = byIssue.get(entry.issue) ?? [];
+    capabilities.push(entry.capability);
+    byIssue.set(entry.issue, capabilities);
+  }
+  const ordered = [...byIssue].sort(([a], [b]) => a - b);
+  const first = ordered[0];
   const head =
     first === undefined
       ? `${breach.game}: ${breach.actual} debt ${noun}, budget ${breach.budget} - ${over} more than allowed, and no entry names an issue to clear`
-      : `${breach.game}: ${breach.actual} debt ${noun}, budget ${breach.budget} - clear #${first.issue} (${first.capability}) first`;
-  if (breach.entries.length <= 1) return [head];
-  const rest = breach.entries
+      : `${breach.game}: ${breach.actual} debt ${noun}, budget ${breach.budget} - ${over} over; clear #${first[0]} (${first[1].join(", ")}) first`;
+  if (ordered.length <= 1) return [head];
+  const rest = ordered
     .slice(1)
-    .map((entry) => `#${entry.issue} (${entry.capability})`)
+    .map(([issue, capabilities]) => `#${issue} (${capabilities.join(", ")})`)
     .join(", ");
   return [head, `  then ${rest}`];
 }

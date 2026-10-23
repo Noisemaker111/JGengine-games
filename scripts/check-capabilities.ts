@@ -132,7 +132,10 @@ function readIssueStates(root: string): Map<number, IssueState> {
 export function runCheck(options: CheckOptions): number {
   const { root, argv } = options;
   const sink = options.sink ?? console;
-  const today = options.today ?? new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today =
+    options.today ??
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const skipLedger = argv.includes("--no-ledger");
   const summary = argv.includes("--summary");
   const skipIssues = argv.includes("--no-issues");
