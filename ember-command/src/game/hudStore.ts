@@ -3,6 +3,7 @@
  * from `session` so React reads an immutable snapshot and only re-renders when a field changes. */
 
 import type { CampaignReadout } from "./campaign";
+import type { FormationKind } from "./formations";
 import type { HeroActView, HeroOffer } from "./heroActs";
 
 export type MatchPhase = "ready" | "playing" | "paused" | "won" | "lost";
@@ -40,6 +41,8 @@ export interface HudSnapshot {
   playerKeepHp: number;
   playerKeepMax: number;
   attackMoveArmed: boolean;
+  /** The marching shape the command card highlights: line, wedge or column. */
+  formation: FormationKind;
   /** Marauder reinforcement pressure: waves mustered so far, and whole seconds to the next one. */
   wavesSent: number;
   nextWaveIn: number;
@@ -87,6 +90,7 @@ const initial: HudSnapshot = {
   playerKeepHp: 0,
   playerKeepMax: 1,
   attackMoveArmed: false,
+  formation: "line",
   wavesSent: 0,
   nextWaveIn: 0,
   marauderPhase: "scouting",
@@ -189,6 +193,7 @@ function changed(next: HudSnapshot): boolean {
     p.enemyKeepHp !== next.enemyKeepHp ||
     p.playerKeepHp !== next.playerKeepHp ||
     p.attackMoveArmed !== next.attackMoveArmed ||
+    p.formation !== next.formation ||
     p.wavesSent !== next.wavesSent ||
     p.nextWaveIn !== next.nextWaveIn ||
     p.marauderPhase !== next.marauderPhase ||

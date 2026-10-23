@@ -21,6 +21,17 @@ export const ORDER_TARGET_RADIUS = 3.0;
 export const NODE_ORDER_RADIUS = 4.5;
 /** Grid spacing between formation slots when a group is ordered to a point. */
 export const FORMATION_SPACING = 2.3;
+/** A member further than this from its held slot walks back to it (outside ARRIVE_RADIUS so units at
+ * post never jitter between "arrived" and "returning"). */
+export const FORMATION_HOLD_TOLERANCE = 2.6;
+
+/** Vision — how far a standing Vanguard eye clears the fog. Buildings and the hero see further than
+ * a line soldier, so a keep lights its own ground and Bram is the best scout on the field. */
+export const SIGHT_RADIUS = 13;
+export const SIGHT_RADIUS_HERO = 17;
+export const SIGHT_RADIUS_BUILDING = 16;
+/** Fog grid: the 96×96 battlefield on 3-unit cells (32×32 cells), redrawn with the minimap. */
+export const FOG_CELL = 3;
 
 /** Gather loop. A peasant walks to a node, works for HARVEST_SECONDS, then hauls the load home. */
 export const HARVEST_RANGE = 2.6;

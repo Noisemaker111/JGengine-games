@@ -15,6 +15,12 @@ export const keybinds: ActionCodesMap = {
   buildTower: ["KeyT"],
   rally: ["KeyF"],
   hold: ["KeyV"],
+  // Marching shape: line / wedge / column.
+  formationLine: ["KeyL"],
+  formationWedge: ["KeyJ"],
+  formationColumn: ["KeyK"],
+  // Select the whole fielded army (the keyboard half of a marquee).
+  selectArmy: ["KeyH"],
   // Powers
   researchWeapons: ["KeyZ"],
   researchArmor: ["KeyX"],
