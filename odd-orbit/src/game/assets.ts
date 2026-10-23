@@ -1,6 +1,5 @@
 import { buildCatalog } from "@jgengine/assets/catalogs/build";
 import { findLibraryMaterial, libraryMaterialMaps } from "@jgengine/assets/catalogs/materialLibrary";
-import { buildMaterialCatalog } from "@jgengine/assets/materials";
 import type { AssetCatalog } from "@jgengine/core/scene/assetCatalog";
 import type { TerrainMaterialMaps } from "@jgengine/core/world/features";
 
@@ -17,8 +16,8 @@ export const assets: AssetCatalog = buildCatalog({
 
 /**
  * The ambientCG scan under the habitat floor and the ground beyond it. The shared library names the
- * surface (`ground/gravel`); this id is only what `bun run provision` pulls and what resolves the
- * one map role the library does not publish (see {@link libraryGroundMaps}).
+ * surface (`ground/gravel`); this id is only what `bun run provision` pulls and what
+ * {@link libraryGroundMaps} resolves.
  */
 const GROUND_MATERIAL_SOURCE = "ambientcg-gravel002";
 
@@ -33,22 +32,12 @@ export const ASSET_SOURCE_IDS: readonly string[] = [
   GROUND_MATERIAL_SOURCE,
 ];
 
-const materials = buildMaterialCatalog({ basePath: "/materials" });
-
-/** The scan's own resolution — the only place the `displacement` URL comes from. */
-function groundScanDisplacement(): string {
-  const maps = materials.resolve(GROUND_MATERIAL_SOURCE)?.maps;
-  if (maps === undefined) throw new Error(`odd-orbit: unknown material source "${GROUND_MATERIAL_SOURCE}"`);
-  return maps.displacement;
-}
-
 /**
  * Terrain detail maps for a named material from the shared library: the scanned ambientCG maps
  * `assets pull` writes, ready for `terrain({ detail: { material: { maps } } })`.
  *
- * `TerrainMaterialMaps` requires a `displacement` URL that the terrain shader never samples, and the
- * library publishes no displacement role, so that one URL comes from the material catalog's own
- * resolution of the same source. Delete the second lookup when the library exposes it.
+ * `TerrainMaterialMaps.displacement` is optional since SDK 0.28.0 and no terrain renderer samples it,
+ * so this passes only the roles the library publishes rather than inventing a height-map URL.
  */
 export function libraryGroundMaps(name: string): TerrainMaterialMaps {
   const entry = findLibraryMaterial(name);
@@ -66,6 +55,5 @@ export function libraryGroundMaps(name: string): TerrainMaterialMaps {
     normal: normal.url,
     ...(roughness === undefined ? {} : { roughness: roughness.url }),
     ...(ao === undefined ? {} : { ao: ao.url }),
-    displacement: groundScanDisplacement(),
   };
 }
