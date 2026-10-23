@@ -68,6 +68,36 @@ const catalog: LootCatalog = {
 const dropById = new Map<string, ItemDrop>();
 const ledger = createItemLedger();
 const storage = typeof localStorage === "undefined" ? null : defaultKeyValueStorage();
+const DROPS_KEY = "scrap-signal.field-drops";
+const LEDGER_KEY = "scrap-signal.field-ledger";
+
+function saveDrops(): void {
+  if (storage === null) return;
+  try {
+    storage.setItem(DROPS_KEY, JSON.stringify([...dropById.values()].slice(-60)));
+    storage.setItem(LEDGER_KEY, JSON.stringify(ledger.snapshot()));
+  } catch {
+    // A blocked save cell keeps the session working; the next roll retries.
+  }
+}
+
+function hydrateDrops(): void {
+  if (storage === null) return;
+  try {
+    const rawDrops = storage.getItem(DROPS_KEY);
+    if (rawDrops !== null) {
+      for (const drop of JSON.parse(rawDrops) as ItemDrop[]) {
+        dropById.set(drop.id, drop);
+        toGun(drop);
+      }
+    }
+    const rawLedger = storage.getItem(LEDGER_KEY);
+    if (rawLedger !== null) ledger.restore(JSON.parse(rawLedger) as Record<string, "salvaged" | "sold">);
+  } catch {
+    // A malformed save starts the field stash empty rather than crashing the run.
+  }
+}
+
 const inventories = createInventorySet({ run: { slots: 6 }, stash: { slots: 12 } }, { stackLimit: () => 99 });
 const haul = createRunHaul({
   inventories,
@@ -209,6 +239,7 @@ export function scanFieldGun(ctx: GameContext, seed: string, level: number): Fie
   const drop = rollDrop(catalog, seed, { level });
   dropById.set(drop.id, drop);
   toGun(drop);
+  saveDrops();
   const carried = haul.carry(drop.id).ok;
   return writeView(ctx, drop, carried, wornStats(ctx));
 }
@@ -229,6 +260,7 @@ export function salvageFieldGun(ctx: GameContext, dropId: string): SalvageYield 
   if (!result.ok) return null;
   if (inventories.count("run", dropId) > 0) inventories.take("run", dropId, 1);
   else inventories.take("stash", dropId, 1);
+  saveDrops();
   ctx.game.economy.grant(ctx.player.userId, result.yield.currency, result.yield.amount);
   const current = fieldGearStore.read(ctx);
   if (current !== null) fieldGearStore.write(ctx, { ...current, stash: stashNames() });
@@ -257,3 +289,5 @@ export function fieldHaulState(): { run: readonly string[]; stash: readonly stri
 }
 
 export type { LootItem };
+
+hydrateDrops();
