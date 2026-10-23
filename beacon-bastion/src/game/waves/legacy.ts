@@ -1,5 +1,5 @@
 import { createRunDraft, type RunModifierOffer } from "@jgengine/core/game/runDraft";
-import { createRunLoop, type RunChange, type RunLoopState } from "@jgengine/core/run/runLoop";
+import { createRunLoop, type RunChange, type RunLoop, type RunLoopState } from "@jgengine/core/run/runLoop";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
@@ -90,7 +90,7 @@ export const legacy = defineStore<LegacyState>("beacon:legacy", freshLegacy);
  */
 const loops = perContext(() => createRunLoop<BoonEffect>({ seed: DIRECTOR_SEED, changes: RELIC_TABLE }));
 
-export function relicLoop(ctx: GameContext): ReturnType<typeof loops> {
+export function relicLoop(ctx: GameContext): RunLoop<BoonEffect> {
   return loops(ctx);
 }
 
@@ -106,7 +106,8 @@ export function carriedRelic(state: LegacyState): BoonDef | null {
 
 /**
  * The three relics a result card offers: the engine's draft presents them weighted and without
- * repeats from the seed this finished run supplies, so the same run always offers the same three.
+ * repeats, from the run the loop just settled and the change it drew for the next one, so the same
+ * finished run always offers the same three.
  */
 export function drawRelics(seed: string, count: number = BANK_RULE.offerCount): string[] {
   const draft = createRunDraft({ offers: RELIC_OFFERS, rng: seededRng(seed) });
@@ -114,9 +115,10 @@ export function drawRelics(seed: string, count: number = BANK_RULE.offerCount): 
 }
 
 /**
- * Bank a finished defense: the engine loop prices what the purse banks and draws the relic the next
- * defense opens with, while the keep adds the waves it held and caps what its vault holds. Guarded by
- * `session.banked`, so a win and a death in the same frame bank once.
+ * Bank a finished defense: the engine loop prices what the purse banks and draws the change the next
+ * defense opens with, while the keep adds the waves it held, caps what its vault holds, and deals the
+ * three relics the player picks from. Guarded by `session.banked`, so a win and a death in the same
+ * frame bank once.
  */
 export function finishRun(ctx: GameContext): void {
   if (session.banked) return;
