@@ -70,6 +70,14 @@ export function wavePreviewLine(wave: EncounterWave | null, waveNumber: number):
   return `Next · ${label} — ${parts.join(", ")}${bossPart}`;
 }
 
+/**
+ * The 0-based index of the wave a release would send. Before the first release that is wave 1; once
+ * a wave is open, releasing it clears it and opens the next one, so the preview moves up with it.
+ */
+export function nextWaveIndex(started: boolean, wave: number): number {
+  return started ? Math.max(1, wave) : 0;
+}
+
 /** The boss on the field and the stance its phase sets, or null when no boss is out. */
 export function bossLine(boss: { unitId: string; state: { phaseId: string; tellId: string | null } } | null): string | null {
   if (boss === null) return null;

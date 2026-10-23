@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { ENCOUNTER } from "./manifest";
-import { bossLine, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "./status";
+import { bossLine, nextWaveIndex, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "./status";
 
 describe("waveStatusLine", () => {
   test("before the first release the widget says the wave is ready", () => {
@@ -33,6 +33,13 @@ describe("wavePreviewLine", () => {
   test("a boss wave says so, by the boss's own name", () => {
     const line = wavePreviewLine(ENCOUNTER.waves[11]!, 12);
     expect(line).toContain("· BOSS The Warden");
+    expect(wavePreviewLine(ENCOUNTER.waves[7]!, 8)).toContain("· BOSS The Warlord");
+  });
+
+  test("the preview follows the release button, not the open wave", () => {
+    expect(nextWaveIndex(false, 1)).toBe(0);
+    expect(nextWaveIndex(true, 7)).toBe(7);
+    expect(ENCOUNTER.waves[nextWaveIndex(true, 7)]!.label).toBe(ENCOUNTER.waves[7]!.label);
   });
 
   test("named elites are named, never counted as anonymous elites", () => {
