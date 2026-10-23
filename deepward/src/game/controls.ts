@@ -581,7 +581,9 @@ export function openTitle(ctx: GameContext): void {
 /** Leave the title for the loaded record: the rail is live again. */
 export function enterFromTitle(ctx: GameContext): void {
   const v = viewStore.read(ctx);
-  if (v.mode === "loading" || v.mode === "blocked" || v.mode === "reprinting") return;
+  // A press that lands while the record is still being read waits for it rather than being lost.
+  if (v.mode === "loading") { void runtime(ctx).boot.then(() => enterFromTitle(ctx)); return; }
+  if (v.mode === "blocked" || v.mode === "reprinting") return;
   run(ctx);
 }
 
