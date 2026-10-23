@@ -86,10 +86,17 @@ export interface MastReadout {
 export const mastSnapshotStore = defineStore<MissionRuntimeSnapshot | null>("mast.watch", null);
 export const mastReadoutStore = defineStore<MastReadout | null>("mast.watch.readout", null);
 
+/** Markers are authored at y=0; the machine measures proximity in 3D, so each one is lifted to the live ground it sits on. */
+function groundedMarkers(ctx: GameContext): Record<string, { x: number; y: number; z: number }> {
+  const out = missionMarkers(authoredScene);
+  for (const marker of Object.values(out)) marker.y = ctx.world.groundHeightAt(marker.x, marker.z);
+  return out;
+}
+
 const runtimes = perContext((ctx: GameContext) =>
   createMissionRuntime({
     missions: [MAST_WATCH],
-    markers: missionMarkers(authoredScene),
+    markers: groundedMarkers(ctx),
     devtoolsName: "scrap-signal mast",
   }),
 );

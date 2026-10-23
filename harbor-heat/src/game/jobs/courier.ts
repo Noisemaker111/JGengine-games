@@ -132,10 +132,17 @@ export const COURIER_JOBS: readonly MissionDef[] = DELIVERY_ROUTES.flatMap((rout
   routeMission(route, index, true),
 ]);
 
+/** Markers are authored at y=0; the machine measures proximity in 3D, so each one is lifted to the live ground it sits on. */
+function groundedMarkers(ctx: GameContext): Record<string, { x: number; y: number; z: number }> {
+  const out = missionMarkers(editorLayers);
+  for (const marker of Object.values(out)) marker.y = ctx.world.groundHeightAt(marker.x, marker.z);
+  return out;
+}
+
 const runtimes = perContext((ctx: GameContext) =>
   createMissionRuntime({
     missions: COURIER_JOBS,
-    markers: missionMarkers(editorLayers),
+    markers: groundedMarkers(ctx),
     defaultPursuer: PLAYER_ACTOR,
     devtoolsName: "harbor-heat courier",
   }),
