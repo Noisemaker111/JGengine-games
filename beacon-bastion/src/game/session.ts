@@ -1,12 +1,17 @@
 import type { PathFollowState } from "@jgengine/core/nav/pathFollow";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { createSpawnDirectorState, type SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
+import type { BossState } from "@jgengine/core/ai/director/boss";
+import type { Encounter } from "@jgengine/core/ai/director/encounter";
+import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
 import { createStats, type Stats } from "@jgengine/core/stats/statModifiers";
 import { createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
 
 import type { TowerBuildSpec, TowerReservation } from "./build/construction";
 import { BUILD_PLOTS } from "./world/path";
-import { SPAWN_DIRECTOR_CONFIG } from "./waves/manifest";
+import { createEncounter } from "@jgengine/core/ai/director/encounter";
+import { evaluatePressure } from "@jgengine/core/ai/director/pressure";
+
+import { DIRECTOR_SEED, ENCOUNTER } from "./waves/manifest";
 
 export interface CreepRuntime {
   instanceId: string;
@@ -23,8 +28,22 @@ export interface TowerRuntime {
   cooldownSeconds: number;
 }
 
+/** The Warden on the field, if it is out: its instance, phase state, and the stance that phase sets. */
+export interface BossRuntime {
+  instanceId: string;
+  state: BossState;
+  stance: string;
+}
+
 export interface SessionState {
-  director: SpawnDirectorState;
+  /** The authored raider host and how far through it the run is. */
+  encounter: Encounter;
+  /** What the director read when the current wave opened, so the HUD can say how hard it is leaning. */
+  pressure: PressurePlan;
+  /** The Warden, once it walks. */
+  boss: BossRuntime | null;
+  /** Unit ids the open wave sent, pressure additions included, in entry order. */
+  openingComposition: string[];
   buildQueue: WorkQueueState<TowerBuildSpec, TowerReservation>;
   creeps: Map<string, CreepRuntime>;
   towers: Map<string, TowerRuntime>;
@@ -46,7 +65,10 @@ function freshState(): SessionState {
   const plotOccupant = new Map<string, string | null>();
   for (const plot of BUILD_PLOTS) plotOccupant.set(plot.id, null);
   return {
-    director: createSpawnDirectorState(SPAWN_DIRECTOR_CONFIG),
+    encounter: createEncounter({ definition: ENCOUNTER, seed: DIRECTOR_SEED }),
+    pressure: evaluatePressure({ health: 1, progress: 0, elapsed: 0 }),
+    boss: null,
+    openingComposition: [],
     buildQueue: createWorkQueue<TowerBuildSpec, TowerReservation>(),
     creeps: new Map(),
     towers: new Map(),
@@ -89,11 +111,11 @@ export function gameClockMs(ctx: GameContext): number {
 }
 
 export function currentWaveNumber(): number {
-  return session.director.wave + 1;
+  return session.encounter.view().wave;
 }
 
 export function wavesComplete(): boolean {
-  return session.director.done;
+  return session.encounter.view().done;
 }
 
 export function activeCreepCount(): number {

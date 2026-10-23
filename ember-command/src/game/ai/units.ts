@@ -8,6 +8,7 @@ import { matchRunning, playerDepot, session, type UnitRuntime } from "../session
 import { resolveDamage } from "../upgrades";
 import { heroAttackBonus } from "../hero";
 import { tacticalDamage } from "../tactics";
+import { raiseCombatNoise } from "./director";
 
 /** Extra reach against a building's broad footprint so attackers stop at the wall, not the centre. */
 const BUILDING_REACH_BONUS = 3.5;
@@ -159,6 +160,10 @@ function tickUnit(ctx: GameContext, dt: number, u: UnitRuntime): void {
         const base = def.damage + heroAttackBonus(ctx, u.catalogId);
         const amount = resolveDamage(tacticalDamage(base, u.catalogId, target.catalogId, distXZ(self.position, ent.position)), u.faction, target.faction);
         ctx.scene.entity.effect({ from: u.id, to: target.id, effect: "damage", via: { amount } });
+        // A fight is loud: the Marauders' own ears hear it through the shared hearing owner.
+        if (u.faction === "player" && target.faction === "enemy") {
+          raiseCombatNoise(ctx, { x: ent.position[0], z: ent.position[2] }, u.id);
+        }
         ctx.game.audio.play("hit", ent.position);
         armPursuit(u, def.attackCooldown);
       }

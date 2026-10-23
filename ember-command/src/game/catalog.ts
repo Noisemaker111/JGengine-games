@@ -105,6 +105,10 @@ export const COMBATANTS: Record<string, CombatantDef> = {
     id: "keep_enemy", label: "Marauder Warcamp", faction: "enemy", kind: "building",
     maxHealth: 1300, scale: 1,
   }),
+  warcamp: def({
+    id: "warcamp", label: "Forward Camp", faction: "enemy", kind: "building",
+    maxHealth: 620, scale: 0.85,
+  }),
 };
 
 /** Decorative props spawned from the scene — no health, not selectable. Forest fill is instanced

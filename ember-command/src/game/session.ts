@@ -1,9 +1,14 @@
 import { createResourceNodeField, type ResourceNodeField } from "@jgengine/core/world/resourceNode";
 import { activeJobs, queuedJobs, createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
 import type { UnitReservation, UnitTrainingSpec } from "@jgengine/core/work/unitTraining";
-import type { SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
+import { createEncounter, type Encounter } from "@jgengine/core/ai/director/encounter";
+import type { SoundHunt } from "@jgengine/core/ai/director/sound";
+import type { PerceptionService } from "@jgengine/core/sensor/perception";
+import { createEncounterState } from "@jgengine/core/combat/encounterSequence";
+import { evaluatePressure } from "@jgengine/core/ai/director/pressure";
 
-import { createEnemyWaveDirector } from "./ai/waveManifest";
+import type { EnemyWaveState } from "./ai/director";
+import { MARAUDER_WAVES, MARCH_PLAN } from "./ai/waveManifest";
 
 import type { BuildSpec } from "./building";
 import { combatantDef, type CombatantKind } from "./catalog";
@@ -39,16 +44,6 @@ export interface NodeInfo {
   z: number;
 }
 
-/** The enemy reinforcement clock. Serializable plain data the director advances each frame. */
-export interface EnemyWaveState {
-  /** The shared spawn-director cadence clock; emits one wave token per interval. */
-  director: SpawnDirectorState;
-  /** How many waves have been sent so far — drives escalation of size and composition. */
-  sent: number;
-  /** Seconds of opening grace remaining before the first wave may muster. */
-  grace: number;
-}
-
 export interface SessionState {
   started: boolean;
   paused: boolean;
@@ -72,8 +67,14 @@ export interface SessionState {
   supplyCap: number;
   /** Set by the Attack-Move verb; consumed by the next right-click order. */
   attackMoveArmed: boolean;
-  /** Enemy reinforcement clock; the AI director musters escalating waves off it. */
+  /** The Marauder plan, its attack waves and the scouting/role bookkeeping. */
   enemyWave: EnemyWaveState;
+  /** The Marauders' eyes and ears, shared by every enemy unit. Built on the first plan tick. */
+  senses: PerceptionService | null;
+  /** Noise investigations: a fight pulls nearby Marauders to it. */
+  hunt: SoundHunt | null;
+  /** Where every living enemy unit stood on the last director tick, so a noise can find its neighbours. */
+  enemyPositions: Record<string, { x: number; z: number }>;
   /** Hero ability state. Mana/XP/level live on the hero entity pools; only the cooldown is here. */
   heroState: { abilityCooldown: number };
   over: boolean;
@@ -97,7 +98,26 @@ function fresh(): SessionState {
     buildArmed: null,
     supplyCap: TOWN_HALL_FOOD,
     attackMoveArmed: false,
-    enemyWave: { director: createEnemyWaveDirector(), sent: 0, grace: ENEMY_WAVE_FIRST_DELAY },
+    enemyWave: {
+      // Started on the first plan tick, after the opening grace, so the scout phase's enter event
+      // reaches the director instead of being spent while no world exists yet.
+      plan: createEncounterState(MARCH_PLAN),
+      encounter: createEncounter({ definition: MARAUDER_WAVES, seed: 7 }),
+      sent: 0,
+      grace: ENEMY_WAVE_FIRST_DELAY,
+      campId: null,
+      waveUnits: [],
+      roleTimer: 0,
+      tier: 0,
+      lastPressure: evaluatePressure({ health: 1, progress: 0, elapsed: 0 }),
+      hunting: {},
+      scouts: [],
+      contactAt: 0,
+      contacted: false,
+    },
+    senses: null,
+    hunt: null,
+    enemyPositions: {},
     heroState: { abilityCooldown: 0 },
     over: false,
     victory: false,

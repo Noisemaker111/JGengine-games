@@ -19,6 +19,7 @@ function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   }
   if (event.catalogId in CREEP_CATALOG) {
     session.creeps.delete(event.instanceId);
+    if (session.boss?.instanceId === event.instanceId) session.boss = null;
     const beneficiary = event.reason.kind === "player_kill" ? event.reason.killerUserId : ctx.player.userId;
     ctx.game.economy.grant(beneficiary, GOLD_CURRENCY, creepDef(event.catalogId).bounty);
     ctx.game.audio.play("kill", event.position);

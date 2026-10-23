@@ -23,6 +23,9 @@ export const PATH_WAYPOINTS: readonly Waypoint[] = PATH_WAYPOINTS_XZ.map(lift);
 export const SPAWN_POINT: Waypoint = PATH_WAYPOINTS[0]!;
 export const KEEP_POINT: Waypoint = PATH_WAYPOINTS[PATH_WAYPOINTS.length - 1]!;
 
+/** The authored entry an encounter group names. One approach today; a wave may name another. */
+export const SPAWN_POINT_KEY = "approach";
+
 export interface BuildPlot {
   id: string;
   position: Waypoint;

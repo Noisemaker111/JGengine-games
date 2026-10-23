@@ -11,7 +11,9 @@ import type { WorkQueueState } from "@jgengine/core/gameplay";
 import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY } from "./entities/base/catalog";
 import { creepDef } from "./entities/enemies/catalog";
 import { resetProjectiles } from "./combat/pendingProjectiles";
-import { newSpeedStats, resetSession, session } from "./session";
+import { newSpeedStats, resetSession, session, type BossRuntime } from "./session";
+import type { EncounterState } from "@jgengine/core/ai/director/encounter";
+import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
 import type { TowerBuildSpec, TowerReservation } from "./build/construction";
 import { BUILD_PLOTS, KEEP_POINT } from "./world/path";
 
@@ -28,7 +30,10 @@ export interface DefenseSave {
   clock: ClockSnapshot;
   gold: number;
   lives: number;
-  director: SessionDirector;
+  encounter: EncounterState;
+  pressure: PressurePlan;
+  boss: BossRuntime | null;
+  openingComposition: string[];
   waveReady: boolean;
   waveStarted: boolean;
   lastWaveBonus: number;
@@ -41,8 +46,6 @@ export interface DefenseSave {
   queue: WorkQueueState<TowerBuildSpec, TowerReservation>;
 }
 
-type SessionDirector = typeof session.director;
-
 function balance(ctx: GameContext): number {
   return ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
 }
@@ -52,7 +55,10 @@ export function captureDefense(ctx: GameContext): DefenseSave {
     clock: ctx.time.snapshot(),
     gold: balance(ctx),
     lives: ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current ?? 0,
-    director: session.director,
+    encounter: session.encounter.snapshot(),
+    pressure: { ...session.pressure },
+    boss: session.boss === null ? null : { instanceId: session.boss.instanceId, state: { ...session.boss.state }, stance: session.boss.stance },
+    openingComposition: [...session.openingComposition],
     waveReady: session.waveReady,
     waveStarted: session.waveStarted,
     lastWaveBonus: session.lastWaveBonus,
@@ -80,7 +86,10 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
   resetSession();
   resetProjectiles();
 
-  session.director = save.director;
+  session.encounter.restore(save.encounter);
+  session.pressure = { ...save.pressure };
+  session.boss = save.boss === null ? null : { instanceId: save.boss.instanceId, state: { ...save.boss.state }, stance: save.boss.stance };
+  session.openingComposition = [...save.openingComposition];
   session.waveReady = save.waveReady;
   session.waveStarted = save.waveStarted;
   session.lastWaveBonus = save.lastWaveBonus;
@@ -129,7 +138,9 @@ export function validDefenseSave(value: unknown): value is DefenseSave {
   return (
     typeof save.clock === "object" && save.clock !== null && number(save.clock.now) &&
     number(save.gold) && number(save.lives) &&
-    typeof save.director === "object" && save.director !== null &&
+    typeof save.encounter === "object" && save.encounter !== null && Number.isSafeInteger(save.encounter.wave) &&
+    typeof save.pressure === "object" && save.pressure !== null && Number.isSafeInteger(save.pressure.tier) &&
+    Array.isArray(save.openingComposition) &&
     typeof save.waveReady === "boolean" && typeof save.waveStarted === "boolean" &&
     number(save.lastWaveBonus) && typeof save.gameOver === "boolean" && typeof save.victory === "boolean" &&
     Number.isSafeInteger(save.creepSeq) && Number.isSafeInteger(save.towerSeq) &&
@@ -186,13 +197,13 @@ export function refreshBeaconSlots(ctx: GameContext): Promise<SaveSlotsRefresh> 
   return refreshSaveSlots(gameSaveSlotSource(beaconSave(ctx)), beaconSlots, {
     nameOf: (slot, document) => {
       const defense = document.systems.defense;
-      const wave = validDefenseSave(defense) ? defense.director.wave + 1 : 1;
+      const wave = validDefenseSave(defense) ? defense.encounter.wave + 1 : 1;
       return `${KEEP_LABEL[slot] ?? slot} · wave ${wave}`;
     },
     metaOf: (_slot, document): Record<string, string | number> => {
       const defense = document.systems.defense;
       if (!validDefenseSave(defense)) return {};
-      return { gold: defense.gold, lives: defense.lives, wave: defense.director.wave + 1 };
+      return { gold: defense.gold, lives: defense.lives, wave: defense.encounter.wave + 1 };
     },
   });
 }
