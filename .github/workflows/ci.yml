@@ -2,6 +2,7 @@ name: ci
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [beta, main]
 
@@ -31,6 +32,7 @@ jobs:
           restore-keys: game-assets-
       - run: bun run provision
       - run: bun run check:framework --base origin/beta
+      - run: bun run check:seam-line
       - run: bun run check:module-globals
       - run: bun run check-types
       - run: bun run test
