@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { registerBuildCommands } from "../build/commands";
+import { registerCaptureCommands } from "../capture";
 import { restorePark, savePark } from "../persistence";
 import { resetPark } from "../parkReset";
 import { session } from "../session";
@@ -19,6 +20,7 @@ export { seedPlacements, type SeedPlacement } from "../parkReset";
 export function setupWorld(ctx: GameContext): void {
   resetPark(ctx, { seed: false });
   registerBuildCommands(ctx);
+  registerCaptureCommands(ctx);
   if (!restorePark(ctx)) resetPark(ctx);
   ctx.time.pause();
   if (typeof localStorage !== "undefined") {

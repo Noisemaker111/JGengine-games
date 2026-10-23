@@ -7,6 +7,7 @@ import { content } from "./game/content";
 import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
 import { BrightwayParkWorldOverlay } from "./game/render/WorldOverlay";
+import { session } from "./game/session";
 import { GameUI } from "./game/ui/GameUI";
 import { parkTheme } from "./game/ui/theme";
 import { loop } from "./loop";
@@ -41,7 +42,26 @@ export const game = defineGame({
     ao: { intensity: 1.1, radius: 1.6 },
     grade: { saturation: 1.18, gamma: 0.98, vignette: 0.12, grain: 0 },
   },
-  capture: { play: ["park.start"], states: { title: [], paused: ["park.start", "pauseToggle"] } },
+  capture: {
+    play: ["park.start"],
+    // `full-park` stages the day a reviewer asks about: gates open, the authored starter park at
+    // its guest cap, lines at the rides. It composes the dev-only `park.stage`, which runs the
+    // park's own tick forward instead of the lane waiting out a day at 4x.
+    states: {
+      title: [],
+      paused: ["park.start", "pauseToggle"],
+      "full-park": ["park.start", { name: "park.stage", input: { mode: "full" } }],
+    },
+    probe: () => {
+      let queued = 0;
+      let riding = 0;
+      for (const guest of session.guests.values()) {
+        if (guest.phase === "queued") queued += 1;
+        else if (guest.phase === "riding") riding += 1;
+      }
+      return { guests: session.guests.size, queued, riding, rating: session.rating };
+    },
+  },
   pointer: { moveCommand: "park.pointer", secondaryCommand: "build.clear" },
   camera: {
     rig: "rts",

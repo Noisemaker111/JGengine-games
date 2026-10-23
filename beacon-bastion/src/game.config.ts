@@ -46,9 +46,17 @@ export const game = defineGame({
     play: ["run.begin"],
     // Every state starts from the boot title, so each one opens the run first - without that the builds
     // land behind the title and the shot is the menu, not the state.
+    //
+    // States a lane can jump to instead of playing there (all compose `run.stage`, dev-only):
+    //   mid-wave  wave 1 on the approach, raiders mid-path
+    //   boss      the Warden on the field, driven through its second phase by real damage
+    //   result    a defense played to its own ending, with the result card up
     states: {
       title: [],
       pause: ["run.begin", "run.pause"],
+      "mid-wave": ["run.begin", { name: "run.stage", input: { mode: "midwave" } }],
+      boss: ["run.begin", { name: "run.stage", input: { mode: "boss" } }],
+      result: ["run.begin", { name: "run.stage", input: { mode: "result" } }],
       "two-towers": [
         "run.begin",
         "buildTower1",
