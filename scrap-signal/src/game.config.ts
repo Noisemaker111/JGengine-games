@@ -2,7 +2,9 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { PositionedPrompt } from "@jgengine/core/interaction/proximityPrompt";
 import type { RarityStyle } from "@jgengine/core/game/worldItem";
 import { defineGame } from "@jgengine/shell/defineGame";
+import { findEditorMarker } from "@jgengine/core/editor/document";
 import { buildScrapSignalEditorLayers } from "./editorLayers";
+import { MAST_BOARD } from "./game/mast";
 
 import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
@@ -37,9 +39,24 @@ const rarityStyle: Record<string, RarityStyle> = {
   legendary: { color: RARITY_COLORS.legendary, beam: true, label: "Legendary" },
 };
 
+const sceneDoc = buildScrapSignalEditorLayers();
+const boardMarker = findEditorMarker(sceneDoc, MAST_BOARD);
+if (boardMarker === undefined) throw new Error(`editor.scene.json: missing marker "${MAST_BOARD}"`);
+const mastBoardPosition = { x: boardMarker.position.x, z: boardMarker.position.z };
+
 const staticPrompts: readonly PositionedPrompt[] = [
   { id: "relay:dead-air", position: { x: RELAY.x, z: RELAY.z }, priority: 2,
     prompt: { radius: 3.8, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "relay.start", input: undefined } } },
+  {
+    id: "mast:board",
+    position: mastBoardPosition,
+    priority: 2,
+    prompt: {
+      radius: 5,
+      display: { kind: "keybind", actionId: "interact" },
+      invoke: { name: "mast.start", input: undefined },
+    },
+  },
   {
     id: "vendor:rigg",
     position: { x: RIGG_VENDOR_POS[0], z: RIGG_VENDOR_POS[2] },
@@ -163,7 +180,7 @@ export const game = defineGame({
   audio,
   objectSounds,
   world,
-  editorLayers: buildScrapSignalEditorLayers(),
+  editorLayers: sceneDoc,
   scenePlacement: false,
   scenePathKinds: [],
   physics,

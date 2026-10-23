@@ -2,6 +2,39 @@
   "version": 1,
   "markers": [
     {
+      "id": "signal_mast_board",
+      "kind": "poi",
+      "position": {
+        "x": -516,
+        "y": 0,
+        "z": 597
+      },
+      "label": "Mast watch board"
+    },
+    {
+      "id": "signal_mast_rustflat",
+      "kind": "poi",
+      "position": {
+        "x": -548,
+        "y": 0,
+        "z": 566
+      },
+      "label": "Signal mast"
+    },
+    {
+      "id": "signal_mast_tower",
+      "kind": "prop",
+      "position": {
+        "x": -551,
+        "y": 0,
+        "z": 569
+      },
+      "rotationY": 0.6,
+      "meta": {
+        "catalogId": "watchtower"
+      }
+    },
+    {
       "id": "crash_bus",
       "kind": "prop",
       "position": {

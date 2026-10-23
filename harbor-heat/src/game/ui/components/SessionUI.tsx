@@ -6,7 +6,7 @@ import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
 import { sessionStore } from "../../session";
-import { courierStore, courierDeadline, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
+import { courierStore, courierDeadline, courierObjectiveStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 import { startedStore } from "../../commands";
 
 const ignoreSaveChanges = () => () => {};
@@ -61,6 +61,7 @@ export function SessionUI() {
 
 export function CourierHud() {
   const courier = useStore(courierStore, (value) => value);
+  const objective = useStore(courierObjectiveStore, (value) => value);
   const position = useGameStore((ctx) => ctx.scene.entity.get(ctx.player.userId)?.position ?? null);
   const { commands } = useGame();
   const route = DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!;
@@ -69,8 +70,8 @@ export function CourierHud() {
   const distance = position === null ? 0 : Math.round(Math.hypot(position[0] - DISPATCH[0], position[2] - DISPATCH[1]));
   return <HudSurface as="section" className={`hh-courier ${running && courier.remaining < 15 ? "hh-urgent" : ""}`} aria-label="Courier dispatch" padding="var(--hh-courier-pad)">
     <div className="hh-courier-label">{running ? "Parcel on board" : "Mainsail express"}<span>{running ? `${Math.ceil(courier.remaining)}s` : `${courier.completed} delivered`}</span></div>
-    <strong>{running ? route.label : "Take a coastal delivery"}</strong>
-    <p>{running ? `${route.recipient} · ${courier.distance} m` : `Teal booth by the shore · ${distance} m`}</p>
-    {running ? <><progress max={courierDeadline(route.seconds, courier.service === "rush")} value={courier.remaining} aria-label="Delivery time remaining" />{courier.service === "rush" && <><b>FRAGILE RUSH · cargo {Math.round(courier.condition ?? 100)}%</b><small>Above 35 km/h and taking damage spoil cargo; wage and bond refund fall with condition.</small></>}<small>{route.hint} Slow to a stop, then press E / Use at the tower.</small></> : <><small>{offer.label} · Standard ${offer.payout}+ · {offer.seconds}s · no fee or failure cost.</small>{distance < 9 && <><HudButton block className="hh-inline-action" onClick={() => commands.run("courier.accept", {})}>Take standard parcel · E ↗</HudButton>{courier.completed > 0 && <><small>Fragile rush ${Math.floor(offer.payout * 1.8)}+ at 100% condition · {courierDeadline(offer.seconds, true)}s. $60 bond; condition scales wage/refund, expiry loses bond. Keep below 35 km/h; avoid damage.</small><HudButton block className="hh-inline-action" onClick={() => commands.run("courier.accept", { service: "rush" })}>Commit $60 bond · fragile rush ↗</HudButton></>}</>}</>}
+    <strong>{running ? (objective?.label ?? route.label) : "Take a coastal delivery"}</strong>
+    <p>{running ? (objective?.step === 2 ? "A runner has the parcel — stay on them" : `${route.recipient} · ${courier.distance} m`) : `Teal booth by the shore · ${distance} m`}</p>
+    {running ? <><progress max={courierDeadline(route.seconds, courier.service === "rush")} value={courier.remaining} aria-label="Delivery time remaining" />{courier.service === "rush" && <><b>FRAGILE RUSH · cargo {Math.round(courier.condition ?? 100)}%</b><small>Above 35 km/h and taking damage spoil cargo; wage and bond refund fall with condition.</small></>}<small>{objective?.step === 2 ? "Get within three metres to recover the parcel — a dead runner means a burned parcel." : `${route.hint} Slow to a stop, then press E / Use at the tower.`}</small></> : <><small>{offer.label} · Standard ${offer.payout}+ · {offer.seconds}s · no fee or failure cost.</small>{distance < 9 && <><HudButton block className="hh-inline-action" onClick={() => commands.run("courier.accept", {})}>Take standard parcel · E ↗</HudButton>{courier.completed > 0 && <><small>Fragile rush ${Math.floor(offer.payout * 1.8)}+ at 100% condition · {courierDeadline(offer.seconds, true)}s. $60 bond; condition scales wage/refund, expiry loses bond. Keep below 35 km/h; avoid damage.</small><HudButton block className="hh-inline-action" onClick={() => commands.run("courier.accept", { service: "rush" })}>Commit $60 bond · fragile rush ↗</HudButton></>}</>}</>}
   </HudSurface>;
 }
