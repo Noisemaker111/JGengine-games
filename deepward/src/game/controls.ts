@@ -274,19 +274,51 @@ export function initialize(ctx: GameContext): void {
   ctx.game.audio.loop("bed", "bed");
   ctx.game.audio.setLoop("bed", { gain: BED_GAIN });
   try {
-    if (typeof localStorage === "undefined") throw new Error("Marrow needs browser local storage before a dive can start.");
-    const save = openSave(localStorage);
-    runtime(ctx).save = save;
-    const recovered = recoverInterrupted(save.home);
-    if (recovered !== save.home) save.commit(recovered);
-    viewStore.update(ctx, v => ({ ...v, home: save.home, mode: save.home.reprintPending ? "reprinting" : "home", hint: recovered.last?.reason ?? v.hint }));
+    loadRecord(ctx);
   } catch (error) { viewStore.update(ctx, v => ({ ...v, mode: "blocked", error: message(error) })); }
 }
+
+/** Read the on-disk Marrow record into the live view - boot and the title's Continue share it. */
+function loadRecord(ctx: GameContext): void {
+  if (typeof localStorage === "undefined") throw new Error("Marrow needs browser local storage before a dive can start.");
+  const save = openSave(localStorage);
+  runtime(ctx).save = save;
+  const recovered = recoverInterrupted(save.home);
+  if (recovered !== save.home) save.commit(recovered);
+  viewStore.update(ctx, v => ({ ...v, home: save.home, dive: null, panel: null, pending: null, error: "", trace: null,
+    mode: save.home.reprintPending ? "reprinting" : "home", hint: recovered.last?.reason ?? v.hint }));
+}
+
+/** Stand in front of Marrow with the world frozen: nothing runs until a shift is chosen. */
+export function openTitle(ctx: GameContext): void {
+  ctx.time.pause();
+  setGamePhase(ctx, "menu");
+  ctx.game.audio.setLoop("bed", { gain: 0 });
+  ungrab();
+}
+
+/** Leave the title for the loaded record: the rail is live again. */
+export function enterFromTitle(ctx: GameContext): void {
+  const v = viewStore.read(ctx);
+  if (v.mode === "blocked" || v.mode === "reprinting") return;
+  run(ctx);
+}
+
+/** Re-read the saved record from disk - the title's Continue reads the document, not a flag. */
+export function continueSaved(ctx: GameContext): void {
+  try { loadRecord(ctx); }
+  catch (error) { viewStore.update(ctx, v => ({ ...v, mode: "blocked", error: message(error) })); }
+  const mode = viewStore.read(ctx).mode;
+  if (mode === "blocked" || mode === "reprinting") { freeze(ctx); return; }
+  run(ctx);
+}
+
 export function seatPlayer(ctx: GameContext): void {
   ctx.scene.entity.spawn("diver", { id: ctx.player.userId, position: HOME_SPAWN, rotationY: Math.PI, role: "player" });
   syncPlayer(ctx, null);
-  run(ctx);
-  if (viewStore.read(ctx).mode === "blocked" || viewStore.read(ctx).mode === "reprinting") freeze(ctx);
+  openTitle(ctx);
+  const mode = viewStore.read(ctx).mode;
+  if (mode === "blocked" || mode === "reprinting") freeze(ctx);
 }
 /** Called only by a storage change event, never by a polling loop. */
 export function storageChanged(ctx: GameContext): void {

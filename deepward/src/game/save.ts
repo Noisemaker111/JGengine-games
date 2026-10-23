@@ -38,6 +38,11 @@ export interface SaveSession {
   commit(next: Home): void;
   isCurrent(): boolean;
 }
+
+/** Whether a Marrow record is actually on disk - the title's Continue gate, not a remembered flag. */
+export function storedMarrow(storage: StoragePort): boolean {
+  return storage.getItem(SAVE_KEY) !== null;
+}
 /**
  * A single durable JSON boundary: no per-frame save, wall-clock catch-up, or half-written haul.
  * Compare the exact loaded bytes to reject stale tabs; verify the saved bytes before acknowledging.
