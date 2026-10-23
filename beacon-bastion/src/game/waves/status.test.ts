@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { waveStatusLine } from "./status";
+import { tierLabel, waveCompositionLine, waveStatusLine } from "./status";
 
 describe("waveStatusLine", () => {
   test("before the first release the widget says the wave is ready", () => {

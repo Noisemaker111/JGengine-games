@@ -43,6 +43,7 @@ export const game = defineGame({
   worldHealthBars: { statId: "health" },
   pointer: { moveCommand: "tower.build" },
   capture: {
+    play: ["run.begin"],
     states: {
       "two-towers": [
         "buildTower1",

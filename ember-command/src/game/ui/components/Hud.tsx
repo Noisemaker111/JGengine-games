@@ -65,11 +65,12 @@ function TopBar() {
         <HealthBar value={hud.playerKeepHp} max={hud.playerKeepMax} fill="#7db4ff" showValue={false} width="100%" />
       </div>
       <div className="mx-1 h-8 w-px bg-slate-500/25" />
-      <div className="flex items-center gap-1.5" title="Marauder reinforcement wave">
+      <div className="flex items-center gap-1.5" title={`Marauder plan: ${hud.marauderPhase}, pressure tier ${hud.marauderTier} of 2`}>
         <Icon name="skull" className="h-5 w-5 text-rose-300" />
         <div className="flex flex-col leading-tight">
           <span className="text-[10px] font-bold uppercase tracking-widest text-rose-300/90">Wave {hud.wavesSent}</span>
           <span className="text-[13px] font-bold tabular-nums text-rose-100">{hud.nextWaveIn}s</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-200/70">{hud.marauderPhase} · t{hud.marauderTier}</span>
         </div>
       </div>
     </HudSurface>

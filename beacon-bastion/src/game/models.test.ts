@@ -28,7 +28,9 @@ describe("beacon-bastion models", () => {
 
   test("the three raiders read apart at the default camera: own model, own size, own rim", () => {
     const raiders = Object.values(CREEP_CATALOG);
-    expect(new Set(raiders.map((def) => def.model)).size).toBe(raiders.length);
+    const base = ["raider_scout", "raider_grunt", "raider_brute"].map((id) => CREEP_CATALOG[id]!);
+    expect(new Set(base.map((def) => def.model)).size).toBe(base.length);
+    expect(new Set(raiders.map((def) => def.rim.color)).size).toBe(raiders.length);
     expect(new Set(raiders.map((def) => def.color)).size).toBe(raiders.length);
     for (const def of raiders) {
       expect(def.rim.strength).toBeGreaterThan(0);

@@ -19,6 +19,8 @@ import woods from "./art/woods.glb?url";
 export const authoredModels = {
   keep_player,
   keep_enemy,
+  // A forward camp is the Marauder keep's smaller kin; same art keeps the faction readable.
+  warcamp: keep_enemy,
   barracks,
   farm,
   guard_tower,
