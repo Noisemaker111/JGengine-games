@@ -23,6 +23,16 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
     plow and jump. A jump needs 0.65 m of air, so coil springs are mandatory, not decorative.
   - [x] Records. Attempts, escapes, best time and farthest distance save to `drift-foundry.records.v1`;
     pausing while stopped and grounded parks the build and clock at `drift-foundry.parked-run.v1`.
+  - [x] Run. Every run carries salvage - 25 cr per part swept plus 100 cr at the gate - and an escape
+    banks it scaled by the line: `×0.5` to `×1.8`, from barriers cleared (+0.05 each), finish place
+    (+0.30/+0.15/+0.05), beating par (+0.20 under 36 s) and minus 0.10 per folded-nose stage and per
+    armor save. A wreck loses everything the run carried and keeps the bank. The haul, the shift it
+    draws and the banked/lost totals save to `drift-foundry.run.v1`, so a career survives a reload.
+  - [x] Shifts. The first run is honest; every run after it draws one change from
+    `src/game/run/shifts.ts` by seed (`drift-foundry-run:run:N`, no repeat, night crew only after two
+    runs): HOBBS's line tightens 45% and his pace rises 4%, TALLY loses his tow, the crusher starts
+    12 m closer, or the night crew brings both surges 6 s earlier and 0.6 m/s harder. Same seed and
+    same run count, same sequence.
   - [x] Field. Three rivals start ahead of you in the same corridor: TALLY (easy, EV build, wanders
     gate to gate), MOSS (standard, Salvage V6, weaves for the free side) and HOBBS (expert, Truck
     Engine, one clean outside line). Each drives with the shared `ai/driver` brain on its own line from
@@ -33,12 +43,14 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
 - **Failure states.** Contact within 1.5 m of the compactor is a crush. Armor plating absorbs one hit and
   throws you 9 m forward, once. A barricade you cannot open is a wall, not a time loss, and a long
   stop is how the crusher catches you. There is no mid-run respawn; results show finish position,
-  time, parts on exit, near misses, closest gap and armor saves.
-- **Minute 5 → hour 5.** Five minutes in, several attempts have already ended at the 110 m plow wall or
-  the 150 m tire ramp, with the plow and springs bolted and one surge survived — and HOBBS has already
-  crossed the gate ahead of you. By hour five the corridor, the twelve drops and both surges are
-  memorised; what is left to chase is the clock and the place — best escape time, a win over HOBBS,
-  fewest near misses, closest gap.
+  time, parts on exit, salvage carried, the line that priced it, banked vs lost, and the next shift.
+- **Minute 5 to hour 5.** Five minutes in, several attempts have already ended at the 110 m plow wall or
+  the 150 m tire ramp, with the plow and springs bolted and one surge survived - and HOBBS has already
+  crossed the gate ahead of you. A clean escape is the only income worth planning around: every barrier,
+  a high finish and a fast clock push the line toward x1.8, and that pays for the next ladder rung. By
+  hour five the corridor, the twelve drops and both surges are memorised; what is left to chase is the
+  clock, the place, and the shift each new run opens with - HOBBS on a tighter line, TALLY honest, the
+  crusher already rolling, or the night crew running the surges early.
 - **References it is chasing.**
   - *Trackmania* — feel: restart is instant and the clock is the only opponent; density: one clean line
     with no traffic; UI: a live split against your best and a record board at the end.
