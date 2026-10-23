@@ -1,4 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import {
   DECLINE_MIN,
@@ -11,6 +14,8 @@ import {
   type IssueState,
   type Ledger,
 } from "./capabilities";
+import { gamesToDecide, runCheck, type Sink } from "./check-capabilities";
+import { BUDGET_REL, buildBudget, parseBudget, renderTrend, type DebtBudget } from "./debt-budget";
 
 const ledger: Ledger = {
   generatedBy: "test",
@@ -342,5 +347,249 @@ describe("probe expectations", () => {
       },
     ], OPEN);
     expect(report.problems.some((problem) => problem.message.includes("adopts none of its capabilities"))).toBe(true);
+  });
+});
+
+// --- the debt ratchet: budget file, --write and the summary trend line --------
+
+const debtReason = "The shared audio mix is not adopted here yet; buses are wired by hand.";
+
+const debtDeclaration = (): Declaration =>
+  declaration({ declines: { "audio-probe": { kind: "debt", reason: debtReason, issue: 101 } } });
+
+const clearedDeclaration = (): Declaration =>
+  declaration({
+    declines: { "audio-probe": { kind: "not-applicable", reason: "No audio mix is published: this game is silent." } },
+  });
+
+const harbourDeclaration = (): Declaration => ({
+  adopts: [],
+  probes: {},
+  declines: {
+    "mission-runtime": { kind: "not-applicable", reason: "No mission runtime: courier routes carry no objectives." },
+    "audio-probe": { kind: "not-applicable", reason: "No audio mix: this game never plays a sound." },
+  },
+});
+
+const budget = (total: number, games: Record<string, number>, history: DebtBudget["history"] = []): DebtBudget => ({
+  updated: "2026-10-23",
+  total,
+  games,
+  history,
+});
+
+const roots: string[] = [];
+afterEach(() => {
+  while (roots.length > 0) rmSync(roots.pop()!, { recursive: true, force: true });
+});
+
+function fixture(options: {
+  games: Record<string, Declaration>;
+  committedBudget?: DebtBudget | null;
+  ledger?: Ledger;
+}): string {
+  const root = mkdtempSync(join(tmpdir(), "lane-debt-ratchet-"));
+  roots.push(root);
+  writeFileSync(join(root, "capabilities.json"), `${JSON.stringify(options.ledger ?? ledger, null, 2)}\n`);
+  mkdirSync(join(root, "scripts"), { recursive: true });
+  if (options.committedBudget !== null) {
+    writeFileSync(
+      join(root, BUDGET_REL),
+      `${JSON.stringify(options.committedBudget ?? budget(0, {}), null, 2)}\n`,
+    );
+  }
+  for (const [game, declaration] of Object.entries(options.games)) {
+    mkdirSync(join(root, game, "src"), { recursive: true });
+    writeFileSync(join(root, game, "package.json"), `${JSON.stringify({ name: `@games/${game}` })}\n`);
+    writeFileSync(join(root, game, "src", "game.config.ts"), "export {};\n");
+    writeFileSync(join(root, game, "capabilities.json"), `${JSON.stringify(declaration, null, 2)}\n`);
+  }
+  return root;
+}
+
+function capture(): { sink: Sink; lines: string[]; errors: string[] } {
+  const lines: string[] = [];
+  const errors: string[] = [];
+  return {
+    sink: { log: (message) => lines.push(message), error: (message) => errors.push(message) },
+    lines,
+    errors,
+  };
+}
+
+describe("debt ratchet", () => {
+  test("proof 1: debt above the budget fails with the game, entry and issue to clear first", () => {
+    const root = fixture({ games: { ember: debtDeclaration(), harbour: harbourDeclaration() } });
+    const { sink, errors } = capture();
+    const code = runCheck({ root, argv: ["--no-ledger"], sink, readIssues: () => OPEN });
+    expect(code).toBe(1);
+    const output = errors.join("\n");
+    expect(output).toContain("debt is above its budget");
+    expect(output).toContain("ember: 1 debt entry, budget 0 - 1 over; clear #101 (audio-probe) first");
+  });
+
+  test("proof 2: a budget above the tally is stale and fails", () => {
+    const root = fixture({
+      games: { ember: debtDeclaration(), harbour: harbourDeclaration() },
+      committedBudget: budget(2, { ember: 2 }),
+    });
+    const { sink, errors } = capture();
+    const code = runCheck({ root, argv: ["--no-ledger"], sink, readIssues: () => OPEN });
+    expect(code).toBe(1);
+    const output = errors.join("\n");
+    expect(output).toContain("debt budget is above the tally");
+    expect(output).toContain("ember: budget 2, tally 1");
+    expect(output).toContain("total: budget 2, tally 1");
+    expect(output).toContain("run bun run check:capabilities --write");
+  });
+
+  test("proof 3: a cleared entry with the budget lowered passes, and the trend keeps the old number", () => {
+    const root = fixture({
+      games: { ember: clearedDeclaration(), harbour: harbourDeclaration() },
+      committedBudget: budget(1, { ember: 1 }),
+    });
+    const stale = capture();
+    expect(runCheck({ root, argv: ["--no-ledger"], sink: stale.sink, readIssues: () => OPEN })).toBe(1);
+    expect(stale.errors.join("\n")).toContain("ember: budget 1, tally 0");
+
+    const write = capture();
+    const code = runCheck({
+      root,
+      argv: ["--no-ledger", "--write"],
+      sink: write.sink,
+      readIssues: () => OPEN,
+      today: "2026-10-24",
+    });
+    expect(code).toBe(0);
+    expect(write.lines.join("\n")).toContain("debt budget: 1 -> 0");
+    expect(JSON.parse(readFileSync(join(root, BUDGET_REL), "utf8"))).toEqual({
+      updated: "2026-10-24",
+      total: 0,
+      games: { ember: 0, harbour: 0 },
+      history: [{ total: 1, on: "2026-10-23" }],
+    });
+
+    const pass = capture();
+    expect(runCheck({ root, argv: ["--no-ledger", "--summary"], sink: pass.sink, readIssues: () => OPEN })).toBe(0);
+    expect(pass.lines).toContain("debt: 0 (budget 0, was 1 on 2026-10-23)");
+  });
+
+  test("--write refuses to raise the budget when debt arrived", () => {
+    const root = fixture({ games: { ember: debtDeclaration(), harbour: harbourDeclaration() } });
+    const { sink, errors } = capture();
+    const code = runCheck({ root, argv: ["--no-ledger", "--write"], sink, readIssues: () => OPEN });
+    expect(code).toBe(1);
+    expect(errors.join("\n")).toContain("--write will not raise");
+    expect(JSON.parse(readFileSync(join(root, BUDGET_REL), "utf8"))).toEqual(budget(0, {}));
+  });
+
+  test("proof 4: a new capability with no game decision fails, before and after the ledger sync", () => {
+    const extended: Ledger = {
+      ...ledger,
+      capabilities: [
+        ...ledger.capabilities,
+        {
+          id: "traffic",
+          packages: ["@jgengine/core"],
+          module: "@jgengine/core/nav/traffic",
+          domain: "traffic",
+          gameFacing: true,
+          probe: { kind: "devtools" },
+          intent: "drive traffic",
+        },
+      ],
+    };
+    const stale = fixture({
+      games: { ember: debtDeclaration(), harbour: harbourDeclaration() },
+      committedBudget: budget(1, { ember: 1 }),
+    });
+    const before = capture();
+    expect(runCheck({ root: stale, argv: [], sink: before.sink, readIssues: () => OPEN, installed: extended })).toBe(1);
+    const driftOutput = before.errors.join("\n");
+    expect(driftOutput).toContain('added "traffic"');
+    expect(driftOutput).toContain("Games that must decide before this can pass:");
+    expect(driftOutput).toContain('"traffic" (@jgengine/core/nav/traffic): ember, harbour');
+
+    // After capabilities:sync the ledger knows the capability and every game
+    // still owes the answer, which is the failure that must not be silent debt.
+    const synced = fixture({
+      games: { ember: debtDeclaration(), harbour: harbourDeclaration() },
+      committedBudget: budget(1, { ember: 1 }),
+      ledger: extended,
+    });
+    const after = capture();
+    expect(runCheck({ root: synced, argv: ["--no-ledger"], sink: after.sink, readIssues: () => OPEN })).toBe(1);
+    expect(after.errors.join("\n")).toContain('does not declare game-facing capability "traffic"');
+  });
+
+  test("gamesToDecide skips a game that already declined the new capability", () => {
+    const extended: Ledger = {
+      ...ledger,
+      capabilities: [
+        ...ledger.capabilities,
+        {
+          id: "traffic",
+          packages: ["@jgengine/core"],
+          module: "@jgengine/core/nav/traffic",
+          domain: "traffic",
+          gameFacing: true,
+          probe: { kind: "devtools" },
+          intent: "drive traffic",
+        },
+      ],
+    };
+    const decided: Declaration = {
+      ...declaration(),
+      declines: {
+        ...declaration().declines,
+        traffic: { kind: "not-applicable", reason: "No traffic: this game has no roads or vehicles." },
+      },
+    };
+    expect(gamesToDecide(ledger, extended, [
+      { game: "ember", declaration: decided },
+      { game: "harbour", declaration: declaration() },
+    ])).toEqual([{ capability: "traffic", module: "@jgengine/core/nav/traffic", games: ["harbour"] }]);
+  });
+
+  test("a missing budget file fails until --write seeds it", () => {
+    const root = fixture({ games: { ember: clearedDeclaration(), harbour: harbourDeclaration() }, committedBudget: null });
+    const missing = capture();
+    expect(runCheck({ root, argv: ["--no-ledger"], sink: missing.sink, readIssues: () => OPEN })).toBe(1);
+    expect(missing.errors.join("\n")).toContain(`${BUDGET_REL} is missing`);
+
+    const write = capture();
+    expect(
+      runCheck({ root, argv: ["--no-ledger", "--write"], sink: write.sink, readIssues: () => OPEN, today: "2026-10-23" }),
+    ).toBe(0);
+    expect(JSON.parse(readFileSync(join(root, BUDGET_REL), "utf8"))).toMatchObject({ total: 0, games: { ember: 0 } });
+  });
+});
+
+describe("budget file", () => {
+  test("a total that does not equal its per-game budgets is refused", () => {
+    expect(() => parseBudget(JSON.stringify(budget(3, { ember: 1 })))).toThrow("add up to 1");
+  });
+
+  test("a negative or fractional ceiling is refused", () => {
+    expect(() => parseBudget(JSON.stringify(budget(-1, { ember: -1 })))).toThrow("whole number");
+    expect(() => parseBudget(JSON.stringify(budget(1.5, { ember: 1.5 })))).toThrow("whole number");
+  });
+
+  test("the trend line is one line and keeps the previous total and date", () => {
+    expect(renderTrend(43, budget(43, { ember: 43 }, [{ total: 50, on: "2026-10-16" }]))).toBe(
+      "debt: 43 (budget 43, was 50 on 2026-10-16)",
+    );
+    expect(renderTrend(43, budget(43, { ember: 43 }))).toBe("debt: 43 (budget 43, no earlier budget)");
+  });
+
+  test("buildBudget records the old total in history only when it changes", () => {
+    const tallies = [{ game: "ember", debt: 2 }, { game: "harbour", debt: 0 }];
+    expect(buildBudget(budget(3, { ember: 3, harbour: 0 }), tallies, "2026-10-24")).toEqual({
+      updated: "2026-10-24",
+      total: 2,
+      games: { ember: 2, harbour: 0 },
+      history: [{ total: 3, on: "2026-10-23" }],
+    });
+    expect(buildBudget(budget(2, { ember: 2, harbour: 0 }), tallies, "2026-10-24").history).toEqual([]);
   });
 });
