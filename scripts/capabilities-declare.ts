@@ -45,6 +45,9 @@ for (const game of games) {
   const declined = Object.keys(declaration.declines).length;
   const probes = Object.keys(declaration.probes ?? {}).length;
   console.log(`capabilities:declare OK ${game} - ${adopted} adopted, ${declined} declined, ${probes} probed`);
+  console.log(
+    `  Review ${path}: a declared probe must report at boot; drop the entry for a system that only starts on demand.`,
+  );
 }
 
 if (failures > 0) process.exit(1);

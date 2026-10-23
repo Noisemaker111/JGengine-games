@@ -19,7 +19,7 @@ const installed = deriveLedger(root);
 if (!check) {
   writeFileSync(`${root}/${LEDGER_FILE}`, renderLedger(installed));
   console.log(
-    `capabilities:sync OK - ${installed.capabilities.length} game-facing capabilities from @jgengine/* ${installed.engineVersion}`,
+    `capabilities:sync OK - ${installed.capabilities.filter((entry) => entry.gameFacing).length} game-facing of ${installed.capabilities.length} capabilities from @jgengine/* ${installed.engineVersion}`,
   );
   process.exit(0);
 }

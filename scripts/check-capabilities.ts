@@ -85,5 +85,5 @@ if (report.declarationLevel.length > 0) {
 if (failed) process.exit(1);
 
 console.log(
-  `capability check: OK - ${games.length} games, ${committed.capabilities.length} game-facing capabilities, ${report.adopted} adopted, ${report.declined} declined`,
+  `capability check: OK - ${games.length} games, ${committed.capabilities.filter((entry) => entry.gameFacing).length} game-facing capabilities, ${report.adopted} adopted, ${report.declined} declined`,
 );

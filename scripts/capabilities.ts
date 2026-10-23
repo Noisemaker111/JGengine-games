@@ -31,7 +31,9 @@ export interface CapabilityEntry {
   packages: string[];
   /** `@jgengine/<pkg>/<module>` that publishes this capability. */
   module: string;
-  probe: CapabilityProbe;
+  /** True when the owning package ships a live probe; only these need a game decision. */
+  gameFacing: boolean;
+  probe: CapabilityProbe | null;
   intent: string;
 }
 
@@ -150,11 +152,10 @@ export function deriveLedger(root: string): Ledger {
   const installed = readInstalled(root);
   const bySlug = new Map<
     string,
-    { intent: string; packages: Set<string>; module: string; probe: CapabilityProbe }
+    { intent: string; packages: Set<string>; module: string; probe: CapabilityProbe | null }
   >();
 
   for (const module of installed.modules) {
-    if (module.probe === null) continue;
     for (const slug of module.slugs) {
       const existing = bySlug.get(slug);
       const candidate = {
@@ -163,8 +164,12 @@ export function deriveLedger(root: string): Ledger {
         module: module.specifier,
         probe: module.probe,
       };
-      // A probed module wins; between probed modules keep the shortest specifier.
-      if (existing === undefined || module.specifier.length < existing.module.length) {
+      // A probed module wins; between otherwise equal modules keep the shortest specifier.
+      const preferNew =
+        existing === undefined ||
+        (module.probe !== null && existing.probe === null) ||
+        (module.probe === existing.probe && module.specifier.length < existing.module.length);
+      if (preferNew) {
         bySlug.set(slug, candidate);
       } else {
         existing.packages.add(module.packageName);
@@ -177,6 +182,7 @@ export function deriveLedger(root: string): Ledger {
       id,
       packages: [...entry.packages].sort(),
       module: entry.module,
+      gameFacing: entry.probe !== null,
       probe: entry.probe,
       intent: entry.intent,
     }))
@@ -334,13 +340,14 @@ export function seedDeclaration(root: string, game: string, ledger: Ledger): Dec
   const declines: Record<string, string> = {};
 
   for (const entry of ledger.capabilities) {
+    if (!entry.gameFacing) continue;
     const byModule = evidence.specifiers.has(entry.module);
     const byName = moduleApiNames(root, entry).some((name) => evidence.names.has(name));
     const byConfig = entry.id === "audio-probe" && hasAudioConfig;
     if (byModule || byName || byConfig) {
       adopts.push(entry.id);
       const found = evidence.probeNames.get(entry.module) ?? new Set<string>();
-      if (byConfig && entry.probe.kind === "window" && entry.probe.global !== undefined) {
+      if (byConfig && entry.probe?.kind === "window" && entry.probe.global !== undefined) {
         found.add(`window:${entry.probe.global}`);
       }
       if (found.size > 0) probeModules.set(entry.module, found);
@@ -394,7 +401,9 @@ export interface DeclarationReport {
 
 /** The four adoption-gate cases, plus unknown ids and double declarations. */
 export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): DeclarationReport {
-  const known = new Map(ledger.capabilities.map((entry) => [entry.id, entry]));
+  const known = new Map(
+    ledger.capabilities.filter((entry) => entry.gameFacing).map((entry) => [entry.id, entry]),
+  );
   const problems: DeclarationProblem[] = [];
   const declarationLevel: DeclarationReport["declarationLevel"] = [];
   let adopted = 0;
@@ -421,7 +430,7 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
           game,
           capability: id,
           module: "unknown",
-          message: `${game} adopts unknown capability "${id}" - remove it or run bun run capabilities:sync`,
+          message: `${game} adopts "${id}", which is not a game-facing capability in capabilities.json - only probed capabilities need a decision; remove it or run bun run capabilities:sync`,
         });
         continue;
       }
@@ -446,7 +455,7 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
           game,
           capability: id,
           module: "unknown",
-          message: `${game} declines unknown capability "${id}" - remove it or run bun run capabilities:sync`,
+          message: `${game} declines "${id}", which is not a game-facing capability in capabilities.json - remove it or run bun run capabilities:sync`,
         });
         continue;
       }
@@ -463,6 +472,7 @@ export function checkDeclarations(ledger: Ledger, games: GameDeclaration[]): Dec
     }
 
     for (const entry of ledger.capabilities) {
+      if (!entry.gameFacing) continue;
       if (adoptSet.has(entry.id) || declineSet.has(entry.id)) continue;
       problems.push({
         game,
@@ -511,7 +521,13 @@ export function ledgerDrift(committed: Ledger, installed: Ledger): string[] {
       continue;
     }
     if (before.module !== entry.module) problems.push(`"${id}" moved from ${before.module} to ${entry.module}`);
-    if (before.probe.kind !== entry.probe.kind || before.probe.global !== entry.probe.global) {
+    if (before.gameFacing !== entry.gameFacing) {
+      problems.push(
+        before.gameFacing
+          ? `"${id}" lost its live probe (${describeProbe(before.probe)} -> none)`
+          : `"${id}" became game-facing (${describeProbe(entry.probe)}) - every game must declare it`,
+      );
+    } else if (describeProbe(before.probe) !== describeProbe(entry.probe)) {
       problems.push(`"${id}" probe changed from ${describeProbe(before.probe)} to ${describeProbe(entry.probe)}`);
     }
   }
@@ -524,8 +540,8 @@ export function ledgerDrift(committed: Ledger, installed: Ledger): string[] {
   return problems;
 }
 
-function describeProbe(probe: CapabilityProbe): string {
-  return probe.kind === "window" ? `window:${probe.global}` : "devtools";
+function describeProbe(probe: CapabilityProbe | null): string {
+  return probe === null ? "none" : probe.kind === "window" ? `window:${probe.global}` : "devtools";
 }
 
 /** A probe name with `*` wildcards, matched against the live devtools probe keys. */

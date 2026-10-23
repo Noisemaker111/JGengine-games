@@ -201,11 +201,16 @@ const READ_PAGE = `(() => {
   return { ready: agent !== undefined || audio !== undefined, probes, audio: live, error };
 })()`;
 
+interface Expectations {
+  windows: string[];
+  devtools: string[];
+}
+
 async function bootAndRead(
   game: string,
   port: number,
   timeoutMs: number,
-  expectedWindows: string[],
+  expectations: Expectations,
 ): Promise<LivePage> {
   const url = `http://127.0.0.1:${port}/`;
   const dev = spawn("bun", ["run", "dev", "--", "--port", String(port), "--strictPort", "--host", "127.0.0.1"], {
@@ -246,10 +251,11 @@ async function bootAndRead(
       try {
         const page = await cdp.evaluate<LivePage>(READ_PAGE);
         last = page;
-        const windowsLive = expectedWindows.every((name) =>
-          page.audio !== null || name !== "__jgengineAudio",
-        );
-        if (page.ready && page.probes !== null && windowsLive) return page;
+        const windowsLive = expectations.windows.every((name) => page.audio !== null || name !== "__jgengineAudio");
+        const probesLive =
+          page.probes !== null &&
+          expectations.devtools.every((pattern) => probeMatches(pattern, Object.keys(page.probes ?? {})));
+        if (page.ready && page.probes !== null && windowsLive && probesLive) return page;
       } catch (error) {
         last = { probes: null, audio: null, error: String(error) };
       }
@@ -302,13 +308,15 @@ for (const game of targets) {
   const declaration = readDeclaration(root, game);
   if (declaration === null) continue; // The static gate names the missing file.
   const entries = Object.entries(declaration.probes ?? {});
-  const expectedWindows = entries
-    .map(([module]) => installed.modules.find((item) => item.specifier === module))
-    .filter((info) => info?.probe?.kind === "window" && info.probe.global !== undefined)
-    .map((info) => info?.probe?.global as string);
+  const expectations: Expectations = { windows: [], devtools: [] };
+  for (const [module, patterns] of entries) {
+    const info = installed.modules.find((item) => item.specifier === module);
+    if (info?.probe?.kind === "window" && info.probe.global !== undefined) expectations.windows.push(info.probe.global);
+    if (info?.probe?.kind === "devtools") expectations.devtools.push(...patterns);
+  }
   const port = await freePort();
   process.stdout.write(`probing ${game}... `);
-  const page = await bootAndRead(game, port, 90000, expectedWindows);
+  const page = await bootAndRead(game, port, 45000, expectations);
   const gameFailures: ProbeFailure[] = [];
 
   for (const [module, patterns] of entries) {
@@ -375,7 +383,7 @@ if (failures.length > 0) {
     console.error(`  ${failure.game}: "${failure.capability}" via ${failure.module}`);
     console.error(`    ${failure.reason}`);
     console.error(
-      `    Two ways out: adopt it and mount the system at boot so its probe reports, or drop the adoption and decline it with a ${DECLINE_MIN}+ character reason.`,
+      `    Two ways out: mount the system at boot so its probe reports and keep the adoption, or drop the adoption and decline it with a ${DECLINE_MIN}+ character reason.`,
     );
   }
   process.exit(1);
