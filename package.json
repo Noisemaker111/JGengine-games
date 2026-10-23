@@ -32,6 +32,7 @@
     "test:games": "bun test",
     "check-types": "bun --filter='*' run check-types",
     "check:framework": "bun scripts/framework-check.ts",
+    "check:seam-line": "bun scripts/seam-line-check.ts",
     "check:module-globals": "bun scripts/module-globals-check.ts",
     "dev:ember-command": "bun --cwd=ember-command run dev",
     "dev:brightway-park": "bun --cwd=brightway-park run dev",
