@@ -57,16 +57,16 @@ describe("HHPD heat is witness-gated", () => {
     const handroll = handrollOf(ctx);
     unwatch(ctx);
 
-    handroll.addHeat(ctx, 250);
+    handroll.addHeat(ctx, 150);
     step(ctx, handroll);
     expect(handroll.wanted().heat).toBe(0);
     expect(handroll.wanted().stars).toBe(0);
 
     watch(ctx);
     step(ctx, handroll);
-    handroll.addHeat(ctx, 250);
+    handroll.addHeat(ctx, 150);
     step(ctx, handroll);
-    expect(handroll.wanted().heat).toBeCloseTo(250, 5);
+    expect(handroll.wanted().heat).toBeCloseTo(150, 5);
     expect(handroll.wanted().stars).toBe(2);
   });
 
@@ -152,3 +152,4 @@ describe("heat sweeps a live courier run", () => {
     expect(courierRuntime(ctx).state()?.outcome).not.toBe("heat_sweep");
   });
 });
+

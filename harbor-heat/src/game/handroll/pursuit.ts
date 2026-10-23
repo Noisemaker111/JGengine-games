@@ -37,11 +37,11 @@ const CRUISER_TUNING: DriverTuning = (() => {
  */
 const POLICE_TUNING: Partial<PoliceTuning> = {
   tiers: [
-    { response: "investigate", threshold: 100, pursuers: 1, searchRadius: 26, roadblocks: 0 },
-    { response: "investigate", threshold: 200, pursuers: 2, searchRadius: 30, roadblocks: 0 },
-    { response: "pursue", threshold: 300, pursuers: 2, searchRadius: 34, roadblocks: 0 },
-    { response: "pursue", threshold: 400, pursuers: 3, searchRadius: 40, roadblocks: 0 },
-    { response: "roadblock", threshold: 500, pursuers: 4, searchRadius: 46, roadblocks: 2 },
+    { response: "investigate", threshold: 50, pursuers: 1, searchRadius: 26, roadblocks: 0 },
+    { response: "investigate", threshold: 120, pursuers: 2, searchRadius: 30, roadblocks: 0 },
+    { response: "pursue", threshold: 210, pursuers: 2, searchRadius: 34, roadblocks: 0 },
+    { response: "pursue", threshold: 320, pursuers: 3, searchRadius: 40, roadblocks: 0 },
+    { response: "roadblock", threshold: 450, pursuers: 4, searchRadius: 46, roadblocks: 2 },
   ],
   decayPerSecond: 9,
   decayDelaySeconds: 3,
@@ -441,3 +441,4 @@ export function createPursuit(driving: Driving): Pursuit {
     tickCruisers,
   };
 }
+

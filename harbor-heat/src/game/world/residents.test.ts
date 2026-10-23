@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { createOffScreenWorld, type NearAgents, type NearSpawn, type NeedDefinition } from "@jgengine/core/gameplay";
+import { createGameContext } from "@jgengine/core/runtime/gameContext";
 
-import { RESIDENTS, RESIDENT_PLACES, routineFor } from "./residents";
+import { game } from "../../game.config";
+import { loop } from "../../loop";
+import { content } from "../content";
+import { RESIDENTS, RESIDENT_PLACES, routineFor, tickResidents } from "./residents";
 
 const PLACES = Object.fromEntries(RESIDENT_PLACES.map((place) => [place.id, place.position]));
 const NEEDS: readonly NeedDefinition[] = [
@@ -133,5 +137,14 @@ describe("Mainsail residents", () => {
     expect(world.agent(promotedId)?.mode).toBe("near");
     expect(world.agent(promotedId)?.place).toBe(before?.place ?? null);
     world.dispose();
+  });
+
+  test("a body left over from a restored world does not break a promotion", () => {
+    const ctx = createGameContext({ definition: game.game, content, player: { userId: "resident-test", isNew: true } });
+    loop.onInit(ctx);
+    loop.onNewPlayer(ctx);
+    // The whole-world save restores resident bodies; the schedule promotes them again on the first frame.
+    ctx.scene.entity.spawn("ped_city", { id: `resident-${RESIDENTS[0]!.id}`, position: [0, 0, 0], role: "npc" });
+    expect(() => tickResidents(ctx, 1 / 60)).not.toThrow();
   });
 });

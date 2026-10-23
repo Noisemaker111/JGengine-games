@@ -115,7 +115,7 @@ describe("handroll drivable-vehicle adoption", () => {
     });
 
     handroll.tick(ctx, STEP);
-    handroll.addHeat(ctx, 250);
+    handroll.addHeat(ctx, 150);
     handroll.tick(ctx, STEP);
     expect(handroll.wanted().stars).toBe(2);
     expect(handroll.wanted().peakStars).toBe(2);
