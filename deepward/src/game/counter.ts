@@ -2,8 +2,10 @@ import { evalCurve, type Curve } from "@jgengine/core/game/progression";
 import { createCareerBank, type CareerBankState } from "@jgengine/core/progression/careerBank";
 import { createGateSet, gateFacts, type GateStatus } from "@jgengine/core/progression/gates";
 import { createStanding, type StandingState } from "@jgengine/core/progression/standing";
+import { createItemLedger, salvageItem } from "@jgengine/core/loot/salvage";
 
-import type { Home, Item, ItemKind } from "./state";
+import { BREAKDOWN, itemValue, rollItem, type Item, type ItemKind } from "./items";
+import type { Home } from "./state";
 
 /** Marrow pays in extraction scrip; nothing else in Halloway is worth carrying home. */
 export const SCRIP = { id: "scrip", name: "Extraction scrip", unit: "scrip" };
@@ -11,11 +13,11 @@ export const SCRIP = { id: "scrip", name: "Extraction scrip", unit: "scrip" };
 /** One operator, so the save's standing belongs to the profile rather than an account list. */
 export const OPERATOR = "operator";
 
-/** What the counter pays per recovered item, in scrip. */
-export const SCRIP_VALUE: Record<ItemKind, number> = { wire: 12, polymer: 9, cells: 18, ink: 45, "service-rifle": 60 };
-
 /** Most a single shift's scrip can be worth, so one lucky cache cannot buy out the counter. */
 export const HAUL_CAP = 400;
+
+/** Counter stock is pulled from Marrow's own shelf, so a purchase rolls at the shelf's level, not the room's. */
+export const PURCHASE_LEVEL = 2;
 
 /** Marrow's regard, in the numbers the counter reads. */
 export const STANDING_CONFIG = {
@@ -60,6 +62,7 @@ export const SUPPLIES: readonly SupplyDef[] = [
   { kind: "polymer", label: "Suit seals", blurb: "Tank and armor seals, bought by the sheet.", price: { kind: "linear", base: 46, per: -0.26, min: 24, round: "round" } },
   { kind: "cells", label: "Power cells", blurb: "Station power. The counter wants a name on file.", price: { kind: "linear", base: 64, per: -0.32, min: 34, round: "round" } },
   { kind: "ink", label: "Printer ink", blurb: "Restricted. Sold to operators Marrow trusts.", price: { kind: "linear", base: 128, per: -0.5, min: 70, round: "round" } },
+  { kind: "service-rifle", label: "Kessler service rifle", blurb: "Issue stock, stamped on the counter's own press. Rolls its own numbers.", price: { kind: "linear", base: 72, per: -0.5, min: 52, round: "round" } },
 ];
 
 /** Which standing opens each supply; an id here that no supply carries fails at load. */
@@ -127,21 +130,39 @@ export function buySupply(home: Home, kind: ItemKind): Home {
   if (row.locked) throw new Error(`Marrow has not cleared you for ${row.supply.label}`);
   const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
   if (!bank.spend(row.price)) throw new Error(`Scrip short: ${row.supply.label} costs ${row.price}`);
-  const item: Item = { uid: `purchase-${home.revision}:${kind}`, kind, level: 1 };
+  const item: Item = rollItem(kind, PURCHASE_LEVEL, `deepward:counter:${home.revision}:${kind}`, `purchase-${home.revision}:${kind}`);
   return { ...home, revision: home.revision + 1, stash: [...home.stash, item], bank: bank.snapshot() };
 }
 
-/** Scrip value of a carried cache — what the rail pays if it comes home, and what death takes. */
-export function haulScrip(cache: readonly { kind: ItemKind }[]): number {
-  let total = 0;
-  for (const item of cache) total += SCRIP_VALUE[item.kind] ?? 0;
-  return total;
+/**
+ * Break one banked instance down at the counter. The shared ledger claims it before the yield is
+ * computed, so a broken-down item can never be broken down, equipped or paid out a second time.
+ */
+export function dismantle(home: Home, id: string): { home: Home; scrip: number } {
+  if (home.activeDive !== null || home.reprintPending) throw new Error("Return to Marrow before breaking anything down");
+  const item = home.stash.find((entry) => entry.id === id);
+  if (item === undefined) throw new Error("That item is not in the stash");
+  const ledger = createItemLedger(home.ledger);
+  const result = salvageItem(item, BREAKDOWN, ledger);
+  if (!result.ok) throw new Error(result.reason === "already-spent" ? "That item was already broken down" : "Marrow cannot break that down");
+  const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
+  bank.earn(result.yield.amount);
+  bank.cashOut();
+  return {
+    home: { ...home, revision: home.revision + 1, stash: home.stash.filter((entry) => entry.id !== id), ledger: ledger.snapshot(), bank: bank.snapshot() },
+    scrip: result.yield.amount,
+  };
+}
+
+/** Scrip value of a carried haul — what the rail pays if it comes home, and what death takes. */
+export function haulScrip(cache: readonly Item[]): number {
+  return cache.reduce((total, item) => total + itemValue(item), 0);
 }
 
 /** Bank a shift's scrip and move standing: the rail pays and Marrow remembers, a lost Life pays nothing. */
 export function settleEconomy(
   home: Home,
-  cache: readonly { kind: ItemKind }[],
+  cache: readonly Item[],
   kind: "extracted" | "lost",
 ): { bank: CareerBankState; standing: StandingState; scrip: number } {
   const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });

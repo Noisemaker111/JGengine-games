@@ -221,7 +221,7 @@ export const game = defineGame({
   name: "Deepward", assets: stationAssets, world, physics, content, input: keybinds, editorLayers, audio,
   server: { mode: "campaign" }, save: "none", persist: false,
   settings: {},
-  presentation: "3d", scenePlacement: false, touch: false,
+  presentation: "3d", scenePlacement: false, touch: false, platforms: ["web"],
   // Engine records own acquisition; the vault's authored meshes own presentation.
   worldItem: { filter: [{ id: "authored-salvage", when: {}, hide: true }] },
   loop: { onInit: initialize, onNewPlayer: seatPlayer, onTick: tick },

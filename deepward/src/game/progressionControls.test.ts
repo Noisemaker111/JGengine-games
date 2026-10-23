@@ -23,7 +23,10 @@ test("overlapping browser suspension intents stay paused until an explicit resum
 test("real command/context boundary applies refits on departure and acknowledges loss across a fresh context", () => {
   const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const bank = depart(newHome());
-  let bytes = JSON.stringify(settle(bank, takeLoot(takeLoot(newDive(1), "wire", "wire")!, "polymer", "polymer")!, "extracted", "Rail"));
+  const first = takeLoot(newDive(1), "wire", "wire");
+  const second = first.ok ? takeLoot(first.dive, "polymer", "polymer") : first;
+  if (!second.ok) throw new Error(second.message);
+  let bytes = JSON.stringify(settle(bank, second.dive, "extracted", "Rail"));
   Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { getItem: (key: string) => key === SAVE_KEY ? bytes : null, setItem: (_: string, value: string) => { bytes = value; } } });
   const create = () => {
     const ctx = createGameContext({ definition: defineGameDefinition({ name: "Marrow boundary", world, physics, input: keybinds, persist: false, lifecycle: "always-live" }), player: { userId: "diver", isNew: true }, content: { entityById: id => id === "diver" ? { stats: { health: { max: 100 }, oxygen: { max: 110 }, ammo: { max: 6 } } } : id === "fitter" ? { stats: { health: { max: 80 } } } : null } });

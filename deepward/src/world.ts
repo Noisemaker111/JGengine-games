@@ -94,6 +94,16 @@ export function lineOfSight(a: Point, b: Point): boolean {
 export function roomAt(p: Point, place: Place): string {
   return [...ROOMS].reverse().find(r => r.place === place && inside(p[0], p[2], r))?.name ?? "Rail threshold";
 }
+/** A room's authored depth ("01 / rail receiving" is 1). Item level reads this, so deeper loot rolls higher. */
+function roomDepth(room: Room): number {
+  const match = /^(\d+)\s*\//.exec(room.name);
+  return match === null ? 1 : Math.max(1, Number(match[1]));
+}
+/** How deep the room holding this point is; an unnumbered or unmapped spot counts as the entrance. */
+export function depthAt(p: Point, place: Place): number {
+  const room = [...ROOMS].reverse().find(r => r.place === place && inside(p[0], p[2], r));
+  return room === undefined ? 1 : roomDepth(room);
+}
 /** Boundary tiles are generated from the authored footprints, never from a second collision map. */
 export function wallTiles(place: Place): { x: number; z: number }[] {
   const walls: { x: number; z: number }[] = [];

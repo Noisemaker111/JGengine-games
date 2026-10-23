@@ -1,11 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { installRefit, refitMissing } from "./progression";
-import { acknowledgeReprint, depart, newDive, newHome, settle, takeLoot } from "./state";
+import { acknowledgeReprint, depart, newDive, newHome, settle, takeLoot, type Dive, type ItemKind } from "./state";
 import { openSave, SAVE_KEY, validHome, type StoragePort } from "./save";
+import { kindOf } from "./items";
 
+function loot(dive: Dive, source: string, kind: ItemKind): Dive {
+  const result = takeLoot(dive, source, kind);
+  if (!result.ok) throw new Error(result.message);
+  return result.dive;
+}
 function banked() {
   const home = depart(newHome());
-  const dive = takeLoot(takeLoot(takeLoot(newDive(1), "wire", "wire")!, "polymer", "polymer")!, "cells", "cells")!;
+  const dive = loot(loot(loot(newDive(1), "wire", "wire"), "polymer", "polymer"), "cells", "cells");
   return settle(home, dive, "extracted", "Rail");
 }
 function memory(home = banked()): StoragePort {
@@ -16,13 +22,13 @@ describe("Marrow refits and reprint ownership", () => {
   test("competing recipes spend exact instances once without changing the input", () => {
     const original = banked(), tank = installRefit(original, "tank");
     expect(original.stash.length).toBe(3);
-    expect(tank.stash).toEqual([original.stash.find(i => i.kind === "cells")!]);
+    expect(tank.stash.map(kindOf)).toEqual(["cells"]);
     expect(tank.refits).toEqual(["tank"]);
     expect(refitMissing(tank, "reserve")).toEqual([{ itemId: "wire", count: 1 }]);
     expect(() => installRefit(tank, "reserve")).toThrow("Not enough");
     expect(() => installRefit(tank, "tank")).toThrow("already installed");
     const reserve = installRefit(original, "reserve");
-    expect(reserve.stash.map(i => i.kind)).toEqual(["polymer"]);
+    expect(reserve.stash.map(kindOf)).toEqual(["polymer"]);
     expect(newDive(2, reserve).reserve).toBe(30);
     expect(newDive(2, reserve).oxygen).toBe(110);
     expect(newDive(2, tank).oxygen).toBe(145);
@@ -48,11 +54,11 @@ describe("Marrow refits and reprint ownership", () => {
   test("upgrades and old stash survive loss; reprint blocks departure and persists exactly once", () => {
     const storage = memory(installRefit(banked(), "tank")), session = openSave(storage);
     session.commit(depart(session.home));
-    session.commit(settle(session.home, takeLoot(newDive(2, session.home), "ink", "ink")!, "lost", "No air"));
+    session.commit(settle(session.home, loot(newDive(2, session.home), "ink", "ink"), "lost", "No air"));
     const reloaded = openSave(storage);
     expect(reloaded.home.deaths).toBe(1);
     expect(reloaded.home.refits).toEqual(["tank"]);
-    expect(reloaded.home.stash.map(i => i.kind)).toEqual(["cells"]);
+    expect(reloaded.home.stash.map(kindOf)).toEqual(["cells"]);
     expect(() => depart(reloaded.home)).toThrow("Acknowledge");
     reloaded.commit(acknowledgeReprint(reloaded.home));
     expect(openSave(storage).home.reprintPending).toBe(false);
@@ -66,16 +72,17 @@ describe("Marrow refits and reprint ownership", () => {
     expect(validHome({ ...depart(banked()), reprintPending: true })).toBe(false);
   });
   test("v1 migration preserves loaded bytes until the next durable transition", () => {
-    const { refits, reprintPending, ...current } = banked();
-    const legacy = JSON.stringify({ ...current, version: 1 });
+    const { refits, reprintPending, ledger, ...current } = banked();
+    const legacy = JSON.stringify({ ...current, version: 1, stash: current.stash.map(item => ({ uid: item.id, kind: kindOf(item), level: 1 })) });
     let bytes = legacy;
     const storage = { getItem: () => bytes, setItem: (_: string, value: string) => { bytes = value; } };
     const session = openSave(storage);
-    expect(session.home.version).toBe(3);
+    expect(session.home.version).toBe(4);
     expect(session.home.refits).toEqual([]);
+    expect(session.home.stash).toHaveLength(3);
     expect(storage.getItem(SAVE_KEY)).toBe(legacy);
     session.commit(installRefit(session.home, "tank"));
-    expect(JSON.parse(bytes).version).toBe(3);
+    expect(JSON.parse(bytes).version).toBe(4);
     expect(openSave(storage).home.stash.length).toBe(1);
   });
 });
