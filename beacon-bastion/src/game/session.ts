@@ -28,9 +28,10 @@ export interface TowerRuntime {
   cooldownSeconds: number;
 }
 
-/** The Warden on the field, if it is out: its instance, phase state, and the stance that phase sets. */
+/** The boss on the field, if it is out: its instance, what it is, phase state, and the stance that phase sets. */
 export interface BossRuntime {
   instanceId: string;
+  unitId: string;
   state: BossState;
   stance: string;
 }

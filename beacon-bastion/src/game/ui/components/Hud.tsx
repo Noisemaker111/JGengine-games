@@ -7,10 +7,10 @@ import { WalletCurrencyDisplay } from "@/components/ui/wallet-currency-display";
 import { HudLabel } from "@/components/ui/hud-label";
 
 import { BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_LIVES } from "../../entities/base/catalog";
-import { TOTAL_WAVES, WARDEN_STANCE } from "../../waves/manifest";
+import { TOTAL_WAVES } from "../../waves/manifest";
 import { activeCreepCount, currentWaveNumber, session } from "../../session";
 import { waveOverlapBonus } from "../../waves/director";
-import { tierLabel, waveCompositionLine, waveStatusLine } from "../../waves/status";
+import { bossLine, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "../../waves/status";
 
 export function Hud() {
   const { commands } = useGame();
@@ -25,6 +25,7 @@ export function Hud() {
   const composition = useGameStore(() => session.openingComposition);
   const tier = useGameStore(() => session.pressure.tier);
   const boss = useGameStore(() => session.boss);
+  const preview = useGameStore(() => wavePreviewLine(session.encounter.waveAt(currentWaveNumber() - 1), currentWaveNumber()));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -37,11 +38,8 @@ export function Hud() {
         <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} />
         <HudLabel>{waveStatusLine({ started, releasing, wave: Math.min(wave, TOTAL_WAVES), alive: remaining })}</HudLabel>
         {started && composition.length > 0 ? <HudLabel>{waveCompositionLine(composition, tier)}</HudLabel> : null}
-        {boss === null ? null : (
-          <HudLabel>
-            {`The Warden — ${WARDEN_STANCE[boss.state.phaseId]?.label ?? boss.state.phaseId}${boss.state.tellId === null ? "" : " (roaring)"}`}
-          </HudLabel>
-        )}
+        {ready ? <HudLabel>{preview}</HudLabel> : null}
+        {boss === null ? null : <HudLabel>{bossLine(boss)}</HudLabel>}
       </div>
       <HudSurface open={ready && !done} elevation="overlay" title={started ? "Choose your next assault" : "Prepare the beacon"} width={256}>
         <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45 }}>{bonus > 0 ? `Wait for a safer approach, or send the next wave with ${remaining} raiders still alive for +${bonus} gold.` : "Place defenses on the foundation rings, then release the raiders when you are ready."}</p>

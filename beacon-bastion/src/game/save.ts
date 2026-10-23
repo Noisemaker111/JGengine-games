@@ -57,7 +57,7 @@ export function captureDefense(ctx: GameContext): DefenseSave {
     lives: ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current ?? 0,
     encounter: session.encounter.snapshot(),
     pressure: { ...session.pressure },
-    boss: session.boss === null ? null : { instanceId: session.boss.instanceId, state: { ...session.boss.state }, stance: session.boss.stance },
+    boss: session.boss === null ? null : { instanceId: session.boss.instanceId, unitId: session.boss.unitId, state: { ...session.boss.state }, stance: session.boss.stance },
     openingComposition: [...session.openingComposition],
     waveReady: session.waveReady,
     waveStarted: session.waveStarted,
@@ -88,7 +88,7 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
 
   session.encounter.restore(save.encounter);
   session.pressure = { ...save.pressure };
-  session.boss = save.boss === null ? null : { instanceId: save.boss.instanceId, state: { ...save.boss.state }, stance: save.boss.stance };
+  session.boss = save.boss === null ? null : { instanceId: save.boss.instanceId, unitId: save.boss.unitId, state: { ...save.boss.state }, stance: save.boss.stance };
   session.openingComposition = [...save.openingComposition];
   session.waveReady = save.waveReady;
   session.waveStarted = save.waveStarted;
