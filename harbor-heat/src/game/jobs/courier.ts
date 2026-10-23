@@ -195,7 +195,8 @@ export function finishCourier(ctx: GameContext, won: boolean, reason?: string): 
   const bonus = won
     ? Math.floor(remaining * 2) + (rush ? Math.floor(route.payout * 0.8 * condition / 100) + Math.floor(RUSH_BOND * condition / 100) : 0)
     : 0;
-  courierStore.write(ctx, { ...current, phase: won ? "won" : "lost", reward: bonus, reason: won ? undefined : reason, completed: current.completed + (won ? 1 : 0), remaining });
+  // The receipt shows everything that landed: the contract's payout plus the extras granted here.
+  courierStore.write(ctx, { ...current, phase: won ? "won" : "lost", reward: won ? route.payout + bonus : 0, reason: won ? undefined : reason, completed: current.completed + (won ? 1 : 0), remaining });
   if (bonus > 0) ctx.game.economy.grant(ctx.player.userId, "cash", bonus);
   if (won) grantCred(ctx, 15);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: "courier" });
