@@ -251,8 +251,14 @@ export const game = defineGame({
   postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 } },
   capture: {
     probe: captureProbe,
+    // "Enter Marrow" is `deepward.enter`; declaring it keeps a play capture on the same path the title button takes.
+    play: ["deepward.enter"],
     // The stash sheet with the fitter's counter: scrip, standing and the locked shelves.
-    states: { counter: ["deepward.enter", "deepward.openStash"] },
+    states: {
+      title: [],
+      pause: ["deepward.enter", { name: "deepward.pause", input: { paused: true } }],
+      counter: ["deepward.enter", "deepward.openStash"],
+    },
   },
   orientation: "landscape",
 });
