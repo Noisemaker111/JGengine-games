@@ -22,7 +22,7 @@ Read from `src/game/{waves,entities,combat,build,world}`. Every number below is 
     same Scout pays 4 on wave 1 and 11 on wave 8. The HUD shows the live multiplier and the result card
     prints both ends.
   - [x] Between-run growth. A finished defense banks half its remaining purse (capped at 200), adds the
-    waves it held to the keep's standing, and offers three relics drawn from a seeded table — opening
+    waves it reached to the keep's standing, and offers three relics drawn from a seeded table — opening
     gold, keep lives or a kill-pay multiplier. The pick rides into the next defense, and the bank is its
     own save section, so a new run clears the field but not what the last one left.
 - **Failure states.** 20 lives, then "The Keep Has Fallen" and a rebuild from the banked purse and the

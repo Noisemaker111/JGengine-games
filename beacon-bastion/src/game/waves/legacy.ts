@@ -35,7 +35,7 @@ export const BOONS: readonly BoonDef[] = [
 
 /** What a completed defense leaves behind for the next one. Persisted with its keep. */
 export interface LegacyState {
-  /** Waves held across every finished defense under this keep. */
+  /** Waves reached across every finished defense under this keep. */
   standing: number;
   /** Finished defenses: held or fallen. */
   runs: number;
@@ -87,7 +87,7 @@ export function drawBoons(seed: number, count = BANK_RULE.offerCount): string[] 
   return drawn;
 }
 
-/** What a finished defense banks: half the purse up to the cap, the waves held, and three relics. */
+/** What a finished defense banks: half the purse up to the cap, the waves reached, and three relics. */
 export function bankRun(previous: LegacyState, result: { wave: number; gold: number }): LegacyState {
   const standing = previous.standing + Math.max(0, result.wave);
   const bankedGold = Math.min(BANK_RULE.cap, Math.max(0, Math.floor(result.gold * BANK_RULE.share)));
@@ -143,7 +143,7 @@ export function writeLegacy(ctx: GameContext, next: LegacyState): void {
 }
 
 /**
- * Bank a finished defense: its purse share, the waves it held, and the relics the next one may open
+ * Bank a finished defense: its purse share, the waves it reached, and the relics the next one may open
  * with. Guarded by `session.banked`, so a win and a death in the same frame bank once.
  */
 export function finishRun(ctx: GameContext): void {

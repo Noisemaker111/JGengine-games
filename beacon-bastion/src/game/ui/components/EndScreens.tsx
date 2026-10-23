@@ -35,7 +35,7 @@ export function EndScreens() {
       outcome={victory ? "victory" : "defeat"}
       title={victory ? "The Keep Holds" : "The Keep Has Fallen"}
       lines={[
-        { label: "Waves Held", value: `${wave} / ${TOTAL_WAVES}`, accent: true },
+        { label: "Waves Reached", value: `${wave} / ${TOTAL_WAVES}`, accent: true },
         { label: "Bounties Paid", value: `${readout.earned} gold` },
         {
           label: "Kill Pay",
