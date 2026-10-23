@@ -15,7 +15,7 @@ bunx --no-install assets pull ambientcg-metalplates001 --dir public
 
 Quaternius, KayKit and ambientCG supply the existing CC0 models/materials through the engine catalog. Remote pack bytes remain ignored. The floor pack has no downloaded AO map, so the game ships an original white neutral map under `public/materials/imported/odd-orbit` to express no baked occlusion.
 
-Choose New household or Continue. Select a member to inspect needs, stress, schedule and bonds; direct activities through the inspector or let members choose. Build opens the furnishing palette: choose an affordable item, then select vacant ground. Occupied placement is rejected without spending. Sell returns half the purchase price and releases users. Escape pauses. Guide, settings, credits, speed controls and the household ledger are available in the HUD.
+Choose New household or Continue. Select a member to inspect needs, stress, schedule, bonds, post and station mastery; direct activities through the inspector or let members choose. A post's ladder opens with household standing, and promoting a being changes what their next shift pays. Build opens the furnishing palette: choose an affordable item, then select vacant ground. Occupied placement is rejected without spending. Sell returns half the purchase price and releases users. Escape pauses. Guide, settings, credits, speed controls and the household ledger are available in the HUD.
 
 Households start at 09:00 with 640 credits and 12 rations. A Yield career shift uses a console during 08–14 for 20 seconds and earns up to 100 credits. A Bloom shift uses a planter during 14–18 for 20 seconds and earns four rations and 48 credits; friends tending together earn a bonus. Furnishing capacity matters. Productive progress locks that member's rhythm for the rest of the day. Three completed shifts unlock the wider 08–18 window. Late assignments lose their remaining shift rather than creating overtime.
 
@@ -39,15 +39,29 @@ Read from `src/game/{needs,objects,sim,session}`. Numbers are what the build doe
   scaled by metabolism 0.75–1.35 — and you either direct an activity or let them choose. A meal spends
   one ration; a 20-second shift pays 100 credits (Yield, 08–14) or 4 rations and 48 credits (Bloom,
   14–18). Midnight charges 80 credits plus each furnishing's running cost.
-- **Progression — three systems.**
-  - [x] Shift mastery. Three completed shifts unlock the wider 08–18 window; before that a late order
-    loses its shift rather than creating overtime.
+- **Progression — four systems.**
+  - [x] Posts and rungs. Each being holds one of the household's six jobs as a paid post: Botanist,
+    Signal-keeper (both open from the first shift), Forager (3 household standing), Tinkerer (6),
+    Archivist (10) and Warden (14, covers either station). Every post has three rungs; a completed
+    shift earns one household standing, a missed shift costs one, and rung 2 (3 standing) and rung 3
+    (9) are bought in the inspector with standing alone. A post pays its own station 1.00 / 1.15 /
+    1.35; a rung-2 or rung-3 being may cover the other station at 0.90 / 1.00. A Master Botanist adds
+    a ration to every harvest. A post is also what a being may be ordered to work: the other station
+    waits for the cross-trained rung, so a career changes both what work they can take and what they
+    are paid.
+  - [x] Shift mastery. Each station keeps a per-being shift count (Yield and Bloom track separately)
+    that crosses five levels at 1 / 4 / 8 / 12 shifts and adds 5% pay per level above I; the roster
+    shows both levels beside the post. Nobody refuses a station for low proficiency — the game's
+    fiction is a small cooperative household, so an unskilled shift simply pays less. Three completed
+    shifts still unlock the wider 08–18 window.
   - [x] Bonds. Pair relationships run -100 to 100 with milestones at 35 (friends), 70 (close) and 95
     (bonded); tending Bloom together pays more for friends, and two stressed members clash instead.
     Friends and bonded pairs prefer each other's company, so an off-hours stroll walks to a friend
     instead of a random spot ("Keeping X company"). A bonded pair will not split for work: ordering one
     of them to a paid station sends the free partner to the neighbouring station, or the order stops
     with the reason (a different rhythm, a depleted partner, or a missing second station) until fixed.
+    The bond also refuses a post change that would put the pair in different station families, so a
+    career order never wins over the pair.
     The household panel shows each being's bond (partner and the book's word) and it moves as friends talk.
   - [x] Furnishing. Six types from 70 to 220 credits, capacity 1–4, running cost 1–4 a day, satisfying
     5–12 points a second — so a full household needs duplicates of the same station.

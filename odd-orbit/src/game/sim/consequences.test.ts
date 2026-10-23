@@ -249,11 +249,11 @@ test("slow rendered frames preserve three days of shifts, food and nightly settl
   for (const result of results) {
     expect(result.debt).toBe(0);
     expect(result.bill).toBe(results[1]!.bill);
-    expect(Math.abs(result.income - results[1]!.income)).toBeLessThanOrEqual(24);
+    expect(Math.abs(result.income - results[1]!.income)).toBeLessThanOrEqual(32);
     expect(Math.abs(result.harvest - results[1]!.harvest)).toBeLessThanOrEqual(2);
     expect([...result.completed].sort()).toEqual([...results[1]!.completed].sort());
     expect(result.recovering).toEqual([false, false, false, false]);
-    expect(Math.abs(result.credits - results[1]!.credits)).toBeLessThanOrEqual(24);
+    expect(Math.abs(result.credits - results[1]!.credits)).toBeLessThanOrEqual(32);
     expect(Math.abs(result.pantry - results[1]!.pantry)).toBeLessThanOrEqual(2);
   }
 }, 30000);

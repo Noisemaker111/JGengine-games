@@ -4,6 +4,11 @@ import type { SceneObject } from "@jgengine/core/scene/objectStore";
 
 import { PLOT } from "../world";
 import { householdBook } from "./agents";
+import {
+  careerById, careerOf, careerSplitBlocker, careerView, coverageOf, postOpen, postRows, promote,
+  rungProgress, rungIn, stationPay, stationCovers, STATION_LABEL, STATION_NAME, YIELD_SHIFT_SECONDS,
+  postForLifestyle, RUNG_NAMES,
+} from "./careers";
 import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalog";
 import { noteEvent } from "./session/types";
 import { householdStore } from "./session/store";
@@ -157,9 +162,11 @@ function freeForShift(state: HouseholdState, member: MemberState): boolean {
 }
 
 /** Why a bonded partner cannot take this shift yet, or null when they can. */
-function joinBlocker(partner: MemberState, kind: ShiftKind, now: number): string | null {
+function joinBlocker(state: HouseholdState, partner: MemberState, kind: ShiftKind, now: number): string | null {
   const wanted: Lifestyle = kind === "work" ? "yield" : "bloom";
   if (partner.lifestyle !== wanted) return `${partner.name} keeps ${wanted === "yield" ? "Bloom" : "Yield"} hours`;
+  const station = kind === "work" ? "yield" : "bloom";
+  if (!coverageOf(careerView(state), partner, station).ok) return `${partner.name} holds the ${careerOf(partner).label} post and cannot cover the ${STATION_LABEL[station]} yet`;
   if (!shiftIsOpen(partner, now)) return `${partner.name}'s ${scheduleLabel(partner)} window is closed`;
   if (partner.needs.energy < 35 || partner.needs.hunger < 35) return `${partner.name} is too depleted for a shift`;
   return null;
@@ -192,35 +199,42 @@ function refuseSplit(ctx: GameContext, state: HouseholdState, member: MemberStat
 
 /**
  * Order a paid station visit. A bonded pair works side by side or not at all: the free partner takes
- * the neighbouring station, else the order stops with a sentence naming the fix.
+ * the neighbouring station, else the order stops with a sentence naming the fix. Only after the bond
+ * has had its say does the being's post decide whether they can take the station at all.
  */
 function orderShift(ctx: GameContext, state: HouseholdState, member: MemberState, kind: ShiftKind, station: SceneObject): boolean {
   const now = ctx.time.now();
   const noun = SHIFT_STATION[kind];
   const partnerId = householdBook(state).bondedWith(member.id);
   const partner = partnerId === null ? undefined : state.members[partnerId];
-  if (partner === undefined || !freeForShift(state, partner)) {
-    if (sendToStation(member, kind, station, now) && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
+  if (partner !== undefined && freeForShift(state, partner)) {
+    const blocker = joinBlocker(state, partner, kind, now);
+    if (blocker !== null) {
+      refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not take separate shifts; ${blocker}. Match their rhythms or let both rest.`);
+      return false;
+    }
+    const before = { action: member.action, assignedByPlayer: member.assignedByPlayer, actionUntil: member.actionUntil };
+    const started = sendToStation(member, kind, station, now);
+    const mate = nearestShiftStation(ctx, state, partner, kind);
+    if (mate === null) {
+      member.action = before.action;
+      member.assignedByPlayer = before.assignedByPlayer;
+      member.actionUntil = before.actionUntil;
+      refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not split; furnish a second ${noun} so they can work side by side.`);
+      return false;
+    }
+    sendToStation(partner, kind, mate, now);
+    if (started && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
+    noteEvent(state, ctx.game.notices, `${member.name} and ${partner.name} stay together: two ${noun === "Bloom Planter" ? "planters" : "consoles"}, one shift.`, "info");
     return true;
   }
-  const blocker = joinBlocker(partner, kind, now);
-  if (blocker !== null) {
-    refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not take separate shifts; ${blocker}. Match their rhythms or let both rest.`);
+  const stationKind = kind === "work" ? "yield" : "bloom";
+  const coverage = coverageOf(careerView(state), member, stationKind);
+  if (!coverage.ok) {
+    refuseSplit(ctx, state, member, coverage.reason);
     return false;
   }
-  const before = { action: member.action, assignedByPlayer: member.assignedByPlayer, actionUntil: member.actionUntil };
-  const started = sendToStation(member, kind, station, now);
-  const mate = nearestShiftStation(ctx, state, partner, kind);
-  if (mate === null) {
-    member.action = before.action;
-    member.assignedByPlayer = before.assignedByPlayer;
-    member.actionUntil = before.actionUntil;
-    refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not split; furnish a second ${noun} so they can work side by side.`);
-    return false;
-  }
-  sendToStation(partner, kind, mate, now);
-  if (started && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
-  noteEvent(state, ctx.game.notices, `${member.name} and ${partner.name} stay together: two ${noun === "Bloom Planter" ? "planters" : "consoles"}, one shift.`, "info");
+  if (sendToStation(member, kind, station, now) && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
   return true;
 }
 
@@ -329,10 +343,75 @@ function registerHouseholdCommands(ctx: GameContext): void {
         householdStore.write(gameCtx, { ...state });
         return;
       }
+      const previous = careerOf(member);
       member.lifestyle = lifestyle;
       releaseMember(member);
       member.concern = null;
-      noteEvent(state, gameCtx.game.notices, `${member.name} chose ${lifestyle === "yield" ? "Yield career" : "Bloom keeping"}. The daily paid limit stays in place.`, "info");
+      if (!stationCovers(previous, lifestyle)) {
+        const next = postForLifestyle(lifestyle);
+        member.job = next.id;
+        noteEvent(state, gameCtx.game.notices, `${member.name} moved to the ${next.label} post to keep ${lifestyle === "yield" ? "Yield" : "Bloom"} hours. The ladder starts again at its first rung.`, "info");
+      } else {
+        noteEvent(state, gameCtx.game.notices, `${member.name} chose ${lifestyle === "yield" ? "Yield career" : "Bloom keeping"}. The daily paid limit stays in place.`, "info");
+      }
+      householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+      checkpoint(gameCtx);
+    },
+  });
+  ctx.game.commands.define<{ id: string; career: string }>("member.career", {
+    apply(gameCtx, { id, career }) {
+      if (gamePhase(gameCtx) !== "playing") return;
+      const next = careerById(career);
+      if (next === null) return;
+      const state = householdStore.read(gameCtx);
+      const member = state.members[id];
+      if (member === undefined || member.job === next.id) return;
+      if (!canChangeLifestyle(member)) {
+        noteEvent(state, gameCtx.game.notices, `${member.name} already started today's paid shift; take a new post tomorrow.`, "deny");
+        householdStore.write(gameCtx, { ...state });
+        return;
+      }
+      if (!postOpen(state, member, next)) {
+        member.concern = `The ${next.label} post opens at ${next.postGate} household standing`;
+        noteEvent(state, gameCtx.game.notices, `${member.name} needs ${next.postGate} household standing for the ${next.label} post.`, "deny");
+        householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+        return;
+      }
+      const blocker = careerSplitBlocker(state, member, next);
+      if (blocker !== null) {
+        refuseSplit(gameCtx, state, member, blocker);
+        householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+        return;
+      }
+      member.job = next.id;
+      if (next.station !== "either") member.lifestyle = next.station;
+      releaseMember(member);
+      member.concern = null;
+      const station = next.station === "either" ? member.lifestyle : next.station;
+      const pay = stationPay(state, member, station);
+      noteEvent(state, gameCtx.game.notices, `${member.name} took the ${next.label} post (${RUNG_NAMES[0]}) - pay x${pay.factor.toFixed(2)} at ${STATION_NAME[station]}.`, "info");
+      householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+      checkpoint(gameCtx);
+    },
+  });
+  ctx.game.commands.define<{ id: string }>("member.promote", {
+    apply(gameCtx, { id }) {
+      if (gamePhase(gameCtx) !== "playing") return;
+      const state = householdStore.read(gameCtx);
+      const member = state.members[id];
+      if (member === undefined) return;
+      const result = promote(state, member);
+      const career = careerOf(member);
+      const station = career.station === "either" ? member.lifestyle : career.station;
+      const pay = stationPay(state, member, station);
+      if (result.ok) {
+        noteEvent(state, gameCtx.game.notices, `${member.name} reached the ${result.reason} rung: pay x${pay.factor.toFixed(2)} at ${STATION_NAME[station]}${pay.rations > 0 ? ` and +${pay.rations} ration${pay.rations === 1 ? "" : "s"} on a Bloom harvest` : ""}.`, "success");
+        gameCtx.game.audio.play("bond");
+      } else {
+        member.concern = result.reason;
+        noteEvent(state, gameCtx.game.notices, `${member.name}: ${result.reason}.`, "deny");
+        gameCtx.game.audio.play("denied");
+      }
       householdStore.write(gameCtx, { ...state, members: { ...state.members } });
       checkpoint(gameCtx);
     },

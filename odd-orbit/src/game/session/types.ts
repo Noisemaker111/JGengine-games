@@ -3,6 +3,8 @@ import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
 
 import type { AlienBodyPlan } from "../creatures/bodyPlan";
 import type { ResourceLedger } from "@jgengine/core/economy/resourceLedger";
+import type { StandingState } from "@jgengine/core/progression/standing";
+import type { UpgradeState } from "@jgengine/core/progression/upgrades";
 import { createHouseholdEconomy } from "../sim/economy";
 
 import type { NeedId } from "../needs/needs";
@@ -72,6 +74,10 @@ export interface HouseholdState {
   /** Household notices raised so far; seeds life-event rolls. */
   eventSeq: number;
   nextLifeEventAt: number;
+  /** Per-being standing: shift counts per station and the household standing rungs read. */
+  standing?: StandingState;
+  /** Post rungs bought so far; absent in legacy v1 saves. */
+  careers?: UpgradeState;
 }
 
 /** Undirected, delimiter-safe key for a member pair; order-independent and serializable. */
@@ -101,6 +107,8 @@ export function createHousehold(seed: string): HouseholdState {
     buildTool: null,
     eventSeq: 0,
     nextLifeEventAt: 0,
+    standing: { records: {} },
+    careers: { ranks: {} },
   };
 }
 
