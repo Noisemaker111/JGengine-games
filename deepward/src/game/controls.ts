@@ -6,6 +6,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { DamageRuntime } from "@jgengine/core/combat/damageRuntime";
 import type { WeaponAmmo, WeaponSystem } from "@jgengine/core/combat/weaponSystem";
 import { weaponIntervalMs } from "@jgengine/core/combat/weaponDefinition";
+import { createPerception, type PerceptionService } from "@jgengine/core/sensor/perception";
 import { distance, depthAt, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
 import { acknowledgeReprint, ageDive, depart, fits, ITEMS, ledgerOf, newDive, newHome, pack, peekLoot, recoverInterrupted, settle, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
 import { installRefit, REFITS, type RefitId } from "./progression";
@@ -41,6 +42,7 @@ const runtime = perContext(() => ({
   writes: Promise.resolve() as Promise<void>, checkpoint: 0, writing: false,
   aim: [0, 0, -1] as Point, worldItems: new Map<string, string>(), navigation: createNavigator(), airBeat: -1,
   damage: null as DamageRuntime | null, weapon: null as WeaponSystem | null, armed: null as string | null,
+  senses: null as PerceptionService | null, facing: 0,
 }));
 /** Station bed is muted while the game is frozen; it is a retained loop, so only its gain changes. */
 const BED_GAIN = 0.45;
@@ -56,6 +58,28 @@ function damageOf(ctx: GameContext): DamageRuntime {
   const state = runtime(ctx);
   state.damage ??= createDeepwardDamage(ctx.rng);
   return state.damage;
+}
+/** How far the Fitter sees, how wide its cone is, and how far a search carries. */
+export const FITTER_SIGHT = 12;
+export const FITTER_CONE_DEG = 200;
+export const FITTER_HEARING = 15;
+/** The Fitter's senses: the shared perception service, wired to the station's own sight test. */
+export function createFitterSenses(): PerceptionService {
+  return createPerception({
+    sightRange: FITTER_SIGHT,
+    sightConeDeg: FITTER_CONE_DEG,
+    hearingRange: FITTER_HEARING,
+    // A sighting has to be fresh to matter: the Fitter reacts to what it saw this half second.
+    memorySeconds: 0.5,
+    // The station's authored wall and machinery test, the same line the shot and the search read.
+    isSegmentClear: (from, to) => lineOfSight([from[0], from[1], from[2]], [to[0], to[1], to[2]]),
+    devtoolsName: "deepward.perception",
+  });
+}
+function sensesOf(ctx: GameContext): PerceptionService {
+  const state = runtime(ctx);
+  state.senses ??= createFitterSenses();
+  return state.senses;
 }
 /** The held weapon, retuned to the hand in force so ammo, cadence and reload carry across a swap. */
 function arm(ctx: GameContext, dive: Dive): WeaponSystem {
@@ -103,8 +127,7 @@ function cool(weapon: WeaponSystem, dt: number): void {
   weapon.restore({ ...state, cadenceElapsedMs: Math.min(interval, state.cadenceElapsedMs + dt * 1000) });
 }
 
-function playable(ctx: GameContext): boolean {
-  const view = viewStore.read(ctx);
+function playable(ctx: GameContext): boolean {  const view = viewStore.read(ctx);
   return !view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive");
 }
 /** Serialise record writes: a settle and a checkpoint never interleave on one document. */
@@ -179,6 +202,7 @@ function clearLoot(ctx: GameContext): void {
   for (const instanceId of records.values()) ctx.scene.worldItem.consume(instanceId);
   records.clear();
   runtime(ctx).navigation = createNavigator();
+  runtime(ctx).senses?.forget(PRINT_ID);
   disarm(ctx);
 }
 function syncPrint(ctx: GameContext, dive: Dive | null): void {
@@ -602,8 +626,16 @@ export function tick(ctx: GameContext, dt: number): void {
   } else runState.airBeat = -1;
   let p = { ...dive.print, cooldown: Math.max(0, dive.print.cooldown - dt) };
   if (p.health > 0) {
-    const range = distance(at, p.at), sees = range < 12 && at[2] < RECEIVING_BACK_Z && lineOfSight(at, p.at);
-    const noisy = dive.channel !== null && range < 15 && lineOfSight(at, p.at);
+    const range = distance(at, p.at), senses = sensesOf(ctx), nowMs = dive.elapsed * 1000;
+    // A search is a sound at the station's hearing range; the shared service decides whether the
+    // Fitter heard it from where it stands and keeps the memory that makes it investigate.
+    if (dive.channel !== null && lineOfSight(at, p.at)) {
+      senses.pushStimulus({ kind: "sound", sourceId: ctx.player.userId, position: [at[0], at[1], at[2]], loudness: 1, at: nowMs });
+    }
+    senses.observe({ id: PRINT_ID, position: [p.at[0], p.at[1], p.at[2]], yaw: runtime(ctx).facing }, [{ id: ctx.player.userId, position: [at[0], at[1], at[2]] }], nowMs);
+    const alert = senses.memoryOf(PRINT_ID, ctx.player.userId) !== null;
+    const sees = alert && at[2] < RECEIVING_BACK_Z;
+    const noisy = alert && dive.channel !== null;
     if (p.mode === "winding") {
       p.attack = Math.max(0, p.attack - dt);
       if (p.attack === 0) {
@@ -617,14 +649,18 @@ export function tick(ctx: GameContext, dt: number): void {
       p.mode = "calling";
       if (range < 1.9 && p.cooldown === 0) { p.mode = "winding"; p.attack = 0.7; hint = "Fitter raises its rifle / step back!"; ctx.game.audio.play("windup"); }
       else if (range >= 1.9) {
+        const from = p.at;
         p.at = advanceRoute(runtime(ctx).navigation, p.at, at, Math.min(range - 1.7, dt * 2.5), "vault");
+        if (p.at[0] !== from[0] || p.at[2] !== from[2]) runtime(ctx).facing = Math.atan2(p.at[0] - from[0], p.at[2] - from[2]);
       }
     } else {
       p.mode = "route";
       const goal: Point = [PRINT_SPAWN[0] + Math.sin(dive.elapsed * 0.4), PRINT_SPAWN[1], PRINT_SPAWN[2] + Math.sin(dive.elapsed * 0.3) * 2];
       const remaining = distance(p.at, goal);
       if (remaining > 0) {
+        const from = p.at;
         p.at = advanceRoute(runtime(ctx).navigation, p.at, goal, dt * 2.5, "vault");
+        if (p.at[0] !== from[0] || p.at[2] !== from[2]) runtime(ctx).facing = Math.atan2(p.at[0] - from[0], p.at[2] - from[2]);
       }
     }
   }
