@@ -42,6 +42,9 @@ import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic"
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
+import { createWaveRunner } from "@jgengine/core/ai/waveRunner";
+import { attachWaveFeedback } from "@jgengine/shell/audio/eventFeedback";
+import { perContext } from "@jgengine/core/runtime/perContext";
 
 const AGGRO_RADIUS = 18;
 const GANGER_SHOT_RANGE = 14;
@@ -49,8 +52,39 @@ const CONVOY_TOTAL = 10;
 const CICADA_STAGE_ID = "cicada_stage_car";
 const RACE_BANNER_SEC = 6;
 
-/** Convoy spawn counter lives in a store so mid-m7 saves keep unique ids and the 10-spawn cap. */
-const convoyStageStore = defineStore<number | undefined>("harbor.convoyStage", undefined);
+/** One dock reinforcement per six seconds, ten of them: the convoy is a wave manifest, not a counter. */
+const CONVOY_WAVES = Array.from({ length: CONVOY_TOTAL }, () => ({
+  budget: 1,
+  duration: 6,
+  entries: [{ id: "ganger_dock", cost: 1 }],
+}));
+
+/**
+ * The Carmine convoy as the engine's wave runner: the director owns the cadence and the alive cap,
+ * the sink places each request on the dock ring, and `attachWaveFeedback` announces the wave.
+ */
+const convoyRunners = perContext((ctx: GameContext) =>
+  createWaveRunner({
+    waves: CONVOY_WAVES,
+    maxAlive: 4,
+    seed: 20260712,
+    onSpawn(request) {
+      const wave = request.wave + 1;
+      const angle = (wave / CONVOY_TOTAL) * Math.PI * 2;
+      const x = DOCK_FIGHT_CENTER[0] + Math.sin(angle) * 22;
+      const z = DOCK_FIGHT_CENTER[2] + Math.cos(angle) * 22;
+      ctx.scene.entity.spawn("ganger_dock", {
+        id: `convoy_${wave}`,
+        position: [x, ctx.world.groundHeightAt(x, z), z],
+        role: "npc",
+      });
+    },
+  }),
+);
+
+const convoyFeedback = perContext((ctx: GameContext) => ({
+  detach: attachWaveFeedback(convoyRunners(ctx), ctx.game.feedback),
+}));
 
 /**
  * Per-run mission timers. In the store rather than module scope so a server host, a test, and two
@@ -58,7 +92,6 @@ const convoyStageStore = defineStore<number | undefined>("harbor.convoyStage", u
  * process.
  */
 interface MissionState {
-  convoyTimer: number;
   kingpinSpawned: boolean;
   bustedHold: number;
   raceSettled: boolean;
@@ -66,7 +99,6 @@ interface MissionState {
 }
 
 const FRESH_MISSION: MissionState = {
-  convoyTimer: 0,
   kingpinSpawned: false,
   bustedHold: 0,
   raceSettled: false,
@@ -190,24 +222,9 @@ function tickMissionSpawns(ctx: GameContext, dt: number): void {
   const quests = ctx.game.quest!.list(ctx.player.userId);
 
   const convoy = quests.find((q) => q.questId === "m7_carmine_convoy" && q.status === "active");
-  const convoySpawned = convoyStageStore.read(ctx) ?? 0;
-  if (convoy !== undefined && convoySpawned < CONVOY_TOTAL) {
-    const nextTimer = mission(ctx).convoyTimer - dt;
-    patchMission(ctx, { convoyTimer: nextTimer });
+  if (convoy !== undefined) {
     const alive = ctx.scene.entity.list().filter((e) => e.name === "ganger_dock").length;
-    if (nextTimer <= 0 && alive < 4) {
-      patchMission(ctx, { convoyTimer: 6 });
-      const wave = convoySpawned + 1;
-      convoyStageStore.write(ctx, wave);
-      const angle = (wave / CONVOY_TOTAL) * Math.PI * 2;
-      const x = DOCK_FIGHT_CENTER[0] + Math.sin(angle) * 22;
-      const z = DOCK_FIGHT_CENTER[2] + Math.cos(angle) * 22;
-      ctx.scene.entity.spawn("ganger_dock", {
-        id: `convoy_${wave}`,
-        position: [x, ctx.world.groundHeightAt(x, z), z],
-        role: "npc",
-      });
-    }
+    convoyRunners(ctx).update(dt, { alive });
   }
 
   const kingpin = quests.find((q) => q.questId === "m8_kingpin" && q.status === "active");
@@ -434,6 +451,7 @@ function onInit(ctx: GameContext): void {
   });
 
   registerCommands(ctx);
+  convoyFeedback(ctx);
   ensureNightMarket(ctx);
   const buildings = setupWorld(ctx);
   setupTraffic(ctx);
@@ -478,6 +496,7 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 function onDispose(ctx: GameContext): void {
+  convoyFeedback(ctx).detach();
   disposeTraffic(ctx);
   disposeResidents(ctx);
 }

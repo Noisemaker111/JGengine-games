@@ -71,6 +71,8 @@ interface MapSnapshot {
   safehouseOwned: boolean;
   stashesCollected: readonly string[];
   courierTarget: readonly [number, number];
+  /** HHPD's last-sighting circle: where the witnesses lost you. */
+  search: { center: readonly [number, number]; radius: number } | null;
 }
 
 function readMap(ctx: GameContext): MapSnapshot | null {
@@ -98,6 +100,7 @@ function readMap(ctx: GameContext): MapSnapshot | null {
     safehouseOwned: safehouseStore.read(ctx) === true,
     stashesCollected: stashStore.read(ctx) ?? [],
     courierTarget: courier.phase === "running" ? DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!.position : DISPATCH,
+    search: wanted?.search ?? null,
   };
 }
 
@@ -215,6 +218,26 @@ export function CityMinimap() {
             const b = projectToMinimap(seg.to, view);
             return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#dfe6ee" strokeWidth={4} strokeOpacity={0.75} strokeLinecap="round" />;
           })}
+          {snapshot.search !== null
+            ? (() => {
+                const center = projectToMinimap(snapshot.search.center, view);
+                return (
+                  <g>
+                    <circle
+                      cx={center.x}
+                      cy={center.y}
+                      r={(snapshot.search.radius * SIZE) / (RADIUS * 2)}
+                      fill="#f2599b"
+                      fillOpacity={0.12}
+                      stroke="#f2599b"
+                      strokeWidth={2}
+                      strokeDasharray="4 3"
+                    />
+                    <circle cx={center.x} cy={center.y} r={2.5} fill="#f2599b" />
+                  </g>
+                );
+              })()
+            : null}
           <MinimapChrome view={view} markers={markers} />
         </svg>
         <div className="absolute right-1 top-0.5 text-[10px] font-black text-white/70">N</div>
