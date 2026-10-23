@@ -40,7 +40,7 @@ import {
 } from "./game/stores";
 import { TRAVEL_STATIONS, zoneAt, zoneLevelAt } from "./game/world/sites";
 import { PLAYER_SPAWN, PLAYER_SPAWN_YAW, respawnClusters, setupWorld } from "./game/world/setup";
-import { bankFieldHaul, scanFieldGun } from "./game/items/fieldLoot";
+import { bankFieldHaul, scanFieldGun } from "./game/items/fieldGear";
 
 const dropRng = seededRng("scrap-gun-drops");
 const RESPAWN_SWEEP_SECONDS = 25;

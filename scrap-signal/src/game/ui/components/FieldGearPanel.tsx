@@ -2,7 +2,7 @@ import { useGame } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
 import { useStore } from "@jgengine/react/store";
 import { RARITY_COLORS } from "../../palette";
-import { fieldLootStore } from "../../items/fieldLoot";
+import { fieldGearStore } from "../../items/fieldGear";
 
 const STAT_LABEL: Record<string, string> = {
   damage: "damage",
@@ -19,9 +19,9 @@ function shown(stat: string, delta: number): string {
   return `${delta > 0 ? "+" : ""}${Math.round(delta * 10) / 10}`;
 }
 
-export function FieldLootPanel() {
+export function FieldGearPanel() {
   const { commands } = useGame();
-  const view = useStore(fieldLootStore);
+  const view = useStore(fieldGearStore);
   if (view === null) return null;
   const color = RARITY_COLORS[view.rarity as keyof typeof RARITY_COLORS] ?? "#d6d3d1";
   return (

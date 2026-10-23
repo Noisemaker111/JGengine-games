@@ -80,7 +80,7 @@ const haul = createRunHaul({
 });
 
 /** HUD read-model: the newest field gun, its deltas against the worn gun, and the stash load. */
-export interface FieldLootView {
+export interface FieldGearView {
   dropId: string;
   name: string;
   rarity: string;
@@ -96,7 +96,7 @@ export interface FieldLootView {
   remaining: number;
 }
 
-export const fieldLootStore = defineStore<FieldLootView | null>("scrap.fieldLoot", null);
+export const fieldGearStore = defineStore<FieldGearView | null>("scrap.fieldGear", null);
 
 function wornStats(ctx: GameContext): ItemDrop | null {
   for (const slot of ctx.player.inventory.state("hotbar").slots) {
@@ -164,10 +164,10 @@ function stashNames(): string[] {
     .map((slot) => gunById(slot!.itemId)?.name ?? slot!.itemId);
 }
 
-function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: ItemDrop | null): FieldLootView {
+function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: ItemDrop | null): FieldGearView {
   const comparison = compareToEquipped(drop, worn, { lowerIsBetter: ["fireIntervalMs", "spread", "reloadMs"] });
   const mass = haul.mass();
-  const view: FieldLootView = {
+  const view: FieldGearView = {
     dropId: drop.id,
     name: drop.name,
     rarity: drop.rarity,
@@ -182,7 +182,7 @@ function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: Ite
     runMass: mass.run,
     remaining: mass.remaining,
   };
-  fieldLootStore.write(ctx, view);
+  fieldGearStore.write(ctx, view);
   return view;
 }
 
@@ -190,7 +190,7 @@ function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: Ite
  * Roll one field gun at `level`, compare it with the worn gun, and try to carry it. A gun over the
  * carry weight stays on the ground (`carried: false`) but still compares.
  */
-export function scanFieldGun(ctx: GameContext, seed: string, level: number): FieldLootView {
+export function scanFieldGun(ctx: GameContext, seed: string, level: number): FieldGearView {
   const drop = rollDrop(catalog, seed, { level });
   dropById.set(drop.id, drop);
   toGun(drop);
@@ -201,8 +201,8 @@ export function scanFieldGun(ctx: GameContext, seed: string, level: number): Fie
 /** Bank every carried field gun into the persistent stash; called when the player changes zone. */
 export function bankFieldHaul(ctx: GameContext): number {
   const moved = haul.bank().stacks.length;
-  const current = fieldLootStore.read(ctx);
-  if (current !== null) fieldLootStore.write(ctx, { ...current, stash: stashNames(), runMass: 0 });
+  const current = fieldGearStore.read(ctx);
+  if (current !== null) fieldGearStore.write(ctx, { ...current, stash: stashNames(), runMass: 0 });
   return moved;
 }
 
@@ -215,8 +215,8 @@ export function salvageFieldGun(ctx: GameContext, dropId: string): SalvageYield 
   if (inventories.count("run", dropId) > 0) inventories.take("run", dropId, 1);
   else inventories.take("stash", dropId, 1);
   ctx.game.economy.grant(ctx.player.userId, result.yield.currency, result.yield.amount);
-  const current = fieldLootStore.read(ctx);
-  if (current !== null) fieldLootStore.write(ctx, { ...current, stash: stashNames() });
+  const current = fieldGearStore.read(ctx);
+  if (current !== null) fieldGearStore.write(ctx, { ...current, stash: stashNames() });
   return result.yield;
 }
 

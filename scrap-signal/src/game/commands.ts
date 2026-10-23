@@ -6,7 +6,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
 import { gunById, rollGun, startReload, reservePhase } from "./handroll";
-import { equipFieldGun, salvageFieldGun, bankFieldHaul } from "./items/fieldLoot";
+import { equipFieldGun, salvageFieldGun, bankFieldHaul } from "./items/fieldGear";
 import { player } from "./entities/players/catalog";
 import { session } from "./session";
 import {
