@@ -1,6 +1,7 @@
 {
   "drawsFrame": 85,
+  "previousDraws": 90,
   "triangles": 56100,
   "nodes": 170,
-  "baseline": "2026-10-23 bun run perf:gate whole-frame p95 78 over 361 frames, identical across runs, GeForce RTX 3070 D3D11, 1600x900 full, games dag3865 through engine beta source: 78 draws / 50,992 triangles / 146 nodes. The budget is +10%. Re-measure this game and update this file in the same PR as any content change."
+  "baseline": "2026-10-23 bun run perf:gate whole-frame p95 78 over 361 frames, identical across runs, GeForce RTX 3070 D3D11, 1600x900 full, pinned Games c746e3b, copied from the engine beta scripts/perf-budget.json: 78 draws / 50,992 triangles / 146 nodes. The budget is +10%. Whole-frame means every draw a frame issues across shadow, main, postfx, AO and DOF passes, taken as the p95 of the measured window by wrapping drawElements and drawArrays. Previous budget 90 draws from a 78 baseline measured 2026-10-22 at Games c81aabc; triangles and nodes are unchanged from that measurement. Re-measure this game and update this file in the same PR as any content change."
 }
