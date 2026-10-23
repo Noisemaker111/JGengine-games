@@ -84,7 +84,7 @@ describe("Marrow refits and reprint ownership", () => {
     const data = new Map<string, string>([[SAVE_KEY, legacy]]);
     const storage = { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { data.set(key, value); } };
     const session = await open(storage);
-    expect(session.home.version).toBe(4);
+    expect(session.home.version).toBe(5);
     expect(session.home.refits).toEqual([]);
     expect(session.home.stash).toHaveLength(3);
     expect(data.get(SAVE_KEY)).toBe(legacy);

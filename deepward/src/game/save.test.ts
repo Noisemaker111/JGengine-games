@@ -25,7 +25,7 @@ describe("the one Marrow record", () => {
     const first = openRecord(storage, hooks());
     await first.load();
     expect(storage.getItem(RECORD_ENTRY)).toBeNull();
-    expect(first.home.version).toBe(4);
+    expect(first.home.version).toBe(5);
 
     const departure = depart(first.home);
     await first.commit(departure, run);
@@ -76,7 +76,7 @@ describe("the one Marrow record", () => {
       storage.setItem(SAVE_KEY, raw);
       const record = openRecord(storage, hooks());
       await record.load();
-      expect(record.home.version).toBe(4);
+      expect(record.home.version).toBe(5);
       expect(record.home.stash).toHaveLength(1);
       expect(kindOf(record.home.stash[0]!)).toBe("ink");
       expect(record.home.stash[0]!.id).toBe("1:ink");
@@ -89,12 +89,14 @@ describe("the one Marrow record", () => {
     }
   });
 
-  test("a v4 record loads as-is and keeps its bank and standing", async () => {
+  test("a v4 record loads, opens the counter's books at its banked scrip and keeps its standing", async () => {
     const storage = memory();
-    storage.setItem(SAVE_KEY, JSON.stringify({ ...newHome(), revision: 3, nextDive: 2, extractions: 1, life: 1, bank: { banked: 90, haul: 0, deposited: 90, lost: 0, bestHaul: 90, runs: 1 }, last: { kind: "extracted", dive: 1, count: 0, reason: "Rail", scrip: 90 }, standing: { records: { operator: { marrow: 14 } } } }));
+    storage.setItem(SAVE_KEY, JSON.stringify({ ...newHome(), version: 4, books: undefined, revision: 3, nextDive: 2, extractions: 1, life: 1, bank: { banked: 90, haul: 0, deposited: 90, lost: 0, bestHaul: 90, runs: 1 }, last: { kind: "extracted", dive: 1, count: 0, reason: "Rail", scrip: 90 }, standing: { records: { operator: { marrow: 14 } } } }));
     const record = openRecord(storage, hooks());
     await record.load();
+    expect(record.home.version).toBe(5);
     expect(record.home.bank.banked).toBe(90);
+    expect(record.home.books.accounts.operator!.scrip).toBe(90);
     expect(record.home.extractions).toBe(1);
   });
 

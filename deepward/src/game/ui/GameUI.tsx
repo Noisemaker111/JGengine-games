@@ -17,7 +17,7 @@ import { weaponReadout } from "../combat";
 import { loadOf, CACHE_WEIGHT } from "../haul";
 import { breakdownValue, compareToPrepared, itemValue, kindOf, statLines, type Item } from "../items";
 import { REFITS, refitMissing, type RefitId } from "../progression";
-import { counterRows, marrowStanding, OPERATOR, SCRIP } from "../counter";
+import { counterRows, marrowStanding, OPERATOR, SCRIP, scripJournal } from "../counter";
 import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
 import { TitleGate } from "./menu/TitleGate";
@@ -101,6 +101,7 @@ export function GameUI() {
   const marrowTier = marrowLedger.tier(OPERATOR, "marrow");
   const marrowScore = marrowLedger.standing(OPERATOR, "marrow");
   const counter = counterRows(view.home);
+  const journal = scripJournal(view.home, 4);
   const prepared = view.home.stash.find(item => item.id === view.rifleUid) ?? null;
   const close = () => { command("close"); grab(); };
   return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
@@ -192,6 +193,9 @@ export function GameUI() {
           </div></div>
       </article>)}</div>}
       <h3>Fitter's counter / {view.home.bank.banked} scrip banked</h3><p>Marrow clears operators it trusts. Better standing also prices every shelf a little lower.</p>
+      {journal.length > 0 && <ol className="dw-journal" aria-label="Scrip journal">{journal.map(entry => <li key={entry.seq}>
+        <span>{entry.reason}{entry.ref === undefined ? "" : ` / ${entry.ref}`}</span><strong>{entry.amount > 0 ? "+" : ""}{entry.amount}</strong><small>{entry.balanceAfter} banked</small>
+      </li>)}</ol>}
       <div className="dw-counter">{counter.map(row => <article className="dw-supply" key={row.supply.kind}>
         <ItemMark kind={row.supply.kind} size={32} /><div><strong>{row.supply.label}</strong><p>{row.supply.blurb}</p>
           <small>{row.price} {SCRIP.unit} / unit{row.locked ? ` / locked, needs ${row.needs} standing` : ""}</small>

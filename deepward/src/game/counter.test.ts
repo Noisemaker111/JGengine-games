@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { openRecord, validHome, type RunHooks, type StoragePort } from "./save";
-import { buySupply, counterRows, dismantle, haulScrip, marrowStanding, OPERATOR, priceOf, SCRIP, settleEconomy } from "./counter";
+import { buySupply, counterRows, dismantle, haulScrip, marrowStanding, openScripBooks, OPERATOR, priceOf, REASON, SCRIP, scripJournal, settleEconomy } from "./counter";
 import { depart, newDive, newHome, settle, takeLoot, type Dive, type Home } from "./state";
 import { breakdownValue, kindOf, rollItem, type ItemKind } from "./items";
 
@@ -124,6 +124,29 @@ describe("Marrow's counter", () => {
       return `${JSON.stringify(second.bank)}:${JSON.stringify(second.standing)}`;
     };
     expect(play()).toBe(play());
+  });
+
+  test("every scrip movement keeps its reason and the balance the counter shows", () => {
+    const home: Home = { ...standingAt(80), revision: 4, bank: { banked: 100, haul: 0, deposited: 100, lost: 0, bestHaul: 0, runs: 1 }, books: openScripBooks(100) };
+    const bought = buySupply(home, "wire");
+    const purchase = scripJournal(bought).at(-1)!;
+    expect(purchase).toMatchObject({ reason: REASON.purchase, ref: "wire", amount: -priceOf("wire", 80), balanceAfter: bought.bank.banked });
+
+    const broken = dismantle(bought, bought.stash.find(item => kindOf(item) === "wire")!.id);
+    const salvage = scripJournal(broken.home).at(-1)!;
+    expect(salvage).toMatchObject({ reason: REASON.salvage, amount: broken.scrip, balanceAfter: broken.home.bank.banked });
+
+    const departed = depart(broken.home);
+    const returned = settle(departed, { ...carried("cells", "cells"), id: departed.activeDive! }, "extracted", "Rail");
+    const haul = scripJournal(returned).at(-1)!;
+    expect(haul).toMatchObject({ reason: REASON.haul, ref: `dive-${returned.last!.dive}`, balanceAfter: returned.bank.banked });
+    expect(returned.books.accounts[OPERATOR]![SCRIP.id]).toBe(returned.bank.banked);
+
+    // A lost Life pays nothing, so the journal gains no credit entry for it.
+    const second = depart(returned);
+    const lost = settle(second, { ...carried("wire", "wire"), id: second.activeDive! }, "lost", "No air");
+    expect(lost.books.entries).toHaveLength(returned.books.entries.length);
+    expect(lost.books.accounts[OPERATOR]![SCRIP.id]).toBe(lost.bank.banked);
   });
 
   test("breaking an item down pays its salvage value once and spends the instance", () => {

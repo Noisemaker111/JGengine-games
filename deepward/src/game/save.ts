@@ -1,7 +1,10 @@
 import { createGameSave, GAME_SAVE_VERSION, type GameSave, type GameSaveDocument, type GameSaveSystem } from "@jgengine/core/game/gameSave";
 import { localSaveBackend, type SaveBackend } from "@jgengine/core/game/saveStore";
 import type { WeaponSystemState } from "@jgengine/core/combat/weaponSystem";
+import { createTransactionLedger, type LedgerState } from "@jgengine/core/economy/transactionLedger";
+import type { CareerBankState } from "@jgengine/core/progression/careerBank";
 import type { Point } from "../world";
+import { openScripBooks } from "./counter";
 import { ITEMS, itemIssues, rollItem, type Item, type ItemKind } from "./items";
 import { newHome, type Dive, type Home, type Result } from "./state";
 
@@ -63,6 +66,11 @@ function validStanding(value: unknown): boolean {
   if (!record(value) || !record(value.records)) return false;
   return Object.values(value.records).every(row => record(row) && Object.entries(row).every(([track, score]) => track === "marrow" && typeof score === "number" && Number.isFinite(score)));
 }
+/** The counter's books must be state the shared ledger can actually restore. */
+function validBooks(value: unknown): boolean {
+  if (!record(value)) return false;
+  return createTransactionLedger().restore(value as unknown as LedgerState);
+}
 
 /** The shared fields of every schema version, checked before the version-specific parts. */
 function validShared(value: unknown, versions: readonly number[]): value is Record<string, unknown> {
@@ -89,13 +97,14 @@ export function validHome(value: unknown): value is Home {
   return validHomeShape(value);
 }
 function validHomeShape(value: unknown): value is Home {
-  if (!validShared(value, [4]) || value.version !== 4) return false;
+  if (!validShared(value, [5]) || value.version !== 5) return false;
   if (!currentStash(value)) return false;
   if (!Array.isArray(value.refits)) return false;
   if (!value.refits.every(id => id === "tank" || id === "reserve") || new Set(value.refits).size !== value.refits.length) return false;
   if (typeof value.reprintPending !== "boolean") return false;
   if (!validBank(value.bank) || !validStanding(value.standing)) return false;
   if (!validLedger(value.ledger, value.stash)) return false;
+  if (!validBooks(value.books)) return false;
   return !value.reprintPending || (value.activeDive === null && record(value.last) && value.last.kind === "lost");
 }
 
@@ -107,6 +116,12 @@ function legacyItem(value: unknown): value is LegacyItem {
 /** Read legacy bytes without writing; the first record write migrates them atomically. */
 function readHome(value: unknown): Home | null {
   if (validHomeShape(value)) return value;
+  if (validShared(value, [4])) {
+    // v4 is this shape without the counter's books: open them at the balance it banked.
+    const { books: _books, ...rest } = value as Record<string, unknown>;
+    const upgraded = { ...rest, version: 5, books: openScripBooks((value.bank as CareerBankState).banked) };
+    return validHomeShape(upgraded) ? upgraded : null;
+  }
   if (!validShared(value, [1, 2, 3])) return null;
   const stash = value.stash;
   if (!Array.isArray(stash) || !stash.every(legacyItem)) return null;
@@ -122,7 +137,7 @@ function migrate(value: Record<string, unknown>, version: number, stash: readonl
     reprintPending: version === 1 ? record(value.last) && value.last.kind === "lost" && value.activeDive === null : value.reprintPending,
   };
   const items = stash.map(entry => rollItem(entry.kind, 1, `deepward:legacy:${entry.uid}`, entry.uid));
-  return { ...(refitted as unknown as Home), version: 4, bank: blank.bank, standing: blank.standing, ledger: {}, stash: items };
+  return { ...(refitted as unknown as Home), version: 5, bank: blank.bank, standing: blank.standing, ledger: {}, books: blank.books, stash: items };
 }
 
 /** The live run, as one save section: what the HUD shows and where the diver stands. */

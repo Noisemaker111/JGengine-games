@@ -3,6 +3,7 @@ import { createCareerBank, type CareerBankState } from "@jgengine/core/progressi
 import { createGateSet, gateFacts, type GateStatus } from "@jgengine/core/progression/gates";
 import { createStanding, type StandingState } from "@jgengine/core/progression/standing";
 import { createItemLedger, salvageItem } from "@jgengine/core/loot/salvage";
+import { createTransactionLedger, type LedgerEntry, type LedgerState, type TransactionLedger } from "@jgengine/core/economy/transactionLedger";
 
 import { BREAKDOWN, itemValue, rollItem, type Item, type ItemKind } from "./items";
 import type { Home } from "./state";
@@ -12,6 +13,40 @@ export const SCRIP = { id: "scrip", name: "Extraction scrip", unit: "scrip" };
 
 /** One operator, so the save's standing belongs to the profile rather than an account list. */
 export const OPERATOR = "operator";
+
+/** Why scrip moved, as the books record it. The ledger never interprets a reason. */
+export const REASON = { haul: "haul", purchase: "purchase", salvage: "salvage", reconcile: "reconcile" } as const;
+
+/** A ledger opened at whatever the counter holds; an empty book is a fresh operator. */
+export function openScripBooks(banked = 0): LedgerState {
+  const books = createTransactionLedger();
+  books.openAccount(OPERATOR, SCRIP.id, banked);
+  return books.snapshot();
+}
+
+/**
+ * Marrow's own books: per-account scrip with a journal that keeps the reason and the balance
+ * every movement produced. The career bank still owns haul/standing; this is the record of why
+ * the number moved, so a purchase, a salvage payout and a banked haul read back the same way.
+ */
+export function scripBooks(home: Pick<Home, "bank" | "books" | "revision">): TransactionLedger {
+  const books = createTransactionLedger();
+  books.restore(home.books);
+  // An existing balance is kept; a book opened at zero learns the counter's balance.
+  books.openAccount(OPERATOR, SCRIP.id, home.bank.banked);
+  const balance = books.balanceOf(OPERATOR, SCRIP.id);
+  // The counter's banked number is the truth. A record written before the books existed (or one
+  // a migration opened) is squared up with one named entry, so the journal never disagrees with it.
+  if (balance !== home.bank.banked) {
+    books.post({ at: home.revision, account: OPERATOR, currency: SCRIP.id, amount: home.bank.banked - balance, reason: REASON.reconcile, ref: "bank" });
+  }
+  return books;
+}
+
+/** The journal the counter sheet prints: newest last, capped. */
+export function scripJournal(home: Pick<Home, "bank" | "books" | "revision">, limit = 4): LedgerEntry[] {
+  return scripBooks(home).entries({ account: OPERATOR, limit });
+}
 
 /** Most a single shift's scrip can be worth, so one lucky cache cannot buy out the counter. */
 export const HAUL_CAP = 400;
@@ -131,7 +166,10 @@ export function buySupply(home: Home, kind: ItemKind): Home {
   const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
   if (!bank.spend(row.price)) throw new Error(`Scrip short: ${row.supply.label} costs ${row.price}`);
   const item: Item = rollItem(kind, PURCHASE_LEVEL, `deepward:counter:${home.revision}:${kind}`, `purchase-${home.revision}:${kind}`);
-  return { ...home, revision: home.revision + 1, stash: [...home.stash, item], bank: bank.snapshot() };
+  const books = scripBooks(home);
+  const posted = books.post({ at: home.revision, account: OPERATOR, currency: SCRIP.id, amount: -row.price, reason: REASON.purchase, ref: kind });
+  if (!posted.ok) throw new Error(`Scrip short: ${row.supply.label} costs ${row.price}`);
+  return { ...home, revision: home.revision + 1, stash: [...home.stash, item], bank: bank.snapshot(), books: books.snapshot() };
 }
 
 /**
@@ -148,8 +186,10 @@ export function dismantle(home: Home, id: string): { home: Home; scrip: number }
   const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
   bank.earn(result.yield.amount);
   bank.cashOut();
+  const books = scripBooks(home);
+  books.post({ at: home.revision, account: OPERATOR, currency: SCRIP.id, amount: result.yield.amount, reason: REASON.salvage, ref: id });
   return {
-    home: { ...home, revision: home.revision + 1, stash: home.stash.filter((entry) => entry.id !== id), ledger: ledger.snapshot(), bank: bank.snapshot() },
+    home: { ...home, revision: home.revision + 1, stash: home.stash.filter((entry) => entry.id !== id), ledger: ledger.snapshot(), bank: bank.snapshot(), books: books.snapshot() },
     scrip: result.yield.amount,
   };
 }
@@ -164,13 +204,18 @@ export function settleEconomy(
   home: Home,
   cache: readonly Item[],
   kind: "extracted" | "lost",
-): { bank: CareerBankState; standing: StandingState; scrip: number } {
+  dive = home.revision,
+): { bank: CareerBankState; standing: StandingState; scrip: number; books: LedgerState } {
   const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
   const standing = marrowStanding(home.standing);
   const scrip = haulScrip(cache);
+  const books = scripBooks(home);
   bank.earn(scrip);
-  if (kind === "extracted") bank.cashOut();
-  else bank.loseHaul();
+  if (kind === "extracted") {
+    bank.cashOut();
+    // The rail pays the haul; a lost Life pays nothing, so its books only record the haul it lost.
+    books.post({ at: dive, account: OPERATOR, currency: SCRIP.id, amount: scrip, reason: REASON.haul, ref: `dive-${dive}` });
+  } else bank.loseHaul();
   standing.apply(OPERATOR, kind === "extracted" ? "extracted" : "lost");
-  return { bank: bank.snapshot(), standing: standing.snapshot(), scrip };
+  return { bank: bank.snapshot(), standing: standing.snapshot(), scrip, books: books.snapshot() };
 }

@@ -1,11 +1,12 @@
 import { PRINT_SPAWN, type Point } from "../world";
 import { FITTER_HEALTH, reserveOf } from "./combat";
-import { settleEconomy } from "./counter";
+import { openScripBooks, settleEconomy } from "./counter";
 import { bankHaul, canCache, loseHaul } from "./haul";
 import { ITEMS, kindOf, rollItem, type Item, type ItemKind } from "./items";
 import { createItemLedger, type ItemLedgerState } from "@jgengine/core/loot/salvage";
 import type { CareerBankState } from "@jgengine/core/progression/careerBank";
 import type { StandingState } from "@jgengine/core/progression/standing";
+import type { LedgerState } from "@jgengine/core/economy/transactionLedger";
 
 export { ITEMS, type Item, type ItemKind } from "./items";
 
@@ -14,7 +15,7 @@ export const CACHE = { w: 4, h: 3 };
 export const TANK_SECONDS = 110;
 export interface Result { kind: "extracted" | "lost"; dive: number; count: number | null; reason: string; scrip?: number }
 export interface Home {
-  version: 4; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
+  version: 5; refits: ("tank" | "reserve")[]; reprintPending: boolean; revision: number; nextDive: number; life: number;
   activeDive: number | null; stash: Item[]; extractions: number; deaths: number; last: Result | null;
   /** Career scrip: what the counter keeps, and what a Life's haul becomes. */
   bank: CareerBankState;
@@ -22,6 +23,8 @@ export interface Home {
   standing: StandingState;
   /** Instances that left play; a broken-down item can never be equipped or paid again. */
   ledger: ItemLedgerState;
+  /** The counter's books: every scrip movement with its reason and the balance it produced. */
+  books: LedgerState;
 }
 export interface Dive {
   id: number; elapsed: number; tankSeconds: number; oxygen: number; health: number; cache: PackedItem[];
@@ -34,9 +37,9 @@ export interface Dive {
 }
 export function newHome(): Home {
   return {
-    version: 4, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null,
+    version: 5, refits: [], reprintPending: false, revision: 0, nextDive: 1, life: 1, activeDive: null, stash: [], extractions: 0, deaths: 0, last: null,
     bank: { banked: 0, haul: 0, deposited: 0, lost: 0, bestHaul: 0, runs: 0 },
-    standing: { records: {} }, ledger: {},
+    standing: { records: {} }, ledger: {}, books: openScripBooks(0),
   };
 }
 export function ledgerOf(home: Home) { return createItemLedger(home.ledger); }
@@ -98,11 +101,11 @@ export function settle(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Resul
   if (home.activeDive !== dive.id) throw new Error("Dive already settled or superseded");
   const carried: Item[] = dive.cache.map(({ x: _x, y: _y, rotated: _rotated, ...item }) => item);
   const moved = kind === "extracted" ? bankHaul(carried, home.stash) : { banked: [], refused: loseHaul(carried) };
-  const economy = settleEconomy(home, carried, kind);
+  const economy = settleEconomy(home, carried, kind, dive.id);
   return { ...home, revision: home.revision + 1, activeDive: null, reprintPending: kind === "lost",
     stash: [...home.stash, ...moved.banked], extractions: home.extractions + (kind === "extracted" ? 1 : 0),
     deaths: home.deaths + (kind === "lost" ? 1 : 0), life: home.life + (kind === "lost" ? 1 : 0),
-    bank: economy.bank, standing: economy.standing,
+    bank: economy.bank, standing: economy.standing, books: economy.books,
     last: { kind, dive: dive.id, count: dive.cache.length, reason, scrip: economy.scrip } };
 }
 export function recoverInterrupted(home: Home): Home {
