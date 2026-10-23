@@ -8,6 +8,7 @@ import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_GOLD, STARTING
 import { resetSession, session } from "../session";
 import { setupWorld } from "../world/setup";
 import { readPressure, tickWaves, waveOverlapBonus } from "./director";
+import { legacy, openingGold, openingLives } from "./legacy";
 import { DIRECTOR_SEED, AUTHORED_WAVES, ENCOUNTER, PRESSURE_RULE, TOTAL_WAVES, WARDEN_ID, bossProfile } from "./manifest";
 
 const wardenProfile = bossProfile(WARDEN_ID)!;
@@ -90,11 +91,17 @@ describe("player released assaults", () => {
     tickWaves(runner.ctx, 0.1);
     expect(session.victory).toBe(true);
     expect(gamePhase(runner.ctx)).toBe("ended");
+    const banked = legacy.read(runner.ctx);
+    expect(banked.runs).toBe(1);
+    expect(banked.bankedGold).toBeGreaterThan(0);
+    expect(banked.offer).toHaveLength(3);
     runner.ui.invoke("defense.restart", {});
     expect(session.victory).toBe(false);
     expect(session.encounter.view().done).toBe(false);
     expect(session.waveReady).toBe(true);
-    expect(gold()).toBe(STARTING_GOLD);
+    // The next defense opens on the bank the last one left, not the flat starting purse.
+    expect(gold()).toBe(openingGold(banked));
+    expect(gold()).toBeGreaterThan(STARTING_GOLD);
   });
 
   test("defeat retry restores lives, purse and preparation, without duplicating kill rewards", () => {
@@ -106,8 +113,9 @@ describe("player released assaults", () => {
     expect(session.waveReady).toBe(true);
     expect(session.gameOver).toBe(false);
     expect(session.encounter.view().wave).toBe(1);
-    expect(gold()).toBe(STARTING_GOLD);
-    expect(runner.ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current).toBe(STARTING_LIVES);
+    expect(gold()).toBe(openingGold(legacy.read(runner.ctx)));
+    expect(runner.ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current).toBe(openingLives(legacy.read(runner.ctx)));
+    expect(runner.ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current).toBeGreaterThanOrEqual(STARTING_LIVES);
     const before = gold();
     runner.ctx.game.events.emit("entity.died", { instanceId: "one-scout", catalogId: "raider_scout", reason: { kind: "environment", source: "test" }, position: [0, 0, 0] });
     expect(gold() - before).toBe(4);

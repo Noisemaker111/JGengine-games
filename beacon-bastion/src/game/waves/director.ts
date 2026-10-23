@@ -14,6 +14,7 @@ import {
   TOTAL_WAVES,
 } from "./manifest";
 import { KEEP_POINT, PATH_WAYPOINTS } from "../world/path";
+import { finishRun } from "./legacy";
 
 const LEAK_EFFECT = "leak";
 
@@ -145,6 +146,7 @@ export function tickWaves(ctx: GameContext, dt: number): void {
 
   if (session.encounter.view().done && session.creeps.size === 0 && !session.victory && !session.gameOver) {
     session.victory = true;
+    finishRun(ctx);
     setGamePhase(ctx, "ended");
     ctx.game.audio.play("victory");
   }

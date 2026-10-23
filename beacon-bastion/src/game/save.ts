@@ -1,4 +1,4 @@
-import { createGameSave, type GameSave } from "@jgengine/core/game/gameSave";
+import { createGameSave, type GameSave, type GameSaveSystem } from "@jgengine/core/game/gameSave";
 import { localSaveBackend } from "@jgengine/core/game/saveStore";
 import { createSaveSlots, type SaveSlots } from "@jgengine/core/game/saveSlots";
 import { gameSaveSlotSource, refreshSaveSlots, type SaveSlotsRefresh } from "@jgengine/core/game/saveSlotIndex";
@@ -12,6 +12,8 @@ import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY } from "./entities/base/
 import { creepDef } from "./entities/enemies/catalog";
 import { resetProjectiles } from "./combat/pendingProjectiles";
 import { newSpeedStats, resetSession, session, type BossRuntime } from "./session";
+import { freshLegacy, legacy, validLegacy } from "./waves/legacy";
+import { WARDEN_ID } from "./waves/manifest";
 import type { EncounterState } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
 import type { TowerBuildSpec, TowerReservation } from "./build/construction";
@@ -37,6 +39,10 @@ export interface DefenseSave {
   waveReady: boolean;
   waveStarted: boolean;
   lastWaveBonus: number;
+  /** Kill bounties paid this run. Optional so a document from before bounties still restores. */
+  bountyEarned?: number;
+  /** Whether this run already banked its reward. Optional for the same reason. */
+  banked?: boolean;
   gameOver: boolean;
   victory: boolean;
   creepSeq: number;
@@ -62,6 +68,8 @@ export function captureDefense(ctx: GameContext): DefenseSave {
     waveReady: session.waveReady,
     waveStarted: session.waveStarted,
     lastWaveBonus: session.lastWaveBonus,
+    bountyEarned: session.bountyEarned,
+    banked: session.banked,
     gameOver: session.gameOver,
     victory: session.victory,
     creepSeq: session.creepSeq,
@@ -88,11 +96,18 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
 
   session.encounter.restore(save.encounter);
   session.pressure = { ...save.pressure };
-  session.boss = save.boss === null ? null : { instanceId: save.boss.instanceId, unitId: save.boss.unitId, state: { ...save.boss.state }, stance: save.boss.stance };
+  session.boss = save.boss === null ? null : {
+    instanceId: save.boss.instanceId,
+    unitId: save.boss.unitId ?? WARDEN_ID,
+    state: { ...save.boss.state },
+    stance: save.boss.stance,
+  };
   session.openingComposition = [...save.openingComposition];
   session.waveReady = save.waveReady;
   session.waveStarted = save.waveStarted;
   session.lastWaveBonus = save.lastWaveBonus;
+  session.bountyEarned = typeof save.bountyEarned === "number" ? save.bountyEarned : 0;
+  session.banked = save.banked === true;
   session.gameOver = save.gameOver;
   session.victory = save.victory;
   session.creepSeq = save.creepSeq;
@@ -157,6 +172,37 @@ export function validDefenseSave(value: unknown): value is DefenseSave {
 
 const boundSave = perContext(() => ({ save: null as GameSave | null }));
 
+/** The run itself, as one save section: field, purse, director and the Warden. */
+export function defenseSystem(ctx: GameContext): GameSaveSystem {
+  return {
+    name: "defense",
+    snapshot: () => captureDefense(ctx),
+    restore: (section) => {
+      if (validDefenseSave(section)) restoreDefense(ctx, section);
+    },
+    reset: () => {
+      for (const id of [...session.creeps.keys(), ...session.towers.keys()]) ctx.scene.entity.despawn(id);
+      resetSession();
+      resetProjectiles();
+    },
+  };
+}
+
+/**
+ * What the keep has banked, as its own section: a new defense clears the field but not what the last
+ * one left behind, and an empty keep resets it to nothing banked.
+ */
+export function legacySystem(ctx: GameContext): GameSaveSystem {
+  return {
+    name: "legacy",
+    snapshot: () => legacy.read(ctx),
+    restore: (section) => {
+      if (validLegacy(section)) legacy.write(ctx, section);
+    },
+    reset: () => legacy.write(ctx, freshLegacy()),
+  };
+}
+
 /** The one save document for this run's world; the store keys it by context. */
 export function beaconSave(ctx: GameContext): GameSave {
   const slot = boundSave(ctx);
@@ -167,20 +213,7 @@ export function beaconSave(ctx: GameContext): GameSave {
     slot: KEEP_SLOTS[0],
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [
-      {
-        name: "defense",
-        snapshot: () => captureDefense(ctx),
-        restore: (section) => {
-          if (validDefenseSave(section)) restoreDefense(ctx, section);
-        },
-        reset: () => {
-          for (const id of [...session.creeps.keys(), ...session.towers.keys()]) ctx.scene.entity.despawn(id);
-          resetSession();
-          resetProjectiles();
-        },
-      },
-    ],
+    systems: [defenseSystem(ctx), legacySystem(ctx)],
   });
   slot.save = save;
   return save;

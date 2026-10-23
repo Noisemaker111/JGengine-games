@@ -10,6 +10,8 @@ import { BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_LIVES } from "../../entities/ba
 import { TOTAL_WAVES } from "../../waves/manifest";
 import { activeCreepCount, currentWaveNumber, session } from "../../session";
 import { waveOverlapBonus } from "../../waves/director";
+import { bountyScale } from "../../waves/bounty";
+import { boonDef, legacy, relicBountyScale } from "../../waves/legacy";
 import { bossLine, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "../../waves/status";
 
 export function Hud() {
@@ -26,6 +28,9 @@ export function Hud() {
   const tier = useGameStore(() => session.pressure.tier);
   const boss = useGameStore(() => session.boss);
   const preview = useGameStore(() => wavePreviewLine(session.encounter.waveAt(currentWaveNumber() - 1), currentWaveNumber()));
+  const account = useGameStore((ctx) => legacy.read(ctx));
+  const relic = boonDef(account.boonId);
+  const pay = bountyScale(Math.min(wave, TOTAL_WAVES), relicBountyScale(account));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -40,6 +45,8 @@ export function Hud() {
         {started && composition.length > 0 ? <HudLabel>{waveCompositionLine(composition, tier)}</HudLabel> : null}
         {ready ? <HudLabel>{preview}</HudLabel> : null}
         {boss === null ? null : <HudLabel>{bossLine(boss)}</HudLabel>}
+        <HudLabel>{`Kill pay ×${pay.toFixed(2)} · standing ${account.standing}`}</HudLabel>
+        {relic === null ? null : <HudLabel>{`Relic · ${relic.label} — ${relic.detail}`}</HudLabel>}
       </div>
       <HudSurface open={ready && !done} elevation="overlay" title={started ? "Choose your next assault" : "Prepare the beacon"} width={256}>
         <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45 }}>{bonus > 0 ? `Wait for a safer approach, or send the next wave with ${remaining} raiders still alive for +${bonus} gold.` : "Place defenses on the foundation rings, then release the raiders when you are ready."}</p>
