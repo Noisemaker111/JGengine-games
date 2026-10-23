@@ -33,12 +33,15 @@ function raiderPart(unit: string, count: number): string {
   const def = CREEP_CATALOG[unit];
   if (def === undefined) return count === 1 ? unit : `${count} ${unit}`;
   if (def.title !== undefined) return count === 1 ? creepName(unit) : `${count} ${def.label}s`;
-  return count === 1 ? def.label : `${count} ${def.label}s`;
+  return count === 1 ? `${count} ${def.label}` : `${count} ${def.label}s`;
 }
 
-function compositionParts(wave: EncounterWave): string[] {
+function compositionParts(wave: EncounterWave, skipBosses = false): string[] {
   const counts = new Map<string, number>();
-  for (const group of wave.groups) counts.set(group.unit, (counts.get(group.unit) ?? 0) + (group.count ?? 1));
+  for (const group of wave.groups) {
+    if (skipBosses && bossProfile(group.unit) !== null) continue;
+    counts.set(group.unit, (counts.get(group.unit) ?? 0) + (group.count ?? 1));
+  }
   return [...counts.entries()].map(([unit, count]) => raiderPart(unit, count));
 }
 
@@ -64,7 +67,7 @@ export function waveCompositionLine(units: readonly string[], tier: number): str
 export function wavePreviewLine(wave: EncounterWave | null, waveNumber: number): string {
   if (wave === null) return "No further assault — hold the keep";
   const boss = wave.groups.find((group) => bossProfile(group.unit) !== null);
-  const parts = compositionParts(wave);
+  const parts = compositionParts(wave, true);
   const label = wave.label === undefined ? `Wave ${waveNumber}` : `${wave.label}`;
   const bossPart = boss === undefined ? "" : ` · BOSS ${creepName(boss.unit)}`;
   return `Next · ${label} — ${parts.join(", ")}${bossPart}`;

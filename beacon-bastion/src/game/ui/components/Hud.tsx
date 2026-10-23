@@ -42,7 +42,7 @@ export function Hud() {
         <HeartRow current={lives?.current ?? 0} max={lives?.max ?? STARTING_LIVES} size={18} />
       </div>
       <WalletCurrencyDisplay currencyId={GOLD_CURRENCY} name="Gold" />
-      <HudSurface interactive={false} elevation="raised" padding="8px 10px" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <HudSurface interactive={false} elevation="raised" padding="8px 10px" width={480} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, textAlign: "center" }}>
         <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} />
         <HudLabel>{waveStatusLine({ started, releasing, wave: Math.min(wave, TOTAL_WAVES), alive: remaining })}</HudLabel>
         {started && composition.length > 0 ? <HudLabel>{waveCompositionLine(composition, tier)}</HudLabel> : null}

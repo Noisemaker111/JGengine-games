@@ -30,10 +30,11 @@ describe("wavePreviewLine", () => {
     expect(line).toContain("2 Grunts");
   });
 
-  test("a boss wave says so, by the boss's own name", () => {
+  test("a boss wave says so once, by the boss's own name", () => {
     const line = wavePreviewLine(ENCOUNTER.waves[11]!, 12);
     expect(line).toContain("· BOSS The Warden");
     expect(wavePreviewLine(ENCOUNTER.waves[7]!, 8)).toContain("· BOSS The Warlord");
+    expect(wavePreviewLine(ENCOUNTER.waves[7]!, 8).match(/The Warlord/g)).toHaveLength(1);
   });
 
   test("the preview follows the release button, not the open wave", () => {

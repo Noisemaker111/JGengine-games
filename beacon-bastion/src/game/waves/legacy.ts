@@ -91,7 +91,7 @@ export function drawBoons(seed: number, count = BANK_RULE.offerCount): string[] 
 export function bankRun(previous: LegacyState, result: { wave: number; gold: number }): LegacyState {
   const standing = previous.standing + Math.max(0, result.wave);
   const bankedGold = Math.min(BANK_RULE.cap, Math.max(0, Math.floor(result.gold * BANK_RULE.share)));
-  const seed = DIRECTOR_SEED + previous.runs * 7919 + standing;
+  const seed = DIRECTOR_SEED + previous.runs * 7919 + standing + Math.round(result.gold);
   return {
     standing,
     runs: previous.runs + 1,
