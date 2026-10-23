@@ -11,7 +11,7 @@ import { TOTAL_WAVES } from "../../waves/manifest";
 import { activeCreepCount, currentWaveNumber, session } from "../../session";
 import { waveOverlapBonus } from "../../waves/director";
 import { bountyScale } from "../../waves/bounty";
-import { boonDef, legacy, relicBountyScale } from "../../waves/legacy";
+import { carriedRelic, legacy, relicBountyScale } from "../../waves/legacy";
 import { bossLine, nextWaveIndex, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "../../waves/status";
 
 export function Hud() {
@@ -32,7 +32,7 @@ export function Hud() {
   const nextIndex = useGameStore(() => (session.waveStarted ? currentWaveNumber() : 0));
   const preview = useGameStore(() => wavePreviewLine(session.encounter.waveAt(nextIndex), nextIndex + 1));
   const account = useGameStore((ctx) => legacy.read(ctx));
-  const relic = boonDef(account.boonId);
+  const relic = carriedRelic(account);
   const pay = bountyScale(Math.min(wave, TOTAL_WAVES), relicBountyScale(account));
 
   return (

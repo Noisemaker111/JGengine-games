@@ -12,7 +12,7 @@ import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY } from "./entities/base/
 import { creepDef } from "./entities/enemies/catalog";
 import { resetProjectiles } from "./combat/pendingProjectiles";
 import { newSpeedStats, resetSession, session, type BossRuntime } from "./session";
-import { freshLegacy, legacy, validLegacy } from "./waves/legacy";
+import { freshLegacy, readLegacy, relicLoop, upgradeLegacy, writeLegacy } from "./waves/legacy";
 import { WARDEN_ID } from "./waves/manifest";
 import type { EncounterState } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
@@ -195,11 +195,13 @@ export function defenseSystem(ctx: GameContext): GameSaveSystem {
 export function legacySystem(ctx: GameContext): GameSaveSystem {
   return {
     name: "legacy",
-    snapshot: () => legacy.read(ctx),
+    // The engine loop is the owner of the run in progress, so the section carries its own state.
+    snapshot: () => ({ ...readLegacy(ctx), run: relicLoop(ctx).snapshot() }),
     restore: (section) => {
-      if (validLegacy(section)) legacy.write(ctx, section);
+      const stored = upgradeLegacy(section);
+      if (stored !== null) writeLegacy(ctx, stored);
     },
-    reset: () => legacy.write(ctx, freshLegacy()),
+    reset: () => writeLegacy(ctx, freshLegacy()),
   };
 }
 
