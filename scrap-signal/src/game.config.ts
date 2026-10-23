@@ -159,6 +159,7 @@ function prompts(ctx: GameContext): readonly PositionedPrompt[] {
 export const game = defineGame({
   capture: {
     play: [{ name: "character.pick", input: { characterId: "gunk" } }],
+    states: { title: [] },
     probe: audioProbe,
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
     // of streamed GLB materials, and every one of those programs compiles on the first drawn frame.

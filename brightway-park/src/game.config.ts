@@ -41,7 +41,7 @@ export const game = defineGame({
     ao: { intensity: 1.1, radius: 1.6 },
     grade: { saturation: 1.18, gamma: 0.98, vignette: 0.12, grain: 0 },
   },
-  capture: { play: ["park.start"], states: { paused: ["park.start", "pauseToggle"] } },
+  capture: { play: ["park.start"], states: { title: [], paused: ["park.start", "pauseToggle"] } },
   pointer: { moveCommand: "park.pointer", secondaryCommand: "build.clear" },
   camera: {
     rig: "rts",

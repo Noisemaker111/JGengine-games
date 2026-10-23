@@ -29,6 +29,7 @@ export const game = defineGame({
   touch: false,
   capture: {
     play: ["startRun"],
+    states: { title: [] },
     views: {
       corridor: {
         description: "Raised three-quarter down the canyon at the canyons/flats seam — zone palettes, wall silhouettes, haul road.",

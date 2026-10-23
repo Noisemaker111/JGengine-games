@@ -69,6 +69,8 @@ export const game = defineGame({
   hudTheme: harborTheme,
   capture: {
     play: ["game.start"],
+    // The dispatch poster is the first thing a player sees; a capture state keeps it reproducible.
+    states: { title: [] },
     views: {
       boulevard: {
         description: "Mainsail Boulevard looking down the palm boulevard — beach and Gulf on the left, deco blocks on the right.",
