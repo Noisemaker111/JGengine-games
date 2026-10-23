@@ -2,6 +2,8 @@
  * counts into it a few times a second; the death handler stamps the final outcome. Kept separate
  * from `session` so React reads an immutable snapshot and only re-renders when a field changes. */
 
+import type { CampaignReadout } from "./campaign";
+
 export type MatchPhase = "ready" | "playing" | "paused" | "won" | "lost";
 
 /** One live entry in the army row: a player combat unit with its current health. */
@@ -54,6 +56,8 @@ export interface HudSnapshot {
   abilityCd: number;
   /** Live roster of the player's fielded combat units (for the army row). */
   army: ArmyUnit[];
+  /** The vale campaign: the objective card's mission, its clock and the field desk's offer. */
+  campaign: CampaignReadout | null;
 }
 
 const initial: HudSnapshot = {
@@ -90,6 +94,7 @@ const initial: HudSnapshot = {
   abilityReady: false,
   abilityCd: 0,
   army: [],
+  campaign: null,
 };
 
 /** Army rows churn every frame as HP ticks; compare on id/kind and integer HP to bound re-renders. */
@@ -99,6 +104,27 @@ function armyChanged(a: ArmyUnit[], b: ArmyUnit[]): boolean {
     if (a[i]!.id !== b[i]!.id || a[i]!.kind !== b[i]!.kind || Math.round(a[i]!.hp) !== Math.round(b[i]!.hp)) return true;
   }
   return false;
+}
+
+/** The campaign card only changes on a mission beat, so compare its readable fields only. */
+function campaignChanged(a: CampaignReadout | null, b: CampaignReadout | null): boolean {
+  if (a === b) return false;
+  if (a === null || b === null) return true;
+  return (
+    a.phase !== b.phase ||
+    a.missionId !== b.missionId ||
+    a.objective !== b.objective ||
+    a.remaining !== b.remaining ||
+    a.counted !== b.counted ||
+    a.count !== b.count ||
+    a.step !== b.step ||
+    a.steps !== b.steps ||
+    a.outcome !== b.outcome ||
+    a.reason !== b.reason ||
+    a.index !== b.index ||
+    a.stores.gold !== b.stores.gold ||
+    a.stores.lumber !== b.stores.lumber
+  );
 }
 
 let snapshot: HudSnapshot = initial;
@@ -137,7 +163,8 @@ function changed(next: HudSnapshot): boolean {
     p.heroLevel !== next.heroLevel ||
     p.abilityReady !== next.abilityReady ||
     p.abilityCd !== next.abilityCd ||
-    armyChanged(p.army, next.army)
+    armyChanged(p.army, next.army) ||
+    campaignChanged(p.campaign, next.campaign)
   );
 }
 

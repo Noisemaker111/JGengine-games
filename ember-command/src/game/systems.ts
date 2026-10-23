@@ -5,6 +5,8 @@ import { activeJobs, jobProgress, queuedJobs, tick as tickQueue } from "@jgengin
 import { tickUnits } from "./ai/units";
 import { tickTowers } from "./ai/towers";
 import { nextWaveEta, planPhase, tickEnemyWaves } from "./ai/director";
+import { noteCampaignBuild, noteCampaignTrain, tickCampaign, campaignWavesRunning } from "./campaign";
+import { setupSkirmish } from "./world/scene";
 import { heroLevel, tickHero, thunderClapReady } from "./hero";
 import { BUILDINGS, combatantDef } from "./catalog";
 import { BUILD_CONFIG, type BuildSpec } from "./building";
@@ -63,7 +65,8 @@ const enemyAiSystem: SystemDefinition = defineSystem({
   id: "ember-command.enemyAi",
   tick: { type: "frame", stage: "ai" },
   update(ctx, dt) {
-    if (matchRunning()) tickEnemyWaves(ctx, dt);
+    // A campaign mission decides whether the drums roll; a free skirmish always does.
+    if (matchRunning() && campaignWavesRunning(ctx)) tickEnemyWaves(ctx, dt);
   },
 });
 
@@ -86,6 +89,7 @@ const productionSystem: SystemDefinition = defineSystem({
     session.production = result.state;
     for (const event of result.events) {
       if (event.type === "completed") spawnTrained(ctx, event.output.unitId);
+      if (event.type === "completed") noteCampaignTrain(ctx, event.output.unitId);
     }
   },
 });
@@ -122,6 +126,7 @@ const constructionSystem: SystemDefinition = defineSystem({
     session.buildQueue = result.state;
     for (const event of result.events) {
       if (event.type === "completed") raiseBuilding(ctx, event.output);
+      if (event.type === "completed") noteCampaignBuild(ctx, event.output.type);
     }
   },
 });
@@ -217,6 +222,18 @@ const hudSystem: SystemDefinition = defineSystem({
   },
 });
 
+/** The vale campaign's mission machine: objective timers, world reports and the next mission. Runs
+ * in the last frame stage so a finished mission can restage the field after every gameplay system
+ * has had its beat. */
+const campaignSystem: SystemDefinition = defineSystem({
+  id: "ember-command.campaign",
+  tick: { type: "frame", stage: "effects" },
+  update(ctx, dt) {
+    if (!matchRunning()) return;
+    tickCampaign(ctx, dt, () => setupSkirmish(ctx));
+  },
+});
+
 export const systems: readonly SystemDefinition[] = [
   aiSystem,
   enemyAiSystem,
@@ -227,4 +244,5 @@ export const systems: readonly SystemDefinition[] = [
   towerSystem,
   incomeSystem,
   hudSystem,
+  campaignSystem,
 ];

@@ -679,6 +679,28 @@
       "meta": {
         "catalogId": "torch"
       }
+    },
+    {
+      "id": "campaign_muster",
+      "kind": "poi",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 18
+      },
+      "color": "#efc878",
+      "label": "Muster Ground"
+    },
+    {
+      "id": "campaign_crossroads",
+      "kind": "poi",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": "#efc878",
+      "label": "Vale Crossroads"
     }
   ],
   "volumes": [
