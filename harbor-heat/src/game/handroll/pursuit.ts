@@ -14,6 +14,7 @@ import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
+import { landHit } from "../combat/damage";
 import { MAX_STARS, PURSUIT_STARS, wantedStore, type WantedSnapshot } from "./shared";
 
 /** Cruiser driving skill by wanted stars: 3★ rookies drive sloppy, 5★ interceptors drive sharp. */
@@ -430,7 +431,7 @@ export function createPursuit(driving: Driving): Pursuit {
       ctx.scene.entity.setPose(cruiser.id, result.pose);
       const drivenId = driving.drivingVehicleId();
       if (dist < 4 && drivenId !== null) {
-        ctx.scene.entity.effect({ from: cruiser.id, to: drivenId, effect: "damage", via: { amount: Math.round(24 * dt * 10) / 10 } });
+        landHit(ctx, { from: cruiser.id, to: drivenId, type: "impact", base: Math.round(24 * dt * 10) / 10 });
       }
     }
   }

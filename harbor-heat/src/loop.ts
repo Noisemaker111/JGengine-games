@@ -14,6 +14,7 @@ import {
   startedStore,
 } from "./game/commands";
 import { enemyById } from "./game/entities/enemies/catalog";
+import { landHit } from "./game/combat/damage";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { drivingStore, raceStore, handrollOf } from "./game/handroll";
 import { vehicleById } from "./game/entities/vehicles/catalog";
@@ -147,14 +148,12 @@ function tickGangers(ctx: GameContext, dt: number): void {
       const meta = (entity.meta ?? {}) as { nextShotAt?: number };
       if ((meta.nextShotAt ?? 0) <= now) {
         ctx.scene.entity.update(entity.id, { meta: { ...meta, nextShotAt: now + 1.4 } });
-        ctx.scene.entity.effect({
+        // Crew fire resolves through the same chart as the player's: the target presents a profile.
+        landHit(ctx, {
           from: entity.id,
           to: ctx.player.userId,
-          effect: "damage",
-          via: {
-            amount:
-              entity.name === "kingpin_sal" ? 16 : entity.name === "ganger_enforcer" || entity.name === "bounty_mark" ? 12 : 6,
-          },
+          type: "ballistic",
+          base: entity.name === "kingpin_sal" ? 16 : entity.name === "ganger_enforcer" || entity.name === "bounty_mark" ? 12 : 6,
         });
       }
     }

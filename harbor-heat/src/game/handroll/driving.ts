@@ -26,6 +26,7 @@ import { vehicleById, type VehicleDef } from "../entities/vehicles/catalog";
 import { objectById as objectDefById } from "../objects/catalog";
 import { createDrivingAudio, type DrivingAudio } from "../audio/driving";
 import { drivingStore, type VehicleTelemetry } from "./shared";
+import { landBlast, landHit } from "../combat/damage";
 
 /** Road-grip sampler for the car sims: full bite on asphalt, a linear washout across the curb, less off-road. */
 const SURFACE_SAMPLER = roadSurfaceSampler(streets, { onRoad: 1, offRoad: 0.72, shoulder: 3 });
@@ -225,7 +226,7 @@ export function createDriving(): Driving {
       cameraShake(Math.min(0.15 + cs * 0.02, 0.8));
       ctx.game.audio.play(cs > 8 ? "crash_hard" : "crash_soft", pos);
       if (cs > 8) {
-        ctx.scene.entity.effect({ from: vehicleId, to: vehicleId, effect: "damage", via: { amount: Math.round((cs - 8) * 7) } });
+        landHit(ctx, { from: vehicleId, to: vehicleId, type: "impact", base: Math.round((cs - 8) * 7) });
         ctx.scene.entity.vfx({ kind: "spark", color: 0xffc24a, from: vehicleId, radius: 1.6 });
       }
     }
@@ -269,7 +270,7 @@ export function createDriving(): Driving {
           movement: { ...(other.movement ?? {}), frozen: true, walkSpeed: 0 },
         });
         const amount = Math.round(8 + 1.4 * speed);
-        ctx.scene.entity.effect({ from: vehicleId, to: otherId, effect: "damage", via: { amount } });
+        landHit(ctx, { from: vehicleId, to: otherId, type: "impact", base: amount });
         ctx.scene.entity.vfx({ kind: "spark", color: 0xffe0a0, from: other.position, radius: 0.9 });
         ctx.scene.entity.floatText({ instanceId: otherId, text: speed > 14 ? "OOF" : "HEY!", kind: "warn" });
         ctx.game.audio.play("ped_thump", other.position);
@@ -431,7 +432,7 @@ export function createDriving(): Driving {
     cruiserVehicles,
     explodeVehicle(ctx, vehicleId, at) {
       cameraShake(0.7);
-      ctx.scene.entity.effect({ from: vehicleId, at, radius: 6, effect: "damage", via: { amount: 55 } });
+      landBlast(ctx, { from: vehicleId, at, radius: 6, type: "blast", base: 55 });
       let wasDriven = false;
       if (driving === vehicleId) {
         vehicleSeats.mounts.dismount(ctx.player.userId);
