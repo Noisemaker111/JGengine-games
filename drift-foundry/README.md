@@ -26,8 +26,10 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
   - [x] Field. Three rivals start ahead of you in the same corridor: TALLY (easy, EV build, wanders
     gate to gate), MOSS (standard, Salvage V6, weaves for the free side) and HOBBS (expert, Truck
     Engine, one clean outside line). Each drives with the shared `ai/driver` brain on its own line from
-    `src/game/race/opponents.ts`; position, lap and the finish come from `game/race`, so the HUD shows
-    `P2/4 · LAP 1/1` live. A clean upgrade run wins in ~30 s; a first attempt usually finishes third.
+    `src/game/race/opponents.ts`; position, lap, lap clock and the finish come from `game/race`, so the
+    HUD shows `P2/4 · LAP 1/1` live. A rival more than 30 m ahead eases off and one behind closes up
+    (per-car band: TALLY takes all of it, HOBBS barely any), and bumper contact moves both karts. A
+    clean upgrade run wins in ~30 s; a first attempt usually finishes third.
 - **Failure states.** Contact within 1.5 m of the compactor is a crush. Armor plating absorbs one hit and
   throws you 9 m forward, once. A barricade you cannot open is a wall, not a time loss, and a long
   stop is how the crusher catches you. There is no mid-run respawn; results show finish position,

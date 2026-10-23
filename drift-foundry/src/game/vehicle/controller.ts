@@ -143,9 +143,13 @@ export function createVehicleController(spawn: {
     },
     shove(dx, dz) {
       // `restore` carries velocity, so a knock moves the kart and leaves the wheel and pedal work
-      // the driver had built up intact; `resetTo` would stop it dead.
+      // the driver had built up intact; `resetTo` would stop it dead. The knock still respects the
+      // corridor wall and an uncleared barricade, so contact can never push a kart through a gate.
       const state = vehicle.snapshot();
-      vehicle.restore({ ...state, x: state.x + dx, z: state.z + dz });
+      const x = Math.max(-CORRIDOR_DRIVE_HALF_WIDTH, Math.min(CORRIDOR_DRIVE_HALF_WIDTH, state.x + dx));
+      const candidateZ = state.z + dz;
+      const z = frameTuning === null ? candidateZ : Math.min(candidateZ, blockedZ(x, state.z, candidateZ, frameTuning, airHeight));
+      vehicle.restore({ ...state, x, z });
     },
   };
 }
