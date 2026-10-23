@@ -52,12 +52,12 @@ describe("scrap-signal ambience", () => {
     for (const id of [...heard.play, ...heard.loopStart]) expect(audio.sounds[id]).toBeDefined();
   });
 
-  test("the wind and industry beds start once and are driven live", () => {
+  test("the wind bed starts once and is driven live", () => {
     const { ctx, heard } = boot();
     spawnPlayer(ctx, HUB.center.x, HUB.center.z);
     startAmbience(ctx);
     startAmbience(ctx);
-    expect(heard.loopStart).toEqual(["amb_wind", "amb_industry"]);
+    expect(heard.loopStart).toEqual(["amb_wind"]);
     tickAudio(ctx, 0);
     tickAudio(ctx, 8000);
     const windGains = heard.loopSet.filter((entry) => entry.id === "wind").map((entry) => entry.gain);
@@ -65,26 +65,27 @@ describe("scrap-signal ambience", () => {
     expect(windGains[0]).not.toBe(windGains[1]);
   });
 
-  test("zones sound different — the Blight drops the wind and raises the machinery", () => {
+  test("zones sound different - the Blight drops the wind and raises the machinery", () => {
     const blight = ZONES.find((zone) => zone.id === "cores_blight")!;
     const rustflat = ZONES.find((zone) => zone.id === "rustflat_waste")!;
 
-    const read = (x: number, z: number) => {
+    const read = (x: number, z: number, id: string) => {
       const { ctx, heard } = boot();
       spawnPlayer(ctx, x, z);
       startAmbience(ctx);
       tickAudio(ctx, 0);
+      const zone = audio.zones.find((entry) => entry.id === id);
       return {
         wind: heard.loopSet.find((entry) => entry.id === "wind")!,
-        industry: heard.loopSet.find((entry) => entry.id === "industry")!,
+        industry: zone?.gain ?? 0,
       };
     };
 
-    const gale = read(rustflat.center.x, rustflat.center.z);
-    const reactor = read(blight.center.x, blight.center.z);
+    const gale = read(rustflat.center.x, rustflat.center.z, rustflat.id);
+    const reactor = read(blight.center.x, blight.center.z, blight.id);
     expect(reactor.wind.gain!).toBeLessThan(gale.wind.gain!);
     expect(reactor.wind.rate!).toBeLessThan(gale.wind.rate!);
-    expect(reactor.industry.gain!).toBeGreaterThan(gale.industry.gain!);
+    expect(reactor.industry).toBeGreaterThan(gale.industry);
   });
 
   test("walking lays down footsteps and standing still does not", () => {
