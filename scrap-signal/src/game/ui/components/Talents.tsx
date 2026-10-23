@@ -1,3 +1,4 @@
+import { useCanvasCover } from "@jgengine/react";
 import { useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HudButton } from "@jgengine/react/hudButton";
@@ -51,6 +52,8 @@ function CharacterCard({ character, onPick }: { character: CharacterDef; onPick:
 export function CharacterSelect() {
   const { commands } = useGame();
   const picked = useStore(characterIdStore);
+  // Choosing a reclaimer happens over a 95% black sheet: the field behind it is only bleed-through.
+  useCanvasCover(picked === null);
   if (picked !== null) return null;
   return (
     <div className="signal-start pointer-events-auto absolute inset-0 z-[60] flex flex-col items-center gap-6 bg-[#0c0a08]/95">

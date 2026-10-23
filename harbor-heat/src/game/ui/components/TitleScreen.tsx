@@ -1,4 +1,4 @@
-import { SettingsTrigger } from "@jgengine/react";
+import { SettingsTrigger, useCanvasCover } from "@jgengine/react";
 import { HudButton } from "@jgengine/react/hudButton";
 import { useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
@@ -12,6 +12,8 @@ export function useGameStarted(): boolean {
 export function TitleScreen() {
   const { commands } = useGame();
   const hasSave = useStore(continueStore, (v) => v ?? false);
+  // The dispatch poster is solid, so the coast behind it is never on screen.
+  useCanvasCover(true);
   return (
     <main data-jg-menu className="hh-title">
       <div className="hh-poster" style={{ backgroundImage: `url(${poster})` }} aria-hidden="true" />
