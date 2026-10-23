@@ -3,6 +3,7 @@ import { localSaveBackend } from "@jgengine/core/game/saveStore";
 import { createSaveSlots, type SaveSlots } from "@jgengine/core/game/saveSlots";
 import { gameSaveSlotSource, refreshSaveSlots, type SaveSlotsRefresh } from "@jgengine/core/game/saveSlotIndex";
 import type { PathFollowState } from "@jgengine/core/nav/pathFollow";
+import { perContext } from "@jgengine/core/runtime/perContext";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { ClockSnapshot } from "@jgengine/core/time/simClock";
 import type { WorkQueueState } from "@jgengine/core/gameplay";
@@ -143,11 +144,12 @@ export function validDefenseSave(value: unknown): value is DefenseSave {
   );
 }
 
-let bound: { ctx: GameContext; save: GameSave } | null = null;
+const boundSave = perContext(() => ({ save: null as GameSave | null }));
 
-/** The one save document for this run's world; recreated only when the context changes. */
+/** The one save document for this run's world; the store keys it by context. */
 export function beaconSave(ctx: GameContext): GameSave {
-  if (bound !== null && bound.ctx === ctx) return bound.save;
+  const slot = boundSave(ctx);
+  if (slot.save !== null) return slot.save;
   const save = createGameSave({
     backend: localSaveBackend(),
     game: "beacon-bastion",
@@ -169,7 +171,7 @@ export function beaconSave(ctx: GameContext): GameSave {
       },
     ],
   });
-  bound = { ctx, save };
+  slot.save = save;
   return save;
 }
 
