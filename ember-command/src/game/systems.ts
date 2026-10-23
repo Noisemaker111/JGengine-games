@@ -223,10 +223,11 @@ const hudSystem: SystemDefinition = defineSystem({
 });
 
 /** The vale campaign's mission machine: objective timers, world reports and the next mission. Runs
- * last so a finished mission can restage the field before the next frame draws it. */
+ * in the last frame stage so a finished mission can restage the field after every gameplay system
+ * has had its beat. */
 const campaignSystem: SystemDefinition = defineSystem({
   id: "ember-command.campaign",
-  tick: { type: "frame", stage: "ai" },
+  tick: { type: "frame", stage: "effects" },
   update(ctx, dt) {
     if (!matchRunning()) return;
     tickCampaign(ctx, dt, () => setupSkirmish(ctx));

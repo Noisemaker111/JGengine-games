@@ -60,17 +60,30 @@ const BRAM_FELL = { id: "bram_fell", message: "Bram the Bold fell, and the Vangu
 const KEEP_FELL = { id: "keep_fallen", message: "The Ember Keep fell and the vale went dark." } as const;
 export const KEEP_FAIL_ID = KEEP_FELL.id;
 
-/** Both keeps and the hero matter in every mission, so every objective watches them. */
+/** The keep falling ends every mission. */
+function keepFails(): readonly MissionFailCondition[] {
+  return [{ kind: "actor-died", actor: PLAYER_KEEP, to: KEEP_FELL.id, message: KEEP_FELL.message }];
+}
+
+/** Bram and the keep: used where the hero is the point of the objective (a march, a line). */
 function valeFails(): readonly MissionFailCondition[] {
   return [
     { kind: "actor-died", actor: HERO_ID, to: BRAM_FELL.id, message: BRAM_FELL.message },
-    { kind: "actor-died", actor: PLAYER_KEEP, to: KEEP_FELL.id, message: KEEP_FELL.message },
+    ...keepFails(),
   ];
 }
 
 /** Declare the keep's fail state on a mission the engine composed, so its reason is authored here. */
 function withKeepFail(def: MissionDef): MissionDef {
   return { ...def, fail: [...(def.fail ?? []), KEEP_FELL] };
+}
+
+/** Replace a composed mission's fail wording with Ember's own voice ("the position was overrun"). */
+function withFailMessages(def: MissionDef, messages: Readonly<Record<string, string>>): MissionDef {
+  return {
+    ...def,
+    fail: (def.fail ?? []).map((state) => messages[state.id] === undefined ? state : { ...state, message: messages[state.id] }),
+  };
 }
 
 /** Authored labels replace the composition's derived placeholders ("Escort hero to goldmine_mid"). */
@@ -103,7 +116,9 @@ export const FIRST_MUSTER: MissionDef = {
       label: "Raise a Barracks on the vale floor",
       timeout: 420,
       onTimeout: "muster_stalled",
-      failOn: valeFails(),
+      // While the muster is at home, losing Bram costs you the hero, not the mission: the march is
+      // where he is the point of the order.
+      failOn: keepFails(),
       next: "muster_footmen",
     },
     {
@@ -115,7 +130,7 @@ export const FIRST_MUSTER: MissionDef = {
       label: "Muster four Footmen at the Barracks",
       timeout: 420,
       onTimeout: "muster_stalled",
-      failOn: valeFails(),
+      failOn: keepFails(),
       next: "march_muster",
     },
     {
@@ -143,7 +158,7 @@ export const FIRST_MUSTER: MissionDef = {
  * Mission II — the defence, composed by the engine's `defendMission`: one `survive` objective, its
  * `minSurvivors` gate as the fail condition, and the duration ticking down in the HUD.
  */
-export const LONG_WATCH: MissionDef = withKeepFail(defendMission({
+export const LONG_WATCH: MissionDef = withFailMessages(withKeepFail(defendMission({
   id: LONG_WATCH_ID,
   title: "The Long Watch",
   description: "The drums are on the war-road. Hold the keep for two minutes and let the Marauders break on your wall.",
@@ -152,14 +167,16 @@ export const LONG_WATCH: MissionDef = withKeepFail(defendMission({
   failState: "watch_overrun",
   label: "Hold the keep through the Marauder drums",
   rewards: WATCH_REWARD,
-}));
+})), {
+  watch_overrun: "The last Vanguard soldier at the keep went down, and the drums rolled through the gate.",
+});
 
 /**
  * Mission III — the escort, composed by the engine's `escortMission`: Bram has to reach the mid-vale
  * seam alive, with a deadline and a named fail state for being waylaid.
  */
 export const MID_VALE_ROAD: MissionDef = relabel(
-  withKeepFail(escortMission({
+  withFailMessages(withKeepFail(escortMission({
     id: MID_VALE_ROAD_ID,
     title: "Road to Mid Vale",
     description: "The mid-vale seam is unworked and the road is not ours. Walk Bram up it before the Marauders close the way.",
@@ -169,7 +186,9 @@ export const MID_VALE_ROAD: MissionDef = relabel(
     timeoutSeconds: 240,
     failState: "bram_waylaid",
     rewards: ROAD_REWARD,
-  })),
+  })), {
+    bram_waylaid: "Bram was cut down on the war-road, and the mid-vale seam stayed unworked.",
+  }),
   { escort_deliver: "Escort Bram up the war-road to the mid-vale seam" },
 );
 
@@ -233,7 +252,7 @@ export const EMBER_VERDICT: MissionDef = {
       minSurvivors: 1,
       minSurvivorsFail: "verdict_lost",
       label: "Weather the last Marauder push",
-      failOn: valeFails(),
+      failOn: keepFails(),
       next: "raze_warcamp",
     },
     {
@@ -243,7 +262,7 @@ export const EMBER_VERDICT: MissionDef = {
       counter: "warcamp",
       match: { kind: "kill", target: "keep_enemy" },
       label: "Raze the Marauder Warcamp",
-      failOn: valeFails(),
+      failOn: keepFails(),
       next: "done",
     },
   ],
@@ -317,22 +336,17 @@ export interface CampaignProgress {
   won: readonly string[];
   /** What the field desk runs: the campaign, or a free skirmish on the same vale. */
   mode: CampaignMode;
+  /** The vale's stores: mission pay banked by the campaign and spent opening the next battle. */
+  stores: { gold: number; lumber: number };
 }
 
-export const campaignStore = defineStore<CampaignProgress>("ember.campaign", () => ({ won: [], mode: "campaign" }));
+export const campaignStore = defineStore<CampaignProgress>("ember.campaign", () => ({ won: [], mode: "campaign", stores: { gold: 0, lumber: 0 } }));
 /** The mission machine's serializable position, written with the rest of the world on a checkpoint. */
 export const campaignMissionStore = defineStore<MissionRuntimeSnapshot | null>("ember.campaign.mission", null);
 
 /** Gold and lumber the won missions carry into the next battle. */
 export function campaignStores(progress: CampaignProgress): { gold: number; lumber: number } {
-  let gold = 0;
-  let lumber = 0;
-  for (const id of progress.won) {
-    const reward = CAMPAIGN.find((step) => step.mission.id === id)?.mission.rewards?.economy;
-    gold += reward?.[GOLD] ?? 0;
-    lumber += reward?.[LUMBER] ?? 0;
-  }
-  return { gold, lumber };
+  return progress.stores;
 }
 
 /** The next mission in campaign order: the first one not yet won, or null once the vale is held. */
@@ -499,7 +513,18 @@ export function campaignReadout(ctx: GameContext): CampaignReadout | null {
   const shown = step ?? CAMPAIGN[CAMPAIGN.length - 1]!;
   const index = Math.max(0, CAMPAIGN.indexOf(shown));
   const ended = view !== null && !live && view.missionId === shown.mission.id;
-  const phase: CampaignPhase = live ? "live" : finished ? "finished" : ended ? (view!.status === "failed" ? "failed" : "cleared") : "ready";
+  // A win advances the track, so the finished mission is no longer the offered one: read it as
+  // "cleared" rather than "ready" so the field desk can say the vale holds.
+  const cleared = view !== null && !live && view.status === "completed" && view.missionId !== shown.mission.id;
+  const phase: CampaignPhase = live
+    ? "live"
+    : finished
+      ? "finished"
+      : ended
+        ? (view!.status === "failed" ? "failed" : "cleared")
+        : cleared
+          ? "cleared"
+          : "ready";
   const objective = live
     ? view!.label
     : (shown.mission.objectives[0]?.label ?? shown.mission.title);
@@ -523,7 +548,8 @@ export function campaignReadout(ctx: GameContext): CampaignReadout | null {
     steps: live ? view!.steps : shown.mission.objectives.length,
     status: live ? "active" : (view?.status ?? "active"),
     outcome: live ? null : (view?.outcome ?? null),
-    reason: live ? null : (view?.reason ?? null),
+    // Authored wording for the named fail state, not the machine's generated reason.
+    reason: live ? null : (shown.mission.fail?.find((entry) => entry.id === view?.outcome)?.message ?? view?.reason ?? null),
     stores,
   };
 }
@@ -561,6 +587,23 @@ export function checkpointCampaign(ctx: GameContext): void {
   void ctx.game.save?.checkpoint();
 }
 
+/**
+ * Bank a mission's pay into the vale's stores through the engine's reward appliers. The field is
+ * restaged after a win, so gold left in the battle economy would be discarded; the campaign purse is
+ * what the next battle opens with, and a mission only pays once.
+ */
+function bankMissionRewards(ctx: GameContext, missionId: string, rewards: MissionRewards): void {
+  if (campaignStore.read(ctx).won.includes(missionId)) return;
+  applyMissionRewards(rewards, {
+    grantEconomy: (currencyId, amount) => {
+      if (currencyId !== GOLD && currencyId !== LUMBER) return;
+      const progress = campaignStore.read(ctx);
+      const stores = { ...progress.stores, [currencyId]: progress.stores[currencyId] + amount };
+      campaignStore.write(ctx, { ...progress, stores });
+    },
+  });
+}
+
 function finishCampaignStep(ctx: GameContext, restage?: () => void): void {
   const state = campaignRuntime(ctx).state();
   if (state === null) return;
@@ -580,9 +623,12 @@ function finishCampaignStep(ctx: GameContext, restage?: () => void): void {
 }
 
 function failCampaignStep(ctx: GameContext, state: string, reason: string, restage?: () => void): void {
+  // Prefer the authored copy for the named fail state over the machine's generated reason
+  // ("survivors below 1"), so the field desk always speaks in Ember's voice.
+  const mission = campaignRuntime(ctx).state()?.missionId;
+  const authored = mission === undefined ? undefined : campaignRuntime(ctx).mission(mission)?.fail?.find((entry) => entry.id === state)?.message;
   ctx.game.audio.play("defeat");
-  ctx.game.notices.push({ text: reason, tone: "deny", ttlMs: 9000 });
-  void state;
+  ctx.game.notices.push({ text: authored ?? reason, tone: "deny", ttlMs: 9000 });
   checkpointCampaign(ctx);
   syncCampaignHud(ctx);
   restage?.();
@@ -594,12 +640,10 @@ function handleCampaignEvents(ctx: GameContext, events: readonly MissionEvent[],
       ctx.game.audio.play("wave");
       ctx.game.notices.push({ text: event.label, ttlMs: 7000 });
     } else if (event.kind === "reward") {
-      // The engine's own payout path; the campaign also carries the same numbers into the next
-      // battle, which is the reward a player actually spends (the field is restaged after a win).
-      applyMissionRewards(event.rewards, {
-        grantEconomy: (currencyId, amount) => ctx.game.economy.grant(ctx.player.userId, currencyId, amount),
-      });
+      bankMissionRewards(ctx, event.missionId, event.rewards);
     } else if (event.kind === "completed") {
+      // The mission's own reward rides the `completed` event, not a `reward` one.
+      if (event.rewards !== null) bankMissionRewards(ctx, event.missionId, event.rewards);
       finishCampaignStep(ctx, restage);
     } else if (event.kind === "failed") {
       failCampaignStep(ctx, event.state, event.reason, restage);
@@ -647,12 +691,6 @@ export function failCampaignOnKeepLost(ctx: GameContext): void {
   syncCampaignHud(ctx);
 }
 
-/** The field desk after a fresh restage: offer the next mission, and keep the track in the save. */
-export function resetCampaign(ctx: GameContext): void {
-  syncCampaignHud(ctx);
-  checkpointCampaign(ctx);
-}
-
 /** Restore the campaign track over a loaded save (the world itself is restaged fresh). */
 export function restoreCampaign(ctx: GameContext): void {
   const snapshot = campaignMissionStore.read(ctx);
@@ -672,7 +710,7 @@ export function setCampaignMode(ctx: GameContext, mode: CampaignMode): void {
 
 /** Wipe the track and offer mission I again. */
 export function resetCampaignProgress(ctx: GameContext): void {
-  campaignStore.write(ctx, { won: [], mode: "campaign" });
+  campaignStore.write(ctx, { won: [], mode: "campaign", stores: { gold: 0, lumber: 0 } });
   campaignRuntime(ctx).abandon();
   campaignMissionStore.clear(ctx);
   syncCampaignHud(ctx);

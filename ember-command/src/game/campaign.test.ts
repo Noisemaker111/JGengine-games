@@ -14,18 +14,25 @@ import { editorLayers } from "../editorLayers";
 import {
   CAMPAIGN,
   CAMPAIGN_MISSIONS,
+  FIRST_MUSTER_ID,
+  LONG_WATCH_ID,
   campaignMarkerIds,
   campaignReadout,
+  campaignRuntime,
   campaignStores,
   campaignStore,
   nextCampaignStep,
+  noteCampaignBuild,
+  noteCampaignTrain,
   syncCampaignHud,
+  tickCampaign,
   type CampaignProgress,
 } from "./campaign";
 import { content } from "./content";
 import { hudStore } from "./hudStore";
 import { HERO_ID } from "./hero";
 import { resetSession } from "./session";
+import { setupSkirmish } from "./world/scene";
 
 const markers = missionMarkers(editorLayers);
 const markerIds = editorLayers.markers.map((marker) => marker.id);
@@ -200,7 +207,8 @@ describe("the missions run on the machine", () => {
 });
 
 describe("the campaign track", () => {
-  const progress = (won: string[], mode: CampaignProgress["mode"] = "campaign"): CampaignProgress => ({ won, mode });
+  const progress = (won: string[], mode: CampaignProgress["mode"] = "campaign"): CampaignProgress =>
+    ({ won, mode, stores: { gold: 0, lumber: 0 } });
 
   test("missions are offered in order and skipped once won", () => {
     expect(nextCampaignStep(progress([]))?.mission.id).toBe(CAMPAIGN[0]!.mission.id);
@@ -210,9 +218,9 @@ describe("the campaign track", () => {
     expect(nextCampaignStep(progress([], "skirmish"))).toBeNull();
   });
 
-  test("won missions bank the stores the next battle opens with", () => {
+  test("the vale's stores are the purse the next battle opens with", () => {
     expect(campaignStores(progress([]))).toEqual({ gold: 0, lumber: 0 });
-    expect(campaignStores(progress([CAMPAIGN[0]!.mission.id, CAMPAIGN[1]!.mission.id]))).toEqual({ gold: 280, lumber: 100 });
+    expect(campaignStores({ ...progress([]), stores: { gold: 280, lumber: 100 } })).toEqual({ gold: 280, lumber: 100 });
   });
 });
 
@@ -238,19 +246,64 @@ describe("the field desk reads the machine", () => {
 
   test("campaign progress is written into the world snapshot, so a save carries it", () => {
     const first = boot();
-    campaignStore.write(first, { won: [CAMPAIGN[0]!.mission.id], mode: "campaign" });
+    campaignStore.write(first, { won: [CAMPAIGN[0]!.mission.id], mode: "campaign", stores: { gold: 120, lumber: 40 } });
     const snapshot = first.state();
     const second = boot();
     second.hydrate(snapshot);
     expect(campaignStore.read(second).won).toEqual([CAMPAIGN[0]!.mission.id]);
+    expect(campaignStore.read(second).stores).toEqual({ gold: 120, lumber: 40 });
     expect(nextCampaignStep(campaignStore.read(second))?.mission.id).toBe(CAMPAIGN[1]!.mission.id);
   });
 
   test("the readout reports the live objective and its clock", () => {
     const ctx = boot();
-    campaignStore.write(ctx, { won: [], mode: "campaign" });
+    campaignStore.write(ctx, { won: [], mode: "campaign", stores: { gold: 0, lumber: 0 } });
     const readout = campaignReadout(ctx);
     expect(readout?.brief).toBe(CAMPAIGN[0]!.brief);
     expect(readout?.steps).toBe(CAMPAIGN[0]!.mission.objectives.length);
   });
+
+  test("mission I completes through the real wiring and offers mission II with its stores", () => {
+    const ctx = boot();
+    setupSkirmish(ctx);
+    ctx.game.commands.run("match.start", {});
+    expect(hudStore.get().campaign?.phase).toBe("live");
+    expect(hudStore.get().campaign?.missionId).toBe(FIRST_MUSTER_ID);
+
+    const restage = () => setupSkirmish(ctx);
+    noteCampaignBuild(ctx, "barracks");
+    tickCampaign(ctx, 0.2, restage);
+    expect(campaignRuntime(ctx).state()?.objective).toBe("muster_footmen");
+
+    for (let i = 0; i < 4; i += 1) {
+      noteCampaignTrain(ctx, "footman");
+      tickCampaign(ctx, 0.2, restage);
+    }
+    expect(campaignRuntime(ctx).state()?.objective).toBe("march_muster");
+
+    const muster = markers["campaign_muster"]!;
+    ctx.scene.entity.setPose(HERO_ID, { position: [muster.x, ctx.world.groundHeightAt(muster.x, muster.z), muster.z] });
+    tickCampaign(ctx, 0.2, restage);
+
+    expect(campaignStore.read(ctx).won).toContain(FIRST_MUSTER_ID);
+    expect(campaignStore.read(ctx).stores).toEqual({ gold: 120, lumber: 40 });
+    const card = hudStore.get().campaign;
+    expect(card?.phase).toBe("cleared");
+    expect(card?.missionId).toBe(LONG_WATCH_ID);
+    expect(card?.index).toBe(2);
+  });
+
+  test("a loss ends in the authored fail state and keeps the same mission on offer", () => {
+    const ctx = boot();
+    setupSkirmish(ctx);
+    ctx.game.commands.run("match.start", {});
+    ctx.scene.entity.despawn(HERO_ID);
+    tickCampaign(ctx, 0.2, () => setupSkirmish(ctx));
+    // Mission I's build phase only fails with the keep; the hero's fall shows up on the march.
+    expect(campaignRuntime(ctx).state()?.status).toBe("active");
+    const card = hudStore.get().campaign;
+    expect(card?.missionId).toBe(FIRST_MUSTER_ID);
+    expect(card?.objective).toBe(CAMPAIGN[0]!.mission.objectives[0]!.label ?? "");
+  });
 });
+

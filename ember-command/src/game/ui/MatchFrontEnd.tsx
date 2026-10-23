@@ -56,7 +56,7 @@ export function MatchFrontEnd() {
     }}>
       <div className="ec-seal"><Icon name={ready || paused ? "helm" : won || finished ? "medal" : "skull"} /></div>
       <p className="ec-eyebrow">{campaign === null ? "The Highland Vale · Free skirmish" : `The Highland Vale · Mission ${campaignOrdinal(campaign.index - 1)} of ${campaignOrdinal(campaign.total - 1)}`}</p>
-      <h1 id="ec-front-title">{router.current === "settings" ? "Field preferences" : router.current === "credits" ? "Credits" : ready ? (campaign === null ? "Ember Command" : campaign.title) : paused ? "Orders on hold" : won || finished ? "The vale is yours" : "The keep has fallen"}</h1>
+      <h1 id="ec-front-title">{router.current === "settings" ? "Field preferences" : router.current === "credits" ? "Credits" : ready ? "Ember Command" : paused ? "Orders on hold" : won || finished ? "The vale is yours" : "The keep has fallen"}</h1>
       {router.current === "settings" ? <>
         <p>Preferences are saved on this device.</p>
         <div className="ec-settings">

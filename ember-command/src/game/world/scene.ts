@@ -5,7 +5,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { editorLayers } from "../../editorLayers";
 import { BUILDINGS, combatantDef, DECOR, isNode, NODES } from "../catalog";
-import { flushCampaign, failCampaignOnKeepLost, noteCampaignDeath, resetCampaign, setCampaignMode, startCampaignMission, syncCampaignHud } from "../campaign";
+import { flushCampaign, failCampaignOnKeepLost, noteCampaignDeath, resetCampaignProgress, setCampaignMode, startCampaignMission, syncCampaignHud } from "../campaign";
 import { grantHeroXp, heroXpFor } from "../hero";
 import { registerCommands } from "../commands";
 import { hudStore } from "../hudStore";
@@ -205,8 +205,8 @@ export function setupSkirmish(ctx: GameContext): void {
   } });
   ctx.game.commands.define("campaign.reset", { apply: (state) => {
     setCampaignMode(state, "campaign");
+    resetCampaignProgress(state);
     setupSkirmish(state);
-    resetCampaign(state);
     return state;
   } });
   ctx.game.events.on("entity.died", (event) => onDied(ctx, event));
