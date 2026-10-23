@@ -1,7 +1,7 @@
 {
-  "drawsFrame": 1885,
-  "previousDraws": 10420,
+  "drawsFrame": 1253,
+  "previousDraws": 1885,
   "triangles": 4405210,
-  "nodes": 15210,
-  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 9,469 draws / 4,004,728 triangles / 13,819 nodes. These limits carry headroom over that measurement. Re-measure this game and update this file in the same PR as any content change. Whole-frame re-baseline copied from the engine beta scripts/perf-budget.json: 2026-10-23 bun run perf:gate whole-frame p95 1,714 over 358 frames, GeForce RTX 3070 D3D11, 1600x900 full, pinned Games c746e3b; three runs read 1,714 / 1,690 / 1,680 and the budget is +10% over the highest. Whole-frame means every draw a frame issues across shadow, main, postfx, AO and DOF passes, taken as the p95 of the measured window by wrapping drawElements and drawArrays. Previous budget 10,420 draws from a 9,469 baseline measured 2026-10-22 at Games c81aabc, before the batching work landed; triangles and nodes are unchanged from that measurement"
+  "nodes": 3146,
+  "baseline": "2026-10-23 bun run perf harbor-heat --seconds 6, whole-frame p95 as the gate compares it, GeForce RTX 3070 D3D11, 1600x900 full, engine 02162d4a at pinned Games dac3865e; three runs read drawsFrame 1,140 / 1,139 / 1,138, triangles 2,122,498 / 1,660,988 / 2,122,498, nodes 2,860 / 2,860 / 2,860. The draw ceiling is +10% over the highest of the three (1,140), rounded down, so a full 10% regression lands over it. The triangle ceiling stays where it was: a triangle count is one sample at snapshot time, not a window p95, and it moved far more than 10% between runs, so it is not ratcheted here. Previous draws 1,885 (itself from 10,420)."
 }

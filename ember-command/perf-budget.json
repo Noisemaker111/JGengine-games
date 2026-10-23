@@ -2,6 +2,6 @@
   "drawsFrame": 1416,
   "previousDraws": 2260,
   "triangles": 591760,
-  "nodes": 1080,
-  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 2,051 draws / 537,958 triangles / 974 nodes. These limits carry headroom over that measurement. Re-measure this game and update this file in the same PR as any content change. Whole-frame re-baseline copied from the engine beta scripts/perf-budget.json: 2026-10-23 bun run perf:gate whole-frame p95 1,288, identical over three runs and 361 frames, GeForce RTX 3070 D3D11, 1600x900 full, pinned Games c746e3b; the budget is +10%. Whole-frame means every draw a frame issues across shadow, main, postfx, AO and DOF passes, taken as the p95 of the measured window by wrapping drawElements and drawArrays. Previous budget 2,260 draws from a 2,051 baseline measured 2026-10-22 at Games c81aabc; triangles and nodes are unchanged from that measurement"
+  "nodes": 1075,
+  "baseline": "2026-10-23 bun run perf ember-command --seconds 6, whole-frame p95 as the gate compares it, GeForce RTX 3070 D3D11, 1600x900 full, engine 02162d4a at pinned Games dac3865e; three runs read drawsFrame 1,288 / 1,288 / 1,288, triangles 368,208 / 525,046 / 368,208, nodes 978 / 975 / 978. The draw ceiling stays at 1,416 because +10% over the highest run would be 1,416, so this game has no ratchet room left; the measured headroom is now 9.9%. The triangle ceiling stays where it was: a triangle count is one sample at snapshot time, not a window p95, and it moved far more than 10% between runs, so it is not ratcheted here. Previous draws 2,260."
 }
