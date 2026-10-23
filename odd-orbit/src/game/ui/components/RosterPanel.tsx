@@ -18,8 +18,9 @@ export function RosterPanel({ compact = false }: { compact?: boolean }) {
     const mood = moodOfNeeds(member.needs);
     const selected = household.selectedMemberId === id;
     const bond = bondLine(household, id);
+    const company = member.action.kind === "wander" && member.action.company !== undefined ? household.members[member.action.company]?.name : undefined;
     return <HudButton key={id} className={`orbit-member ${selected ? "selected" : ""} ${member.recovering ? "recovering" : ""}`} aria-pressed={selected} onClick={() => commands.run("member.select", { id: selected ? null : id })}>
-      <div className="orbit-member-heading"><AlienSwatch plan={member.bodyPlan}/><div><strong>{member.name}</strong><small>{activeGoalLabel(member)}</small></div></div>
+      <div className="orbit-member-heading"><AlienSwatch plan={member.bodyPlan}/><div><strong>{member.name}</strong><small>{activeGoalLabel(member, company)}</small></div></div>
       <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{member.recovering ? "Recovering" : `${Math.round(member.stress)} stress`}</span></div>
       {bond && <p className="orbit-member-bond">Bond: <strong>{bond.name}</strong> · {bond.word}</p>}
       {!compact && selected && <><p className="orbit-member-schedule">{scheduleLabel(member)}</p><div className="orbit-member-needs">{NEEDS.map(need => <NeedBar key={need} need={need} value={member.needs[need]}/>)}</div></>}

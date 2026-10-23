@@ -339,7 +339,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
     if (action.kind !== "wander" || now >= member.actionUntil) {
       const company = companySpot(ctx, state, book, member);
       if (company !== null) {
-        member.action = { kind: "wander", x: company[0], z: company[1] };
+        member.action = { kind: "wander", x: company.x, z: company.z, company: company.company };
         member.actionUntil = now + 8;
       } else {
         const angle = (hashId(member.id) % 360) * Math.PI / 180 + member.actionUntil;
@@ -354,19 +354,20 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
 
 /**
  * A spot beside the being this one prefers, so a friend chooses a friend over a random stroll.
- * Only a friend who is free is followed; nobody trails a being who is working, resting at a station
- * or under the player's direction.
+ * Only a friend who is free is followed: nobody trails a being who is on a paid station or under the
+ * player's direction. A friend resting, playing or talking is exactly who off-hours are for.
  */
-function companySpot(ctx: GameContext, state: HouseholdState, book: RelationshipBook, member: MemberState): [number, number] | null {
+function companySpot(ctx: GameContext, state: HouseholdState, book: RelationshipBook, member: MemberState): { x: number; z: number; company: string } | null {
   const mine = positionOf(ctx, member.id);
   if (mine === null) return null;
-  let spot: [number, number] | null = null;
+  let spot: { x: number; z: number; company: string } | null = null;
   let bestOpinion = -Infinity;
   for (const id of state.order) {
     if (id === member.id || !book.prefersCompanyOf(member.id, id)) continue;
     const other = state.members[id];
     if (other === undefined || other.assignedByPlayer) continue;
-    if (other.action.kind === "seek" || other.action.kind === "use") continue;
+    const onPaidStation = (other.action.kind === "seek" || other.action.kind === "use") && other.action.goal === "work";
+    if (onPaidStation) continue;
     const opinion = book.opinion(member.id, id);
     if (opinion <= bestOpinion) continue;
     const theirs = positionOf(ctx, id);
@@ -374,7 +375,7 @@ function companySpot(ctx: GameContext, state: HouseholdState, book: Relationship
     const dx = mine[0] - theirs[0];
     const dz = mine[2] - theirs[2];
     const apart = Math.hypot(dx, dz) || 1;
-    spot = [theirs[0] + (dx / apart) * 1.7, theirs[2] + (dz / apart) * 1.7];
+    spot = { x: theirs[0] + (dx / apart) * 1.7, z: theirs[2] + (dz / apart) * 1.7, company: id };
     bestOpinion = opinion;
   }
   return spot;
@@ -435,12 +436,12 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
   }
 }
 
-export function activeGoalLabel(member: MemberState): string {
+export function activeGoalLabel(member: MemberState, companyName?: string): string {
   if (member.recovering) return "Recovering from overload";
   const action = member.action;
   switch (action.kind) {
     case "idle": return member.concern ?? "Idling";
-    case "wander": return "Strolling the habitat";
+    case "wander": return companyName === undefined ? "Strolling the habitat" : `Keeping ${companyName} company`;
     case "seek": return action.goal === "work" ? "Heading to Yield shift" : `Seeking ${goalWord(action.goal)}`;
     case "use": return action.goal === "work" ? `Yield shift ${Math.floor(member.workToday)}/${SHIFT_SECONDS}s` : goalWord(action.goal);
     case "social": return member.concern === "Signals clashed; rest before reconnecting" ? "Signals clashing" : "Trading signals together";

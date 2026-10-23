@@ -200,7 +200,8 @@ test("an interrupted reciprocal activity reload releases the partner without awa
 });
 
 
-test("legacy v1 households retain pantry crops while new export choices roundtrip", () => {  const first = boot();
+test("legacy v1 households retain pantry crops while new export choices roundtrip", () => {
+  const first = boot();
   const legacy = captureOrbitSave(first);
   expect(validOrbitSave(legacy)).toBe(true);
   const second = boot();
@@ -213,6 +214,21 @@ test("legacy v1 households retain pantry crops while new export choices roundtri
   expect(householdStore.read(first).members["alien:1"]!.bloomCrop).toBe("export");
   (current.household.members["alien:1"] as any).bloomCrop = "free-money";
   expect(validOrbitSave(current)).toBe(false);
+});
+
+test("a stroll kept in a friend's company survives a reload and reads in the panel", () => {
+  const first = boot();
+  const state = householdStore.read(first);
+  const [a, b] = [state.members["alien:1"]!, state.members["alien:3"]!];
+  a.action = { kind: "wander", x: 2.5, z: -1.5, company: b.id };
+  a.actionUntil = first.time.now() + 8;
+  householdStore.write(first, { ...state, members: { ...state.members } });
+  const saved = captureOrbitSave(first);
+  expect(validOrbitSave(saved)).toBe(true);
+  const second = boot(); restoreOrbitSave(second, saved);
+  expect(householdStore.read(second).members[a.id]!.action).toEqual({ kind: "wander", x: 2.5, z: -1.5, company: b.id });
+  (saved.household.members[a.id] as any).action.company = "alien:9";
+  expect(validOrbitSave(saved)).toBe(false);
 });
 
 test("a bond survives save and reload and still refuses to split the pair's shift", () => {

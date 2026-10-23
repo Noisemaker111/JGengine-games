@@ -74,7 +74,7 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
     if (typeof m.assignedByPlayer !== "boolean" || !number(m.actionUntil, 0, clock.now + DAY_LENGTH) || !object(m.action)) return false;
     const a = m.action;
     if (a.kind === "idle") { if (!keys(a, ["kind"])) return false; }
-    else if (a.kind === "wander") { if (!keys(a, ["kind", "x", "z"]) || !number(a.x, -120, 120) || !number(a.z, -120, 120)) return false; }
+    else if (a.kind === "wander") { if (Object.keys(a).some(key => !["kind", "x", "z", "company"].includes(key)) || !number(a.x, -120, 120) || !number(a.z, -120, 120)) return false; if (a.company !== undefined && (typeof a.company !== "string" || !h.order.includes(a.company))) return false; }
     else if (a.kind === "seek" || a.kind === "use") { if (!keys(a, ["kind", "goal", "objId"]) || ![...NEEDS, "work"].includes(a.goal) || !text(a.objId)) return false; }
     else if (a.kind === "social") { if (!keys(a, ["kind", "withId"]) || a.withId === id || !h.order.includes(a.withId)) return false; }
     else return false;
