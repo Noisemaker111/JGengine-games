@@ -4,9 +4,8 @@ import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { buildableDef } from "../../objects/catalog";
 import { session } from "../../session";
-import { coasterThrill } from "../../sim/rating";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
-import { ridePrice, rideView, trackPieces } from "../../rides";
+import { coasterCircuit, ridePrice, rideView, trackPieces } from "../../rides";
 import { GuestPanel } from "./GuestPanel";
 import { Row } from "./Row";
 
@@ -27,6 +26,7 @@ export function Inspector() {
     return id !== undefined && session.guests.has(id) ? id : null;
   });
   const tracks = useGameStore(() => trackPieces());
+  const circuit = coasterCircuit();
   const stock = useGameStore(() => {
     if (selectedId === null) return null;
     const o = session.placed.get(selectedId);
@@ -50,7 +50,7 @@ export function Inspector() {
   const placed = session.placed.get(selectedId);
   if (placed === undefined) return null;
   const def = buildableDef(placed.catalogId);
-  const appeal = def.id === "ride_coaster" ? def.appeal + coasterThrill(tracks) : def.appeal;
+  const appeal = def.appeal;
   const refund = Math.round(def.cost * 0.5);
   const [phase, phaseSeconds, riders, queued, waitSeconds, wear, breakdowns, cycles, price] = ride === null ? [] : ride.split("|");
   const broken = phase === "broken";
@@ -70,8 +70,8 @@ export function Inspector() {
         <Row label="Appeal" value={appeal.toFixed(1)} />
         <Row label="Upkeep / day" value={`$${def.upkeep}`} />
         {def.ride !== undefined ? <>
-          <Row label="Intensity" value={rideThrill(def.id, tracks).toFixed(1)} />
-          {["guest_a", "guest_c", "guest_d"].map(kind => <Row key={kind} label={guestRidePreference(kind).label + " fit"} value={`${Math.round(rideFit(kind, def.id, tracks) * 100)}%`} />)}
+          <Row label="Intensity" value={rideThrill(def.id, circuit).toFixed(1)} />
+          {["guest_a", "guest_c", "guest_d"].map(kind => <Row key={kind} label={guestRidePreference(kind).label + " fit"} value={`${Math.round(rideFit(kind, def.id, circuit) * 100)}%`} />)}
           <div className={broken ? "park-ride-state broken" : "park-ride-state"}>
             <span>{broken ? "OFFLINE" : PHASE_LABEL[phase ?? "idle"]}</span>
             <strong>{broken ? `${Math.ceil(Number(phaseSeconds))}s to repair` : `${riders} aboard`}</strong>
@@ -86,7 +86,15 @@ export function Inspector() {
           </div></div>
           <HudButton variant="primary" size="sm" block className="mt-2" onClick={()=>commands.run("ride.service",{id:selectedId})}>Service ride · ${def.ride.breakdown.serviceCost}</HudButton>
         </> : null}
-        {def.id === "ride_coaster" ? <Row label="Track pieces" value={`${tracks}`} /> : null}
+        {def.id === "ride_coaster" ? <>
+          <Row label="Circuit" value={circuit.closed ? `${circuit.pieces} pieces · ${Math.round(circuit.length)} m` : `${tracks} laid · loop open`} />
+          <Row label="Lap time" value={circuit.closed ? `${circuit.lapSeconds.toFixed(1)} s` : "no lap"} />
+          <Row label="Corners" value={`${circuit.corners}`} />
+          <Row label="Drop" value={`${circuit.drop.toFixed(1)} m`} />
+          <Row label="Pace" value={`${circuit.averageSpeed.toFixed(1)} m/s`} />
+          <Row label="Excitement" value={circuit.excitement.toFixed(1)} />
+          <Row label="Nausea" value={circuit.nausea.toFixed(1)} />
+        </> : null}
         {def.stall !== undefined && stock !== null ? (
           <Row label="Stock" value={`${stock}/${def.stall.stock}`} />
         ) : null}

@@ -7,7 +7,7 @@ import { content } from "./content";
 import { agentOf } from "./agents";
 import { resetSession, session, type PlacedObject } from "./session";
 import { tickRidePark, tickGuests, seedGuests } from "./sim/guests";
-import { joinRide, resetRides, rideBoard, rideStats, rideView, serviceRide, syncRidePark } from "./rides";
+import { joinRide, resetRides, rideBoard, rideDefinition, coasterCircuit, rideStats, rideView, serviceRide, syncRidePark } from "./rides";
 
 function context() {
   return createGameContext({
@@ -106,8 +106,7 @@ describe("brightway-park rides on the shared ride sim", () => {
     expect(rideView("ride_carousel#1")!.wear).toBe(0);
   });
 
-  test("a build or a demolition re-syncs the sim and keeps surviving ride state", () => {
-    const ctx = context();
+  test("a build or a demolition re-syncs the sim and keeps surviving ride state", () => {    const ctx = context();
     session.placed.set("ride_carousel#1", carousel());
     syncRidePark(() => 1);
     for (let i = 0; i < 3; i += 1) joinRide("ride_carousel#1", `guest#${i}`);
@@ -124,5 +123,36 @@ describe("brightway-park rides on the shared ride sim", () => {
     session.placed.delete("ride_ferris#1");
     syncRidePark(() => 1);
     expect(rideStats().rides).toBe(1);
+  });
+
+  test("the train runs the track's own lap and is back at the station when it ends", () => {
+    const ctx = context();
+    session.placed.set("ride_coaster#1", { ...carousel(), id: "ride_coaster#1", catalogId: "ride_coaster", x: -8, z: 4 });
+    // A 5 x 3 ring of track around the station: 12 pieces, one closed lap.
+    for (let i = 0; i < 5; i += 1) session.placed.set(`track_piece#${i}`, { ...carousel(), id: `track_piece#${i}`, catalogId: "track_piece", x: i * 4, z: 0 });
+    for (let i = 1; i < 3; i += 1) session.placed.set(`track_piece#r${i}`, { ...carousel(), id: `track_piece#r${i}`, catalogId: "track_piece", x: 16, z: i * 4 });
+    for (let i = 3; i >= 0; i -= 1) session.placed.set(`track_piece#b${i}`, { ...carousel(), id: `track_piece#b${i}`, catalogId: "track_piece", x: i * 4, z: 8 });
+    session.placed.set("track_piece#l1", { ...carousel(), id: "track_piece#l1", catalogId: "track_piece", x: 0, z: 4 });
+    syncRidePark(() => 1);
+    const circuit = coasterCircuit();
+    expect(circuit.closed).toBe(true);
+    expect(circuit.length).toBe(2 * (5 + 3) * 4 - 16);
+
+    // The ride sim runs the lap the track measured, not a number in the catalog.
+    const definition = rideDefinition(session.placed.get("ride_coaster#1")!, 0);
+    expect(definition.rideSeconds).toBe(Math.max(4, circuit.lapSeconds));
+
+    for (let i = 0; i < 4; i += 1) joinRide("ride_coaster#1", `guest#${i}`);
+    const lap = Math.max(4, circuit.lapSeconds);
+    const fractions: number[] = [];
+    for (let i = 0; i < 400; i += 1) {
+      tickRidePark(ctx, 0.2);
+      const view = rideView("ride_coaster#1")!;
+      if (view.phase === "riding") fractions.push(1 - view.phaseSeconds / lap);
+    }
+    // It leaves the station, gets most of the way round, and the last lap fraction wraps home.
+    expect(fractions[0]!).toBeLessThan(0.2);
+    expect(Math.max(...fractions)).toBeGreaterThan(0.85);
+    expect(rideView("ride_coaster#1")!.cycles).toBeGreaterThan(0);
   });
 });

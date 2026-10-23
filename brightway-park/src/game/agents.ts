@@ -176,7 +176,7 @@ export function guestTargets(
 }
 
 /** What a ride gives a guest in fun, from its live ratings and that guest's taste. */
-export function rideFun(kind: string, obj: PlacedObject, _tracks: number): number {
+export function rideFun(kind: string, obj: PlacedObject): number {
   const view = rideView(obj.id);
   if (view === null) return 0;
   return 12 * rideAppeal(view.ratings, guestTaste(kind)) - 4;

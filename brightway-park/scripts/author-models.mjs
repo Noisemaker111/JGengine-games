@@ -132,8 +132,15 @@ function fountain() {
 }
 function janitor(){ const g=new T.Group(); box(g,[2.9,2.8,2.7],P.teal,[0,1.4,0]); cyl(g,2.25,.75,P.cream,[0,3.1,0],.05,4); box(g,[1.1,2,.08],P.wood,[0,1,1.4]); box(g,[.7,.7,.1],P.blue,[0,1.5,1.47]);
   for(const x of [-1.4,1.4]){ cyl(g,.4,.85,P.coral,[x,.5,1.1]); cyl(g,.45,.08,P.gold,[x,.95,1.1]); } beam(g,[1.4,.1,-1.3],[1.7,2.3,-1.3],.045,P.wood); box(g,[.75,.25,.25],P.gold,[1.4,.2,-1.3]); return g; }
-function path(){ const g=new T.Group(); box(g,[3.96,.12,3.96],P.wood,[0,.06,0]); for(let i=0;i<6;i++) box(g,[3.8,.05,.58],i%2?P.cream:'#e5ccaa',[0,.15,-1.65+i*.66]); return g; }
-function topiary(){ const g=new T.Group(); cyl(g,.6,.6,P.coral,[0,.3,0],.8); cyl(g,.15,1.3,P.wood,[0,1,0]); ball(g,1.1,P.leaf,[0,2,0]); ball(g,.7,P.mint,[0,3,0]); return g; }
+function path(){ const g=new T.Group(); box(g,[3.96,.12,3.96],P.wood,[0,.06,0]); for(let i=0;i<6;i++) box(g,[3.8,.05,.58],i%2?P.cream:'#e5ccaa',[0,.15,-1.65+i*.66]); return g; }function topiary(){ const g=new T.Group(); cyl(g,.6,.6,P.coral,[0,.3,0],.8); cyl(g,.15,1.3,P.wood,[0,1,0]); ball(g,1.1,P.leaf,[0,2,0]); ball(g,.7,P.mint,[0,3,0]); return g; }
+function train(){ const g=new T.Group();
+  for(let i=0;i<3;i++){ const z=(i-1)*2.35;
+    box(g,[1.65,.2,2.2],P.ink,[0,.22,z]); box(g,[1.5,.58,2.05],i===0?P.gold:P.coral,[0,.62,z]);
+    box(g,[1.05,.3,1.25],P.ink,[0,.98,z]);
+    for(const x of [-.84,.84]) beam(g,[x,.34,z-1],[x,.34,z+1],.05,P.cream);
+    for(const dz of [-.72,.72]) box(g,[1.7,.1,.16],P.wood,[0,.3,z+dz]);
+  }
+  box(g,[1.15,.34,.6],P.cream,[0,.58,-3.5]); return g; }
 function guest(color, i){ const g=new T.Group(); const skin=['#edc1a2','#b37b5c','#d39f7d','#865640','#f1cfb2'][i];
   for(const x of [-.14,.14]){ box(g,[.19,.65,.23],P.ink,[x,.38,0]); box(g,[.23,.14,.4],P.cream,[x,.08,.07]); }
   cyl(g,.28,.7,color,[0,1,0],.34,8); ball(g,.28,skin,[0,1.63,0]);
@@ -143,6 +150,8 @@ function guest(color, i){ const g=new T.Group(); const skin=['#edc1a2','#b37b5c'
 const models={ ride_carousel:carousel(), ride_coaster:station(), ride_ferris:ferris(), ride_dropzone:drop(), track_piece:track(), path_walk:path(), stall_food:stall(P.coral,'food'), stall_drink:stall(P.teal,'drink'), stall_souvenir:stall(P.pink,'gift'), deco_tree:tree(), deco_flowerbed:flowers(), deco_lamp:lamp(), deco_fountain:fountain(), deco_topiary:topiary(), staff_janitor:janitor() };
 for(let i=0;i<5;i++) models[`guest_${'abcde'[i]}`]=guest([P.coral,P.blue,P.gold,P.mint,P.pink][i],i);
 Object.assign(models,rotors);
+// The train is its own model: the ride's own cycle drives it around the authored circuit.
+models.coaster_train=train();
 const exporter=new GLTFExporter(); let bytes=0;
 for(const [name,g] of Object.entries(models)){
   g.name=name; const buffer=await exporter.parseAsync(g,{binary:true,copyright:'Original geometry authored for Brightway Park, 2026'});

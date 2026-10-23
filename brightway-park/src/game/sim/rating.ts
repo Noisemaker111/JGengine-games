@@ -18,12 +18,7 @@ export interface ParkMetrics {
   facilitiesUpkeep: number;
 }
 
-export function coasterThrill(tracks: number): number {
-  return tracks * 0.7;
-}
-
-export function objectAppeal(def: BuildableDef, tracks: number): number {
-  if (def.id === "ride_coaster") return def.appeal + coasterThrill(tracks);
+export function objectAppeal(def: BuildableDef): number {
   return def.appeal;
 }
 
@@ -56,7 +51,7 @@ export function computeMetrics(placed: readonly PlacedObject[]): ParkMetrics {
     }
   }
   let totalAppeal = 0;
-  for (const obj of placed) totalAppeal += objectAppeal(buildableDef(obj.catalogId), tracks);
+  for (const obj of placed) totalAppeal += objectAppeal(buildableDef(obj.catalogId));
   const variety = rideKinds.size + stallNeeds.size;
   return { rides, stalls, tracks, scenery, cleaning, mechanics, variety, totalAppeal, dailyUpkeep, wages, facilitiesUpkeep: dailyUpkeep - wages };
 }

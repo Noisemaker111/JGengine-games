@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { PlacedObject } from "../session";
-import { coasterThrill, computeMetrics, demand, objectAppeal, ratingTarget } from "./rating";
+import { computeMetrics, demand, objectAppeal, ratingTarget } from "./rating";
 import { buildableDef } from "../objects/catalog";
 
 function placed(catalogId: string, x = 0, z = 0): PlacedObject {
@@ -9,11 +9,10 @@ function placed(catalogId: string, x = 0, z = 0): PlacedObject {
 }
 
 describe("brightway-park rating math", () => {
-  test("coaster appeal grows with track length", () => {
+  test("a structure's appeal is its own; a coaster's draw lives in its measured circuit", () => {
     const def = buildableDef("ride_coaster");
-    expect(objectAppeal(def, 0)).toBe(def.appeal);
-    expect(objectAppeal(def, 5)).toBeCloseTo(def.appeal + coasterThrill(5));
-    expect(objectAppeal(def, 5)).toBeGreaterThan(objectAppeal(def, 0));
+    expect(objectAppeal(def)).toBe(def.appeal);
+    expect(objectAppeal(buildableDef("track_piece"))).toBe(buildableDef("track_piece").appeal);
   });
 
   test("metrics count categories and variety", () => {

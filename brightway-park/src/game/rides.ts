@@ -13,7 +13,7 @@ import {
 
 import { buildableDef } from "./objects/catalog";
 import { session, type PlacedObject } from "./session";
-import { coasterThrill } from "./sim/rating";
+import { buildCoasterCircuit, type CoasterCircuit, type TrackPoint } from "./sim/trackCircuit";
 
 /**
  * The park's rides run on the shared ride sim (`@jgengine/core/sim/rides`): each ride owns its own
@@ -43,12 +43,45 @@ export function trackPieces(): number {
   return count;
 }
 
-/** A ride's three ratings: excitement is its appeal (coaster track adds more), force is its thrill. */
-export function rideRatings(obj: PlacedObject, tracks = trackPieces()): RideRatings {
+/** Every laid track piece as a point; the circuit orders them itself. */
+function trackPoints(): TrackPoint[] {
+  const points: TrackPoint[] = [];
+  for (const obj of session.placed.values()) if (obj.catalogId === "track_piece") points.push([obj.x, 0, obj.z]);
+  return points;
+}
+
+function coasterStation(): PlacedObject | null {
+  for (const obj of session.placed.values()) if (obj.catalogId === "ride_coaster") return obj;
+  return null;
+}
+
+let circuitSignature = "";
+let circuitCache: CoasterCircuit | null = null;
+
+/**
+ * The starter circuit the park's coaster runs, measured from the track it has laid. Cached against
+ * the pieces' own coordinates, so a lap only re-measures when the track actually changes.
+ */
+export function coasterCircuit(): CoasterCircuit {
+  const station = coasterStation();
+  let signature = station === null ? "none" : `${station.x},${station.z}`;
+  const points = trackPoints();
+  points.sort((a, b) => a[0] - b[0] || a[2] - b[2]);
+  for (const point of points) signature += `|${point[0]},${point[2]}`;
+  if (circuitCache !== null && signature === circuitSignature) return circuitCache;
+  circuitSignature = signature;
+  circuitCache = buildCoasterCircuit(points, station === null ? null : [station.x, station.z]);
+  return circuitCache;
+}
+
+/** A ride's three ratings: a coaster's come from its circuit, a flat ride's from its own data. */
+export function rideRatings(obj: PlacedObject, circuit = coasterCircuit()): RideRatings {
   const def = buildableDef(obj.catalogId);
   if (def.ride === undefined) return { excitement: 0, intensity: 0, nausea: 0 };
-  const excitement = obj.catalogId === "ride_coaster" ? def.appeal + coasterThrill(tracks) : def.appeal;
-  return { excitement, intensity: def.ride.thrill, nausea: 2 };
+  if (obj.catalogId === "ride_coaster") {
+    return { excitement: circuit.excitement, intensity: circuit.intensity, nausea: circuit.nausea };
+  }
+  return { excitement: def.appeal, intensity: def.ride.thrill, nausea: 2 };
 }
 
 /** What the park sets for a ride's ticket: the saved price, or the catalog default. */
@@ -64,16 +97,18 @@ export function setRidePrice(catalogId: string, price: number): void {
 }
 
 /** One placed ride as the shared sim's data, including the park's current repair speed. */
-export function rideDefinition(obj: PlacedObject, tracks: number, mechanics: number): RideDefinition {
+export function rideDefinition(obj: PlacedObject, mechanics: number, circuit = coasterCircuit()): RideDefinition {
   const def = buildableDef(obj.catalogId);
   const ride = def.ride;
   if (ride === undefined) throw new Error(`brightway-park: "${obj.catalogId}" is not a ride`);
+  // A coaster's lap is the track's own length at the track's own pace, so laying rail changes the ride.
+  const rideSeconds = obj.catalogId === "ride_coaster" && circuit.closed ? Math.max(4, circuit.lapSeconds) : ride.rideSeconds;
   return {
     id: obj.id,
-    ratings: rideRatings(obj, tracks),
+    ratings: rideRatings(obj, circuit),
     capacity: ride.capacity,
     loadSeconds: ride.loadSeconds,
-    rideSeconds: ride.rideSeconds,
+    rideSeconds,
     unloadSeconds: ride.unloadSeconds,
     breakdown: {
       ...ride.breakdown,
@@ -83,12 +118,12 @@ export function rideDefinition(obj: PlacedObject, tracks: number, mechanics: num
 }
 
 function desiredDefinitions(): RideDefinition[] {
-  const tracks = trackPieces();
+  const circuit = coasterCircuit();
   const mechanics = mechanicBays();
   const definitions: RideDefinition[] = [];
   for (const obj of session.placed.values()) {
     if (buildableDef(obj.catalogId).ride === undefined) continue;
-    definitions.push(rideDefinition(obj, tracks, mechanics));
+    definitions.push(rideDefinition(obj, mechanics, circuit));
   }
   return definitions;
 }
