@@ -16,6 +16,7 @@ import { editorLayers } from "../../editorLayers";
 import { handrollOf } from "../handroll";
 import { bankContraband, failContraband, loadContraband } from "../items/cargoHaul";
 import { grantCred } from "../progression/cred";
+import { earn, spend } from "../cash";
 import { sessionStore, syncSession } from "../session";
 
 /** Authored site positions; the dispatch booth and parcel towers live in `editor.scene.json`. */
@@ -44,7 +45,7 @@ function heatSweep() {
   return [{ kind: "fact" as const, fact: POLICE_TIER_FACT, atLeast: COURIER_HEAT_TIER, to: "heat_sweep", message: "HHPD swept the drop while you were hot — the parcel went back to dispatch." }];
 }
 
-interface CourierState {
+export interface CourierState {
   phase: "idle" | "running" | "won" | "lost";
   route: number;
   remaining: number;
@@ -220,7 +221,7 @@ export function finishCourier(ctx: GameContext, won: boolean, reason?: string): 
     : 0;
   // The receipt shows everything that landed: the contract's payout plus the extras granted here.
   courierStore.write(ctx, { ...current, phase: won ? "won" : "lost", reward: won ? route.payout + bonus : 0, reason: won ? undefined : reason, completed: current.completed + (won ? 1 : 0), remaining });
-  if (bonus > 0) ctx.game.economy.grant(ctx.player.userId, "cash", bonus);
+  if (bonus > 0) earn(ctx, bonus, "courier-bonus", route.label);
   if (won) {
     grantCred(ctx, 15);
     bankContraband(ctx);
@@ -279,7 +280,10 @@ function handleMissionEvents(ctx: GameContext, events: readonly MissionEvent[]):
       }
     } else if (event.kind === "reward") {
       applyMissionRewards(event.rewards, {
-        grantEconomy: (currencyId, amount) => ctx.game.economy.grant(ctx.player.userId, currencyId, amount),
+        grantEconomy: (currencyId, amount) => {
+      if (currencyId === "cash") earn(ctx, amount, "courier-payout");
+      else ctx.game.economy.grant(ctx.player.userId, currencyId, amount);
+    },
       });
     } else if (event.kind === "completed") {
       ctx.scene.entity.despawn(THIEF);
@@ -310,7 +314,7 @@ export function registerCourier(ctx: GameContext): void {
     apply(state, input) {
     const current = courierStore.read(state);
     const rush = input?.service === "rush";
-    if (rush) state.game.economy.charge(state.player.userId, "cash", RUSH_BOND);
+    if (rush) spend(state, RUSH_BOND, "courier-bond");
     const routeIndex = current.completed % DELIVERY_ROUTES.length;
     const route = DELIVERY_ROUTES[routeIndex]!;
     const position = courierPosition(state)!;

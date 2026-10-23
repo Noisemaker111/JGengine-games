@@ -1,6 +1,10 @@
 {
   "adopts": [
     "audio-probe",
+    "damage-runtime",
+    "damage-target-unknown",
+    "game-save",
+    "game-save-digest",
     "loot-comparison",
     "loot-generation",
     "loot-roller",
@@ -15,9 +19,17 @@
     "perception-service",
     "police-response",
     "police-roads",
-    "traffic"
+    "traffic",
+    "transaction-ledger",
+    "vehicle-damage"
   ],
   "probes": {
+    "@jgengine/core/economy/transactionLedger": [
+      "harbor.ledger"
+    ],
+    "@jgengine/core/game/gameSave": [
+      "harbor.save"
+    ],
     "@jgengine/core/nav/traffic": [
       "harbor.traffic"
     ],
@@ -53,30 +65,9 @@
       "kind": "not-applicable",
       "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."
     },
-    "damage-runtime": {
-      "kind": "debt",
-      "reason": "game/commands.ts subtracts per-weapon amounts from enemy health with no damage table; adopt the shared damage table.",
-      "issue": 138
-    },
-    "damage-target-unknown": {
-      "kind": "debt",
-      "reason": "Crew hits never validate a resistance or armor profile; adopt the shared damage table with its unknown-target refusal.",
-      "issue": 138
-    },
     "equipment-slot-inventory": {
-      "kind": "debt",
-      "reason": "inventories.ts and loadouts.ts hand-place gear into slots with their own kind rules; adopt the shared equipment slots.",
-      "issue": 139
-    },
-    "game-save": {
-      "kind": "debt",
-      "reason": "saveCompatibility.ts repairs this game's own save shape by hand on load; adopt the shared save document's migrations.",
-      "issue": 140
-    },
-    "game-save-digest": {
-      "kind": "debt",
-      "reason": "The repaired save carries no state digest for a determinism test; adopt the shared save document's digest.",
-      "issue": 140
+      "kind": "not-applicable",
+      "reason": "Equipment slots are not part of harbor-heat: gear goes into a four-slot hotbar and a twelve-slot backpack, and a vest raises the armor stat instead of occupying a worn slot."
     },
     "loan-schedule": {
       "kind": "not-applicable",
@@ -138,19 +129,9 @@
       "kind": "not-applicable",
       "reason": "Market pricing is not part of harbor-heat: vendors run on the shared shop stock rather than a demand-priced market."
     },
-    "transaction-ledger": {
-      "kind": "debt",
-      "reason": "Payouts, fees and purchases adjust cash directly in jobs and shops; adopt the shared transaction ledger.",
-      "issue": 141
-    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."
-    },
-    "vehicle-damage": {
-      "kind": "debt",
-      "reason": "handroll/driving.ts applies an inline hull amount on a hard crash with no zone or handling change; adopt the shared vehicle damage.",
-      "issue": 142
     },
     "visitor-population": {
       "kind": "not-applicable",
@@ -162,8 +143,8 @@
     },
     "weapon-system": {
       "kind": "debt",
-      "reason": "items/weapons/catalog.ts carries fire intervals, magazines and ammo rules itself; adopt the shared weapon runtime.",
-      "issue": 138
+      "reason": "items/use-handlers.ts still gates cadence and spends the ammo stat itself; the shared weapon runtime cannot take Harbor's ammo pool or present a shot.",
+      "issue": 156
     }
   }
 }

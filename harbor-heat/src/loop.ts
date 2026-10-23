@@ -14,6 +14,8 @@ import {
   startedStore,
 } from "./game/commands";
 import { enemyById } from "./game/entities/enemies/catalog";
+import { landHit } from "./game/combat/hitModel";
+import { earn, openBooks, recordWalletChange, spend } from "./game/cash";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { drivingStore, raceStore, handrollOf } from "./game/handroll";
 import { vehicleById } from "./game/entities/vehicles/catalog";
@@ -42,78 +44,25 @@ import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic"
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
+import {
+  convoyRunners,
+  mission,
+  patchMission,
+  resetMissionState,
+} from "./game/runState";
+import { harborSave, holdSavesUntil, loadHarborSave, saveHarborState } from "./game/save";
 import { createWaveRunner } from "@jgengine/core/ai/waveRunner";
 import { attachWaveFeedback } from "@jgengine/shell/audio/eventFeedback";
 import { perContext } from "@jgengine/core/runtime/perContext";
 
 const AGGRO_RADIUS = 18;
 const GANGER_SHOT_RANGE = 14;
-const CONVOY_TOTAL = 10;
 const CICADA_STAGE_ID = "cicada_stage_car";
 const RACE_BANNER_SEC = 6;
-
-/** One dock reinforcement per six seconds, ten of them: the convoy is a wave manifest, not a counter. */
-const CONVOY_WAVES = Array.from({ length: CONVOY_TOTAL }, () => ({
-  budget: 1,
-  duration: 6,
-  entries: [{ id: "ganger_dock", cost: 1 }],
-}));
-
-/**
- * The Carmine convoy as the engine's wave runner: the director owns the cadence and the alive cap,
- * the sink places each request on the dock ring, and `attachWaveFeedback` announces the wave.
- */
-const convoyRunners = perContext((ctx: GameContext) =>
-  createWaveRunner({
-    waves: CONVOY_WAVES,
-    maxAlive: 4,
-    seed: 20260712,
-    onSpawn(request) {
-      const wave = request.wave + 1;
-      const angle = (wave / CONVOY_TOTAL) * Math.PI * 2;
-      const x = DOCK_FIGHT_CENTER[0] + Math.sin(angle) * 22;
-      const z = DOCK_FIGHT_CENTER[2] + Math.cos(angle) * 22;
-      ctx.scene.entity.spawn("ganger_dock", {
-        id: `convoy_${wave}`,
-        position: [x, ctx.world.groundHeightAt(x, z), z],
-        role: "npc",
-      });
-    },
-  }),
-);
 
 const convoyFeedback = perContext((ctx: GameContext) => ({
   detach: attachWaveFeedback(convoyRunners(ctx), ctx.game.feedback),
 }));
-
-/**
- * Per-run mission timers. In the store rather than module scope so a server host, a test, and two
- * split-screen contexts each get their own — module-level `let` is shared by every context in the
- * process.
- */
-interface MissionState {
-  kingpinSpawned: boolean;
-  bustedHold: number;
-  raceSettled: boolean;
-  raceClearAt: number;
-}
-
-const FRESH_MISSION: MissionState = {
-  kingpinSpawned: false,
-  bustedHold: 0,
-  raceSettled: false,
-  raceClearAt: 0,
-};
-
-const missionStore = defineStore<MissionState>("harbor.mission", () => ({ ...FRESH_MISSION }));
-
-function mission(ctx: GameContext): MissionState {
-  return missionStore.read(ctx);
-}
-
-function patchMission(ctx: GameContext, patch: Partial<MissionState>): void {
-  missionStore.write(ctx, { ...mission(ctx), ...patch });
-}
 
 /**
  * Keep simulation and touch controls behind the title, pause, settings and result gates.
@@ -122,9 +71,7 @@ function syncPhase(ctx: GameContext): void {
   syncSession(ctx, startedStore.read(ctx) === true);
 }
 
-export function resetMissionState(ctx: GameContext): void {
-  missionStore.write(ctx, { ...FRESH_MISSION });
-}
+export { resetMissionState };
 
 function tickGangers(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
@@ -147,14 +94,12 @@ function tickGangers(ctx: GameContext, dt: number): void {
       const meta = (entity.meta ?? {}) as { nextShotAt?: number };
       if ((meta.nextShotAt ?? 0) <= now) {
         ctx.scene.entity.update(entity.id, { meta: { ...meta, nextShotAt: now + 1.4 } });
-        ctx.scene.entity.effect({
+        // Crew fire resolves through the same chart as the player's: the target presents a profile.
+        landHit(ctx, {
           from: entity.id,
           to: ctx.player.userId,
-          effect: "damage",
-          via: {
-            amount:
-              entity.name === "kingpin_sal" ? 16 : entity.name === "ganger_enforcer" || entity.name === "bounty_mark" ? 12 : 6,
-          },
+          type: "ballistic",
+          base: entity.name === "kingpin_sal" ? 16 : entity.name === "ganger_enforcer" || entity.name === "bounty_mark" ? 12 : 6,
         });
       }
     }
@@ -291,14 +236,14 @@ function tickRaceEconomy(ctx: GameContext): void {
   if (!mission(ctx).raceSettled) {
     patchMission(ctx, { raceSettled: true, raceClearAt: ctx.time.now() + RACE_BANNER_SEC });
     if (snapshot.won) {
-      ctx.game.economy.grant(ctx.player.userId, "cash", RACE_WIN_PAYOUT);
+      earn(ctx, RACE_WIN_PAYOUT, "race-purse", snapshot.routeId);
       grantCred(ctx, RACE_WIN_CRED);
       // The persisted best time (and its bonus) stays an Ocean Loop record — other circuits pay the flat purse.
       const best = snapshot.routeId === OCEAN_LOOP_ID ? bestRaceStore.read(ctx) : undefined;
       if (snapshot.routeId === OCEAN_LOOP_ID && (best === undefined || snapshot.timeSec < best)) {
         bestRaceStore.write(ctx, snapshot.timeSec);
         if (best !== undefined) {
-          ctx.game.economy.grant(ctx.player.userId, "cash", RACE_BEST_BONUS);
+          earn(ctx, RACE_BEST_BONUS, "race-record", snapshot.routeId);
           ctx.game.notices.push({
             text: `New ${snapshot.label} record ${snapshot.timeSec.toFixed(1)}s — $${RACE_WIN_PAYOUT + RACE_BEST_BONUS}.`,
             tone: "success",
@@ -337,7 +282,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   if (held < BUSTED_HOLD_SEC) return;
   patchMission(ctx, { bustedHold: 0 });
   const fine = bustedFine(ctx.game.economy.balance(ctx.player.userId, "cash"), stars);
-  if (fine > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fine);
+  if (fine > 0) spend(ctx, fine, "busted-fine");
   const y = ctx.world.groundHeightAt(HHPD_POS[0], HHPD_POS[2]);
   ctx.scene.entity.setPose(ctx.player.userId, { position: [HHPD_POS[0], y, HHPD_POS[2]] });
   handrollOf(ctx).clearWanted(ctx);
@@ -367,7 +312,7 @@ function tickWasted(ctx: GameContext): void {
   const y = ctx.world.groundHeightAt(home[0], home[2]);
   ctx.scene.entity.setPose(ctx.player.userId, { position: [home[0], y, home[2]] });
   const fee = clinicFee(ctx.game.economy.balance(ctx.player.userId, "cash"));
-  if (fee > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fee);
+  if (fee > 0) spend(ctx, fee, "clinic-fee");
   handrollOf(ctx).clearWanted(ctx);
   restageAfterWasted(ctx);
   finishCourier(ctx, false);
@@ -397,7 +342,8 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   const courier = courierStore.read(ctx);
   if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
   setupCourierLandmarks(ctx);
-  handrollOf(ctx).clearWanted(ctx);
+  // Heat is not cleared here any more: the wanted section restored it and the HUD reads the primitive,
+  // so a reload mid-pursuit keeps the tier and the search area (engine #2243).
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player !== null) {
     // A save written mid-drive persists the seated rider state — restore on foot, rendered (#1299).
@@ -410,7 +356,10 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
 }
 
 async function resumeFromSave(ctx: GameContext): Promise<void> {
-  if (!(await loadSavedProgress(ctx))) return;
+  const world = await loadSavedProgress(ctx);
+  // The document loads after the world snapshot so its sections are the run's authority.
+  const run = await loadHarborSave(ctx);
+  if (!world && !run) return;
   normalizeAfterRestore(ctx, startedThisBoot(ctx).value);
 }
 
@@ -431,6 +380,8 @@ function onInit(ctx: GameContext): void {
     const questId = (event as { questId?: string }).questId ?? "";
     const cred = CRED_BY_QUEST[questId];
     if (cred !== undefined) grantCred(ctx, cred);
+    // The quest's cash reward is the engine's own grant; journal it under the quest that paid it.
+    recordWalletChange(ctx, "quest-reward", questId);
   });
 
   ctx.game.events.on("entity.died", (event) => {
@@ -438,7 +389,7 @@ function onInit(ctx: GameContext): void {
     const catalogId = dead.catalogId ?? "";
     const enemy = enemyById(catalogId);
     if (enemy !== undefined && enemy.bounty > 0) {
-      ctx.game.economy.grant(ctx.player.userId, "cash", enemy.bounty);
+      earn(ctx, enemy.bounty, "bounty", catalogId);
     }
     if (dead.instanceId !== undefined) onBountyKilled(ctx, dead.instanceId);
     if (catalogId.startsWith("ped_")) handrollOf(ctx).addHeat(ctx, 60);
@@ -451,6 +402,8 @@ function onInit(ctx: GameContext): void {
   });
 
   registerCommands(ctx);
+  // The cash journal is live before the first movement, opened at the wallet's balance.
+  openBooks(ctx);
   convoyFeedback(ctx);
   ensureNightMarket(ctx);
   const buildings = setupWorld(ctx);
@@ -474,11 +427,20 @@ function onNewPlayer(ctx: GameContext): void {
   // Boot at the title screen (menu phase) so the shell's touch dock stays hidden;
   // `game.start` and a restored session flip it to `playing`.
   syncPhase(ctx);
-  void resumeFromSave(ctx);
+  holdSavesUntil(ctx, resumeFromSave(ctx));
 }
+
+/** World seconds between document autosaves; the write itself is the ledger's own debounce. */
+const DOCUMENT_AUTOSAVE_SEC = 3;
+const lastDocumentSave = perContext(() => ({ at: 0 }));
 
 function onTick(ctx: GameContext, dt: number): void {
   if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
+  const docClock = lastDocumentSave(ctx);
+  if (ctx.time.now() - docClock.at >= DOCUMENT_AUTOSAVE_SEC) {
+    docClock.at = ctx.time.now();
+    harborSave(ctx).touch();
+  }
   handrollOf(ctx).tick(ctx, dt);
   tickTraffic(ctx, dt);
   tickResidents(ctx, dt);

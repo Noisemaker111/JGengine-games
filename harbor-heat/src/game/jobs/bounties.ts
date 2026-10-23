@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { BOUNTY_CRED, grantCred } from "../progression/cred";
+import { earn } from "../cash";
 import { BOUNTY_SPOTS, districtAt } from "../world/districts";
 
 export const BOUNTY_UNLOCK_QUEST = "m2_dock_sweep";
@@ -73,7 +74,7 @@ export function onBountyKilled(ctx: GameContext, instanceId: string): boolean {
   const state = bountyState(ctx);
   if (state.targetId === null || instanceId !== state.targetId) return false;
   const payout = bountyPayout(state.completed);
-  ctx.game.economy.grant(ctx.player.userId, "cash", payout);
+  earn(ctx, payout, "bounty", "bounty-mark");
   grantCred(ctx, BOUNTY_CRED);
   bountyStore.write(ctx, {
     completed: state.completed + 1,

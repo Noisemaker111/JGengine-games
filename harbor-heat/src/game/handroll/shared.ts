@@ -54,6 +54,9 @@ export const drivingStore = defineStore<string | null | undefined>("harbor.drivi
 export const raceStore = defineStore<RaceSnapshot | undefined>("harbor.race", undefined);
 
 export interface Handroll {
+  /** The heat and pursuit state a reload must keep; null until the pursuit has been built. */
+  pursuitSave(): import("./pursuit").PursuitSave;
+  restorePursuit(ctx: GameContext, state: import("./pursuit").PursuitSave): void;
   enterVehicle(ctx: GameContext, vehicleId: string): void;
   exitVehicle(ctx: GameContext, force?: boolean): void;
   drivingVehicleId(): string | null;
@@ -65,5 +68,8 @@ export interface Handroll {
   wanted(): WantedSnapshot;
   startRace(ctx: GameContext): boolean;
   raceActive(): boolean;
+  /** Each live car's bodywork stages, for the save document. */
+  vehicleDamageSave(ctx: GameContext): Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>;
+  restoreVehicleDamage(ctx: GameContext, sections: Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>): void;
   explodeVehicle(ctx: GameContext, vehicleId: string, at: readonly [number, number, number]): void;
 }

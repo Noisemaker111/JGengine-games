@@ -4,6 +4,7 @@ import {
   createPoliceResponse,
   DEFAULT_POLICE_TUNING,
   type PoliceResponse,
+  type PoliceResponseState,
   type PoliceTuning,
 } from "@jgengine/core/ai/policeResponse";
 import { createPerception, type PerceptionCandidate, type PerceptionService } from "@jgengine/core/sensor/perception";
@@ -14,6 +15,7 @@ import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
+import { landHit } from "../combat/hitModel";
 import { MAX_STARS, PURSUIT_STARS, wantedStore, type WantedSnapshot } from "./shared";
 
 /** Cruiser driving skill by wanted stars: 3★ rookies drive sloppy, 5★ interceptors drive sharp. */
@@ -111,9 +113,27 @@ const CHASE_RADIUS = 34;
  * view, the search area sits where that witness last saw them, and the heat bleeds once nobody does.
  * Cruiser cars reuse driving's vehicle registry (`makeCarSim`/`refreshClamp`/`dropCarSim`).
  */
+/**
+ * What a reload has to keep or the difficulty silently changes: the heat curve, the sight timer, the
+ * search area's anchor and the tier's own counters, plus the pursuit's peak tier and cadence clocks.
+ * The per-officer AI state (`copPursuit`, `copSearchAngle`, `cruiserDrivers`) is keyed by entity id and
+ * rebuilt from the officers that respawn, so it is deliberately not carried.
+ */
+export interface PursuitSave {
+  police: PoliceResponseState;
+  peakStars: number;
+  lastNoticeTier: number;
+  copTimer: number;
+  copCounter: number;
+  cruiserTimer: number;
+  cruiserCounter: number;
+}
+
 export interface Pursuit {
   addHeat(ctx: GameContext, amount: number): void;
   clearWanted(ctx: GameContext): void;
+  snapshot(): PursuitSave;
+  restore(ctx: GameContext, state: PursuitSave): void;
   wanted(): WantedSnapshot;
   tickWanted(ctx: GameContext, dt: number): void;
   tickPedPanic(ctx: GameContext): void;
@@ -430,7 +450,7 @@ export function createPursuit(driving: Driving): Pursuit {
       ctx.scene.entity.setPose(cruiser.id, result.pose);
       const drivenId = driving.drivingVehicleId();
       if (dist < 4 && drivenId !== null) {
-        ctx.scene.entity.effect({ from: cruiser.id, to: drivenId, effect: "damage", via: { amount: Math.round(24 * dt * 10) / 10 } });
+        landHit(ctx, { from: cruiser.id, to: drivenId, type: "impact", base: Math.round(24 * dt * 10) / 10 });
       }
     }
   }
@@ -454,7 +474,7 @@ export function createPursuit(driving: Driving): Pursuit {
 
   return {
     addHeat(_ctx, amount) {
-      police.reportCrime(amount);
+      if (amount > 0) police.reportCrime(amount);
     },
     clearWanted(ctx) {
       police = freshPolice();
@@ -464,6 +484,26 @@ export function createPursuit(driving: Driving): Pursuit {
       copPursuit.clear();
       copSearchAngle.clear();
       cruiserDrivers.clear();
+      publishWanted(ctx);
+    },
+    snapshot: () => ({
+      police: police.state(),
+      peakStars,
+      lastNoticeTier,
+      copTimer,
+      copCounter,
+      cruiserTimer,
+      cruiserCounter,
+    }),
+    restore(ctx, state) {
+      police.restore(state.police);
+      peakStars = state.peakStars;
+      lastNoticeTier = state.lastNoticeTier;
+      copTimer = state.copTimer;
+      copCounter = state.copCounter;
+      cruiserTimer = state.cruiserTimer;
+      cruiserCounter = state.cruiserCounter;
+      // Publish the restored heat so the HUD and every rule read what the reload kept.
       publishWanted(ctx);
     },
     wanted: () => {
