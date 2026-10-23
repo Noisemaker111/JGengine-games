@@ -2,7 +2,7 @@ import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { AMMO_LABELS, AMMO_STAT_IDS, type AmmoPool } from "./ammo";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
-import { noteShotNoise, stageFrontBoss } from "./encounters/front";
+import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
@@ -431,9 +431,10 @@ export function registerCommands(ctx: GameContext): void {
   // Dev-only capture affordance: open the front's boss wave with the Foreman one shot above its
   // second phase, so a capture can photograph the real `advanceBoss` tell. Never shipped.
   if (import.meta.env.DEV) {
-    ctx.game.commands.define("front.capture", {
-      apply(state: GameContext) {
-        stageFrontBoss(state);
+    ctx.game.commands.define<{ mode?: string }>("front.capture", {
+      apply(state: GameContext, input) {
+        if (input.mode === "fight") stageFrontFight(state);
+        else stageFrontBoss(state);
       },
     });
   }

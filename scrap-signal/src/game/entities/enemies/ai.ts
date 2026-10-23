@@ -48,7 +48,7 @@ function wander(ctx: GameContext, def: EnemyDef, id: string, position: EntityPos
     };
     wanderTargetsOf(ctx).set(id, plan);
   }
-  ctx.scene.entity.moveToward(id, plan.target, { speed: def.walkSpeed * 0.45, stopDistance: 0.6, dt });
+  ctx.scene.entity.moveTowardCommit(id, plan.target, { speed: def.walkSpeed * 0.45, stopDistance: 0.6, dt });
 }
 
 function tickRuskNova(ctx: GameContext, def: EnemyDef, enemyId: string, playerPos: EntityPosition, nowMs: number): void {
@@ -96,7 +96,7 @@ export function tickEnemies(ctx: GameContext, dt: number): void {
     // memory has faded it goes back to wandering or to its leash. No second give-up timer lives here.
     const heardAt = huntTargetFor(ctx, entity.id);
     if (heardAt !== null && distance2d(anchor, heardAt) <= LEASH_RADIUS) {
-      ctx.scene.entity.moveToward(entity.id, heardAt, { speed: def.walkSpeed, stopDistance: 1.4, dt });
+      ctx.scene.entity.moveTowardCommit(entity.id, heardAt, { speed: def.walkSpeed, stopDistance: 1.4, dt });
       continue;
     }
 
@@ -115,7 +115,7 @@ export function tickEnemies(ctx: GameContext, dt: number): void {
 
     if (!engaged) {
       if (leashed) {
-        ctx.scene.entity.moveToward(entity.id, anchor, { speed: def.walkSpeed, stopDistance: 2, dt });
+        ctx.scene.entity.moveTowardCommit(entity.id, anchor, { speed: def.walkSpeed, stopDistance: 2, dt });
       } else {
         wander(ctx, def, entity.id, entity.position, nowMs, dt);
       }

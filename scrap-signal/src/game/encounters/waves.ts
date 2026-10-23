@@ -18,6 +18,7 @@ export const FRONT_MARKERS = {
   center: "front_rustflat_center",
   scrapjack: "front_rustflat_scrapjack",
   ripper: "front_rustflat_ripper",
+  foreman: "front_rustflat_foreman",
 } as const;
 
 /** How close the player must come for the wreck to wake, and how far they can walk before it holds. */
@@ -37,6 +38,7 @@ export const FRONT_WAVES: EncounterDefinition = {
       groups: [
         { unit: "husk", entry: FRONT_MARKERS.scrapjack, count: 2 },
         { unit: "ripper_pup", entry: FRONT_MARKERS.ripper, count: 3, at: 1, jitterSeconds: 0.5 },
+        { unit: "elite_husk", entry: FRONT_MARKERS.scrapjack, count: 1, at: 3 },
       ],
     },
     {
@@ -65,7 +67,7 @@ export const FRONT_WAVES: EncounterDefinition = {
       groups: [
         { unit: "husk", entry: FRONT_MARKERS.scrapjack, count: 2 },
         { unit: "marauder", entry: FRONT_MARKERS.scrapjack, count: 2, at: 1, escalates: true },
-        { unit: "foreman_maw", entry: FRONT_MARKERS.ripper, count: 1, at: 3 },
+        { unit: "foreman_maw", entry: FRONT_MARKERS.foreman, count: 1, at: 3 },
       ],
     },
   ],

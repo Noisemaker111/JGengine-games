@@ -83,7 +83,7 @@ export function tickEnemyAttack(
         targetPos[2] - (dz / length) * reach * 0.6,
       ];
       if (!sideStep(ctx, enemyId, enemyPos, point, speed, reach * 0.6, dt)) {
-        ctx.scene.entity.moveToward(enemyId, point, { speed, stopDistance: 0.4, dt });
+        ctx.scene.entity.moveTowardCommit(enemyId, point, { speed, stopDistance: 0.4, dt });
       }
       return;
     }
@@ -112,7 +112,7 @@ export function tickEnemyAttack(
         targetPos[2] - (dz / length) * attack.preferRange * 0.8,
       ];
       if (!sideStep(ctx, enemyId, enemyPos, point, speed, attack.preferRange * 0.8, dt)) {
-        ctx.scene.entity.moveToward(enemyId, point, { speed, stopDistance: 0.6, dt });
+        ctx.scene.entity.moveTowardCommit(enemyId, point, { speed, stopDistance: 0.6, dt });
       }
     }
   }
@@ -158,7 +158,7 @@ function sideStep(
   if (blocked === null) return false;
   const side = hashedSide(enemyId);
   const point: EntityPosition = [from[0] - direction[2] * 3 * side, from[1], from[2] + direction[0] * 3 * side];
-  ctx.scene.entity.moveToward(enemyId, point, { speed, stopDistance, dt });
+  ctx.scene.entity.moveTowardCommit(enemyId, point, { speed, stopDistance, dt });
   return true;
 }
 

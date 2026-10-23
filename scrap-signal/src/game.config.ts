@@ -9,6 +9,7 @@ import { MAST_BOARD } from "./game/mast";
 import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
 import { audioProbe } from "./game/audio/drive";
+import { frontProbe } from "./game/encounters/front";
 import { content } from "./game/content";
 import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
@@ -165,7 +166,7 @@ export const game = defineGame({
       // above its second phase. The phase change itself is the next real hit.
       boss: [{ name: "character.pick", input: { characterId: "gunk" } }, "front.capture"],
     },
-    probe: audioProbe,
+    probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx) }),
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
     // of streamed GLB materials, and every one of those programs compiles on the first drawn frame.
     // On a software renderer that is seconds of work after readiness reports done, and the default

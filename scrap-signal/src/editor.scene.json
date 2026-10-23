@@ -7963,9 +7963,9 @@
       "id": "front_rustflat_scrapjack",
       "kind": "poi",
       "position": {
-        "x": -496,
+        "x": -472,
         "y": 0,
-        "z": 540
+        "z": 543.6
       },
       "label": "Scrapjack salvage line entry"
     },
@@ -7973,11 +7973,21 @@
       "id": "front_rustflat_ripper",
       "kind": "poi",
       "position": {
-        "x": -440,
+        "x": -459,
         "y": 0,
-        "z": 568
+        "z": 548.8
       },
       "label": "Ripper pack entry"
+    },
+    {
+      "id": "front_rustflat_foreman",
+      "kind": "poi",
+      "position": {
+        "x": -464,
+        "y": 0,
+        "z": 542.5
+      },
+      "label": "The Foreman's wreck mouth"
     }
   ],
   "volumes": [

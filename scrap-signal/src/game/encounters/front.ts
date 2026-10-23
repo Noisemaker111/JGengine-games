@@ -25,6 +25,7 @@ import { gunById, reservePhase } from "../handroll";
 import { enemyById, type EnemyDef } from "../entities/enemies/catalog";
 import { homeOf, rememberHome, tickEnemyAttack } from "../entities/enemies/behavior";
 import { authoredScene } from "../world/level";
+import { PLAYER_SPAWN, PLAYER_SPAWN_YAW } from "../world/sites";
 import { createShotHunt } from "./noise";
 import { roleFor, type Faction } from "./roles";
 import {
@@ -90,6 +91,8 @@ interface FrontRuntime {
   nextWaveIn: number;
   pressure: PressurePlan | null;
   cover: CoverPoint[];
+  /** Capture staging only: health fraction the Foreman should arrive at. */
+  stageBossFraction: number | null;
   seq: number;
 }
 
@@ -110,6 +113,7 @@ function freshRuntime(): FrontRuntime {
     nextWaveIn: 0,
     pressure: null,
     cover: [],
+    stageBossFraction: null,
     seq: 0,
   };
 }
@@ -216,8 +220,15 @@ export function huntTargetFor(ctx: GameContext, id: string): EntityPosition | nu
   return runtimeOf(ctx).hunting.get(id) ?? null;
 }
 
-/** What the front is doing, for a HUD or a capture probe. */
-export function frontStatus(ctx: GameContext): { started: boolean; cleared: boolean; wave: number; living: number; boss: string | null } {
+/** What the front is doing, for a HUD, a capture probe or a test. */
+export function frontStatus(ctx: GameContext): {
+  started: boolean;
+  cleared: boolean;
+  wave: number;
+  living: number;
+  boss: string | null;
+  hunting: number;
+} {
   const runtime = runtimeOf(ctx);
   return {
     started: runtime.started,
@@ -225,6 +236,25 @@ export function frontStatus(ctx: GameContext): { started: boolean; cleared: bool
     wave: encounterOf(ctx).view().wave,
     living: runtime.units.size,
     boss: runtime.boss?.stance ?? null,
+    hunting: runtime.hunting.size,
+  };
+}
+
+/** Numeric form for `capture.probe`, which only carries numbers. */
+export function frontProbe(ctx: GameContext): Record<string, number> {
+  const status = frontStatus(ctx);
+  const phase = status.boss === null ? -1 : FOREMAN_PHASES.findIndex((entry) => entry.id === status.boss);
+  const boss = runtimeOf(ctx).boss;
+  const health = boss === null ? null : ctx.scene.entity.stats.get(boss.id, "health");
+  return {
+    frontStarted: status.started ? 1 : 0,
+    frontCleared: status.cleared ? 1 : 0,
+    frontWave: status.wave,
+    frontLiving: status.living,
+    frontPhase: phase,
+    frontHunting: status.hunting,
+    frontBossHealth: health === null ? -1 : Math.round(health.current),
+    frontBossMax: health === null ? -1 : Math.round(health.max),
   };
 }
 
@@ -304,6 +334,15 @@ function spawnOrder(ctx: GameContext, order: EncounterOrder): void {
   }
   if (order.unit === FOREMAN_ID) {
     runtime.boss = { id, state: createBossState(FOREMAN_PHASES), stance: FOREMAN_PHASES[0]!.id };
+    if (runtime.stageBossFraction !== null) {
+      // Capture staging only: the boss arrives already worn down, so one real hit crosses a phase.
+      const stats = ctx.scene.entity.stats.get(id, "health");
+      if (stats !== null) {
+        const target = Math.round(stats.max * runtime.stageBossFraction);
+        ctx.scene.entity.stats.delta(id, "health", target - stats.current);
+      }
+      runtime.stageBossFraction = null;
+    }
     ctx.game.notices.push({ text: FOREMAN_TELL_TEXT.wake ?? "", tone: "warn", ttlMs: 2600 });
     ctx.game.audio.play("wave", position);
   }
@@ -438,7 +477,7 @@ function driveUnit(ctx: GameContext, id: string, nowMs: number, dt: number): voi
 
   const heardAt = runtime.hunting.get(id);
   if (heardAt !== undefined) {
-    ctx.scene.entity.moveToward(id, heardAt, { speed: def.walkSpeed, stopDistance: 1.2, dt });
+    ctx.scene.entity.moveTowardCommit(id, heardAt, { speed: def.walkSpeed, stopDistance: 1.2, dt });
     return;
   }
 
@@ -450,7 +489,7 @@ function driveUnit(ctx: GameContext, id: string, nowMs: number, dt: number): voi
   if (orders === null || orders.threat === null || orders.threatId === null) return;
   const post = runtime.posts.get(id) ?? orders.threat;
   if (distance2d(entity.position, post) > 1.1) {
-    ctx.scene.entity.moveToward(id, post, { speed: def.walkSpeed, stopDistance: 0.8, dt });
+    ctx.scene.entity.moveTowardCommit(id, post, { speed: def.walkSpeed, stopDistance: 0.8, dt });
   }
   tickEnemyAttack(ctx, def, id, entity.position, orders.threatId, orders.threat, dt, nowMs, { stationary: true });
 }
@@ -492,7 +531,7 @@ function tickForeman(ctx: GameContext, nowMs: number, dt: number): void {
   const playerDowned = reservePhase(ctx) === "downed";
   if (player === null || playerDowned) return;
   if (distance2d(entity.position, player.position) > (behaviour.preferredRange ?? 3) * 1.2) {
-    ctx.scene.entity.moveToward(boss.id, player.position, {
+    ctx.scene.entity.moveTowardCommit(boss.id, player.position, {
       speed: 3.2 * (stance?.speedScale ?? 1),
       stopDistance: behaviour.preferredRange ?? 3,
       dt,
@@ -613,13 +652,64 @@ export function stageFrontBoss(ctx: GameContext): void {
   runtime.posts.clear();
   runtime.boss = null;
   runtime.cover = buildCover(ctx);
+  // Stand the player on the spawn side of the wreck, facing it, so the shot frames the fight the
+  // staged wave produces rather than the back of the player's head.
+  runtime.stageBossFraction = 0.64;
   openWave(ctx, FRONT_WAVE_COUNT - 1);
   const encounter = encounterOf(ctx);
   for (const order of encounter.update(4)) spawnOrder(ctx, order);
+  frameBoss(ctx);
+}
+
+/** Capture staging for the opening wave: face the wreck and put the probe on the field at once. */
+export function stageFrontFight(ctx: GameContext): void {
+  const runtime = runtimeOf(ctx);
+  for (const id of [...runtime.units.keys()]) ctx.scene.entity.despawn(id);
+  runtime.started = true;
+  runtime.cleared = false;
+  runtime.units.clear();
+  runtime.waveUnits = [];
+  runtime.posts.clear();
+  runtime.boss = null;
+  runtime.cover = buildCover(ctx);
+  frameFront(ctx);
+  openWave(ctx, 0);
+  const encounter = encounterOf(ctx);
+  for (const order of encounter.update(4)) spawnOrder(ctx, order);
+}
+
+function frameFront(ctx: GameContext): void {
+  const player = ctx.scene.entity.get(ctx.player.userId);
+  if (player === null) return;
+  // The first-person camera keeps its own yaw; stand on that yaw's line through the wreck so the
+  // staged fight is framed instead of sitting 18 degrees off the crosshair.
+  const forwardX = Math.sin(PLAYER_SPAWN_YAW);
+  const forwardZ = Math.cos(PLAYER_SPAWN_YAW);
+  const x = SITE.x - forwardX * 9;
+  const z = SITE.z - forwardZ * 9;
+  ctx.scene.entity.update(ctx.player.userId, {
+    position: [x, ctx.world.groundHeightAt(x, z), z],
+    rotationY: PLAYER_SPAWN_YAW,
+  });
+}
+
+/** Put the staged Foreman on the open road in the opening view, where the camera is proven to look. */
+function frameBoss(ctx: GameContext): void {
+  const runtime = runtimeOf(ctx);
   const boss = runtime.boss;
-  if (boss === null) return;
-  const stats = ctx.scene.entity.stats.get(boss.id, "health");
-  if (stats === null) return;
-  const target = Math.round(stats.max * 0.64);
-  ctx.scene.entity.stats.delta(boss.id, "health", target - stats.current);
+  const player = ctx.scene.entity.get(ctx.player.userId);
+  if (boss === null || player === null) return;
+  const forwardX = Math.sin(PLAYER_SPAWN_YAW);
+  const forwardZ = Math.cos(PLAYER_SPAWN_YAW);
+  const px = PLAYER_SPAWN[0] + forwardX * 10;
+  const pz = PLAYER_SPAWN[2] + forwardZ * 10;
+  ctx.scene.entity.update(ctx.player.userId, {
+    position: [px, ctx.world.groundHeightAt(px, pz), pz],
+    rotationY: PLAYER_SPAWN_YAW,
+  });
+  const x = px + forwardX * 10;
+  const z = pz + forwardZ * 10;
+  const position: EntityPosition = [x, ctx.world.groundHeightAt(x, z), z];
+  ctx.scene.entity.update(boss.id, { position });
+  rememberHome(ctx, boss.id, position);
 }
