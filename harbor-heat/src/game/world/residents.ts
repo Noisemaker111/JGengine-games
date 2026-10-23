@@ -152,6 +152,8 @@ interface Walker {
 /** The near half: nav-grid routes stepped along by hand, one entity per resident in range. */
 interface CityWalkers extends NearAgents {
   count(): number;
+  /** Where a walker's route currently ends, in world XZ, for a caller deciding whether to re-aim it. */
+  goal(id: string): readonly [number, number] | null;
 }
 
 /**
@@ -255,6 +257,12 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
       }
     },
     count: () => walkers.size,
+    goal(id) {
+      const walker = walkers.get(id);
+      if (walker === undefined) return null;
+      const last = walker.path[walker.path.length - 1];
+      return last === undefined ? null : [last[0], last[1]];
+    },
     dispose() {
       for (const walker of walkers.values()) ctx.scene.entity.despawn(walker.entityId);
       walkers.clear();
@@ -348,7 +356,7 @@ export function tickResidents(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
   residents.world.tick(dt, now, player?.position ?? [0, 0, 0]);
   residents.people.system.tick(dt);
-  aimBodies(residents);
+  applyDecisions(residents, now, dt);
   publishBoard(ctx, residents, dt);
   // A day is the natural save point: the cast writes its needs and moods into the world save once a cycle.
   const day = Math.floor(now / CYCLE_SECONDS);
@@ -359,19 +367,34 @@ export function tickResidents(ctx: GameContext, dt: number): void {
 }
 
 /**
- * A resident whose decision points at another place walks there: the near body takes the agent's
- * target, and keeps it until its decision changes.
+ * Where a near body should walk: an urgent need overrides the day (a hungry resident leaves its
+ * shift for a meal, a spent one goes home), and otherwise the authored routine owns the walk. The
+ * walker is only re-aimed when its route ends somewhere other than that answer, so a resident never
+ * replans on every frame.
  */
-function aimBodies(residents: CityResidents): void {
+function applyDecisions(residents: CityResidents, now: number, dt: number): void {
   for (const id of residents.world.ids()) {
     const view = residents.world.agent(id);
     if (view === null || view.mode !== "near") continue;
-    const target = residents.people.system.action(id)?.target ?? null;
-    if (target === null || residents.aimed.get(id) === target) continue;
-    const place = PLACES[target];
+    const agent = residents.people.system.get(id);
+    if (agent === null) continue;
+    const action = residents.people.system.action(id);
+    const urgent = action !== null && (action.option === "meal" || action.option === "home");
+    // The member's own day says where it is heading when its needs are not pulling it anywhere.
+    const phase = action === null ? null : agent.phaseAt(now);
+    const wanted = urgent ? action.target : (phase === null ? null : (phase.nextPlace ?? phase.place));
+    if (wanted === null) continue;
+    const place = PLACES[wanted];
     if (place === undefined) continue;
-    residents.aimed.set(id, target);
-    residents.near.setGoal(id, place);
+    const goal = residents.near.goal(id);
+    if (goal === null || Math.hypot(goal[0] - place[0], goal[1] - place[2]) > 1.5) {
+      residents.aimed.set(id, wanted);
+      residents.near.setGoal(id, place);
+    }
+    if (!urgent || action.option !== "meal") continue;
+    if (Math.hypot(view.position[0] - place[0], view.position[2] - place[2]) < 3) {
+      agent.needs.refill("hunger", 9 * dt);
+    }
   }
 }
 

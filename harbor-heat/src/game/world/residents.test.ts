@@ -5,7 +5,7 @@ import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { game } from "../../game.config";
 import { loop } from "../../loop";
 import { content } from "../content";
-import { RESIDENTS, RESIDENT_PLACES, routineFor, tickResidents } from "./residents";
+import { RESIDENTS, RESIDENT_PLACES, residentAt, residentMind, routineFor, tickResidents } from "./residents";
 
 const PLACES = Object.fromEntries(RESIDENT_PLACES.map((place) => [place.id, place.position]));
 const NEEDS: readonly NeedDefinition[] = [
@@ -146,5 +146,36 @@ describe("Mainsail residents", () => {
     // The whole-world save restores resident bodies; the schedule promotes them again on the first frame.
     ctx.scene.entity.spawn("ped_city", { id: `resident-${RESIDENTS[0]!.id}`, position: [0, 0, 0], role: "npc" });
     expect(() => tickResidents(ctx, 1 / 60)).not.toThrow();
+  });
+
+  test("a hungry resident near the player leaves its day for a meal and eats there", () => {
+    const ctx = createGameContext({ definition: game.game, content, player: { userId: "resident-test", isNew: true } });
+    loop.onInit(ctx);
+    loop.onNewPlayer(ctx);
+    tickResidents(ctx, 1 / 60);
+    const near = RESIDENTS.map((spec) => spec.id).find((id) => residentAt(ctx, id)?.mode === "near");
+    expect(near).toBeDefined();
+    const mind = residentMind(ctx, near!)!;
+    mind.agent.needs.refill("hunger", -mind.agent.needs.value("hunger") + 8);
+
+    const spec = RESIDENTS.find((resident) => resident.id === near)!;
+    const from = residentAt(ctx, near!)!.position;
+    for (let i = 0; i < 240; i += 1) {
+      ctx.time.advance(1 / 60);
+      tickResidents(ctx, 1 / 60);
+    }
+    expect(residentMind(ctx, near!)?.action?.option).toBe("meal");
+    expect(residentMind(ctx, near!)?.action?.target).toBe(spec.meal);
+
+    // The body walks the excursion rather than staying on the day it authored.
+    const moved = residentAt(ctx, near!)!.position;
+    expect(Math.hypot(moved[0] - from[0], moved[2] - from[2])).toBeGreaterThan(0.1);
+
+    // Standing at the meal place fills the belly, so the excursion ends and the day resumes.
+    for (let i = 0; i < 60 * 60; i += 1) {
+      ctx.time.advance(1 / 60);
+      tickResidents(ctx, 1 / 60);
+    }
+    expect(residentMind(ctx, near!)!.agent.needs.value("hunger")).toBeGreaterThan(28);
   });
 });

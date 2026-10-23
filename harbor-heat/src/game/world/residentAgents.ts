@@ -59,7 +59,13 @@ export const WANDER_PLACE = "place_avenue_cafe";
 /** Saved resident agents, riding the whole-world save with the rest of the stores. */
 export const residentAgentStore = defineStore<AgentSystemState | undefined>("harbor.residentAgents", undefined);
 
-const BY_ID = new Map(RESIDENTS.map((spec) => [spec.id, spec]));
+let residentIndex: Map<string, ResidentSpec> | null = null;
+
+/** Authored residents by id. Built on first use, so the module survives the residents ⇄ agents cycle. */
+function byId(): Map<string, ResidentSpec> {
+  if (residentIndex === null) residentIndex = new Map(RESIDENTS.map((spec) => [spec.id, spec]));
+  return residentIndex;
+}
 
 function walkCost(at: Vec3 | null, to: string, places: (id: string) => Vec3 | null): number {
   if (at === null) return WALK_COST;
@@ -121,12 +127,12 @@ export function createResidentAgents(options: {
       schedule: { cycleSeconds: CYCLE_SECONDS, travelSeconds: walkTime, stops: residentStops(spec, index) },
     })),
     select: (view) => {
-      const spec = BY_ID.get(view.id);
+      const spec = byId().get(view.id);
       return spec === undefined ? [] : residentOffers(spec, view.at, options.places);
     },
   });
   return {
     system,
-    spec: (id) => BY_ID.get(id),
+    spec: (id) => byId().get(id),
   };
 }
