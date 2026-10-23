@@ -1,0 +1,155 @@
+import { evalCurve, type Curve } from "@jgengine/core/game/progression";
+import { createCareerBank, type CareerBankState } from "@jgengine/core/progression/careerBank";
+import { createGateSet, gateFacts, type GateStatus } from "@jgengine/core/progression/gates";
+import { createStanding, type StandingState } from "@jgengine/core/progression/standing";
+
+import type { Home, Item, ItemKind } from "./state";
+
+/** Marrow pays in extraction scrip; nothing else in Halloway is worth carrying home. */
+export const SCRIP = { id: "scrip", name: "Extraction scrip", unit: "scrip" };
+
+/** One operator, so the save's standing belongs to the profile rather than an account list. */
+export const OPERATOR = "operator";
+
+/** What the counter pays per recovered item, in scrip. */
+export const SCRIP_VALUE: Record<ItemKind, number> = { wire: 12, polymer: 9, cells: 18, ink: 45, "service-rifle": 60 };
+
+/** Most a single shift's scrip can be worth, so one lucky cache cannot buy out the counter. */
+export const HAUL_CAP = 400;
+
+/** Marrow's regard, in the numbers the counter reads. */
+export const STANDING_CONFIG = {
+  tracks: [
+    {
+      id: "marrow",
+      label: "Marrow",
+      initial: 0,
+      min: -60,
+      max: 200,
+      tiers: [
+        { id: "unlogged", min: -60, relation: "neutral" as const },
+        { id: "on-file", min: 15, relation: "friendly" as const },
+        { id: "trusted", min: 40, relation: "friendly" as const },
+        { id: "chartered", min: 80, relation: "friendly" as const },
+      ],
+    },
+  ],
+  outcomes: [
+    { id: "extracted", label: "Returned by rail", impacts: { marrow: 14 } },
+    { id: "lost", label: "Life lost in Bellwether", impacts: { marrow: -10 } },
+  ],
+};
+
+/** A standing ledger holding whatever the save carries; empty means a fresh operator. */
+export function marrowStanding(state?: StandingState) {
+  const standing = createStanding(STANDING_CONFIG);
+  if (state !== undefined) standing.restore(state);
+  return standing;
+}
+
+/** One good on the fitter's counter, priced from a curve evaluated at live standing. */
+export interface SupplyDef {
+  kind: ItemKind;
+  label: string;
+  blurb: string;
+  price: Curve;
+}
+
+export const SUPPLIES: readonly SupplyDef[] = [
+  { kind: "wire", label: "Copper spool", blurb: "Feeds the Case Bench. Always on the shelf.", price: { kind: "linear", base: 36, per: -0.22, min: 18, round: "round" } },
+  { kind: "polymer", label: "Suit seals", blurb: "Tank and armor seals, bought by the sheet.", price: { kind: "linear", base: 46, per: -0.26, min: 24, round: "round" } },
+  { kind: "cells", label: "Power cells", blurb: "Station power. The counter wants a name on file.", price: { kind: "linear", base: 64, per: -0.32, min: 34, round: "round" } },
+  { kind: "ink", label: "Printer ink", blurb: "Restricted. Sold to operators Marrow trusts.", price: { kind: "linear", base: 128, per: -0.5, min: 70, round: "round" } },
+];
+
+/** Which standing opens each supply; an id here that no supply carries fails at load. */
+const SUPPLY_GATES = [
+  { id: "supply_wire", unlock: "wire", label: "Copper spool", requires: { standing: { trackId: "marrow", min: 0 } } },
+  { id: "supply_polymer", unlock: "polymer", label: "Suit seals", requires: { standing: { trackId: "marrow", min: 15 } } },
+  { id: "supply_cells", unlock: "cells", label: "Power cells", requires: { standing: { trackId: "marrow", min: 40 } } },
+  { id: "supply_ink", unlock: "ink", label: "Printer ink", requires: { standing: { trackId: "marrow", min: 80 } } },
+];
+
+/**
+ * The counter's shelf. Built at load, so a gate naming a supply that does not exist throws here
+ * instead of leaving a locked shelf nobody can ever open.
+ */
+export const COUNTER = createGateSet({
+  gates: SUPPLY_GATES,
+  catalog: { has: (id) => SUPPLIES.some((supply) => supply.kind === id) },
+  standing: marrowStanding(),
+});
+
+/** Scrip the counter charges for one unit, at this operator's standing. */
+export function priceOf(kind: ItemKind, standing: number): number {
+  const supply = SUPPLIES.find((entry) => entry.kind === kind);
+  if (supply === undefined) throw new Error(`deepward: no counter price for "${kind}"`);
+  return evalCurve(supply.price, standing);
+}
+
+/** What one gate needs before it opens, for the shelf's "still needed" line. */
+function gateFor(kind: ItemKind) {
+  return COUNTER.gates().find((gate) => gate.unlock === kind) ?? null;
+}
+
+/** The counter's rows: price at live standing, whether the shelf is open, and what opens it. */
+export interface CounterRow {
+  supply: SupplyDef;
+  price: number;
+  locked: boolean;
+  needs: number | null;
+  missing: GateStatus["missing"];
+}
+
+export function counterRows(home: Home): CounterRow[] {
+  const standing = marrowStanding(home.standing);
+  const facts = gateFacts(standing, OPERATOR, { [SCRIP.id]: home.bank.banked });
+  const statuses = COUNTER.status(facts);
+  const score = standing.standing(OPERATOR, "marrow");
+  return SUPPLIES.map((supply) => {
+    const gate = gateFor(supply.kind);
+    const status = gate === null ? null : statuses.find((entry) => entry.gate.id === gate.id) ?? null;
+    return {
+      supply,
+      price: priceOf(supply.kind, score),
+      locked: status !== null && !status.open,
+      needs: gate?.requires?.standing?.min ?? null,
+      missing: status?.missing ?? [],
+    };
+  });
+}
+
+/** Buy one unit at the counter; throws with a readable reason when the shelf is shut or scrip is short. */
+export function buySupply(home: Home, kind: ItemKind): Home {
+  if (home.activeDive !== null || home.reprintPending) throw new Error("Return to Marrow before buying");
+  const row = counterRows(home).find((entry) => entry.supply.kind === kind);
+  if (row === undefined) throw new Error("The counter does not stock that");
+  if (row.locked) throw new Error(`Marrow has not cleared you for ${row.supply.label}`);
+  const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
+  if (!bank.spend(row.price)) throw new Error(`Scrip short: ${row.supply.label} costs ${row.price}`);
+  const item: Item = { uid: `purchase-${home.revision}:${kind}`, kind, level: 1 };
+  return { ...home, revision: home.revision + 1, stash: [...home.stash, item], bank: bank.snapshot() };
+}
+
+/** Scrip value of a carried cache — what the rail pays if it comes home, and what death takes. */
+export function haulScrip(cache: readonly { kind: ItemKind }[]): number {
+  let total = 0;
+  for (const item of cache) total += SCRIP_VALUE[item.kind] ?? 0;
+  return total;
+}
+
+/** Bank a shift's scrip and move standing: the rail pays and Marrow remembers, a lost Life pays nothing. */
+export function settleEconomy(
+  home: Home,
+  cache: readonly { kind: ItemKind }[],
+  kind: "extracted" | "lost",
+): { bank: CareerBankState; standing: StandingState; scrip: number } {
+  const bank = createCareerBank({ currency: SCRIP, state: home.bank, haulCap: HAUL_CAP });
+  const standing = marrowStanding(home.standing);
+  const scrip = haulScrip(cache);
+  bank.earn(scrip);
+  if (kind === "extracted") bank.cashOut();
+  else bank.loseHaul();
+  standing.apply(OPERATOR, kind === "extracted" ? "extracted" : "lost");
+  return { bank: bank.snapshot(), standing: standing.snapshot(), scrip };
+}

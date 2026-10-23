@@ -13,6 +13,7 @@ import { distance, EXIT, roomAt } from "../../world";
 import { nearby, storageChanged, viewStore } from "../controls";
 import { CACHE, footprint, ITEMS, RIFLE, SIDEARM } from "../state";
 import { REFITS, refitMissing, type RefitId } from "../progression";
+import { counterRows, haulScrip, marrowStanding, OPERATOR, SCRIP } from "../counter";
 import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
 import { TitleGate } from "./menu/TitleGate";
@@ -71,6 +72,10 @@ export function GameUI() {
   const weapon = dive?.hand === "service-rifle" ? RIFLE : SIDEARM;
   const chosen = dive?.cache.find(i => i.uid === selected);
   const cells = Array.from({ length: CACHE.w * CACHE.h }, (_, i) => ({ x: i % CACHE.w, y: Math.floor(i / CACHE.w) }));
+  const marrowLedger = marrowStanding(view.home.standing);
+  const marrowTier = marrowLedger.tier(OPERATOR, "marrow");
+  const marrowScore = marrowLedger.standing(OPERATOR, "marrow");
+  const counter = counterRows(view.home);
   const close = () => { command("close"); grab(); };
   return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
     if (event.code === "Tab") event.stopPropagation();
@@ -103,13 +108,14 @@ export function GameUI() {
       </HudSurface>
       <HudSurface className="dw-haul" interactive={false}><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} {dive.cache.length === 1 ? "item" : "items"}</strong>
         <p>{dive.cache.map(i => ITEMS[i.kind].name).join(" · ") || "Nothing carried yet"}</p>
+        <p>{haulScrip(dive.cache)} {SCRIP.unit} on the rail, lost if this Life ends</p>
         <HudButton onClick={() => command("cache")}>Open cache / Tab</HudButton>
       </HudSurface>
     </>}
     {view.mode === "home" && view.panel === null && <HudSurface className="dw-home" as="aside" aria-label="Marrow departure" interactive={false}>
       <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Rail departure / 06</h2>
       <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
-      <dl><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
+      <dl><div><dt>Extraction scrip</dt><dd>{view.home.bank.banked} {SCRIP.unit}</dd></div><div><dt>Marrow standing</dt><dd>{marrowTier.id} / {marrowScore}</dd></div><div><dt>Persistent stash</dt><dd>{view.home.stash.length} {view.home.stash.length === 1 ? "item" : "items"}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
       <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death or dive reload loses carried items.</p>
       <p className="dw-note">Next departure: {view.rifleUid === null ? "issue sidearm · 12 free cache squares" : "banked service rifle · 9 free cache squares · rifle at risk"}. Prepare a rifle at the stash bench.</p>
       {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
@@ -130,6 +136,12 @@ export function GameUI() {
       {view.home.stash.length === 0 ? <p className="dw-empty">Empty shelves. Bring something home from Bellwether.</p> : <div className="dw-stash-list">{view.home.stash.map(item => <article key={item.uid}>
         <ItemMark kind={item.kind} size={38} /><div><strong>{ITEMS[item.kind].name}</strong><p>{ITEMS[item.kind].maker} · {ITEMS[item.kind].rarity} · level {item.level} · {ITEMS[item.kind].found}</p><small>{ITEMS[item.kind].detail}</small><small>Recovered on dive {item.uid.split(":")[0]}</small>{item.kind === "service-rifle" && <HudButton aria-pressed={view.rifleUid === item.uid} onClick={() => command("prepareRifle", { uid: item.uid })}>{view.rifleUid === item.uid ? "Prepared / three squares at risk" : "Prepare this rifle / risk next shift"}</HudButton>}</div>
       </article>)}</div>}
+      <h3>Fitter's counter / {view.home.bank.banked} scrip banked</h3><p>Marrow clears operators it trusts. Better standing also prices every shelf a little lower.</p>
+      <div className="dw-counter">{counter.map(row => <article className="dw-supply" key={row.supply.kind}>
+        <ItemMark kind={row.supply.kind} size={32} /><div><strong>{row.supply.label}</strong><p>{row.supply.blurb}</p>
+          <small>{row.price} {SCRIP.unit} / unit{row.locked ? ` / locked, needs ${row.needs} standing` : ""}</small>
+          <HudButton disabled={row.locked || row.price > view.home.bank.banked} onClick={() => command("buy", { kind: row.supply.kind })}>{row.locked ? "Locked" : row.price > view.home.bank.banked ? `Need ${row.price - view.home.bank.banked} more` : `Buy for ${row.price}`}</HudButton></div>
+      </article>)}</div>
       <h3>Refit the next departure</h3><p>Both refits need a copper spool. Spending it here means another rail journey for the other refit. Installed refits survive every Life.</p>
       {(Object.keys(REFITS) as RefitId[]).map(id => { const refit = REFITS[id], installed = view.home.refits.includes(id), missing = refitMissing(view.home, id); return <article className="dw-refit" key={id}>
         <h4>{refit.name} {installed ? " / installed" : ""}</h4><p>{refit.effect}</p>

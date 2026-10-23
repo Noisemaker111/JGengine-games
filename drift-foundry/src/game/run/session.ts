@@ -19,6 +19,7 @@ import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SPAWN_Z } from "./constants";
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
 import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
+import { ESCAPE_BONUS, bankOf, buyPart as buyGaragePart, garageRows, ownedParts, readCareer, SALVAGE_CREDITS, saveCareer, settleRun, standingOf, DRIVER, type CareerSave } from "../career";
 
 export type RunPhase = "start" | "running" | "won" | "crushed";
 
@@ -38,6 +39,8 @@ export interface RunOutcome {
   /** Where the player's kart finished in the four-kart field. */
   place: number;
   fieldSize: number;
+  /** Credits the run carried home, or lost to the compactor. */
+  haul: number;
 }
 
 export interface SessionSnapshot {
@@ -72,6 +75,8 @@ export interface SessionSnapshot {
   race: RaceSnapshot;
   /** Where the three yard karts are this tick - the loop poses their entities from this. */
   rivals: readonly RivalBody[];
+  /** Career money, standing and the garage's next rung per slot, as the pit screen reads them. */
+  career: { credits: number; standing: number; tier: string; garage: ReturnType<typeof garageRows>; saved: boolean };
 }
 
 export interface RunSession {
@@ -79,6 +84,8 @@ export interface RunSession {
   start(): void;
   restart(): void;
   returnToTitle(): void;
+  /** Buy the next rung of a slot's ladder; the pit screen re-reads the career from the snapshot. */
+  buyPart(slot: PartSlotId): { ok: boolean; reason?: string };
   togglePause(): void;
   suspend(value: boolean): void;
   tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean; salvageSwap?: boolean }): void;
@@ -116,6 +123,9 @@ export function createRunSession(
   const radioFeed = createGameFeed({ limit: TICKER_LIMIT });
   let radioCounter = 0;
   let outcome: RunOutcome | null = null;
+  let career: CareerSave = readCareer(storage);
+  let haul = 0;
+  let careerSaved = true;
 
   // Handling is composed from the installed parts and the damage baked into the body, then handed to
   // the sim as one object. The controller retunes by reference, so an installed part or a bent nose
@@ -192,6 +202,7 @@ export function createRunSession(
     installed = grant.installed;
     rebuildTuning();
     collected.add(found.id);
+    haul += SALVAGE_CREDITS;
     notify(part.radioLine, "success");
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
@@ -213,7 +224,8 @@ export function createRunSession(
     phase = "start";
     paused = false;
     runTime = 0;
-    installed = [];
+    installed = ownedParts(career);
+    haul = 0;
     collected = new Set<string>();
     gateAnnounced = new Set<string>();
     announcedSurge = null;
@@ -250,6 +262,9 @@ export function createRunSession(
     records = completed.records;
     personalBest = completed.personalBest;
     recordsSaved = saveRecords(records, storage);
+    career = settleRun(career, { kind: phase === "won" ? "escape" : "crushed", place: standings.placeOf(PLAYER_RACER_ID), haul: outcome?.haul ?? haul });
+    careerSaved = saveCareer(career, storage);
+    haul = 0;
     parkedRun = null;
     saveParkedRun(null, storage);
   }
@@ -284,6 +299,13 @@ export function createRunSession(
         collectedIds: collected,
         race: standings.snapshot(),
         rivals: opponents.bodies(),
+        career: {
+          credits: bankOf(career).banked(),
+          standing: standingOf(career).standing(DRIVER, "yard"),
+          tier: standingOf(career).tier(DRIVER, "yard").id,
+          garage: garageRows(career),
+          saved: careerSaved,
+        },
       };
     },
     start() {
@@ -310,6 +332,19 @@ export function createRunSession(
         }
         phase = "running";
         if (parkedRun === null) pushRadio("BOLT IT ON, GO GO");
+      }
+    },
+    buyPart(slot) {
+      try {
+        career = buyGaragePart(career, slot);
+        careerSaved = saveCareer(career, storage);
+        if (phase === "start") {
+          installed = ownedParts(career);
+          rebuildTuning();
+        }
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, reason: (error as Error).message };
       }
     },
     restart() {
@@ -398,6 +433,7 @@ export function createRunSession(
           zoneLabel: zoneAt(pose.position[2]).label,
           place: standings.placeOf(PLAYER_RACER_ID),
           fieldSize: FIELD_SIZE,
+          haul,
         };
         recordOutcome();
         return;
@@ -415,6 +451,7 @@ export function createRunSession(
           zoneLabel: zoneAt(pose.position[2]).label,
           place: standings.placeOf(PLAYER_RACER_ID),
           fieldSize: FIELD_SIZE,
+          haul: phase === "won" ? haul + ESCAPE_BONUS : haul,
         };
         recordOutcome();
       }

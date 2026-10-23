@@ -86,7 +86,7 @@ export function GameUI() {
   const deliberateSwap = offeredPart !== null && replacing !== null && (offeredPart.slot === "engine" || offeredPart.slot === "frame");
   const touch = (action: string, label: string) => <HudButton aria-label={label} onPointerDown={e => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); drive?.press(action); }} onPointerUp={() => drive?.release(action)} onPointerCancel={() => drive?.release(action)} onLostPointerCapture={() => drive?.release(action)}>{label}</HudButton>;
   return <div className="df-ui" ref={uiRef}>
-    {snapshot.phase === "start" && (credits ? <Credits onBack={() => setCredits(false)}/> : <StartScreen records={snapshot.records} onStart={() => commands.run("startRun", {})} onCredits={() => setCredits(true)}/>)}
+    {snapshot.phase === "start" && (credits ? <Credits onBack={() => setCredits(false)}/> : <StartScreen records={snapshot.records} onStart={() => commands.run("startRun", {})} onCredits={() => setCredits(true)} onBuy={(slot) => { session.buyPart(slot); publishSession(ctx, session); }}/>)}
     {snapshot.phase === "running" && <>
       <header className="df-hud-top">
         <HudSurface className="df-plate df-location" interactive={false}><span className="df-eyebrow">ROW SIX / {snapshot.zone.label}</span><b>{snapshot.runTime.toFixed(1)}<small> SEC</small></b></HudSurface>

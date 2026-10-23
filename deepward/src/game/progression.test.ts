@@ -71,11 +71,11 @@ describe("Marrow refits and reprint ownership", () => {
     let bytes = legacy;
     const storage = { getItem: () => bytes, setItem: (_: string, value: string) => { bytes = value; } };
     const session = openSave(storage);
-    expect(session.home.version).toBe(2);
+    expect(session.home.version).toBe(3);
     expect(session.home.refits).toEqual([]);
     expect(storage.getItem(SAVE_KEY)).toBe(legacy);
     session.commit(installRefit(session.home, "tank"));
-    expect(JSON.parse(bytes).version).toBe(2);
+    expect(JSON.parse(bytes).version).toBe(3);
     expect(openSave(storage).home.stash.length).toBe(1);
   });
 });

@@ -6,6 +6,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { distance, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
 import { acknowledgeReprint, ageDive, depart, fits, ITEMS, newDive, newHome, pack, recoverInterrupted, reloadWeapon, RIFLE, settle, SIDEARM, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
 import { installRefit, REFITS, type RefitId } from "./progression";
+import { buySupply } from "./counter";
 import { openSave, type SaveSession } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
@@ -207,6 +208,15 @@ export function registerControls(ctx: GameContext): void {
       viewStore.write(state, { ...v, home, error: "", hint: `${REFITS[input.id].name} installed. ${REFITS[input.id].effect}. Spent salvage is gone from the stash.` });
     } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
   } });
+  ctx.game.commands.define<{ kind: ItemKind }>("deepward.buy", { apply(state, input) {
+    const v = viewStore.read(state), save = runtime(state).save;
+    if (v.mode !== "home" || v.panel !== "stash" || save === null) return;
+    try {
+      const home = buySupply(v.home, input.kind);
+      save.commit(home);
+      viewStore.write(state, { ...v, home, error: "", hint: `${ITEMS[input.kind].name} bought at the counter. It is in the stash and survives your death.` });
+    } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
+  } });
   ctx.game.commands.define("deepward.acknowledgeReprint", { apply(state) {
     const v = viewStore.read(state), save = runtime(state).save;
     if (v.mode !== "reprinting" || save === null) return;
@@ -221,6 +231,13 @@ export function registerControls(ctx: GameContext): void {
   // Published shell dispatches each press/repeat to the bound action's command name.
   // UI commands share the apply functions. Only fire also consumes held input,
   // through its existing cooldown; discrete actions stay on the shell's press path.
+  // Capture and UI share the stash sheet the world interaction opens.
+  ctx.game.commands.define("deepward.enter", { apply(state) { enterFromTitle(state); } });
+  ctx.game.commands.define("deepward.openStash", { apply(state) {
+    const v = viewStore.read(state);
+    if (v.mode !== "home" || v.paused) return;
+    viewStore.write(state, { ...v, panel: "stash", paused: true });
+  } });
   ctx.game.commands.define("deepwardInteract", { apply: interact });
   ctx.game.commands.define("deepwardFire", { apply: fire });
   ctx.game.commands.define("deepwardReload", { apply: reload });
