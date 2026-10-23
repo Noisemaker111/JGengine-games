@@ -1,14 +1,14 @@
 import { IsolatedEntityModel } from "@jgengine/shell/render/SceneModels";
 import { stationAssets } from "./assets";
 import type { Triple } from "./art";
-import { RIFLE, SIDEARM, type Dive } from "./state";
+import { RIFLE_BASELINE, SIDEARM, type Dive } from "./state";
 
 export type ServiceWeaponKind = Dive["hand"];
 // These are the original Hand muzzle anchors. Barrel, bore and flash all terminate here.
 export const WEAPON_MUZZLE: Record<ServiceWeaponKind, Triple> = { sidearm: [0, 0, -0.22], "service-rifle": [0, 0, -0.5] };
 /** Pose is a projection of accepted simulation state; it has no local animation clock. */
 export function serviceWeaponPose(dive: Pick<Dive, "hand" | "shotCooldown" | "reload" | "hurt" | "flash">) {
-  const interval = dive.hand === "sidearm" ? SIDEARM.interval : RIFLE.interval;
+  const interval = dive.hand === "sidearm" ? SIDEARM.interval : RIFLE_BASELINE.interval;
   // Equip also sets shotCooldown. Only an accepted shot's flash permits firing recoil.
   const kick = dive.flash > 0 ? Math.max(0, Math.min(1, (dive.shotCooldown / interval - 0.6) / 0.4)) : 0;
   const reload = dive.reload > 0 ? Math.sin(Math.PI * Math.max(0, Math.min(1, dive.reload / 1.3))) : 0;

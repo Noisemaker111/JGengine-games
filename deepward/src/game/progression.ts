@@ -1,4 +1,5 @@
 import { craft, missingInputs, type RecipeDef } from "@jgengine/core/crafting/recipe";
+import { kindOf } from "./items";
 import type { Home } from "./state";
 
 export const REFITS = {
@@ -6,7 +7,7 @@ export const REFITS = {
   reserve: { name: "Reserve rack", effect: "30 reserve rounds on each departure (was 18)", recipe: { id: "marrow-reserve", inputs: [{ itemId: "wire", count: 1 }, { itemId: "cells", count: 1 }], outputs: [] } },
 } satisfies Record<string, { name: string; effect: string; recipe: RecipeDef }>;
 export type RefitId = keyof typeof REFITS;
-const inventory = (home: Home) => ({ slots: home.stash.map(item => ({ itemId: item.kind, count: 1 })) });
+const inventory = (home: Home) => ({ slots: home.stash.map(item => ({ itemId: kindOf(item), count: 1 })) });
 export function refitMissing(home: Home, id: RefitId) { return missingInputs(inventory(home), REFITS[id].recipe); }
 /** Published crafting owns cost validation/consumption; Marrow owns persistent instance identity and benefits. */
 export function installRefit(home: Home, id: RefitId): Home {

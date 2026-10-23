@@ -1,16 +1,24 @@
 import { describe, expect, test } from "bun:test";
-import { ageDive, depart, fits, newDive, newHome, pack, recoverInterrupted, settle, takeLoot } from "./state";
+import { ageDive, depart, fits, newDive, newHome, pack, recoverInterrupted, settle, takeLoot, type Dive, type ItemKind } from "./state";
+import { rollItem } from "./items";
+
+function loot(dive: Dive, source: string, kind: ItemKind, depth = 1): Dive {
+  const result = takeLoot(dive, source, kind, depth);
+  if (!result.ok) throw new Error(result.message);
+  return result.dive;
+}
+const item = (kind: ItemKind, id: string) => rollItem(kind, 1, `test:${id}`, id);
 
 describe("Bellwether extraction invariants", () => {
   test("a settled haul is unique; the next Life loses only its carried cache", () => {
     const first = depart(newHome());
-    const dive = takeLoot(newDive(first.activeDive!), "wire", "wire")!;
-    expect(takeLoot(dive, "wire", "wire")).toBeNull();
+    const dive = loot(newDive(first.activeDive!), "wire", "wire");
+    expect(takeLoot(dive, "wire", "wire").ok).toBe(false);
     const home = settle(first, dive, "extracted", "Rail return");
-    expect(home.stash.map(i => i.uid)).toEqual(["1:wire"]);
+    expect(home.stash.map(i => i.id)).toEqual(["1:wire"]);
     expect(() => settle(home, dive, "extracted", "Again")).toThrow();
     const away = depart(home);
-    const lost = settle(away, takeLoot(newDive(2), "ink", "ink")!, "lost", "Fitter");
+    const lost = settle(away, loot(newDive(2), "ink", "ink", 4), "lost", "Fitter");
     expect(lost.stash).toEqual(home.stash);
     expect(lost.life).toBe(2);
   });
@@ -22,10 +30,10 @@ describe("Bellwether extraction invariants", () => {
     expect(recoverInterrupted(recovered)).toBe(recovered);
   });
   test("packing consumes footprints and rejects overlapping or out-of-bounds placement", () => {
-    const ink = pack([], { uid: "1:ink", kind: "ink", level: 1 })!;
-    expect(fits([ink], { uid: "1:cells", kind: "cells", level: 1, x: 0, y: 0, rotated: false })).toBe(false);
+    const ink = pack([], item("ink", "1:ink"))!;
+    expect(fits([ink], { ...item("cells", "1:cells"), x: 0, y: 0, rotated: false })).toBe(false);
     expect(fits([], { ...ink, x: 3 })).toBe(false);
-    expect(pack([ink], { uid: "1:fitter", kind: "service-rifle", level: 1 })).not.toBeNull();
+    expect(pack([ink], item("service-rifle", "1:fitter"))).not.toBeNull();
   });
   test("air exhaustion bleeds only time actually spent without air", () => {
     const dive = { ...newDive(1), oxygen: 0.5 };

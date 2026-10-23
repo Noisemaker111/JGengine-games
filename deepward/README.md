@@ -30,18 +30,41 @@ survive death; purchases consume exact saved items before confirmation.
 
 Recovered service rifles can be prepared at the stash bench for the next shift.
 Travel light to keep banked rifles safe and all twelve cache squares free, or
-bring one for 30 damage per shot instead of 20. It takes three cache squares.
-Preparation does not spend the rifle; verified departure removes its exact
-instance from the stash. Return banks it again, while death or dive reload loses
-it. Existing saves need no schema change. Save and command tests cover failed
-departure writes, returned rifles and interrupted departures; native play of
-this new preparation choice remains unverified.
+bring one for its own rolled damage per shot instead of the sidearm's 20. It
+takes three cache squares. Preparation does not spend the rifle; verified
+departure removes its exact instance from the stash. Return banks it again,
+while death or dive reload loses it.
+
+Every salvage instance is a roll: its level is the depth of the room it was
+found in, and its affixes come from one weighted table (`src/game/items.ts`).
+A copper spool from rail receiving is level 1; the printer ink in the back of
+the printhouse is level 4. The same source in the same Life always rolls the
+same instance, so a reload cannot re-roll a haul.
+
+The cache has weight as well as squares. Sixteen kilos is the load and the grid
+is still 4 × 3, so the choice is which heavy thing is worth the trip: the
+carried mass is on the cache sheet and the rail panel, and a source over the
+load is refused with the number ("would put the cache at 12.75 of 12").
+
+The counter also stamps service rifles. A bought rifle is level 2 with its own
+roll; preparing one makes it the baseline, and every other rifle in the stash
+then reads per-stat deltas against it (damage, rate, assay, and a weighted
+verdict) before either is risked. Dismantling a banked instance pays its
+salvage value once and spends it: the shared ledger refuses to equip, sell or
+pay for that instance again.
+
+The HUD is a `HudCanvas` of lane slabs, not hand-placed offsets: the shift
+plate and the departure docket stack in one top-left lane, buttons and tank in
+the top-right lane, the rail feed at the bottom. `hudBlockOverlaps` reports
+nothing at 1600 × 900 or at 844 × 390, and a panel added to a lane can only
+take free space.
 
 A lost Life now stops at Halloway's reprint screen. The loss is already saved;
 accept the next Life before moving or departing again. Reloading at this screen
 keeps the acknowledgement pending. The pause menu offers an explicit reload /
-abandon action. Save records use schema v2 under the original key; legacy v1
-bytes migrate on the next verified transition. Damaged and future saves remain
+abandon action. Save records use schema v4 under the original key; v1-v3 bytes
+migrate on the next verified transition, rolling the instance each legacy item
+would have had. Damaged and future saves remain
 untouched. Cost, loadout, failure and reload boundaries have deterministic tests
 against published engine commands. Native after-play confirmed Garage departure, explicit pause-menu abandonment,
 the reprint screen, acknowledgement and another reload retaining Life 2 with
@@ -92,10 +115,12 @@ not the full design, is what the numbers describe.
   - [x] Refits. Two permanent buys at the stash: a sealed tank (145 seconds instead of 110) and a reserve
     rack (30 rounds instead of 18). Both cost one copper spool plus seals or cells, so one spool buys one
     of them, and that shortage is the intended decision.
-  - [x] Salvage. Five item kinds with real footprints — ink 2 × 2, power cells 1 × 2, service rifle 3 × 1,
-    suit seals 2 × 1, wire 1 × 1 — so what fits in twelve squares is the choice, not a weight number.
+  - [x] Salvage. Five item kinds with real footprints and real mass — ink 2 × 2 and 7.8 weight at depth,
+    power cells 1 × 2 and 2.75, service rifle 3 × 1 and 9.1, suit seals 2 × 1 and 2.2, wire 1 × 1 and
+    1.5 — so the twelve-square grid and the twelve-kilo load disagree, and what to leave behind is the
+    choice. Every instance rolls its own level and affixes.
   - [x] Lives. Death advances the Life once, keeps the stash, and stops at Halloway's reprint screen.
-    A service rifle can be prepared for one departure (30 damage against the 20-damage sidearm), leaves
+    A service rifle can be prepared for one departure (its rolled damage against the sidearm's 20), leaves
     the stash on departure, and is gone if that dive ends in death.
 - **Failure states.** Air at zero suffocates at 12 health a second; steam costs 18 a second; the Fitter
   print has 80 health and a windup. Death banks nothing carried and requires acknowledging the reprint
@@ -111,6 +136,6 @@ not the full design, is what the numbers describe.
     re-cross; UI: air and depth readable without opening a map.
   - *Prey (2017)* — feel: a station that reads as somewhere people worked; density: rooms with a job, not
     corridors with props; UI: a hand wheel instead of a spellbook.
-- **Gap to target.** Five item kinds are the entire loot table. [DESIGN.md](DESIGN.md) describes six hand
-  families, item levels, per-item trees and a two-axis rarity ladder; until some of that exists, the
-  second delve has nothing new to hold.
+- **Gap to target.** Five item kinds are the entire loot table even though every instance now rolls a
+  level and a rarity. [DESIGN.md](DESIGN.md) describes six hand families and per-item trees; until some of
+  that exists, the second delve has fewer new things to hold than the first.

@@ -3,7 +3,7 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { physics, VAULT_SPAWN, world } from "../world";
 import { keybinds, registerControls, tick, viewStore } from "./controls";
-import { newDive, RIFLE, SIDEARM, takeLoot } from "./state";
+import { newDive, RIFLE_BASELINE, SIDEARM, takeLoot } from "./state";
 
 function diveContext() {
   const definition = defineGameDefinition({
@@ -101,7 +101,8 @@ test("held fire and the same-frame action command share one shot, repeat at cool
 
 test("equipped rifle held fire preserves its interval and reload gate, then resumes until release", () => {
   const ctx = diveContext();
-  viewStore.update(ctx, view => ({ ...view, dive: takeLoot(view.dive!, "fitter", "service-rifle")! }));
+  const looted = takeLoot(viewStore.read(ctx).dive!, "fitter", "service-rifle");
+  viewStore.update(ctx, view => ({ ...view, dive: looted.ok ? looted.dive : view.dive }));
   ctx.game.commands.run("deepward.equip", { hand: "service-rifle" });
   expect(viewStore.read(ctx).dive!.hand).toBe("service-rifle");
   ctx.input.publish(["deepwardFire"]);
@@ -110,7 +111,7 @@ test("equipped rifle held fire preserves its interval and reload gate, then resu
   advanceFrames(ctx, 3);
   expect(viewStore.read(ctx).dive!.magazine).toBe(5);
   expect(viewStore.read(ctx).dive!.shotCooldown).toBeGreaterThan(SIDEARM.interval);
-  expect(viewStore.read(ctx).dive!.shotCooldown).toBeLessThanOrEqual(RIFLE.interval);
+  expect(viewStore.read(ctx).dive!.shotCooldown).toBeLessThanOrEqual(RIFLE_BASELINE.interval);
   advanceFrames(ctx, 6);
   expect(viewStore.read(ctx).dive!.magazine).toBe(5);
   advanceFrames(ctx, 5);

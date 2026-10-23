@@ -8,7 +8,9 @@ import { depart, newDive, newHome, recoverInterrupted, settle, takeLoot } from "
 
 function bankRifle() {
   const departure = depart(newHome());
-  return settle(departure, takeLoot(newDive(1), "fitter", "service-rifle")!, "extracted", "First armed return");
+  const looted = takeLoot(newDive(1), "fitter", "service-rifle", 4);
+  if (!looted.ok) throw new Error(looted.message);
+  return settle(departure, looted.dive, "extracted", "First armed return");
 }
 
 test("travel light keeps a recovered rifle safe; armed departure spends capacity and risks its exact instance", () => {
@@ -17,10 +19,11 @@ test("travel light keeps a recovered rifle safe; armed departure spends capacity
   expect(light.stash).toEqual(home.stash);
   expect(newDive(2, light).cache).toEqual([]);
   expect(newDive(2, light).hand).toBe("sidearm");
-  const armed = depart(home, rifle.uid), dive = newDive(2, armed, rifle);
+  const armed = depart(home, rifle.id), dive = newDive(2, armed, rifle);
   expect(armed.stash).toEqual([]);
   expect(dive.hand).toBe("service-rifle");
-  expect(dive.cache[0]).toMatchObject({ uid: "1:fitter", kind: "service-rifle", x: 0, y: 0 });
+  expect(dive.cache[0]).toMatchObject({ id: "1:fitter", x: 0, y: 0 });
+  expect(rifle.level).toBe(4);
   const returned = settle(armed, dive, "extracted", "Rifle returned");
   expect(returned.stash).toEqual(home.stash);
   expect(validHome(returned)).toBe(true);

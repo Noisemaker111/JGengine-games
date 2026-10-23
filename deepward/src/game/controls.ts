@@ -3,10 +3,12 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
-import { distance, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
-import { acknowledgeReprint, ageDive, depart, fits, ITEMS, newDive, newHome, pack, recoverInterrupted, reloadWeapon, RIFLE, settle, SIDEARM, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
+import { distance, depthAt, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
+import { acknowledgeReprint, ageDive, depart, fits, ITEMS, ledgerOf, newDive, newHome, pack, peekLoot, recoverInterrupted, reloadWeapon, settle, takeLoot, weaponOf, type Dive, type Home, type ItemKind, type Result } from "./state";
 import { installRefit, REFITS, type RefitId } from "./progression";
-import { buySupply } from "./counter";
+import { buySupply, dismantle } from "./counter";
+import { canCache, loadOf } from "./haul";
+import { itemValue, kindOf } from "./items";
 import { openSave, type SaveSession } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
@@ -68,8 +70,13 @@ function syncPlayer(ctx: GameContext, dive: Dive | null): void {
   ctx.scene.entity.stats.set(ctx.player.userId, "oxygen", { current: dive?.oxygen ?? 110, max: dive?.tankSeconds ?? 110 });
   ctx.scene.entity.stats.set(ctx.player.userId, "ammo", { current: dive?.magazine ?? 6 });
 }
-export function nearby(ctx: GameContext): { label: string; id: string; kind?: ItemKind; at: Point } | null {
-  const v = viewStore.read(ctx), at = playerAt(ctx);
+/** The authored depth behind a carried source: a salvage locker keeps its room, a stopped Fitter its own floor. */
+function sourceDepth(ctx: GameContext, dive: Dive, source: string, kind: ItemKind): number {
+  if (source === "fitter") return depthAt(dive.print.drop ?? dive.print.at, "vault");
+  const locker = SALVAGE.find(entry => entry.id === source);
+  return locker === undefined ? 1 : depthAt(locker.at, "vault");
+}
+export function nearby(ctx: GameContext): { label: string; id: string; kind?: ItemKind; at: Point } | null {  const v = viewStore.read(ctx), at = playerAt(ctx);
   if (at === null) return null;
   if (v.mode === "home") {
     if (distance(at, GARAGE) <= GARAGE_REACH) return { label: "E · Ride to Bellwether / full tank", id: "garage", at: GARAGE };
@@ -90,7 +97,7 @@ function begin(ctx: GameContext): void {
   const v = viewStore.read(ctx), at = playerAt(ctx), save = runtime(ctx).save;
   if (!playable(ctx) || v.mode !== "home" || at === null || distance(at, GARAGE) > GARAGE_REACH || save === null) return;
   try {
-    const rifle = v.rifleUid === null ? null : v.home.stash.find(item => item.uid === v.rifleUid && item.kind === "service-rifle") ?? null;
+    const rifle = v.rifleUid === null ? null : v.home.stash.find(item => item.id === v.rifleUid && kindOf(item) === "service-rifle") ?? null;
     const home = depart(v.home, v.rifleUid);
     save.commit(home); // A failed departure never enters the vault.
     const dive = newDive(home.activeDive!, home, rifle);
@@ -147,8 +154,12 @@ function interact(ctx: GameContext): void {
   if (dive.channel !== null) {
     viewStore.update(ctx, s => ({ ...s, dive: { ...dive, channel: null }, hint: "Search cancelled." })); return;
   }
-  if (pack(dive.cache, { uid: `${dive.id}:${target.id}`, kind: target.kind, level: 1 }) === null) {
-    ctx.game.notices.push({ text: "Cache has no room. Tab to repack or leave an item behind.", tone: "deny" }); return;
+  const pending = peekLoot(dive, target.id, target.kind, sourceDepth(ctx, dive, target.id, target.kind));
+  const weight = canCache(dive.cache, pending);
+  if (!weight.ok) { ctx.game.notices.push({ text: weight.message, tone: "deny" }); viewStore.update(ctx, s => ({ ...s, hint: weight.message, error: "" })); return; }
+  if (pack(dive.cache, pending) === null) {
+    const message = `The cache grid has no room for ${ITEMS[target.kind].name}. Tab to repack or leave an item behind.`;
+    ctx.game.notices.push({ text: message, tone: "deny" }); viewStore.update(ctx, s => ({ ...s, hint: message, error: "" })); return;
   }
   viewStore.update(ctx, s => ({ ...s, dive: { ...dive, channel: { id: target.id, remaining: 1.4, anchor: at } }, hint: "Searching / stay still. The Fitter can hear you." }));
 }
@@ -156,7 +167,7 @@ function fire(ctx: GameContext): void {
   const v = viewStore.read(ctx), at = playerAt(ctx), dive = v.dive;
   if (!playable(ctx) || v.mode !== "dive" || dive === null || at === null || dive.health <= 0 || dive.reload > 0 || dive.shotCooldown > 0) return;
   if (dive.magazine === 0) { ctx.game.notices.push({ text: "Empty magazine / R to reload.", tone: "deny" }); return; }
-  const weapon = dive.hand === "sidearm" ? SIDEARM : RIFLE;
+  const weapon = weaponOf(dive);
   ctx.game.audio.play("shot");
   const direction = runtime(ctx).aim;
   const from: Point = [at[0], 1.62, at[2]], enemy: Point = [dive.print.at[0], 1.1, dive.print.at[2]];
@@ -194,7 +205,7 @@ export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define<{ uid: string | null }>("deepward.prepareRifle", { apply(state, input) {
     const v = viewStore.read(state);
     if (v.mode !== "home" || v.panel !== "stash") return;
-    if (input.uid !== null && !v.home.stash.some(item => item.uid === input.uid && item.kind === "service-rifle")) {
+    if (input.uid !== null && (!ledgerOf(v.home).canUse(input.uid) || !v.home.stash.some(item => item.id === input.uid && kindOf(item) === "service-rifle"))) {
       viewStore.update(state, s => ({ ...s, error: "That service rifle is no longer banked" })); return;
     }
     viewStore.write(state, { ...v, rifleUid: input.uid, error: "", hint: input.uid === null ? "Salvage shift selected. The rifle stays safe in Marrow; all twelve cache squares are available." : "Armed shift selected. The rifle leaves the stash only when departure is saved. It costs three cache squares and is lost with your Life." });
@@ -215,6 +226,16 @@ export function registerControls(ctx: GameContext): void {
       const home = buySupply(v.home, input.kind);
       save.commit(home);
       viewStore.write(state, { ...v, home, error: "", hint: `${ITEMS[input.kind].name} bought at the counter. It is in the stash and survives your death.` });
+    } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
+  } });
+  ctx.game.commands.define<{ id: string }>("deepward.dismantle", { apply(state, input) {
+    const v = viewStore.read(state), save = runtime(state).save;
+    if (v.mode !== "home" || v.panel !== "stash" || save === null) return;
+    try {
+      const result = dismantle(v.home, input.id);
+      save.commit(result.home);
+      viewStore.write(state, { ...v, home: result.home, rifleUid: result.home.stash.some(item => item.id === v.rifleUid) ? v.rifleUid : null, error: "",
+        hint: `Broken down for ${result.scrip} scrip. The instance is spent; it cannot be prepared or paid for again.` });
     } catch (error) { viewStore.update(state, s => ({ ...s, error: message(error) })); }
   } });
   ctx.game.commands.define("deepward.acknowledgeReprint", { apply(state) {
@@ -266,23 +287,23 @@ export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define<{ uid: string; x?: number; y?: number; rotate?: boolean }>("deepward.pack", { apply(state, input) {
     const v = viewStore.read(state), dive = v.dive;
     if (v.panel !== "cache" || dive === null || v.mode !== "dive") return;
-    const item = dive.cache.find(i => i.uid === input.uid);
+    const item = dive.cache.find(i => i.id === input.uid);
     if (item === undefined) return;
     const next = { ...item, x: input.x ?? item.x, y: input.y ?? item.y, rotated: input.rotate ? !item.rotated : item.rotated };
     if (!Number.isInteger(next.x) || !Number.isInteger(next.y) || !fits(dive.cache, next)) { state.game.notices.push({ text: "That footprint will not fit there.", tone: "deny" }); return; }
-    viewStore.write(state, { ...v, dive: { ...dive, cache: dive.cache.map(i => i.uid === next.uid ? next : i) } });
+    viewStore.write(state, { ...v, dive: { ...dive, cache: dive.cache.map(i => i.id === next.id ? next : i) } });
   } });
   ctx.game.commands.define<{ uid: string }>("deepward.discard", { apply(state, input) {
     const v = viewStore.read(state), dive = v.dive;
     if (v.panel !== "cache" || dive === null || v.mode !== "dive") return;
-    const item = dive.cache.find(i => i.uid === input.uid);
+    const item = dive.cache.find(i => i.id === input.uid);
     if (item === undefined) return;
-    viewStore.write(state, { ...v, dive: { ...dive, cache: dive.cache.filter(i => i.uid !== input.uid), hand: item.kind === "service-rifle" ? "sidearm" : dive.hand }, hint: `${ITEMS[item.kind].name} left behind. It cannot be reclaimed this dive.` });
+    viewStore.write(state, { ...v, dive: { ...dive, cache: dive.cache.filter(i => i.id !== input.uid), hand: kindOf(item) === "service-rifle" ? "sidearm" : dive.hand }, hint: `${ITEMS[kindOf(item)].name} left behind. It cannot be reclaimed this dive.` });
   } });
   ctx.game.commands.define<{ hand: "sidearm" | "service-rifle" }>("deepward.equip", { apply(state, input) {
     const v = viewStore.read(state), dive = v.dive;
     if (v.mode !== "dive" || dive === null || dive.reload > 0 || (input.hand !== "sidearm" && input.hand !== "service-rifle")) return;
-    if (input.hand === "service-rifle" && !dive.cache.some(i => i.kind === "service-rifle")) return;
+    if (input.hand === "service-rifle" && !dive.cache.some(i => kindOf(i) === "service-rifle")) return;
     viewStore.write(state, { ...v, dive: { ...dive, hand: input.hand, shotCooldown: 0.5 }, hint: "One hand / equipped. Both guns share the same ammo pool." });
   } });
 }
@@ -393,13 +414,15 @@ export function tick(ctx: GameContext, dt: number): void {
     if (target === undefined || target.at === null || distance(at, ch.anchor) > 0.3 || distance(at, target.at) > 2.1 || !lineOfSight(at, target.at) || dive.health < v.dive.health || dive.health <= 0) {
       dive = { ...dive, channel: null }; hint = "Search interrupted / stay still and clear of danger.";
     } else if (ch.remaining <= dt) {
-      const collected = takeLoot(dive, ch.id, target.kind);
+      const depth = sourceDepth(ctx, dive, ch.id, target.kind);
+      const looted = takeLoot(dive, ch.id, target.kind, depth);
       const instanceId = runtime(ctx).worldItems.get(ch.id);
-      if (collected !== null && instanceId !== undefined && ctx.scene.worldItem.consume(instanceId) !== null) {
+      if (looted.ok && instanceId !== undefined && ctx.scene.worldItem.consume(instanceId) !== null) {
         runtime(ctx).worldItems.delete(ch.id);
-        dive = collected; hint = `${ITEMS[target.kind].name} in cache. It becomes permanent only after rail return.`;
+        dive = looted.dive; hint = `${ITEMS[target.kind].name} in cache. It becomes permanent only after rail return.`;
       }
-      else { dive = { ...dive, channel: null }; ctx.game.notices.push({ text: "Cache has no space for that footprint.", tone: "deny" }); }
+      else if (!looted.ok) { dive = { ...dive, channel: null }; ctx.game.notices.push({ text: looted.message, tone: "deny" }); }
+      else { dive = { ...dive, channel: null }; ctx.game.notices.push({ text: "The cache grid has no space for that footprint.", tone: "deny" }); }
     } else dive = { ...dive, channel: { ...ch, remaining: ch.remaining - dt } };
   }
   const trace = v.trace !== null && v.trace.remaining > dt ? { ...v.trace, remaining: v.trace.remaining - dt } : null;
@@ -414,10 +437,14 @@ export function tick(ctx: GameContext, dt: number): void {
 /** Read-only metrics for the published driver's standalone capture bridge. */
 export function captureProbe(ctx: GameContext): Record<string, number> {
   const v = viewStore.read(ctx), at = playerAt(ctx);
+  const load = loadOf(v.dive?.cache ?? []);
   return { x: at?.[0] ?? 0, z: at?.[2] ?? 0, inDive: v.mode === "dive" ? 1 : 0,
     reprinting: v.mode === "reprinting" ? 1 : 0, oxygen: v.dive?.oxygen ?? 0,
     tankSeconds: v.dive?.tankSeconds ?? 0, reserve: v.dive?.reserve ?? 0,
     carried: v.dive?.cache.length ?? 0, stash: v.home.stash.length,
+    cacheMass: load.mass, cacheRoom: load.remaining, banked: v.home.bank.banked,
+    salvaged: Object.keys(v.home.ledger).length, prepared: v.rifleUid === null ? 0 : 1,
+    stashValue: v.home.stash.reduce((sum, item) => sum + itemValue(item), 0),
     tankRefit: v.home.refits.includes("tank") ? 1 : 0, reserveRefit: v.home.refits.includes("reserve") ? 1 : 0,
     deaths: v.home.deaths, returns: v.home.extractions };
 }

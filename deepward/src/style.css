@@ -8,116 +8,119 @@
 :root { color-scheme: dark; font-family: Inter, "Segoe UI", sans-serif; background: #0b171b; color: #eceddc; }
 * { box-sizing: border-box; }
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-.dw-ui { position: absolute; inset: 0; pointer-events: none; color: #eceddc; font-size: 14px; text-shadow: 0 1px 3px #000; }
-.dw-ui button { pointer-events: auto; background: #1a302e; border: 1px solid #739b8d; color: #edebd7; padding: 10px 15px; font: inherit; cursor: pointer; text-shadow: none; }
-.dw-ui button:hover, .dw-ui button:focus-visible { background: #304b40; outline: 2px solid #e0bd86; outline-offset: 2px; }
-.dw-ui button[aria-pressed="true"] { background: #536447; border-color: #e0bd86; }
+
+/* The HUD is a HudCanvas of lane-placed panels; this wrapper only owns the layer and the typing. */
+.dw-ui { position: absolute; inset: 0; pointer-events: none; color: #ede9d9; font: 13px "Segoe UI", sans-serif; text-shadow: 0 1px 3px #000; }
+.dw-ui button { pointer-events: auto; min-height: 36px; background: #d7b774; color: #172529; border: 1px solid #ecd3a1; font: 600 12px "Segoe UI", sans-serif; padding: 8px 13px; white-space: normal; cursor: pointer; text-shadow: none; }
+.dw-ui button:hover { background: #f0d7a2; color: #172529; }
+.dw-ui button:focus-visible { outline: 3px solid #9ce0da; outline-offset: 3px; }
+.dw-ui button:disabled { background: #29383b; border-color: #536368; color: #a2aaa4; cursor: default; }
+.dw-ui button[aria-pressed="true"] { background: #a9d7ce; color: #172529; }
 .dw-ui h1, .dw-ui h2, .dw-ui p { margin: 0; }
-.dw-ui h1 { font-size: 25px; letter-spacing: 5px; font-weight: 650; }
-.dw-ui h1 span { font-size: 11px; letter-spacing: 2px; color: #bac6b1; }
-.dw-ui h2 { font-weight: 500; font-size: 32px; letter-spacing: -0.5px; margin: 8px 0 15px; }
-.dw-eyebrow { display: block; font: 10px monospace; text-transform: uppercase; letter-spacing: 2.5px; color: #b5c6b1; margin-bottom: 7px; }
-.dw-top { position: absolute; inset: 22px 28px auto; display: flex; justify-content: space-between; align-items: start; }
-.dw-top p { font: 12px monospace; color: #bac6b1; margin-top: 7px; }
-.dw-ui .dw-small { padding: 7px 11px; font-size: 11px; background: #101c1de0; }
-.dw-air { position: absolute; right: 28px; top: 110px; width: 230px; padding: 15px; background: #101e1ddc; border-left: 2px solid #8de6ce; }
-.dw-air > div { display: flex; align-items: center; gap: 16px; }
-.dw-air strong { font: 46px monospace; letter-spacing: -3px; color: #8de6ce; }
-.dw-air strong small { font-size: 20px; letter-spacing: 0; }
-.dw-air > div > span { font: 10px monospace; letter-spacing: 1px; }
-.dw-air p { margin-top: 7px; font: 11px monospace; color: #b5c6b1; }
-.dw-ui progress { display: block; height: 5px; width: 100%; border: 0; background: #38433c; accent-color: #8de6ce; }
+.dw-ui h1 { font-size: 20px; letter-spacing: 4px; font-weight: 700; }
+.dw-ui h1 span { font: 10px monospace; letter-spacing: 1px; color: #cdcdbc; }
+.dw-ui h2 { font-weight: 650; }
+.dw-eyebrow { display: block; font: 9px monospace; text-transform: uppercase; letter-spacing: 1.8px; color: #d4b779; margin-bottom: 6px; }
+.dw-ui progress { display: block; height: 3px; width: 100%; border: 0; background: #38433c; accent-color: #9cddd1; }
 .dw-ui progress::-webkit-progress-bar { background: #38433c; }
-.dw-ui progress::-webkit-progress-value { background: #8de6ce; }
+.dw-ui progress::-webkit-progress-value { background: #9cddd1; }
+.dw-small { background: #17262bdf !important; color: #d8d8c7 !important; border-color: #758584 !important; min-height: 32px; padding: 6px 11px; font-size: 11px; }
+
+/* Top-left: the shift plate and, in home mode, the departure docket stack in one lane. */
+.dw-title-plate { padding: 8px 12px; background: linear-gradient(90deg, #142227df, #14222788); border-left: 3px solid #d5b879; }
+.dw-title-plate p { font: 10px monospace; margin-top: 5px; color: #dadccd; }
+.dw-shift-buttons { display: flex; gap: 7px; align-items: start; }
+.dw-shift-buttons button { white-space: nowrap; }
+.dw-air { width: 188px; padding: 10px 12px; background: #15232bd9; border-top: 2px solid #9cddd1; }
+.dw-air > div { display: flex; align-items: center; gap: 12px; }
+.dw-air strong { font: 35px monospace; letter-spacing: -2px; color: #9cddd1; }
+.dw-air strong small { font-size: 13px; letter-spacing: 0; }
+.dw-air > div > span { font: 9px monospace; letter-spacing: 1px; }
+.dw-air p { margin-top: 6px; font: 10px monospace; color: #b5c6b1; }
 .dw-low .dw-air { border-color: #eead78; }
 .dw-low .dw-air strong { color: #f2ab75; }
 .dw-low .dw-air progress::-webkit-progress-value { background: #f2ab75; }
-.dw-vitals { position: absolute; left: 28px; bottom: 158px; width: 260px; padding: 15px; background: #101e1ddc; border-left: 2px solid #dfbd89; }
-.dw-vitals > span { display: block; font: 11px monospace; color: #b5c6b1; letter-spacing: 0.5px; }
-.dw-vitals strong { color: #eaddba; font-size: 22px; }
-.dw-vitals progress { margin: 8px 0 18px; }
-.dw-ammo { font: 23px monospace; margin-top: 8px; }
-.dw-ammo small { font-size: 11px; color: #b5c6b1; }
-.dw-reticle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff6d8; font-size: 28px; }
-.dw-damage { position: absolute; inset: 0; box-shadow: inset 0 0 100px 30px #ad3b3670; }
-.dw-haul { position: absolute; right: 28px; bottom: 158px; width: 230px; background: #101e1ddc; padding: 15px; border-left: 2px solid #759d8c; }
-.dw-haul strong { display: block; font-size: 24px; font-weight: 500; }
-.dw-haul p { font-size: 11px; line-height: 1.6; margin: 10px 0; color: #b5c6b1; }
-.dw-haul button { font-size: 11px; padding: 7px 12px; }
-.dw-home { position: absolute; top: 115px; left: 28px; width: 335px; padding: 22px; background: linear-gradient(120deg, #102220ee, #142523c9); border-top: 2px solid #e0bd86; }
-.dw-home h2 { font-size: 29px; }
-.dw-home p { font-size: 13px; line-height: 1.65; color: #cbd0bb; }
-.dw-home dl { margin: 19px 0; display: flex; justify-content: space-between; gap: 10px; }
-.dw-home dt { font-size: 10px; color: #a5b9ab; }
-.dw-home dd { margin: 5px 0 0; font: 20px monospace; }
-.dw-home .dw-note { font-size: 11px; color: #a7baac; }
-.dw-result { padding: 12px 0 0; border-top: 1px solid #627d67; margin-top: 15px !important; }
+.dw-vitals { width: 194px; padding: 10px 12px; background: #15232bd9; border-top: 2px solid #d5b879; }
+.dw-vitals > span { display: block; font: 9px monospace; color: #b5c6b1; letter-spacing: 0.5px; text-transform: uppercase; }
+.dw-vitals strong { color: #eaddba; font-size: 17px; }
+.dw-vitals progress { margin: 5px 0 10px; }
+.dw-ammo { font: 22px monospace; margin-top: 4px; }
+.dw-ammo small { font-size: 10px; color: #b5c6b1; }
+.dw-haul { width: 188px; padding: 10px 12px; background: #15232bd9; border-right: 2px solid #9cddd1; }
+.dw-haul strong { display: block; font: 17px monospace; font-weight: 600; }
+.dw-haul p { font-size: 10px; line-height: 1.55; margin: 5px 0; color: #b5c6b1; }
+.dw-haul button { font-size: 10px; padding: 5px 8px; min-height: 30px; }
+.dw-home { width: 290px; padding: 14px 16px; background: linear-gradient(100deg, #17272bea, #17272bab); border-left: 3px solid #d5b879; }
+.dw-home h2 { font-size: 21px; margin: 5px 0 8px; }
+.dw-home p { font-size: 11px; line-height: 1.55; color: #cbd0bb; }
+.dw-home dl { margin: 12px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+.dw-home dt { font: 9px monospace; color: #a5b9ab; }
+.dw-home dd { margin: 4px 0 0; font: 16px monospace; }
+.dw-home .dw-note { font-size: 10px; color: #a7baac; }
+.dw-result { margin-top: 9px !important; padding-top: 8px; border-top: 1px solid #627d67; }
 .dw-result strong { display: block; color: #e0bd86; font: 11px monospace; letter-spacing: 2px; }
-.dw-bottom { position: absolute; bottom: 20px; left: 28px; right: 28px; display: flex; flex-direction: column; align-items: center; gap: 9px; }
-.dw-radio { width: min(620px, 100%); background: #0d1c1dde; padding: 10px 15px; border-left: 2px solid #dda772; text-align: left; }
-.dw-radio span { font: 9px monospace; letter-spacing: 2px; color: #dda772; }
-.dw-radio p { font-size: 12px; line-height: 1.5; margin-top: 4px; }
-.dw-prompt { min-width: 320px; text-align: center; background: #23392edc !important; border: 1px solid #b5c4a0 !important; padding: 10px 18px; }
+.dw-reticle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff6d8; font-size: 28px; pointer-events: none; }
+.dw-damage { position: absolute; inset: 0; box-shadow: inset 0 0 100px 30px #ad3b3670; pointer-events: none; }
+.dw-radio { width: min(480px, 76vw); padding: 8px 12px; background: #142328df; border-left: 2px solid #dda772; text-align: left; }
+.dw-radio span { font: 8px monospace; letter-spacing: 2px; color: #dda772; }
+.dw-radio p { font-size: 11px; line-height: 1.5; margin-top: 3px; }
+.dw-ui .dw-prompt { min-width: 260px; max-width: 76vw; padding: 10px 18px; background: #d7b774 !important; color: #172529; border-color: #ecd3a1 !important; font-weight: 600; text-align: center; }
 .dw-prompt progress { margin: 8px 0; }
-.dw-prompt small { font-size: 11px; color: #cbd0bb; }
-.dw-keys { font: 10px monospace; color: #b5c6b1; padding: 5px; background: #0c191bd0; }
+.dw-prompt small { font-size: 11px; color: #172529; }
+.dw-keys { display: block; font: 10px monospace; color: #b5c6b1; padding: 5px 10px; background: #0c191bd0; }
 .dw-error { color: #ffbc93 !important; font-size: 12px; line-height: 1.6; }
-.dw-modal { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #091718b5; pointer-events: auto; padding: 22px; }
-.dw-sheet { width: min(690px, 100%); max-height: 88vh; overflow-y: auto; border: 1px solid #809582; border-top: 3px solid #dfbd89; padding: 30px; background: #152825; box-shadow: 0 18px 90px #0009; }
+
+/* Sheets and pause over the live HUD. */
+.dw-modal { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0d181bcc; backdrop-filter: blur(4px); pointer-events: auto; padding: 22px; }
+.dw-sheet { width: min(640px, 100%); max-height: calc(100dvh - 44px); overflow-y: auto; border: 1px solid #7c908b; border-top: 5px solid #d5b879; padding: 25px; background: linear-gradient(150deg, #27383b, #142429); box-shadow: 0 18px 90px #0009; text-shadow: none; }
+.dw-sheet > .dw-eyebrow { padding-bottom: 12px; border-bottom: 1px solid #596d69; }
 .dw-sheet > p { color: #c4cfbc; line-height: 1.6; margin-bottom: 14px; }
+.dw-sheet h3 { font: 14px monospace; color: #e0bd86; text-transform: uppercase; margin: 24px 0 8px; }
+.dw-sheet h4 { font-size: 15px; margin: 0 0 6px; }
+.dw-ui .dw-sheet-close { position: sticky; float: right; top: 0; margin: 0 0 12px 12px; z-index: 2; min-height: 36px; }
 .dw-stash-list { display: grid; gap: 9px; margin: 20px 0; }
-.dw-stash-list article { display: flex; align-items: start; gap: 14px; padding: 14px; background: #1f3630; border: 1px solid #435f4f; }
-.dw-swatch { width: 30px; height: 42px; display: block; border-radius: 2px; flex-shrink: 0; }
+.dw-stash-list article { display: flex; align-items: start; gap: 14px; padding: 14px; background: #17282c; border: 0; border-left: 2px solid #7dada0; }
 .dw-stash-list strong { font-size: 17px; font-weight: 500; }
 .dw-stash-list p { font: 11px monospace; margin: 5px 0; color: #c4cfbc; }
 .dw-stash-list small { display: block; font-size: 11px; line-height: 1.8; color: #adbfaa; }
-.dw-actions { display: flex; gap: 9px; flex-wrap: wrap; margin: 15px 0; }
-.dw-pause { max-width: 470px; }
-.dw-pause button { margin: 8px 8px 0 0; }
+.dw-stash-list .dw-affix { color: #9cddd1; }
+.dw-compare { font: 11px monospace; color: #cbd0bb; margin: 6px 0 !important; }
+.dw-compare strong { font-size: 12px; }
+.dw-compare.candidate strong { color: #9ce0a0; }
+.dw-compare.equipped strong { color: #eead78; }
+.dw-compare small { display: inline; font-size: 10px; color: #98a79a; }
+.dw-prepared { border-left: 2px solid #e0bd86; padding-left: 10px; }
+.dw-swatch { width: 20px; height: 38px; display: block; clip-path: polygon(0 0, 70% 0, 100% 16%, 100% 100%, 0 100%); flex-shrink: 0; }
+.dw-actions { display: flex; gap: 9px; flex-wrap: wrap; margin: 12px 0 4px; }
+.dw-pause { max-width: 510px; }
+.dw-control-list { display: grid; gap: 9px; padding: 15px 0; border-top: 1px solid #596d69; border-bottom: 1px solid #596d69; margin: 12px 0 18px; }
+.dw-control-list > div { display: flex; justify-content: space-between; gap: 18px; }
+.dw-control-list dt { color: #b5c2bb; }
+.dw-control-list dd { margin: 0; font: 11px monospace; }
 .dw-empty { border: 1px dashed #71866b; padding: 25px; margin: 20px 0; }
+.dw-refit { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; padding: 16px 0; border-bottom: 1px solid #516863; }
+.dw-refit h4, .dw-refit p { grid-column: 1; }
+.dw-refit p { font-size: 11px; color: #c4cfbc; }
+.dw-refit button { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+.dw-counter { display: grid; gap: 10px; padding: 12px 0 4px; }
+.dw-supply { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid #516863; }
+.dw-supply small { display: block; font-size: 10px; color: #8bd7bf; margin: 4px 0 6px; }
+
+/* Weight and the cache grid. */
+.dw-load { margin: 14px 0 6px; font: 11px monospace; color: #cbd0bb; }
+.dw-load strong { font-size: 13px; color: #eaddba; margin-right: 8px; }
+.dw-load progress { margin: 6px 0 4px; }
+.dw-load small { color: #98a79a; }
 .dw-cache-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 76px); gap: 5px; margin: 16px 0; }
-.dw-cache-cell { background: #10211f !important; border: 1px dashed #4c6657 !important; }
-.dw-cache-item { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; background: #304339 !important; border-width: 2px !important; padding: 7px !important; }
-.dw-cache-item small { color: #bac9b1; font: 10px monospace; margin-top: 6px; }
+.dw-cache-cell { background: #112125 !important; border: 1px dashed #4c6657 !important; }
+.dw-cache-item { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; background: linear-gradient(120deg, #314644, #1c3030) !important; border-width: 2px !important; padding: 7px !important; }
+.dw-cache-item small { color: #bac9b1; font: 9px monospace; margin-top: 3px; }
 .dw-cache-item.selected { outline: 2px solid #f2e2ba; outline-offset: -5px; }
+.dw-cache-item .dw-item-mark { margin-bottom: 3px; }
+.dw-cache-item > span { font-size: 11px; }
 .dw-pack-controls p { font-size: 12px; margin-top: 6px; color: #c4cfbc; }
 .dw-hand-wheel { display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #5b7660; padding: 15px 0; align-items: center; }
 .dw-hand-wheel span { font: 10px monospace; letter-spacing: 2px; margin-right: 8px; }
-@media (max-width: 850px) {
-  .dw-top { inset: 12px 14px auto; } .dw-ui h1 { font-size: 19px; letter-spacing: 3px; }
-  .dw-top h1 span { display: none; } .dw-air { right: 14px; top: 78px; width: 175px; padding: 10px; }
-  .dw-air strong { font-size: 32px; } .dw-vitals { left: 14px; width: 190px; bottom: 137px; padding: 10px; }
-  .dw-haul { right: 14px; width: 175px; bottom: 137px; padding: 10px; } .dw-haul p { display: none; }
-  .dw-home { left: 14px; top: 80px; width: 275px; padding: 17px; } .dw-home h2 { font-size: 24px; }
-  .dw-bottom { left: 14px; right: 14px; bottom: 8px; } .dw-keys { font-size: 8px; text-align: center; }
-  .dw-sheet { padding: 20px; } .dw-cache-grid { grid-template-rows: repeat(3, 60px); }
-}
-@media (max-height: 660px) {
-  .dw-home { top: 86px; } .dw-home .dw-note { display: none; } .dw-home p { font-size: 11px; }
-  .dw-home dl { margin: 12px 0; } .dw-ui h2 { font-size: 25px; }
-  .dw-air { top: 78px; } .dw-top p { font-size: 10px; }
-}
-/* Marrow shift tickets: compact punched edges, enamel numerals and warm docket stock. */
-.dw-ui { font-family:"Segoe UI",sans-serif;font-size:13px;color:#ede9d9; }
-.dw-ui button {min-height:36px;background:#d7b774;color:#172529;border:1px solid #ecd3a1;font:600 12px "Segoe UI",sans-serif;padding:8px 13px;white-space:normal;}
-.dw-ui button:hover {background:#f0d7a2;color:#172529;}.dw-ui button:focus-visible {outline:3px solid #9ce0da;outline-offset:3px;}.dw-ui button:disabled{background:#29383b;border-color:#536368;color:#a2aaa4;cursor:default;}.dw-ui button[aria-pressed=true]{background:#a9d7ce;color:#172529;}
-.dw-eyebrow{font-size:9px;letter-spacing:1.8px;color:#d4b779;}.dw-ui h1{font-size:20px;letter-spacing:4px;font-weight:700;}.dw-ui h1 span{font:10px monospace;letter-spacing:1px;color:#cdcdbc;}
-.dw-top{inset:18px 22px auto;}.dw-top>div{padding:8px 12px;background:linear-gradient(90deg,#142227df,#14222788);border-left:3px solid #d5b879;}.dw-top p{font-size:10px;margin-top:5px;color:#dadccd;}.dw-ui .dw-small{background:#17262bdf;color:#d8d8c7;border-color:#758584;min-height:32px;}
-.dw-air{right:22px;top:104px;width:188px;padding:10px 12px;background:#15232bd9;border-left:0;border-top:2px solid #9cddd1;}.dw-air strong{font-size:35px;letter-spacing:-2px;}.dw-air strong small{font-size:13px;}.dw-air>div{gap:12px;}.dw-air>div>span{font-size:9px;}.dw-air p{font-size:10px;}.dw-ui progress{height:3px;}
-.dw-vitals{left:22px;bottom:98px;width:194px;padding:10px 12px;background:#15232bd9;}.dw-vitals>span{font-size:9px;}.dw-vitals strong{font-size:17px;}.dw-vitals progress{margin:5px 0 10px;}.dw-ammo{font-size:22px;margin-top:4px;}.dw-ammo small{font-size:10px;}
-.dw-haul{right:22px;bottom:98px;width:188px;padding:10px 12px;background:#15232bd9;border-left:0;border-right:2px solid #9cddd1;}.dw-haul strong{font:17px monospace;}.dw-haul p{font-size:10px;margin:5px 0;}.dw-haul button{font-size:10px;padding:5px 8px;min-height:30px;}
-.dw-home{top:auto;left:22px;bottom:110px;width:290px;padding:14px 16px;background:linear-gradient(100deg,#17272bea,#17272bab);border-top:0;border-left:3px solid #d5b879;}.dw-home h2{font-size:21px;margin:5px 0 8px;}.dw-home p{font-size:11px;line-height:1.55;}.dw-home dl{gap:22px;justify-content:start;margin:13px 0;}.dw-home dt{font:9px monospace;}.dw-home dd{font-size:16px;}.dw-home .dw-note{font-size:10px;}.dw-result{margin-top:9px!important;padding-top:8px;}
-.dw-bottom{bottom:20px;left:22px;right:22px;gap:7px;}.dw-radio{width:min(480px,100%);padding:8px 12px;background:#142328df;}.dw-radio span{font-size:8px;}.dw-radio p{font-size:11px;margin-top:3px;}.dw-ui .dw-prompt{min-width:260px;max-width:100%;background:#d7b774!important;color:#172529;border-color:#ecd3a1!important;font-weight:600;}.dw-prompt small{color:#172529;}
-.dw-modal{background:#0d181bcc;backdrop-filter:blur(4px);}.dw-sheet{width:min(640px,100%);max-height:calc(100dvh - 44px);border:1px solid #7c908b;border-top:5px solid #d5b879;padding:25px;background:linear-gradient(150deg,#27383b,#142429);text-shadow:none;}.dw-sheet>.dw-eyebrow{padding-bottom:12px;border-bottom:1px solid #596d69;}.dw-ui h2{font-weight:650;}.dw-sheet h3{font:14px monospace;color:#e0bd86;text-transform:uppercase;margin:24px 0 8px;}.dw-sheet h4{font-size:15px;margin:0 0 6px;}.dw-stash-list article{background:#17282c;border:0;border-left:2px solid #7dada0;}.dw-swatch{width:20px;height:38px;clip-path:polygon(0 0,70% 0,100% 16%,100% 100%,0 100%);}
-.dw-refit{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:16px 0;border-bottom:1px solid #516863;}.dw-refit h4,.dw-refit p{grid-column:1;}.dw-refit p{font-size:11px;color:#c4cfbc;}.dw-refit button{grid-column:2;grid-row:1/4;align-self:center;}.dw-pause{max-width:510px;}.dw-control-list{display:grid;gap:9px;padding:15px 0;border-top:1px solid #596d69;border-bottom:1px solid #596d69;margin:12px 0 18px;}.dw-control-list>div{display:flex;justify-content:space-between;gap:18px;}.dw-control-list dt{color:#b5c2bb;}.dw-control-list dd{margin:0;font:11px monospace;}.dw-cache-item{background:linear-gradient(120deg,#314644,#1c3030)!important;}.dw-cache-cell{background:#112125!important;}
-@media(max-width:700px){.dw-top{inset:10px 12px auto;}.dw-top h1{font-size:16px;letter-spacing:2px;}.dw-top .dw-eyebrow{font-size:8px;letter-spacing:0;}.dw-top h1 span{font-size:9px;display:inline;}.dw-air{right:12px;top:90px;width:152px;}.dw-air strong{font-size:28px;}.dw-air .dw-eyebrow{font-size:8px;letter-spacing:0;}.dw-vitals{left:12px;width:150px;bottom:94px;}.dw-haul{right:12px;width:152px;bottom:94px;}.dw-home{left:12px;top:auto;bottom:105px;width:260px;}.dw-bottom{left:12px;right:12px;bottom:12px;}.dw-modal{padding:12px;}.dw-sheet{max-height:calc(100dvh - 24px);padding:20px;}.dw-refit{grid-template-columns:1fr;}.dw-refit button{grid-column:1;grid-row:auto;justify-self:start;}}
-@media(max-height:520px){.dw-top .dw-eyebrow{display:none;}.dw-home{top:auto;bottom:95px;width:270px;padding:10px 14px;}.dw-home .dw-note{display:none;}.dw-home dl{margin:9px 0;}.dw-home h2{font-size:18px;}.dw-air{top:72px;}.dw-vitals,.dw-haul{bottom:90px;}.dw-sheet h2{font-size:24px;}.dw-sheet{padding:18px;}.dw-cache-grid{grid-template-rows:repeat(3,48px);}}
-
-.dw-ui .dw-sheet-close {position:sticky;float:right;top:0;margin:0 0 12px 12px;z-index:2;min-height:36px;}
-
-.dw-item-mark {flex-shrink:0;} .dw-cache-item .dw-item-mark {margin-bottom:3px;} .dw-cache-item>span {font-size:11px;} .dw-cache-item small {margin-top:3px;font-size:9px;}
-@media(max-width:850px){.dw-cache-item {padding:4px!important;} .dw-cache-item .dw-item-mark {width:20px!important;height:20px!important;}}
-@media(max-height:520px){.dw-cache-item {padding:3px!important;} .dw-cache-item .dw-item-mark {width:20px!important;height:20px!important;} .dw-cache-item small {display:none;}}
 
 /* Deepward's front-end: the Marrow platform behind it, the record read on Continue. */
 .dw-title { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
@@ -126,11 +129,34 @@ html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .dw-wordmark span { display: block; margin-top: 10px; font: 12px monospace; letter-spacing: 0.3em; color: #d5b879; }
 .dw-title-note { margin: 0; font: 11px monospace; line-height: 1.7; color: #bac7c1; max-width: 46ch; }
 .dw-pause-menu { margin-top: 6px; }
-
 /* A held shift hides its live chrome; only the pause sheet stays on screen. */
 .dw-ui.dw-held > :not(.dw-modal) { visibility: hidden; }
 /* The field theme's global button skin would flatten the SDK pause block; the resume keeps its accent. */
 .dw-pause-menu [data-pause-resume] { background: var(--jg-accent); border-color: var(--jg-accent); color: var(--jg-surface-deep); text-shadow: none; }
 .dw-pause-menu [data-pause-resume]:hover, .dw-pause-menu [data-pause-resume]:focus-visible { background: var(--jg-accent-bright, var(--jg-accent)); filter: brightness(1.08); }
 
-.dw-counter{display:grid;gap:10px;padding:12px 0 4px;}.dw-supply{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid #516863;}.dw-supply small{display:block;font-size:10px;color:#8bd7bf;margin:4px 0 6px;}
+/* Short landscape: the departure docket keeps its numbers and drops its prose, so the top-left lane never reaches the radio. */
+@media (max-height: 560px) {
+  .dw-home { padding: 10px 12px; }
+  .dw-home h2 { font-size: 18px; margin: 3px 0 6px; }
+  .dw-home > p { display: none; }
+  .dw-home dl { margin: 8px 0; gap: 16px; }
+  .dw-home dd { font-size: 13px; margin-top: 3px; }
+  .dw-home .dw-result { margin-top: 6px !important; padding-top: 6px; font-size: 10px; }
+  .dw-title-plate .dw-eyebrow { display: none; }
+  .dw-radio p { font-size: 10px; }
+  .dw-cache-grid { grid-template-rows: repeat(3, 52px); }
+  .dw-sheet { padding: 18px; }
+}
+@media (max-width: 700px) {
+  .dw-air { width: 152px; }
+  .dw-vitals { width: 150px; }
+  .dw-haul { width: 152px; }
+  .dw-home { width: 260px; }
+  .dw-title-plate { padding: 6px 9px; }
+  .dw-ui h1 { font-size: 16px; letter-spacing: 2px; }
+  .dw-shift-buttons { flex-direction: column; align-items: flex-end; }
+  .dw-sheet { padding: 20px; }
+  .dw-refit { grid-template-columns: 1fr; }
+  .dw-refit button { grid-column: 1; grid-row: auto; justify-self: start; }
+}
