@@ -164,7 +164,11 @@ function gunsSystem(): GameSaveSystem {
   };
 }
 
-/** The relay's own document. Separate from the whole-world snapshot, one section per live system. */
+/**
+ * The relay's own document. Separate from the whole-world snapshot, one section per live system.
+ * The write cadence is the engine's autosave policy: {@link followWorldSave} marks it dirty whenever
+ * the world saves, and the debounce below turns those marks into one write.
+ */
 export function createScrapSave(ctx: GameContext, options: { backend?: SaveBackend; slot?: string } = {}): GameSave {
   return createGameSave({
     backend: options.backend ?? localSaveBackend(),
@@ -173,6 +177,7 @@ export function createScrapSave(ctx: GameContext, options: { backend?: SaveBacke
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
     systems: [characterSystem(ctx), runSystem(ctx), combatSystem(ctx), ledgerSystem(ctx), gunsSystem()],
+    autosave: { debounceMs: 500, maxWaitMs: 2000 },
     devtoolsName: "scrap.save",
   });
 }
@@ -208,5 +213,28 @@ export async function saveScrapState(ctx: GameContext): Promise<void> {
 /** A digest over the systems this document owns, for a test or a diff between builds. */
 export function scrapSaveDigest(ctx: GameContext, backend?: SaveBackend): string {
   return (backend === undefined ? scrapSave(ctx) : createScrapSave(ctx, { backend })).digest();
+}
+
+const worldMirror = perContext(() => ({ armed: false }));
+
+/**
+ * Mirror every world autosave into this document, so a reload restores the run's systems (loaded
+ * rounds, reserve, statuses, the journal) from the same moment the world snapshot was captured.
+ * Disarmed until {@link armWorldSave}: a world *load* notifies its subscribers too, and an armed
+ * mirror would write the fresh boot baseline over the mid-run document before it is read back.
+ */
+export function followWorldSave(ctx: GameContext): () => void {
+  const mirror = worldMirror(ctx);
+  mirror.armed = false;
+  return (
+    ctx.game.save?.subscribe(() => {
+      if (mirror.armed) scrapSave(ctx).touch();
+    }) ?? (() => {})
+  );
+}
+
+/** Start following the world's saves once the boot load has applied. */
+export function armWorldSave(ctx: GameContext): void {
+  worldMirror(ctx).armed = true;
 }
 

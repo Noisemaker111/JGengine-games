@@ -1,6 +1,6 @@
 import { earn, openBooks, spend } from "./game/cash";
 import { loadSavedProgress } from "./game/saveCompatibility";
-import { loadScrapSave, saveScrapState, scrapSave } from "./game/save";
+import { armWorldSave, followWorldSave, loadScrapSave, saveScrapState, scrapSave } from "./game/save";
 import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
@@ -255,6 +255,9 @@ function onInit(ctx: GameContext): void {
   // save document and the scrip journal. Each is per-context state that the world snapshot cannot see.
   void scrapSave(ctx);
   openBooks(ctx);
+  // The world snapshot autosaves on the engine's trailing timer; this document mirrors each of those
+  // writes, so a reload mid-run restores the loaded rounds, reserve and statuses from the same moment.
+  followWorldSave(ctx);
   ctx.time.every(RESPAWN_SWEEP_SECONDS, () => respawnClusters(ctx));
 }
 
@@ -290,6 +293,8 @@ function onNewPlayer(ctx: GameContext): void {
 async function resumeOrStart(ctx: GameContext): Promise<void> {
   const worldLoaded = await loadSavedProgress(ctx);
   const systemsLoaded = worldLoaded ? await loadScrapSave(ctx) : false;
+  // Both halves are on disk by now; from here the document follows every world autosave.
+  armWorldSave(ctx);
   if (worldLoaded && (systemsLoaded || resumeBuild(ctx))) {
     if (!systemsLoaded) session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);

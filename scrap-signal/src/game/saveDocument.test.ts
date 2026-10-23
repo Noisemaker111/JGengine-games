@@ -17,7 +17,7 @@ import {
   rollGun,
   type GunDef,
 } from "./handroll";
-import { createScrapSave } from "./save";
+import { createScrapSave, armWorldSave, followWorldSave, scrapSave } from "./save";
 import { inventories } from "./inventories";
 import { session } from "./session";
 import { characterIdStore, reserveStore, selectedSlotStore, talentRanksStore } from "./stores";
@@ -154,8 +154,25 @@ describe("scrap-signal save document", () => {
     expect(selectedSlotStore.read(reboot)).toBe(2);
   });
 
-  test("an empty slot resets the mounted systems instead of leaving the last run behind", async () => {
+  test("the document mirrors world saves only after boot has applied", async () => {
     const backend = memorySaveBackend();
+    const ctx = boot(backend);
+    ctx.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
+    const document = scrapSave(ctx);
+    const stop = followWorldSave(ctx);
+
+    // A world *load* notifies subscribers too; before arming, that must not overwrite the mid-run slot.
+    const before = document.revision();
+    await ctx.game.save!.save();
+    expect(document.revision()).toBe(before);
+
+    armWorldSave(ctx);
+    await ctx.game.save!.save();
+    expect(document.revision()).toBeGreaterThan(before);
+    stop();
+  });
+
+  test("an empty slot resets the mounted systems instead of leaving the last run behind", async () => {    const backend = memorySaveBackend();
     const host = boot(backend);
     host.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
     pickCharacter("cipher");
