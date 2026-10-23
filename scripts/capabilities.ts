@@ -80,7 +80,9 @@ const DEVTOOLS = /\bdevtoolsName\b/;
 function dtsFiles(dir: string): string[] {
   const out: string[] = [];
   const walk = (current: string): void => {
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
+    for (const entry of readdirSync(current, { withFileTypes: true }).sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+    )) {
       const path = join(current, entry.name);
       if (entry.isDirectory()) walk(path);
       else if (entry.name.endsWith(".d.ts")) out.push(path);
@@ -168,7 +170,9 @@ export function deriveLedger(root: string): Ledger {
       const preferNew =
         existing === undefined ||
         (module.probe !== null && existing.probe === null) ||
-        (module.probe === existing.probe && module.specifier.length < existing.module.length);
+        (module.probe === existing.probe &&
+          (module.specifier.length < existing.module.length ||
+            (module.specifier.length === existing.module.length && module.specifier < existing.module)));
       if (preferNew) {
         bySlug.set(slug, candidate);
       } else {
