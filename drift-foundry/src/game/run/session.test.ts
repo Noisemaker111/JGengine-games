@@ -258,8 +258,7 @@ describe("drift-foundry run session", () => {
     expect(snapshot.outcome?.partsOnExit).toBe(4);
   });
 
-  test("armor plating survives exactly one crusher clip, then a second clip crushes", () => {
-    const session = createRunSession();
+  test("armor plating survives exactly one crusher clip, then a second clip crushes", () => {    const session = createRunSession();
     session.start();
 
     let armElapsed = 0;
@@ -294,5 +293,72 @@ describe("drift-foundry run session", () => {
       idleElapsed2 += DT;
     }
     expect(session.snapshot().phase).toBe("crushed");
+  });
+
+  test("an escape banks its line-scaled salvage and draws the next run's shift", () => {
+    const session = createRunSession();
+    session.start();
+    driveStraight(session, PAR_SECONDS);
+    const snapshot = session.snapshot();
+    const outcome = snapshot.outcome!;
+    expect(outcome.kind).toBe("won");
+    expect(outcome.carried).toBeGreaterThan(0);
+    expect(outcome.lineMultiplier).toBeGreaterThan(1);
+    expect(outcome.banked).toBe(Math.round(outcome.carried * outcome.lineMultiplier));
+    expect(outcome.banked).toBeGreaterThan(outcome.carried);
+    expect(outcome.lost).toBe(0);
+    expect(outcome.lineNotes.length).toBeGreaterThan(0);
+    expect(snapshot.career.credits).toBe(outcome.banked);
+    expect(snapshot.runsPlayed).toBe(1);
+    expect(outcome.nextShift).not.toBeNull();
+    expect(snapshot.salvageAtRisk).toBe(0);
+  });
+
+  test("a wreck loses the haul and keeps what an earlier escape banked", () => {
+    const session = createRunSession();
+    session.start();
+    driveStraight(session, PAR_SECONDS);
+    const banked = session.snapshot().career.credits;
+    expect(banked).toBeGreaterThan(0);
+
+    session.restart();
+    driveCollectingPickups(session, 6);
+    const carried = session.snapshot().salvageAtRisk;
+    expect(carried).toBeGreaterThan(0);
+    let elapsed = 0;
+    while (elapsed < 120 && session.snapshot().phase === "running") {
+      session.tick(DT, { throttle: 0, brake: 1, steer: 0 }, { jumpPressed: false, plowBracing: false });
+      elapsed += DT;
+    }
+    const snapshot = session.snapshot();
+    expect(snapshot.phase).toBe("crushed");
+    // Coasting between the reading and the crush can sweep one more drop onto the kart.
+    expect(snapshot.outcome?.carried).toBeGreaterThanOrEqual(carried);
+    expect(snapshot.outcome?.banked).toBe(0);
+    expect(snapshot.outcome?.lost).toBe(snapshot.outcome?.carried);
+    expect(snapshot.outcome?.lineNotes).toEqual([]);
+    expect(snapshot.career.credits).toBe(banked);
+    expect(snapshot.runsPlayed).toBe(2);
+    expect(snapshot.outcome?.nextShift).not.toBeNull();
+
+    session.restart();
+    expect(session.snapshot().salvageAtRisk).toBe(0);
+    expect(session.snapshot().shift).not.toBeNull();
+  });
+
+  test("a career reloads with its run count and the shift it already drew", () => {
+    const seed: Record<string, string> = {};
+    const store = { getItem: (key: string) => seed[key] ?? null, setItem: (key: string, value: string) => { seed[key] = value; } };
+    const first = createRunSession(undefined, store);
+    first.start();
+    driveStraight(first, PAR_SECONDS);
+    const played = first.snapshot();
+    expect(played.runsPlayed).toBe(1);
+
+    const second = createRunSession(undefined, store);
+    const reloaded = second.snapshot();
+    expect(reloaded.runsPlayed).toBe(1);
+    expect(reloaded.shift?.id).toBe(played.outcome?.nextShift?.id);
+    expect(reloaded.career.credits).toBe(played.career.credits);
   });
 });
