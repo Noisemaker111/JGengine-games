@@ -5,7 +5,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import { bonus } from "../characters";
 import type { GunDef } from "./guns";
 
-export { isFluxed, FLUX_DAMAGE_MULT } from "../combat/damage";
+export { isFluxed, FLUX_DAMAGE_MULT } from "../combat/hitModel";
 
 /**
  * A proc's burn/shock/corrode instance deals one tick every {@link DOT_INTERVAL_MS}. The old local
@@ -92,3 +92,4 @@ export function tickDots(ctx: GameContext, dtSeconds: number): void {
     if (tick.expired) dots.records.delete(tick.id);
   }
 }
+

@@ -5,7 +5,7 @@ import { formatDamageTable } from "@jgengine/core/combat/damageTable";
 
 import { resetCharacterState } from "../characters";
 import type { GunDef, GunElement } from "../handroll/guns";
-import { DAMAGE_TABLE, FLUX_STATUS, hitBase, zonesFor } from "./damage";
+import { DAMAGE_TABLE, FLUX_STATUS, hitBase, zonesFor } from "./hitModel";
 
 /**
  * The before/after table. `old` is what scrap's own arithmetic landed when this file was written,
@@ -123,3 +123,4 @@ describe("shared damage model reproduces the old hit numbers", () => {
     expect(lines.join("\n")).toContain("shock");
   });
 });
+

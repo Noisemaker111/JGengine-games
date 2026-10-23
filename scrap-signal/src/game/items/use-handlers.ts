@@ -4,7 +4,7 @@ import { seededRng } from "@jgengine/core/random/rng";
 import { cameraShake } from "@jgengine/shell/camera";
 import { AMMO_LABELS } from "../ammo";
 import { bonus } from "../characters";
-import { resolveGunHit } from "../combat/damage";
+import { resolveGunHit } from "../combat/hitModel";
 import { noteHit, noteShot } from "../feel";
 import { playHit, playShot } from "../audio/drive";
 import {
@@ -231,3 +231,4 @@ export const itemUseHandlers: Record<string, ItemUseHandler<GameContext>> = {
   useHealthVial,
   useShieldBooster,
 };
+

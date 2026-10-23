@@ -6,7 +6,7 @@ import { createGameContext, type GameContext } from "@jgengine/core/runtime/game
 import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 
 import { activeCharacter, pickCharacter, resetCharacterState, talentTree } from "./characters";
-import { resolveGunHit, syncCombatTargets, isFluxed } from "./combat/damage";
+import { resolveGunHit, syncCombatTargets, isFluxed } from "./combat/hitModel";
 import { earn, cashEntries } from "./cash";
 import {
   consumeRound,
@@ -170,4 +170,5 @@ describe("scrap-signal save document", () => {
     expect(session.selectedSlot()).toBe(0);
   });
 });
+
 

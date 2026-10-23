@@ -5,7 +5,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 
 import { activeCharacter, pickCharacter, resetCharacterState, talentTree } from "./characters";
 import { ledgerState, resetLedger, restoreLedger } from "./cash";
-import { combatState, resetCombat, restoreCombat } from "./combat/damage";
+import { combatState, resetCombat, restoreCombat } from "./combat/hitModel";
 import {
   allGuns,
   ensureGunSerialAtLeast,
@@ -209,3 +209,4 @@ export async function saveScrapState(ctx: GameContext): Promise<void> {
 export function scrapSaveDigest(ctx: GameContext, backend?: SaveBackend): string {
   return (backend === undefined ? scrapSave(ctx) : createScrapSave(ctx, { backend })).digest();
 }
+

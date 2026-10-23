@@ -10,7 +10,7 @@ import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/rel
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
-import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/damage";
+import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
@@ -325,3 +325,4 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+

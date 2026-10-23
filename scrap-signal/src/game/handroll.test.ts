@@ -10,7 +10,7 @@ import {
   RARITY_TIERS,
   LEVEL_DAMAGE_GROWTH,
 } from "./handroll";
-import { DAMAGE_TABLE, hitBase } from "./combat/damage";
+import { DAMAGE_TABLE, hitBase } from "./combat/hitModel";
 import { resolveLevelProgress, xpRequiredForLevel } from "./progression/curves";
 
 describe("gun generation", () => {
@@ -100,3 +100,4 @@ describe("xp curve", () => {
     expect(progress.levelsGained).toBe(1);
   });
 });
+
