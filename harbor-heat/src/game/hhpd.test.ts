@@ -123,7 +123,7 @@ describe("HHPD heat is witness-gated", () => {
 });
 
 describe("heat sweeps a live courier run", () => {
-  test("reaching the pursue tier fails the parcel with its own reason", () => {
+  test("officers working the block fail the parcel with its own reason", () => {
     const ctx = boot();
     const handroll = handrollOf(ctx);
     unwatch(ctx);
@@ -132,9 +132,9 @@ describe("heat sweeps a live courier run", () => {
 
     watch(ctx);
     step(ctx, handroll);
-    handroll.addHeat(ctx, 320);
+    handroll.addHeat(ctx, 130);
     step(ctx, handroll);
-    expect(handroll.wanted().stars).toBeGreaterThanOrEqual(3);
+    expect(handroll.wanted().stars).toBeGreaterThanOrEqual(2);
 
     tickCourier(ctx, STEP);
     expect(courierStore.read(ctx).phase).toBe("lost");
@@ -152,4 +152,5 @@ describe("heat sweeps a live courier run", () => {
     expect(courierRuntime(ctx).state()?.outcome).not.toBe("heat_sweep");
   });
 });
+
 

@@ -40,10 +40,14 @@ export function SessionUI() {
   if (session.notice) {
     const delivery = session.notice === "courier";
     const won = courier.phase === "won";
+    // The mission machine gives every failure its own line; the deadline is only one of them.
+    const late = courier.reason === undefined || /deadline|expired/i.test(courier.reason);
+    const lostTitle = won ? "Signed. Sealed. Paid." : late ? "Missed the tide." : "Parcel lost.";
+    const lostBody = courier.reason ?? (courier.service === "rush" ? "Rush expired; $60 bond forfeited. A free standard delivery can get you earning again." : "The deadline expired. Your parcel returned to dispatch; no cash was lost.");
     return <div data-jg-menu className="hh-overlay"><HudSurface role="dialog" aria-modal="true" aria-labelledby="hh-result-title" className="hh-modal" elevation="modal" padding="var(--hh-modal-pad)">
       <div className="hh-eyebrow">{delivery ? "Mainsail express / dispatch receipt" : "Harbor Heat / recovery"}</div>
-      <h2 id="hh-result-title">{delivery ? won ? "Signed. Sealed. Paid." : "Missed the tide." : "Back on your feet."}</h2>
-      <p>{delivery ? won ? `${route.recipient} received the parcel.${courier.service === "rush" ? ` Cargo condition ${Math.round(courier.condition ?? 100)}%; pay and bond refund scale with condition.` : " Another route is waiting at dispatch."}` : courier.service === "rush" ? "Rush expired; $60 bond forfeited. A free standard delivery can get you earning again." : "The deadline expired. Your parcel returned to dispatch; no cash was lost." : session.notice}</p>
+      <h2 id="hh-result-title">{delivery ? lostTitle : "Back on your feet."}</h2>
+      <p>{delivery ? won ? `${route.recipient} received the parcel.${courier.service === "rush" ? ` Cargo condition ${Math.round(courier.condition ?? 100)}%; pay and bond refund scale with condition.` : " Another route is waiting at dispatch."}` : lostBody : session.notice}</p>
       {delivery && won && <div className="hh-payout">+${courier.reward}<small>{courier.service === "rush" ? "includes condition-based bond refund" : "includes time bonus"} · +15 cred</small></div>}
       <HudButton autoFocus className="hh-button hh-button-primary" onClick={() => commands.run(delivery ? "courier.dismiss" : "session.dismiss", {})}>Keep exploring ↗</HudButton>
     </HudSurface></div>;

@@ -35,8 +35,8 @@ export const DELIVERY_ROUTES = [
 /** The pursuer and the runner the mission tracks by id, whichever body the player is in. */
 const PLAYER_ACTOR = "harbor_player";
 const THIEF = "parcel_thief";
-/** HHPD tier at which a live courier run is swept: the pursue response, 3 pips. */
-export const COURIER_HEAT_TIER = 3;
+/** HHPD tier at which a live courier run is swept: officers working the block, 2 pips. */
+export const COURIER_HEAT_TIER = 2;
 /** The world fact the mission machine reads for that sweep; the heat slice owns the number. */
 const POLICE_TIER_FACT = "police_tier";
 
@@ -421,3 +421,4 @@ export function setupCourierLandmarks(ctx: GameContext): void {
     ctx.scene.object.place(catalog, i === 0 ? x - 3 : x, ctx.world.groundHeightAt(x, z), z);
   });
 }
+
