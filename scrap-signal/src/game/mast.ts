@@ -12,6 +12,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { rememberHome } from "./entities/enemies/ai";
+import { earn } from "./cash";
 import { reservePhase } from "./handroll";
 import { grantXp } from "./progression/curves";
 import { authoredScene } from "./world/level";
@@ -189,7 +190,7 @@ function handleEvents(ctx: GameContext, events: readonly MissionEvent[]): void {
       if (event.objectiveId === "hold_mast" && site !== null) spawnHoldWave(ctx, site);
     } else if (event.kind === "reward") {
       applyMissionRewards(event.rewards, {
-        grantEconomy: (currencyId, amount) => ctx.game.economy.grant(ctx.player.userId, currencyId, amount),
+        grantEconomy: (currencyId, amount) => earn(ctx, currencyId, amount, "mast-reward", "mast-watch"),
         grantXp: (amount) => grantXp(ctx, ctx.player.userId, amount),
       });
     } else if (event.kind === "completed") {

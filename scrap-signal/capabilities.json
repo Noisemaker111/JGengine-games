@@ -6,6 +6,10 @@
     "cover-points-near",
     "cover-score",
     "cover-select",
+    "damage-runtime",
+    "damage-target-unknown",
+    "game-save",
+    "game-save-digest",
     "loot-comparison",
     "loot-generation",
     "loot-roller",
@@ -16,9 +20,21 @@
     "mission-runtime",
     "mission-validation",
     "mount-game",
-    "perception-service"
+    "perception-service",
+    "status-runtime",
+    "status-unknown",
+    "transaction-ledger"
   ],
   "probes": {
+    "@jgengine/core/combat/damageRuntime": [
+      "scrap.damage"
+    ],
+    "@jgengine/core/economy/transactionLedger": [
+      "scrap.ledger"
+    ],
+    "@jgengine/core/game/gameSave": [
+      "scrap.save"
+    ],
     "@jgengine/shell/audio/audioProbe": [
       "window:__jgengineAudio"
     ]
@@ -28,30 +44,9 @@
       "kind": "not-applicable",
       "reason": "Agent loop is not part of scrap-signal: enemy behaviour is a combat state machine, not an agent loop with needs."
     },
-    "damage-runtime": {
-      "kind": "debt",
-      "reason": "feel.ts subtracts health with local multipliers and no damage table; adopt the shared damage table.",
-      "issue": 145
-    },
-    "damage-target-unknown": {
-      "kind": "debt",
-      "reason": "Gun hits never validate a resistance or armor profile; adopt the shared damage table with its unknown-target refusal.",
-      "issue": 145
-    },
     "equipment-slot-inventory": {
-      "kind": "debt",
-      "reason": "items/fieldGear.ts keeps its own equipped-gear rules beside the hotbar; adopt the shared equipment slots.",
-      "issue": 146
-    },
-    "game-save": {
-      "kind": "debt",
-      "reason": "saveCompatibility.ts repairs a hand-written save shape and field list; adopt the shared save document's migrations.",
-      "issue": 147
-    },
-    "game-save-digest": {
-      "kind": "debt",
-      "reason": "The hand-written save has no state digest to compare between builds; adopt the shared save document's digest.",
-      "issue": 147
+      "kind": "not-applicable",
+      "reason": "Equipment slots is not part of scrap-signal: carried gear is a four-slot hotbar plus a backpack, and the field stash is a carrying bag with mass, with no body slots, item-kind rules or two-handed blocking."
     },
     "loan-schedule": {
       "kind": "not-applicable",
@@ -113,16 +108,6 @@
       "kind": "not-applicable",
       "reason": "Squad combat is not part of scrap-signal: crew roles run on the shared squad tactics with the shared cover field."
     },
-    "status-runtime": {
-      "kind": "debt",
-      "reason": "Elemental damage and hazard auras tick their own status effects bookkeeping; adopt the shared status effects runtime.",
-      "issue": 145
-    },
-    "status-unknown": {
-      "kind": "debt",
-      "reason": "The local effect pass accepts any status id as a status effects entry; adopt the shared runtime's unknown-status refusal.",
-      "issue": 145
-    },
     "supply-demand-pricing": {
       "kind": "not-applicable",
       "reason": "Market pricing is not part of scrap-signal: vendors run on the shared shop stock rather than a demand-priced market."
@@ -130,11 +115,6 @@
     "traffic": {
       "kind": "not-applicable",
       "reason": "Traffic is not part of scrap-signal: nobody drives on the relay."
-    },
-    "transaction-ledger": {
-      "kind": "debt",
-      "reason": "Vendors, salvage and loadout cash adjust the balance directly; adopt the shared transaction ledger.",
-      "issue": 148
     },
     "utility-brain": {
       "kind": "not-applicable",
@@ -154,8 +134,8 @@
     },
     "weapon-system": {
       "kind": "debt",
-      "reason": "handroll/guns.ts carries fire modes, magazines and reserve ammo itself; adopt the shared weapon runtime.",
-      "issue": 145
+      "reason": "Weapon runtime waits on the engine's magazine reserve adapter and shot-presentation seam; cadence and magazines stay on the shared createMagazine until then.",
+      "issue": 152
     }
   }
 }

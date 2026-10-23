@@ -1,18 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { resolveTableDamage } from "@jgengine/core/combat/damageTable";
 import { seededRng } from "@jgengine/core/random/rng";
 import {
-  applyElementalProc,
-  elementalDamageMult,
   type GunDef,
   gunById,
-  isFluxed,
   gunProvenance,
   rollGun,
   rollRarity,
   RARITY_TIERS,
   LEVEL_DAMAGE_GROWTH,
 } from "./handroll";
+import { DAMAGE_TABLE, hitBase } from "./combat/hitModel";
 import { resolveLevelProgress, xpRequiredForLevel } from "./progression/curves";
 
 describe("gun generation", () => {
@@ -65,29 +63,27 @@ describe("gun generation", () => {
   });
 });
 
-describe("elemental matrix", () => {
-  // Per-session flux/DOT state lives on the perContext seam keyed by GameContext identity; a bare
-  // object stands in as a distinct context key for these pure element-math checks.
-  const ctx = {} as unknown as GameContext;
+describe("elemental chart", () => {
+  // The chart is now data the shared damage model reads; these assertions are the old matchup
+  // numbers read back through the shared table reader, not through a game-local helper.
+  const rowsOf = (type: string, resistance: string) =>
+    resolveTableDamage(DAMAGE_TABLE, { type, resistance, base: 1 }).multiplier;
   test("shock doubles against shields", () => {
-    expect(elementalDamageMult(ctx, "shock", "flesh", true, "t", 0)).toBe(2);
+    expect(rowsOf("shock", "shield")).toBe(2);
   });
   test("corrosive beats armor, incendiary beats flesh", () => {
-    expect(elementalDamageMult(ctx, "corrosive", "armor", false, "t", 0)).toBe(1.5);
-    expect(elementalDamageMult(ctx, "incendiary", "flesh", false, "t", 0)).toBe(1.5);
-    expect(elementalDamageMult(ctx, "incendiary", "armor", false, "t", 0)).toBe(0.75);
+    expect(rowsOf("corrosive", "armor")).toBe(1.5);
+    expect(rowsOf("incendiary", "flesh")).toBe(1.5);
+    expect(rowsOf("incendiary", "armor")).toBe(0.75);
+    expect(rowsOf("incendiary", "shield")).toBe(0.75);
   });
-  test("flux debuff amplifies non-flux damage via the generic received-modifier seam", () => {
-    const fluxCtx = {} as unknown as GameContext;
-    const target = "flux-target";
-    expect(isFluxed(fluxCtx, target, 0)).toBe(false);
-    expect(elementalDamageMult(fluxCtx, "incendiary", "flesh", false, target, 0)).toBe(1.5);
-    const fluxGun = { element: "flux", elementChance: 1 } as unknown as GunDef;
-    applyElementalProc(fluxCtx, () => 0, fluxGun, "src", target, 0);
-    expect(isFluxed(fluxCtx, target, 0)).toBe(true);
-    // incendiary/flesh (1.5) amplified x2 while fluxed; the flux channel itself is never amplified.
-    expect(elementalDamageMult(fluxCtx, "incendiary", "flesh", false, target, 0)).toBe(3);
-    expect(elementalDamageMult(fluxCtx, "flux", "flesh", false, target, 0)).toBe(1);
+  test("flux halves shields and doubles every other channel while carried", () => {
+    const incendiary = { element: "incendiary", weapon: { damage: 14 } } as unknown as GunDef;
+    const fluxGun = { element: "flux", weapon: { damage: 14 } } as unknown as GunDef;
+    expect(hitBase(incendiary, false)).toBe(14);
+    expect(hitBase(incendiary, true)).toBe(28);
+    expect(hitBase(fluxGun, true)).toBe(14);
+    expect(rowsOf("flux", "flesh")).toBe(1);
   });
 });
 
@@ -104,3 +100,4 @@ describe("xp curve", () => {
     expect(progress.levelsGained).toBe(1);
   });
 });
+

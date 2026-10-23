@@ -1,6 +1,7 @@
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { AMMO_LABELS, AMMO_STAT_IDS, type AmmoPool } from "./ammo";
+import { buyGear, spend } from "./cash";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
@@ -257,7 +258,7 @@ export function registerCommands(ctx: GameContext): void {
 
   ctx.game.commands.define<{ itemId?: string }>("vendor.buyGear", {    apply(state: GameContext, input) {
       if (input.itemId === undefined) return;
-      const rejection = state.game.trade!.buy(input.itemId, 1, { shop: "shop_ferralon", inventoryId: "backpack" });
+      const rejection = buyGear(state, input.itemId);
       if (rejection !== null) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
       }
@@ -275,8 +276,8 @@ export function registerCommands(ctx: GameContext): void {
         state.game.notices.push({ text: `${AMMO_LABELS[input.pool]} ammo is full.`, tone: "deny" });
         return;
       }
-      const rejection = state.game.economy.charge(userId, "cash", price.cash);
-      if (rejection !== null) {
+      const rejection = spend(state, "cash", price.cash, "ammo-purchase", input.pool);
+      if (!rejection) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
@@ -287,8 +288,8 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define<{ vendor?: string }>("vendor.gunOfTheDay", {
     apply(state: GameContext, input) {
       const userId = state.player.userId;
-      const rejection = state.game.economy.charge(userId, "cash", 300);
-      if (rejection !== null) {
+      const paid = spend(state, "cash", 300, "gun-of-the-day", input.vendor ?? "vendor");
+      if (!paid) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
@@ -357,8 +358,8 @@ export function registerCommands(ctx: GameContext): void {
       const counts = { ...blackMarketStore.read(state) };
       const owned = counts[upgrade.id] ?? 0;
       const cost = upgradeCost(owned);
-      const rejection = state.game.economy.charge(userId, "cores", cost);
-      if (rejection !== null) {
+      const paid = spend(state, "cores", cost, "black-market-upgrade", upgrade.id);
+      if (!paid) {
         state.game.notices.push({ text: "Not enough cores.", tone: "deny" });
         return;
       }

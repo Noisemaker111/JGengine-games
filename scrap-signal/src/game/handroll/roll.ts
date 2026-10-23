@@ -45,6 +45,17 @@ export function allGuns(): readonly GunDef[] {
   return [...gunRegistry.values()];
 }
 
+/** Keep a restored document's ids from colliding with the next rolled gun. */
+export function ensureGunSerialAtLeast(value: number): void {
+  if (Number.isFinite(value) && value > gunSerial) gunSerial = Math.floor(value);
+}
+
+/** The serial a rolled id carries, or 0 for an id this registry did not mint. */
+export function gunSerialOf(id: string): number {
+  const match = /^gun_(\d+)_/.exec(id);
+  return match === null ? 0 : Number(match[1]);
+}
+
 function pick<T>(rng: () => number, list: readonly T[]): T {
   const entry = list[Math.min(list.length - 1, Math.floor(rng() * list.length))];
   if (entry === undefined) throw new Error("pick: empty list");
