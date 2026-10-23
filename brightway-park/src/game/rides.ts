@@ -13,7 +13,7 @@ import {
 
 import { buildableDef } from "./objects/catalog";
 import { session, type PlacedObject } from "./session";
-import { buildCoasterCircuit, type CoasterCircuit, type TrackPoint } from "./sim/trackCircuit";
+import { buildCoasterCircuit, type CoasterCircuit, type TrackPoint } from "./coaster/circuit";
 
 /**
  * The park's rides run on the shared ride sim (`@jgengine/core/sim/rides`): each ride owns its own

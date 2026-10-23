@@ -1,5 +1,5 @@
 import { buildableDef } from "../objects/catalog";
-import type { CoasterCircuit } from "./trackCircuit";
+import type { CoasterCircuit } from "../coaster/circuit";
 
 /** Derived from existing saved guest kinds: no new save fields or random draws. */
 export function guestRidePreference(kind: string): { label: string; thrill: number } {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildCoasterCircuit, lapArithmetic, scoreCircuit, type TrackPoint } from "./trackCircuit";
+import { buildCoasterCircuit, lapArithmetic, scoreCircuit, type TrackPoint } from "./circuit";
 
 /** A closed rectangle of track pieces: `width` by `height` cells, on the 4-unit grid. */
 function ring(width: number, height: number): TrackPoint[] {
