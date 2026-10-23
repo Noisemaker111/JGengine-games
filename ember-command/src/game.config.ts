@@ -40,6 +40,7 @@ export const game = defineGame({
   // The three views a reviewer asks about, pinned to authored markers so they frame the same thing
   // after the map moves — `bun run shoot ember-command --view keep-enemy`.
   capture: {
+    play: ["match.start"],
     views: {
       "keep-player": {
         description: "The Vanguard keep and its opening formation.",

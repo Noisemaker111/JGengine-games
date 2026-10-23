@@ -31,6 +31,10 @@ export interface HudSnapshot {
   /** Marauder reinforcement pressure: waves mustered so far, and whole seconds to the next one. */
   wavesSent: number;
   nextWaveIn: number;
+  /** What the Marauder plan is doing: scouting, expanding or attacking. */
+  marauderPhase: string;
+  /** The pressure tier the Marauder waves are sized at, 0..2. */
+  marauderTier: number;
   /** Units currently queued/training at the Town Hall, and the active job's 0..1 progress. */
   producing: number;
   trainProgress: number;
@@ -70,6 +74,8 @@ const initial: HudSnapshot = {
   attackMoveArmed: false,
   wavesSent: 0,
   nextWaveIn: 0,
+  marauderPhase: "scouting",
+  marauderTier: 0,
   producing: 0,
   trainProgress: 0,
   hasBarracks: false,
@@ -116,6 +122,8 @@ function changed(next: HudSnapshot): boolean {
     p.attackMoveArmed !== next.attackMoveArmed ||
     p.wavesSent !== next.wavesSent ||
     p.nextWaveIn !== next.nextWaveIn ||
+    p.marauderPhase !== next.marauderPhase ||
+    p.marauderTier !== next.marauderTier ||
     p.producing !== next.producing ||
     Math.abs(p.trainProgress - next.trainProgress) > 0.02 ||
     p.hasBarracks !== next.hasBarracks ||

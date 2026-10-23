@@ -4,7 +4,7 @@ import { activeJobs, jobProgress, queuedJobs, tick as tickQueue } from "@jgengin
 
 import { tickUnits } from "./ai/units";
 import { tickTowers } from "./ai/towers";
-import { nextWaveEta, tickEnemyWaves } from "./ai/director";
+import { nextWaveEta, planPhase, tickEnemyWaves } from "./ai/director";
 import { heroLevel, tickHero, thunderClapReady } from "./hero";
 import { BUILDINGS, combatantDef } from "./catalog";
 import { BUILD_CONFIG, type BuildSpec } from "./building";
@@ -197,6 +197,8 @@ const hudSystem: SystemDefinition = defineSystem({
       attackMoveArmed: session.attackMoveArmed,
       wavesSent: session.enemyWave.sent,
       nextWaveIn: Math.max(0, Math.ceil(nextWaveEta())),
+      marauderPhase: planPhase(),
+      marauderTier: session.enemyWave.tier,
       producing: active.length + queuedJobs(session.production).length,
       trainProgress: active.length > 0 ? jobProgress(active[0]!) : 0,
       hasBarracks: livingUnits("player", "building").some((u) => u.catalogId === "barracks"),

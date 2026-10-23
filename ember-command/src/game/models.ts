@@ -5,7 +5,7 @@ import { authoredModels } from "./authoredModels";
 // the standalone game and consuming engine hosts load the same reviewed models.
 const heights: Record<keyof typeof authoredModels, number> = {
   peasant: 2, footman: 2.3, rifleman: 2.2, hero: 2.65,
-  grunt: 2.3, reaver: 2.65, keep_player: 7, keep_enemy: 7,
+  grunt: 2.3, reaver: 2.65, keep_player: 7, keep_enemy: 7, warcamp: 5.5,
   barracks: 5, farm: 3.6, guard_tower: 6.5,
   banner_blue: 2.6, banner_red: 2.6, torch: 1.8, barrel: 1.2,
   goldmine: 2.6, woods: 4.6,
