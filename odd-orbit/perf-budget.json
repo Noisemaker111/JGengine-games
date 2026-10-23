@@ -1,6 +1,7 @@
 {
-  "draws": 640,
+  "drawsFrame": 486,
+  "previousDraws": 640,
   "triangles": 750190,
   "nodes": 330,
-  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 574 draws / 681,982 triangles / 297 nodes. These limits carry headroom over that measurement. Re-measure this game and update this file in the same PR as any content change."
+  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 574 draws / 681,982 triangles / 297 nodes. These limits carry headroom over that measurement. Re-measure this game and update this file in the same PR as any content change. Whole-frame re-baseline copied from the engine beta scripts/perf-budget.json: 2026-10-23 bun run perf:gate whole-frame p95 442, identical over three runs and 361 frames, GeForce RTX 3070 D3D11, 1600x900 full, pinned Games c746e3b; the budget is +10%. Whole-frame means every draw a frame issues across shadow, main, postfx, AO and DOF passes, taken as the p95 of the measured window by wrapping drawElements and drawArrays. Previous budget 640 draws from a 574 baseline measured 2026-10-22 at Games c81aabc; triangles and nodes are unchanged from that measurement"
 }

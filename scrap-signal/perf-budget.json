@@ -1,7 +1,8 @@
 {
-  "draws": 820,
+  "drawsFrame": 797,
+  "previousDraws": 820,
   "triangles": 1992600,
   "nodes": 8400,
   "programsLinked": 3,
-  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 745 draws / 1,811,446 triangles / 7,631 nodes. These limits carry headroom over that measurement. 3 programs link after warmup as late materials appear, so that is the measured ceiling here. Re-measure this game and update this file in the same PR as any content change."
+  "baseline": "2026-10-22 bun run perf:gate, GeForce RTX 3070 D3D11, 1600x900 full, games c81aabc: 745 draws / 1,811,446 triangles / 7,631 nodes. These limits carry headroom over that measurement. 3 programs link after warmup as late materials appear, so that is the measured ceiling here. Re-measure this game and update this file in the same PR as any content change. Whole-frame re-baseline copied from the engine beta scripts/perf-budget.json: 2026-10-23 bun run perf:gate whole-frame p95 over six runs at pinned Games c746e3b, GeForce RTX 3070 D3D11, 1600x900 full: 408, 601 and 695-725, so the budget is +10% over the heaviest (725). This game's draw count tracks how much of its sim has spawned, not just the build, which is why the lower runs are not the baseline. Whole-frame means every draw a frame issues across shadow, main, postfx, AO and DOF passes, taken as the p95 of the measured window by wrapping drawElements and drawArrays. Previous budget 820 draws from a 745 baseline measured 2026-10-22 at Games c81aabc; triangles, nodes and the 3-program ceiling are unchanged from that measurement"
 }
