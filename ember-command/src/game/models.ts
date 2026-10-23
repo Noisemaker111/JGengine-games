@@ -11,10 +11,16 @@ const heights: Record<keyof typeof authoredModels, number> = {
   goldmine: 2.6, woods: 4.6,
 };
 const warriors = new Set(["peasant", "footman", "rifleman", "hero", "grunt", "reaver"]);
+// Rank-and-file troops share one model per kind and play only idle/walk, so a batch reproduces them
+// at any distance: a full battle draws a handful of instanced batches instead of ~17 draws a unit.
+// The hero keeps its own rig - one unique character is not worth a batch. The engine's default
+// capacity (128 a kind) keeps any overflow on its own rig rather than dropping it.
+const BATCHED_TROOPS = new Set(["peasant", "footman", "rifleman", "grunt", "reaver"]);
 export const entityModels: Record<string, ModelConfig> = Object.fromEntries(
   Object.entries(authoredModels).map(([id, url]) => [id, {
     url, targetHeight: heights[id as keyof typeof heights],
     ...(warriors.has(id) ? { animation: { states: { idle: "Idle", walk: "Walking_A", walkSpeed: .1 }, clock: "game" } } : {}),
+    ...(BATCHED_TROOPS.has(id) ? { lod: { crowdDistance: 0 } } : {}),
   }]),
 );
 // The authored forest ring uses the SDK's instanced vegetation meshes.
