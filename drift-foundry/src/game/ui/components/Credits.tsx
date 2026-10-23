@@ -1,5 +1,6 @@
 import { creditsForSourceIds } from "@jgengine/assets/credits";
 import { mergeCredits } from "@jgengine/core/game/credits";
+import { useCanvasCover } from "@jgengine/react";
 import { CreditsScreen } from "@jgengine/react/creditsScreen";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
@@ -24,6 +25,8 @@ const AUTHORED = {
 const DOCUMENT = mergeCredits(AUTHORED, creditsForSourceIds(ASSET_SOURCE_IDS));
 
 export function Credits({ onBack }: { onBack: () => void }) {
+  // Credits are read at the pit, where the buggy sits still behind the same plate as the title.
+  useCanvasCover(true);
   return (
     <div className="df-overlay">
       <HudSurface className="df-card df-credits" role="dialog" aria-label="Credits" elevation="modal">

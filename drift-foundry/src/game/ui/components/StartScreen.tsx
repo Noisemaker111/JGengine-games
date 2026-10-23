@@ -1,4 +1,4 @@
-import { SettingsTrigger } from "@jgengine/react";
+import { SettingsTrigger, useCanvasCover } from "@jgengine/react";
 import { useGame } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
@@ -16,6 +16,8 @@ export function StartScreen({ onStart, onCredits, onBuy, records }: {
   const parkedRun = useStore(runSessionStore, session => session?.snapshot().parkedRun ?? null);
   const career = useStore(runSessionStore, session => session?.snapshot().career ?? null);
   const { commands } = useGame();
+  // The pit plate covers the frame and the buggy is not running yet: nothing behind it can change.
+  useCanvasCover(true);
   return <div className="df-overlay df-title">
     <div className="df-title-art" aria-hidden="true">
       <svg viewBox="0 0 600 300"><path d="M0 243L600 182M0 275L600 214" stroke="#edc565" strokeWidth="3" opacity=".25"/>
