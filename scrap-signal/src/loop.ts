@@ -4,6 +4,7 @@ import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
+import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, talentTree } from "./game/characters";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
@@ -14,6 +15,7 @@ import { lootTables } from "./game/entities/enemies/loot-tables";
 import { player } from "./game/entities/players/catalog";
 import {
   enterDowned,
+  gunById,
   reserveExpired,
   reservePhase,
   markRespawned,
@@ -94,6 +96,10 @@ function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   ctx.game.audio.play("enemy_die", deathAt);
   if (event.reason.kind === "player_kill" && event.reason.killerUserId === userId) {
     const anchor = deathAt;
+    if (event.reason.via?.item !== undefined) {
+      const family = gunById(event.reason.via.item)?.family;
+      if (family !== undefined) noteMastKill(ctx, event.catalogId, userId, family);
+    }
     grantXp(ctx, userId, levelXpFor(enemy.xp, zoneLevelAt(anchor[0], anchor[2])));
     grantCores(ctx, event);
     if (enemy.id === "foundry_heart") {
@@ -214,6 +220,7 @@ function onInit(ctx: GameContext): void {
   ctx.game.quest!.bind("entity.died");
   registerCommands(ctx);
   registerRelay(ctx, respawnAtNewU);
+  registerMastWatch(ctx);
 
   ctx.game.feed.bind("entity.died");
   ctx.game.feed.bind("loot.granted");
@@ -268,6 +275,7 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
   if ((await loadSavedProgress(ctx)) && resumeBuild(ctx)) {
     session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
+    restoreMastWatch(ctx);
     const relay = relayStore.read(ctx);
     const ended = relay.phase === "won" || relay.phase === "lost";
     setGamePhase(ctx, ended ? "ended" : "playing");
@@ -289,6 +297,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickReloads(ctx, dt);
   tickReserve(ctx, nowMs);
   tickRelay(ctx, dt);
+  tickMastWatch(ctx, dt);
   tickZoneAndStations(ctx, nowMs);
   notePlayerHealth(nowMs, ctx.scene.entity.stats.get(ctx.player.userId, "health")?.current ?? null);
 }

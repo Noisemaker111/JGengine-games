@@ -39,7 +39,7 @@ import {
 import { setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
-import { courierStore, finishCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
+import { courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 
 const AGGRO_RADIUS = 18;
@@ -375,6 +375,7 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   raceStore.clear(ctx);
   drivingStore.clear(ctx);
   sessionStore.clear(ctx);
+  restoreCourier(ctx);
   const courier = courierStore.read(ctx);
   if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
   setupCourierLandmarks(ctx);

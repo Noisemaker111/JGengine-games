@@ -2,6 +2,46 @@
   "version": 1,
   "markers": [
     {
+      "id": "courier_dispatch",
+      "kind": "poi",
+      "position": {
+        "x": -193,
+        "y": 0,
+        "z": 44
+      },
+      "label": "Mainsail express dispatch"
+    },
+    {
+      "id": "courier_drop_0",
+      "kind": "poi",
+      "position": {
+        "x": -190,
+        "y": 0,
+        "z": 112
+      },
+      "label": "Boardwalk parcel tower"
+    },
+    {
+      "id": "courier_drop_1",
+      "kind": "poi",
+      "position": {
+        "x": -68,
+        "y": 0,
+        "z": 8
+      },
+      "label": "Plaza parcel tower"
+    },
+    {
+      "id": "courier_drop_2",
+      "kind": "poi",
+      "position": {
+        "x": -68,
+        "y": 0,
+        "z": 112
+      },
+      "label": "Sunset parcel tower"
+    },
+    {
       "id": "player_spawn",
       "kind": "player_spawn",
       "position": {
