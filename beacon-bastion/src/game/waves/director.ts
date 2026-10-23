@@ -9,14 +9,12 @@ import { BASE_ENTITY_ID, GOLD_CURRENCY } from "../entities/base/catalog";
 import { creepDef } from "../entities/enemies/catalog";
 import { gameClockMs, session, nextCreepInstanceId, newSpeedStats } from "../session";
 import {
+  bossProfile,
   PRESSURE_RULE,
   TOTAL_WAVES,
-  WARDEN_ID,
-  WARDEN_PHASES,
-  WARDEN_STANCE,
-  WARDEN_TELL_TEXT,
 } from "./manifest";
 import { KEEP_POINT, PATH_WAYPOINTS } from "../world/path";
+import { finishRun } from "./legacy";
 
 const LEAK_EFFECT = "leak";
 
@@ -75,9 +73,10 @@ function spawnCreep(ctx: GameContext, order: EncounterOrder): void {
     path: createPathFollow({ waypoints: PATH_WAYPOINTS, speed: def.speed }),
     speedStats: newSpeedStats(def.speed),
   });
-  if (order.unit === WARDEN_ID) {
-    session.boss = { instanceId, state: createBossState(WARDEN_PHASES), stance: "opening" };
-    const tell = WARDEN_TELL_TEXT["arrival"];
+  const profile = bossProfile(order.unit);
+  if (profile !== null) {
+    session.boss = { instanceId, unitId: order.unit, state: createBossState(profile.phases), stance: "opening" };
+    const tell = profile.tells["arrival"];
     if (tell !== undefined) ctx.game.notices.push({ text: tell, ttlMs: 2500 });
   }
 }
@@ -96,26 +95,27 @@ function leakCreep(ctx: GameContext, instanceId: string, catalogId: string): voi
   ctx.game.audio.play("leak", KEEP_POINT);
 }
 
-/** Read the Warden's health and let its phase change its stance and fire its tell. */
+/** Read the boss's health and let its phase change its stance and fire its tell. */
 function tickBoss(ctx: GameContext, dt: number): void {
   const boss = session.boss;
   if (boss === null) return;
+  const profile = bossProfile(boss.unitId);
   const creep = session.creeps.get(boss.instanceId);
   const health = ctx.scene.entity.stats.get(boss.instanceId, "health");
-  if (creep === undefined || health === null) {
+  if (profile === null || creep === undefined || health === null) {
     session.boss = null;
     return;
   }
   const fraction = health.max <= 0 ? 0 : Math.max(0, health.current) / health.max;
-  const step = advanceBoss(WARDEN_PHASES, boss.state, fraction, dt);
+  const step = advanceBoss(profile.phases, boss.state, fraction, dt);
   if (step.changed) {
-    const stance = WARDEN_STANCE[step.phase.id];
+    const stance = profile.stance[step.phase.id];
     if (stance !== undefined) {
       creep.speedStats.removeSource("boss-phase");
       creep.speedStats.addSource("boss-phase", { speed: { multiply: stance.speedScale } });
       boss.stance = step.phase.id;
     }
-    const text = step.tell === null ? undefined : WARDEN_TELL_TEXT[step.tell.id];
+    const text = step.tell === null ? undefined : profile.tells[step.tell.id];
     if (text !== undefined) ctx.game.notices.push({ text, ttlMs: Math.round((step.tell?.telegraphSeconds ?? 1.5) * 1000) });
     ctx.game.audio.play("wave");
   }
@@ -146,6 +146,7 @@ export function tickWaves(ctx: GameContext, dt: number): void {
 
   if (session.encounter.view().done && session.creeps.size === 0 && !session.victory && !session.gameOver) {
     session.victory = true;
+    finishRun(ctx);
     setGamePhase(ctx, "ended");
     ctx.game.audio.play("victory");
   }

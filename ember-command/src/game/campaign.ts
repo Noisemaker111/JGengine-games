@@ -19,7 +19,8 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 
 import { editorLayers } from "../editorLayers";
 import { combatantDef } from "./catalog";
-import { HERO_ID } from "./hero";
+import { grantHeroXp, HERO_ID, MISSION_XP, OBJECTIVE_XP } from "./hero";
+import { heroPickStore } from "./heroPicks";
 import { hudStore } from "./hudStore";
 import { session } from "./session";
 import { GOLD, LUMBER } from "./tuning";
@@ -610,6 +611,8 @@ function finishCampaignStep(ctx: GameContext, restage?: () => void): void {
   const progress = campaignStore.read(ctx);
   const won = progress.won.includes(state.missionId) ? progress.won : [...progress.won, state.missionId];
   campaignStore.write(ctx, { ...progress, won });
+  // The mission itself pays Bram: a cleared order is the hero's work as much as a kill is.
+  grantHeroXp(ctx, MISSION_XP);
   const step = CAMPAIGN.find((entry) => entry.mission.id === state.missionId);
   ctx.game.audio.play("victory");
   ctx.game.notices.push({
@@ -638,6 +641,8 @@ function handleCampaignEvents(ctx: GameContext, events: readonly MissionEvent[],
   for (const event of events) {
     if (event.kind === "objective") {
       ctx.game.audio.play("wave");
+      // An objective reached pays XP, so the campaign's orders level Bram, not only its kills.
+      grantHeroXp(ctx, OBJECTIVE_XP);
       ctx.game.notices.push({ text: event.label, ttlMs: 7000 });
     } else if (event.kind === "reward") {
       bankMissionRewards(ctx, event.missionId, event.rewards);
@@ -708,11 +713,12 @@ export function setCampaignMode(ctx: GameContext, mode: CampaignMode): void {
   syncCampaignHud(ctx);
 }
 
-/** Wipe the track and offer mission I again. */
+/** Wipe the track and offer mission I again. A new campaign starts with a hero who has picked nothing. */
 export function resetCampaignProgress(ctx: GameContext): void {
   campaignStore.write(ctx, { won: [], mode: "campaign", stores: { gold: 0, lumber: 0 } });
   campaignRuntime(ctx).abandon();
   campaignMissionStore.clear(ctx);
+  heroPickStore.clear(ctx);
   syncCampaignHud(ctx);
 }
 

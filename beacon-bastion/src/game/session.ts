@@ -28,9 +28,10 @@ export interface TowerRuntime {
   cooldownSeconds: number;
 }
 
-/** The Warden on the field, if it is out: its instance, phase state, and the stance that phase sets. */
+/** The boss on the field, if it is out: its instance, what it is, phase state, and the stance that phase sets. */
 export interface BossRuntime {
   instanceId: string;
+  unitId: string;
   state: BossState;
   stance: string;
 }
@@ -55,6 +56,10 @@ export interface SessionState {
   waveReady: boolean;
   waveStarted: boolean;
   lastWaveBonus: number;
+  /** Every kill bounty this run has paid, for the result card. */
+  bountyEarned: number;
+  /** Set the once a run finishes, so neither a win nor a fall banks twice. */
+  banked: boolean;
   gameOver: boolean;
   victory: boolean;
   creepSeq: number;
@@ -78,6 +83,8 @@ function freshState(): SessionState {
     waveReady: true,
     waveStarted: false,
     lastWaveBonus: 0,
+    bountyEarned: 0,
+    banked: false,
     gameOver: false,
     victory: false,
     creepSeq: 0,

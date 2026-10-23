@@ -33,6 +33,10 @@ Precedents: Harbor's 6 -> 60 FPS and Odd Orbit's missing-material fallback were 
 
 Engine contributors also follow [JGengine's governance](https://github.com/Noisemaker111/jgengine/blob/beta/AGENTS.md#game-changes-improve-the-framework). Its package skills describe discovery and exact APIs; inspect installed declarations rather than assuming unpublished capabilities exist.
 
+## Capability adoption
+
+`capabilities.json` is the generated inventory of game-facing capabilities read from the installed `@jgengine/*` declarations (`bun run capabilities:sync`); a release that adds one shows up as a diff line. Every game owns `<game>/capabilities.json` and declares each capability adopted, or declined with 20+ characters of why. `bun run check:capabilities` fails a missing declaration, a thin decline and a ledger behind the installed packages; `bun run capabilities:probe` boots the games that name a probe and proves the adopted system reports on `window.__jgengineAgent` / `window.__jgengineAudio`. Name a probe only for a system mounted at boot; an on-demand system stays declaration-level until it has one.
+
 ## Agent workflow
 
 - Code work happens in `.claude/worktrees/<name>` (`claude --worktree <name>`, or `git worktree add -b <name> .claude/worktrees/<name> origin/beta`); scratch and evidence go in `.scratch/`, which never holds a checkout. Both are ignored.

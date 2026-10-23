@@ -7948,6 +7948,46 @@
       "meta": {
         "catalogId": "rock_spire"
       }
+    },
+    {
+      "id": "front_rustflat_center",
+      "kind": "poi",
+      "position": {
+        "x": -468.5,
+        "y": 0,
+        "z": 553.6
+      },
+      "label": "The Rustflat Front — the convoy split"
+    },
+    {
+      "id": "front_rustflat_scrapjack",
+      "kind": "poi",
+      "position": {
+        "x": -472,
+        "y": 0,
+        "z": 543.6
+      },
+      "label": "Scrapjack salvage line entry"
+    },
+    {
+      "id": "front_rustflat_ripper",
+      "kind": "poi",
+      "position": {
+        "x": -459,
+        "y": 0,
+        "z": 548.8
+      },
+      "label": "Ripper pack entry"
+    },
+    {
+      "id": "front_rustflat_foreman",
+      "kind": "poi",
+      "position": {
+        "x": -464,
+        "y": 0,
+        "z": 542.5
+      },
+      "label": "The Foreman's wreck mouth"
     }
   ],
   "volumes": [

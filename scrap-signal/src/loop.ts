@@ -10,6 +10,7 @@ import { registerCommands, resumeBuild } from "./game/commands";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
+import { tickFront } from "./game/encounters/front";
 import { enemyById, levelXpFor } from "./game/entities/enemies/catalog";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { player } from "./game/entities/players/catalog";
@@ -295,6 +296,8 @@ function onTick(ctx: GameContext, dt: number): void {
   noteGameNow(nowMs);
   if (activeCharacter() === null || gamePhase(ctx) !== "playing" || dt <= 0) return;
   tickAudio(ctx, nowMs);
+  // The front runs first: it owns its fighters and writes the hearing map the zone AI reads.
+  tickFront(ctx, dt);
   tickEnemies(ctx, dt);
   tickShields(ctx, nowMs, dt);
   tickDots(ctx, nowMs);

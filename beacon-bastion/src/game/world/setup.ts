@@ -3,17 +3,27 @@ import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { registerBuildCommands } from "../build/commands";
-import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_GOLD } from "../entities/base/catalog";
-import { creepDef, CREEP_CATALOG } from "../entities/enemies/catalog";
-import { resetSession, session } from "../session";
+import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY } from "../entities/base/catalog";
+import { CREEP_CATALOG } from "../entities/enemies/catalog";
+import { currentWaveNumber, resetSession, session } from "../session";
 import { resetProjectiles } from "../combat/pendingProjectiles";
 import { KEEP_POINT } from "./path";
 import { registerWaveCommands } from "../waves/director";
+import { killBounty } from "../waves/bounty";
+import {
+  legacy,
+  chooseBoon,
+  finishRun,
+  openingGold,
+  openingLives,
+  relicBountyScale,
+} from "../waves/legacy";
 import { beginRun, pauseRun } from "../menu";
 
 function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
   if (event.catalogId === BASE_CATALOG_ID) {
     session.gameOver = true;
+    finishRun(ctx);
     setGamePhase(ctx, "ended");
     ctx.game.audio.play("defeat");
     return;
@@ -22,7 +32,9 @@ function handleEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
     session.creeps.delete(event.instanceId);
     if (session.boss?.instanceId === event.instanceId) session.boss = null;
     const beneficiary = event.reason.kind === "player_kill" ? event.reason.killerUserId : ctx.player.userId;
-    ctx.game.economy.grant(beneficiary, GOLD_CURRENCY, creepDef(event.catalogId).bounty);
+    const paid = killBounty(event.catalogId, currentWaveNumber(), relicBountyScale(legacy.read(ctx)));
+    ctx.game.economy.grant(beneficiary, GOLD_CURRENCY, paid);
+    session.bountyEarned += paid;
     ctx.game.audio.play("kill", event.position);
   }
 }
@@ -34,10 +46,13 @@ export function restartDefense(ctx: GameContext): void {
   }
   resetSession();
   resetProjectiles();
+  const banked = legacy.read(ctx);
   const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
   if (gold > 0) ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, gold);
-  ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, STARTING_GOLD);
+  ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, openingGold(banked));
+  const lives = openingLives(banked);
   ctx.scene.entity.spawn(BASE_CATALOG_ID, { id: BASE_ENTITY_ID, position: KEEP_POINT, role: "prop" });
+  ctx.scene.entity.stats.set(BASE_ENTITY_ID, "lives", { current: lives, max: lives, min: 0 });
   ctx.time.play();
   setGamePhase(ctx, "playing");
 }
@@ -59,6 +74,21 @@ export function setupWorld(ctx: GameContext): void {
   ctx.game.commands.define("defense.restart", {
     validate: () => session.gameOver || session.victory ? null : { reason: "run-not-ended" },
     apply: state => { restartDefense(state); return state; },
+  });
+  // The result card's relic choice: bank the offered relic and march out with it.
+  ctx.game.commands.define<{ boon?: string | null } | undefined>("legacy.choose", {
+    validate: (state, input) => {
+      if (!session.gameOver && !session.victory) return { reason: "run-not-ended" };
+      const pick = input?.boon ?? null;
+      if (pick !== null && !legacy.read(state).offer.includes(pick)) return { reason: "not-offered" };
+      return null;
+    },
+    apply: (state, input) => {
+      const pick = input?.boon ?? null;
+      legacy.write(state, chooseBoon(legacy.read(state), pick));
+      restartDefense(state);
+      return state;
+    },
   });
   ctx.game.events.on("entity.died", (event) => handleEntityDied(ctx, event));
 }

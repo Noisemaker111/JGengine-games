@@ -180,6 +180,9 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
     spawn(next: NearSpawn) {
       if (walkers.has(next.id)) return;
       const entityId = `resident-${next.id}`;
+      // A restored world can still hold this resident's body while the schedule has it far: the near
+      // copy owns the id, so the stale one goes rather than colliding with `spawn`.
+      if (ctx.scene.entity.get(entityId) !== null) ctx.scene.entity.despawn(entityId);
       const [x, , z] = next.position;
       ctx.scene.entity.spawn(kindOf.get(next.id) ?? "ped_city", {
         id: entityId,

@@ -1,35 +1,54 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { DeathScreenView } from "@/components/ui/death-screen-view";
 import { ResultsScreen } from "@/components/ui/results-screen";
 
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
+import { currentWaveNumber, session } from "../../session";
+import { bountyReadout } from "../../waves/bounty";
+import { boonDef, legacy, relicBountyScale } from "../../waves/legacy";
 import { TOTAL_WAVES } from "../../waves/manifest";
-import { session } from "../../session";
 
+/**
+ * The result card: what the defense paid, what it banked, and the relics the next one may open with.
+ * One card for a hold and a fall alike - a fallen keep still has something to carry forward.
+ */
 export function EndScreens() {
   const { commands } = useGame();
   const gameOver = useGameStore(() => session.gameOver);
   const victory = useGameStore(() => session.victory);
-  const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
+  const account = useGameStore((ctx) => legacy.read(ctx));
 
-  if (gameOver) {
-    return <DeathScreenView title="The Keep Has Fallen" subtitle="Your defense fell. Rebuild from a fresh purse and choose when the next assault begins." respawnLabel="Rebuild defense" onRespawn={() => commands.run("defense.restart", {})} />;
-  }
+  if (!gameOver && !victory) return null;
 
-  if (victory) {
-    return (
-      <ResultsScreen
-        outcome="victory"
-        title="The Keep Holds"
-        entries={[{ id: "restart", label: "Defend again" }]}
-        onActivate={() => commands.run("defense.restart", {})}
-        lines={[
-          { label: "Waves Survived", value: TOTAL_WAVES, accent: true },
-          { label: "Gold Remaining", value: gold },
-        ]}
-      />
-    );
-  }
+  const wave = Math.max(1, Math.min(TOTAL_WAVES, currentWaveNumber()));
+  const readout = bountyReadout(wave, session.bountyEarned, relicBountyScale(account));
+  const relic = boonDef(account.boonId);
+  const entries = [
+    ...account.offer.map((id) => {
+      const boon = boonDef(id);
+      return { id: `boon:${id}`, label: boon === null ? id : `${boon.label} · ${boon.detail}` };
+    }),
+    { id: "restart", label: "Defend again" },
+  ];
 
-  return null;
+  return (
+    <ResultsScreen
+      outcome={victory ? "victory" : "defeat"}
+      title={victory ? "The Keep Holds" : "The Keep Has Fallen"}
+      lines={[
+        { label: "Waves Reached", value: `${wave} / ${TOTAL_WAVES}`, accent: true },
+        { label: "Bounties Paid", value: `${readout.earned} gold` },
+        {
+          label: "Kill Pay",
+          value: `${readout.opening}g → ${readout.closing}g a raider (×${readout.scale.toFixed(2)})`,
+        },
+        { label: "Gold Banked", value: `${account.bankedGold} gold` },
+        { label: "Standing", value: account.standing },
+        { label: "Relic", value: relic === null ? "none carried" : relic.label },
+      ]}
+      entries={entries}
+      onActivate={(id) => {
+        commands.run("legacy.choose", { boon: id.startsWith("boon:") ? id.slice("boon:".length) : null });
+      }}
+    />
+  );
 }

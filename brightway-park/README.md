@@ -1,34 +1,35 @@
 # Brightway Park
 
-A park-builder tycoon: buy rides and stalls, set the ticket price, keep guests fed and the rating
-climbing. Runs on published `@jgengine/*` packages; start it with `bun run dev:brightway-park` from the
-repository root. Saves to `brightway-park.save.v1`; `docs/PLAYTEST.md` holds the last verified pass.
+A park-builder tycoon: buy rides and stalls, set the ticket and ride prices, keep guests fed and the
+rating climbing, and pay the loan at midnight. Runs on published `@jgengine/*` packages; start it with
+`bun run dev:brightway-park` from the repository root. Saves to `brightway-park.save.v1`;
+`docs/PLAYTEST.md` holds the last verified pass.
 
 ## Design checklist
 
-Read from `src/game/{catalog,objects,sim,session}`. Numbers are what the build does now.
+Read from `src/game/{catalog,objects,sim,session,scenarios,milestones,loan,rides}`. Numbers are what the build does now.
 
 - **Core loop.** $6,000 and a 150-second day starting at 09:00. Guests arrive through the gate while
-  it is open, pay the ticket price (default $18), then choose among rides and stalls by need pressure
-  and proximity. Rides and stalls add appeal; scenery and paths add a little more. Each midnight charges
-  upkeep plus stall restocking.
-- **Progression — three systems.**
-  - [x] Rating. Target = appeal × 3.4 + variety × 9 + (happiness − 40) × 1.6 + guests × 0.28 − litter ×
-    1.4, eased toward rather than snapped. Milestones at 60 / 120 / 220 / 360 / 540 / 760 unlock
-    flowers and lamps, the fountain and drinks, the ferris wheel and souvenirs, the janitor badge, the
-    drop tower, then the gardens.
-  - [x] Purse. Upkeep runs $0–95 per object per day plus restock, and the ticket price fights demand
-    from $6 at 2.6% per dollar. The guest cap is 60 + 0.6 × rating, so a park that stalls also stops
-    filling.
-  - [x] Build depth. 15 buildables in six categories; each coaster track piece costs $130 and adds 0.7
-    thrill to the station it sits beside, so a coaster is the one thing you keep buying into.
-- **Failure states.** Three consecutive days with cash below zero closes the park for good. Guests leave
-  below 18 happiness or after six stops, so a badly served park empties instead of crashing. The ribbon
-  needs three rides, rating 220, happiness ≥ 50, litter ≤ 40, day 2 or later and yesterday's revenue
-  covering yesterday's upkeep; after it, free play continues.
-- **Minute 5 → hour 5.** At 5:00 one carousel, one burger stall and a strip of path have opened the
-  gates: rating under 60, cash a few thousand. Hour five is roughly day 24 at 1× speed — all six
-  milestones reachable, the ribbon achievable, and past it only the sandbox.
+  it is open, pay the entry fee (default $18), then pick a ride or a stall by need, mood, the wait they
+  can see and the price. Each midnight charges upkeep, staff wages, stall restocking and the loan
+  instalment.
+- **Rides that rate.** Every placed ride runs the shared ride sim: its own load, ride and unload cycle,
+  its own line whose wait comes from measured throughput, its own wear and breakdown curve. A
+  breakdown takes the ride offline with a message and a repair bill; a mechanic bay shortens repairs
+  and servicing clears wear before it breaks. The dashboard reads rides online, riders and the queue.
+- **Money that binds.** Entry fee plus a per-ride ticket the park sets; guests weigh the ticket
+  against the wait. Staff are a wage line separate from facility upkeep. A $6,000 loan at 3% a day
+  over ten days is repaid nightly out of the same shared ledger as upkeep; the balance and interest
+  show on the HUD. Rating still gates the crowd: 34 visitors at zero stars, plus 0.14 per star.
+- **Milestones that open real content.** Six authored gates on a park-rating standing track. Each
+  names the unlock it grants (flower beds and lamps, the drinks kiosk and fountain, the ferris wheel
+  and souvenir shop, the mechanic bay, the drop tower, the grand topiary), and the gate set refuses to
+  load if a reward id resolves to nothing, so a dead milestone fails at startup instead of in play.
+- **Three scenarios.** Opening Weekend ($2,000 at the gate over two days), Star Attraction (420 stars
+  by the end of day three) and Full House (80 visitors in one day), each a timed objective on the
+  shared mission runtime with its own fail states, reward and fresh-park replay. Free play is the
+  sandbox: the blue ribbon needs three rides, rating 220, happiness above 50, litter under 40, a
+  profitable day, and three days in debt still closes the park for good.
 - **References it is chasing.**
   - *RollerCoaster Tycoon 2* — feel: guests as individuals with opinions you can click; density: a park
     full of walkers at every zoom; UI: build palette beside a guest window, price control in the stall.
@@ -36,8 +37,11 @@ Read from `src/game/{catalog,objects,sim,session}`. Numbers are what the build d
     square is accounted for; UI: rating and finance panels that explain the number rather than show it.
   - *Planet Coaster* — feel: milestone celebration worth pausing for; density: crowd scale at the gate;
     UI: dashboard-first management with the park still visible behind it.
-- **Gap to target.** Past the ribbon there is no second scenario and no harder price or upkeep curve, and
-  the catalogue ends at 15 objects. Hour five needs either a scenario ladder or a deeper build list.
+- **Gap to target.** Past the scenarios there is no campaign ladder and no second park, and the
+  catalogue ends at 16 objects. A long queue's mood cost is the park's main soft failure today; a paid
+  queue-skip or a second gate would take the pressure off.
 
 Balance numbers live in `src/game/catalog.ts` and `src/game/objects/catalog.ts`; the simulation is in
-`src/game/sim/`. Run `bun run check-types` and `bun run test` here after changes.
+`src/game/sim/`, the ride adapter in `src/game/rides.ts`, the loan book in `src/game/loan.ts`, and the
+scenario and milestone content in `src/game/scenarios.ts` and `src/game/milestones.ts`. Run
+`bun run check-types` and `bun run test` here after changes.

@@ -2,6 +2,19 @@ export type BuildCategory = "ride" | "stall" | "track" | "path" | "scenery" | "s
 
 export type StallNeed = "hunger" | "thirst" | "souvenir";
 
+/** A ride's own cycle, price and wear curve - content the shared ride sim reads as data. */
+export interface RideData {
+  thrill: number;
+  rideSeconds: number;
+  capacity: number;
+  loadSeconds: number;
+  unloadSeconds: number;
+  /** Ticket a guest pays to board; the park sets the live price from this default. */
+  price: number;
+  /** Chance one completed cycle breaks the ride, and what the repair costs. */
+  breakdown: { baseChance: number; wearChance: number; repairSeconds: number; repairCost: number; serviceCost: number };
+}
+
 export interface BuildableDef {
   id: string;
   label: string;
@@ -15,9 +28,9 @@ export interface BuildableDef {
   requires?: string;
   appeal: number;
   footprint: number;
-  ride?: { thrill: number; rideSeconds: number; capacity: number };
+  ride?: RideData;
   stall?: { need: StallNeed; price: number; restock: number; stock: number };
-  staff?: { cleaning: number };
+  staff?: { cleaning: number; repair?: number };
   isEntrance?: boolean;
 }
 
@@ -34,7 +47,15 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     trim: "#ffd24a",
     appeal: 4,
     footprint: 8,
-    ride: { thrill: 4, rideSeconds: 6, capacity: 6 },
+    ride: {
+      thrill: 4,
+      rideSeconds: 6,
+      capacity: 6,
+      loadSeconds: 4,
+      unloadSeconds: 3,
+      price: 3,
+      breakdown: { baseChance: 0.06, wearChance: 0.02, repairSeconds: 22, repairCost: 90, serviceCost: 30 },
+    },
   },
   ride_coaster: {
     id: "ride_coaster",
@@ -48,7 +69,15 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     trim: "#ff5a3c",
     appeal: 6,
     footprint: 8,
-    ride: { thrill: 8, rideSeconds: 9, capacity: 8 },
+    ride: {
+      thrill: 8,
+      rideSeconds: 9,
+      capacity: 8,
+      loadSeconds: 5,
+      unloadSeconds: 4,
+      price: 5,
+      breakdown: { baseChance: 0.05, wearChance: 0.015, repairSeconds: 30, repairCost: 140, serviceCost: 45 },
+    },
   },
   ride_ferris: {
     id: "ride_ferris",
@@ -63,7 +92,15 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     requires: "tier_ferris",
     appeal: 9,
     footprint: 10,
-    ride: { thrill: 6, rideSeconds: 12, capacity: 12 },
+    ride: {
+      thrill: 6,
+      rideSeconds: 12,
+      capacity: 12,
+      loadSeconds: 6,
+      unloadSeconds: 5,
+      price: 4,
+      breakdown: { baseChance: 0.04, wearChance: 0.012, repairSeconds: 28, repairCost: 120, serviceCost: 40 },
+    },
   },
   ride_dropzone: {
     id: "ride_dropzone",
@@ -78,7 +115,15 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     requires: "tier_dropzone",
     appeal: 13,
     footprint: 8,
-    ride: { thrill: 14, rideSeconds: 8, capacity: 8 },
+    ride: {
+      thrill: 14,
+      rideSeconds: 8,
+      capacity: 8,
+      loadSeconds: 5,
+      unloadSeconds: 4,
+      price: 6,
+      breakdown: { baseChance: 0.07, wearChance: 0.02, repairSeconds: 34, repairCost: 180, serviceCost: 55 },
+    },
   },
   stall_food: {
     id: "stall_food",
@@ -232,6 +277,21 @@ export const BUILDABLES: Record<string, BuildableDef> = {
     appeal: 0,
     footprint: 4,
     staff: { cleaning: 26 },
+  },
+  staff_mechanic: {
+    id: "staff_mechanic",
+    label: "Mechanic Bay",
+    blurb: "A workshop of its own: every ride comes back from a breakdown sooner.",
+    category: "staff",
+    icon: "🔧",
+    cost: 700,
+    upkeep: 42,
+    color: "#4a5568",
+    trim: "#ffb03a",
+    requires: "tier_mechanic",
+    appeal: 0,
+    footprint: 4,
+    staff: { cleaning: 0, repair: 0.35 },
   },
 };
 

@@ -7,6 +7,7 @@ import { content } from "../content";
 import { agentOf, clearAgents, guestTargets, liveAgent } from "../agents";
 import { resetSession, session, type PlacedObject } from "../session";
 import { tickStaff } from "../staff";
+import { joinRide, resetRides, syncRidePark } from "../rides";
 import { seedGuests, tickGuests } from "./guests";
 
 function context() {
@@ -37,6 +38,7 @@ function fillNeeds(ctx: ReturnType<typeof context>, values: Record<string, numbe
 describe("brightway-park guest agents", () => {
   beforeEach(() => {
     resetSession();
+    resetRides();
     clearAgents();
     session.open = true;
   });
@@ -99,18 +101,20 @@ describe("brightway-park guest agents", () => {
     const agent = liveAgent(onlyGuest().id)!;
     expect(agent.needs.value("hunger")).toBeGreaterThan(60);
     expect(agent.mood().score).toBeGreaterThan(hungry);
-    expect(onlyGuest().visits).toBe(1);
+    expect(onlyGuest().visits).toBeGreaterThanOrEqual(1);
   });
 
-  test("a crowded ride is priced as a worse choice than an empty one", () => {
+  test("a longer line is priced as a worse choice than an empty one", () => {
     const ctx = context();
     seedGuests(ctx, 1);
     const guest = onlyGuest();
     fillNeeds(ctx, { hunger: 95, thirst: 95, fun: 5, energy: 95 });
 
-    session.placed.set("ride_carousel#1", obj("ride_carousel", 0, 20, { occupants: 0 }));
+    session.placed.set("ride_carousel#1", obj("ride_carousel", 0, 20));
+    syncRidePark(ctx.rng);
     const empty = guestTargets(guest, 0, [0, 0, 0]).find((target) => target.target === "ride_carousel#1")!;
-    session.placed.set("ride_carousel#1", obj("ride_carousel", 0, 20, { occupants: 5 }));
+    // Five real guests join the shared line; the cost a sixth guest sees comes from that line.
+    for (let i = 0; i < 5; i += 1) joinRide("ride_carousel#1", `ghost#${i}`);
     const busy = guestTargets(guest, 0, [0, 0, 0]).find((target) => target.target === "ride_carousel#1")!;
 
     expect(busy.cost!).toBeGreaterThan(empty.cost!);

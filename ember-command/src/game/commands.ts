@@ -16,7 +16,7 @@ import { TRAINING_CONFIG } from "./production";
 import { FORMATION_SPACING, NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
 import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
-import { castThunderClap } from "./hero";
+import { castHeroAct, chooseHeroPick, heroActViews, pendingHeroOffer } from "./heroActs";
 
 export interface OrderInput {
   /** Absent when the shell routes a right-click with nothing selected (`pointer.secondaryCommand`). */
@@ -309,9 +309,29 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define<{ type: string }>("build.arm", { apply: (state, input) => armBuild(state, input.type) });
   ctx.game.commands.define("research.weapons", { apply: (state) => research(state, "weapons") });
   ctx.game.commands.define("research.armor", { apply: (state) => research(state, "armor") });
-  ctx.game.commands.define("hero.ability", {
-    apply: (state) => {
-      if (matchRunning()) castThunderClap(state);
+  // One verb per hero act, refused with the kit's own reason so a hotkey never fails silently.
+  ctx.game.commands.define<{ act: string }>("hero.act", {
+    apply: (state, input) => {
+      if (!matchRunning()) return state;
+      const cast = castHeroAct(state, input.act);
+      if (cast.ok) return state;
+      const label = heroActViews(state).find((act) => act.id === input.act)?.label ?? input.act;
+      const reason = cast.reason === "not-picked"
+        ? `${label} is not in Bram's kit — pick it at a level-up.`
+        : cast.reason === "cooldown"
+          ? `${label} is still recharging.`
+          : cast.reason === "no-resource"
+            ? `Not enough mana for ${label}.`
+            : `${label} cannot be cast right now.`;
+      notify(state, reason, "deny");
+      return state;
+    },
+  });
+  // The level-up card's button: take one of the two offered picks.
+  ctx.game.commands.define<{ id: string }>("hero.pick", {
+    apply: (state, input) => {
+      if (pendingHeroOffer(state) === null) return state;
+      chooseHeroPick(state, input.id);
       return state;
     },
   });

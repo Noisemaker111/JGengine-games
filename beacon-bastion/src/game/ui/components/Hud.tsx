@@ -7,10 +7,12 @@ import { WalletCurrencyDisplay } from "@/components/ui/wallet-currency-display";
 import { HudLabel } from "@/components/ui/hud-label";
 
 import { BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_LIVES } from "../../entities/base/catalog";
-import { TOTAL_WAVES, WARDEN_STANCE } from "../../waves/manifest";
+import { TOTAL_WAVES } from "../../waves/manifest";
 import { activeCreepCount, currentWaveNumber, session } from "../../session";
 import { waveOverlapBonus } from "../../waves/director";
-import { tierLabel, waveCompositionLine, waveStatusLine } from "../../waves/status";
+import { bountyScale } from "../../waves/bounty";
+import { boonDef, legacy, relicBountyScale } from "../../waves/legacy";
+import { bossLine, nextWaveIndex, tierLabel, waveCompositionLine, wavePreviewLine, waveStatusLine } from "../../waves/status";
 
 export function Hud() {
   const { commands } = useGame();
@@ -25,6 +27,13 @@ export function Hud() {
   const composition = useGameStore(() => session.openingComposition);
   const tier = useGameStore(() => session.pressure.tier);
   const boss = useGameStore(() => session.boss);
+  // The plate previews the wave the release button would send: this one before any release, the
+  // next one once a wave is open (its release clears this one and opens that).
+  const nextIndex = useGameStore(() => (session.waveStarted ? currentWaveNumber() : 0));
+  const preview = useGameStore(() => wavePreviewLine(session.encounter.waveAt(nextIndex), nextIndex + 1));
+  const account = useGameStore((ctx) => legacy.read(ctx));
+  const relic = boonDef(account.boonId);
+  const pay = bountyScale(Math.min(wave, TOTAL_WAVES), relicBountyScale(account));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -33,16 +42,15 @@ export function Hud() {
         <HeartRow current={lives?.current ?? 0} max={lives?.max ?? STARTING_LIVES} size={18} />
       </div>
       <WalletCurrencyDisplay currencyId={GOLD_CURRENCY} name="Gold" />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <HudSurface interactive={false} elevation="raised" padding="8px 10px" width={480} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, textAlign: "center" }}>
         <WaveIndicator wave={Math.min(wave, TOTAL_WAVES)} totalWaves={TOTAL_WAVES} />
         <HudLabel>{waveStatusLine({ started, releasing, wave: Math.min(wave, TOTAL_WAVES), alive: remaining })}</HudLabel>
         {started && composition.length > 0 ? <HudLabel>{waveCompositionLine(composition, tier)}</HudLabel> : null}
-        {boss === null ? null : (
-          <HudLabel>
-            {`The Warden — ${WARDEN_STANCE[boss.state.phaseId]?.label ?? boss.state.phaseId}${boss.state.tellId === null ? "" : " (roaring)"}`}
-          </HudLabel>
-        )}
-      </div>
+        {ready ? <HudLabel>{preview}</HudLabel> : null}
+        {boss === null ? null : <HudLabel>{bossLine(boss)}</HudLabel>}
+        <HudLabel>{`Kill pay ×${pay.toFixed(2)} · standing ${account.standing}`}</HudLabel>
+        {relic === null ? null : <HudLabel>{`Relic · ${relic.label} — ${relic.detail}`}</HudLabel>}
+      </HudSurface>
       <HudSurface open={ready && !done} elevation="overlay" title={started ? "Choose your next assault" : "Prepare the beacon"} width={256}>
         <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.45 }}>{bonus > 0 ? `Wait for a safer approach, or send the next wave with ${remaining} raiders still alive for +${bonus} gold.` : "Place defenses on the foundation rings, then release the raiders when you are ready."}</p>
         <HudButton variant="primary" cue="confirm" onClick={() => commands.run("wave.send", {})}>

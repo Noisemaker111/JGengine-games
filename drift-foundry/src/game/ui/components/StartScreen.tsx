@@ -15,6 +15,7 @@ export function StartScreen({ onStart, onCredits, onBuy, records }: {
 }) {
   const parkedRun = useStore(runSessionStore, session => session?.snapshot().parkedRun ?? null);
   const career = useStore(runSessionStore, session => session?.snapshot().career ?? null);
+  const shift = useStore(runSessionStore, session => session?.snapshot().shift ?? null);
   const { commands } = useGame();
   // The pit plate covers the frame and the buggy is not running yet: nothing behind it can change.
   useCanvasCover(true);
@@ -41,6 +42,7 @@ export function StartScreen({ onStart, onCredits, onBuy, records }: {
       <p>Empty slots, plow and springs bolt on automatically. Engine and frame replacements are your choice: hold E as you pass to swap, or keep your build. Truck speed costs steering; EV handling costs speed. Jump striped stacks on teal marks. TALLY wanders, MOSS weaves, HOBBS holds a clean outside line - beat all three to the 470m gate.</p>
       <div className="df-controls-legend"><span><kbd>W</kbd> Throttle</span><span><kbd>A D</kbd> Steer</span><span><kbd>S</kbd> Brake / reverse</span><span><kbd>Space</kbd> Jump</span><span><kbd>X</kbd> Handbrake drift</span><span><kbd>Shift</kbd> Brace plow</span><span><kbd>P</kbd> Pause</span></div>
       <div className="df-records">{records.bestTime === null ? "NO ESCAPE ON RECORD" : `BEST ESCAPE ${records.bestTime.toFixed(1)}s`} <span>{records.escapes} escapes / {records.attempts} finished runs</span></div>
+      <p className="df-next-shift" role="status">{shift ? <>THIS RUN · <b>{shift.label}</b> {shift.hint}</> : <>THIS RUN · <b>CLEAN SHIFT</b> Nobody has changed the yard. Escape pays what the line earns.</>}</p>
       {career && <section className="df-garage" aria-label="Yard garage">
         <div className="df-records">YARD CREDITS {career.credits} <span>STANDING {career.standing} / {career.tier}</span></div>
         <p className="df-eyebrow">PIT GARAGE / BUY A LADDER RUNG</p>

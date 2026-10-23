@@ -8,8 +8,11 @@ export interface CreepRim {
 export interface CreepDef {
   id: string;
   label: string;
+  /** A named raider's name, shown after the label ("Captain Ironjaw"). Composed elites carry one. */
+  title?: string;
   health: number;
   speed: number;
+  /** The unit's weight in gold at wave 1; the wave and a relic multiply it (`waves/bounty.ts`). */
   bounty: number;
   leak: number;
   /** Visual size, and the hitbox it derives. The default camera puts about seven vertical pixels on one world unit, so this carries most of the "which raider is that" answer. */
@@ -88,7 +91,71 @@ export const CREEP_CATALOG: Record<string, CreepDef> = {
     color: "#ff8a7a",
     rim: { color: "#fff2d6", strength: 2.6, power: 2 },
   },
+  // Named elites the composer calls up from wave 7. Same pack as the anonymous raiders, a heavier
+  // stat line and a louder hue so one is recognisable on the road at the default camera.
+  raider_captain: {
+    id: "raider_captain",
+    label: "Captain",
+    title: "Ironjaw",
+    health: 175,
+    speed: 2,
+    bounty: 18,
+    leak: 1,
+    scale: 1.45,
+    model: "kaykit-adventurers/Knight",
+    fallbackModel: "kaykit-skeletons/Skeleton_Warrior",
+    color: "#b7f7c0",
+    rim: { color: "#e9ffd6", strength: 3, power: 2 },
+  },
+  raider_reaver: {
+    id: "raider_reaver",
+    label: "Reaver",
+    title: "Sable",
+    health: 130,
+    speed: 2.85,
+    bounty: 16,
+    leak: 1,
+    scale: 1.3,
+    model: "kaykit-adventurers/Rogue_Hooded",
+    fallbackModel: "kaykit-skeletons/Skeleton_Rogue",
+    color: "#e7a4ff",
+    rim: { color: "#f5d9ff", strength: 2.8, power: 2.2 },
+  },
+  raider_breaker: {
+    id: "raider_breaker",
+    label: "Breaker",
+    title: "Hollow",
+    health: 260,
+    speed: 1.75,
+    bounty: 24,
+    leak: 2,
+    scale: 1.7,
+    model: "kaykit-adventurers/Barbarian",
+    fallbackModel: "kaykit-skeletons/Skeleton_Minion",
+    color: "#8fd0ff",
+    rim: { color: "#d8efff", strength: 3, power: 1.9 },
+  },
+  raider_warlord: {
+    id: "raider_warlord",
+    label: "The Warlord",
+    health: 2200,
+    speed: 1.2,
+    bounty: 140,
+    leak: 8,
+    scale: 2.1,
+    model: "kaykit-adventurers/Barbarian",
+    fallbackModel: "kaykit-skeletons/Skeleton_Minion",
+    color: "#ff7a1f",
+    rim: { color: "#ffd9a8", strength: 3.6, power: 1.7 },
+  },
 };
+
+/** A raider's display name: its name when it has one, else its role. */
+export function creepName(id: string): string {
+  const def = CREEP_CATALOG[id];
+  if (def === undefined) return id;
+  return def.title === undefined ? def.label : `${def.label} ${def.title}`;
+}
 
 export function creepDef(id: string): CreepDef {
   const def = CREEP_CATALOG[id];

@@ -107,6 +107,43 @@ export const EMBER_SOUNDS: Record<string, SoundDef> = {
       ],
     },
   },
+  // Banner Muster: a rising Vanguard horn over a cloth snap.
+  banner: {
+    id: "banner",
+    bus: "sfx",
+    gain: 0.7,
+    synth: {
+      voices: [
+        { kind: "tone", freq: 196, slideTo: 294, duration: 0.45, wave: "sawtooth", gain: 0.22 },
+        { kind: "noise", duration: 0.2, filterFreq: 2600, filterType: "bandpass", gain: 0.2, delay: 0.04 },
+      ],
+    },
+  },
+  // Ember Volley: three tight rifle cracks in a row.
+  volley: {
+    id: "volley",
+    bus: "sfx",
+    gain: 0.75,
+    synth: {
+      voices: [
+        { kind: "noise", duration: 0.1, filterFreq: 2400, filterType: "bandpass", gain: 0.5 },
+        { kind: "noise", duration: 0.1, filterFreq: 2000, filterType: "bandpass", gain: 0.4, delay: 0.09 },
+        { kind: "noise", duration: 0.12, filterFreq: 1700, filterType: "bandpass", gain: 0.35, delay: 0.18 },
+      ],
+    },
+  },
+  // Ash Ward: a smothered hiss of ember smoke settling over the line.
+  ward: {
+    id: "ward",
+    bus: "sfx",
+    gain: 0.6,
+    synth: {
+      voices: [
+        { kind: "noise", duration: 0.5, filterFreq: 900, filterType: "lowpass", gain: 0.35 },
+        { kind: "tone", freq: 220, slideTo: 165, duration: 0.42, wave: "sine", gain: 0.2, delay: 0.05 },
+      ],
+    },
+  },
   // Warcamp razed: a rising three-note copper fanfare.
   victory: {
     id: "victory",

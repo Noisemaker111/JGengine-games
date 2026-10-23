@@ -108,8 +108,16 @@ describe("handroll drivable-vehicle adoption", () => {
   test("witnessed heat gains escalate stars, unwitnessed gains do not", () => {
     const ctx = boot();
     const handroll = createHandroll();
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("ped_beach", {
+      id: "ped_heat_witness",
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
 
-    handroll.addHeat(ctx, 250);
+    handroll.tick(ctx, STEP);
+    handroll.addHeat(ctx, 150);
     handroll.tick(ctx, STEP);
     expect(handroll.wanted().stars).toBe(2);
     expect(handroll.wanted().peakStars).toBe(2);
@@ -122,6 +130,8 @@ describe("handroll drivable-vehicle adoption", () => {
     ctx.scene.entity.hasLineOfSight = () => true;
     ctx.scene.entity.setPose(HERO, { position: [0, 0, 0] });
     ctx.scene.entity.spawn("cop_patrol", { id: "cop_x", position: [1.5, 0, 0], role: "npc" });
+    // A witness and one crime so the search exists: officers only engage someone the search is about.
+    ctx.scene.entity.spawn("ped_beach", { id: "ped_shot_witness", position: [4, 0, 0], rotationY: -Math.PI / 2, role: "npc" });
 
     // Count only the damage this cop deals to the player.
     const realEffect = ctx.scene.entity.effect.bind(ctx.scene.entity);
@@ -154,7 +164,16 @@ describe("handroll drivable-vehicle adoption", () => {
     const ctx = boot();
     const handroll = createHandroll();
     ctx.scene.entity.setPose(HERO, { position: [0, 0, 0] });
-    // Five stars so the cruisers engage and the spawn ring drops one 70 m out.
+    // Heat only sticks while a witness holds the player in view, so the street is watched first.
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("ped_beach", {
+      id: "ped_cruiser_witness",
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
+    handroll.tick(ctx, STEP);
+    // Five stars so the cruisers engage and the spawn ring drops one 60 m out.
     handroll.addHeat(ctx, 500);
     handroll.tick(ctx, STEP);
     const cruiser = ctx.scene.entity.list().find((entity) => entity.id.startsWith("cruiser_"));
@@ -169,6 +188,14 @@ describe("handroll drivable-vehicle adoption", () => {
   test("clearWanted resets heat and stars", () => {
     const ctx = boot();
     const handroll = createHandroll();
+    const player = ctx.scene.entity.get(HERO)!;
+    ctx.scene.entity.spawn("ped_beach", {
+      id: "ped_clear_witness",
+      position: [player.position[0] + 4, player.position[1], player.position[2]],
+      rotationY: -Math.PI / 2,
+      role: "npc",
+    });
+    handroll.tick(ctx, STEP);
     handroll.addHeat(ctx, 150);
     handroll.tick(ctx, STEP);
     expect(handroll.wanted().stars).toBeGreaterThan(0);

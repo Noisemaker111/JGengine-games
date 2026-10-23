@@ -3,7 +3,12 @@ import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
 import { damagedAxis, type VehicleDamageEffectResolved, type VehicleDamageZoneState } from "@jgengine/core/physics/vehicleDamage";
 import { defineStore } from "@jgengine/core/store/defineStore";
 
-import { activeSurge, compactorGap, compactorZAt, type CompactorSurge } from "../compactor/schedule";
+import { createRunLoop, type RunSettlement } from "@jgengine/core/run/runLoop";
+
+import { activeSurge, compactorGap, compactorZAt, type CompactorPlan, type CompactorSurge } from "../compactor/schedule";
+import { lineReading } from "./haul";
+import { compactorPlanForShift, rivalsForShift, shiftInfo, SHIFT_TABLE, type ShiftEffect } from "./shifts";
+import { readRunState, saveRunState } from "./shiftState";
 import { resolveCrusherContact } from "../compactor/contact";
 import { partInSlotId, tuningFrom, type KartTuning } from "../parts/build";
 import type { DriftFoundryPartDef } from "../parts/catalog";
@@ -15,7 +20,7 @@ import { createStandings, PLAYER_RACER_ID, type RaceSnapshot, type Standings } f
 import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
 import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
-import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, SPAWN_Z } from "./constants";
+import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, RUN_SEED, SPAWN_Z } from "./constants";
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
 import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
@@ -39,8 +44,18 @@ export interface RunOutcome {
   /** Where the player's kart finished in the four-kart field. */
   place: number;
   fieldSize: number;
-  /** Credits the run carried home, or lost to the compactor. */
-  haul: number;
+  /** Salvage the run carried home, before the line multiplier. */
+  carried: number;
+  /** What the line paid: 0 on a wreck, 0.5-1.8 on an escape. */
+  lineMultiplier: number;
+  /** Why the line paid that, one line per term, for the results card. */
+  lineNotes: readonly string[];
+  /** Credits that reached the bank, or 0 on a wreck. */
+  banked: number;
+  /** Credits the compactor took, or 0 on an escape. */
+  lost: number;
+  /** What the next run changes, drawn as this one was settled. */
+  nextShift: { id: string; label: string; hint: string } | null;
 }
 
 export interface SessionSnapshot {
@@ -71,6 +86,13 @@ export interface SessionSnapshot {
   armorSavesUsed: number;
   outcome: RunOutcome | null;
   collectedIds: ReadonlySet<string>;
+  /** Salvage this run is carrying and would bank on an escape. */
+  salvageAtRisk: number;
+  /** What this run changes about the yard, or `null` on the honest first run. */
+  shift: { id: string; label: string; hint: string } | null;
+  /** Runs settled in this career, and the loop's own lifetime totals. */
+  runsPlayed: number;
+  runSaved: boolean;
   /** Live four-kart standings: the player's place, the lap, and the field order. */
   race: RaceSnapshot;
   /** Where the three yard karts are this tick - the loop poses their entities from this. */
@@ -124,8 +146,15 @@ export function createRunSession(
   let radioCounter = 0;
   let outcome: RunOutcome | null = null;
   let career: CareerSave = readCareer(storage);
-  let haul = 0;
   let careerSaved = true;
+  // The run loop owns what a run carries, what a settled run banks or loses, and the shift the next
+  // run draws. The money stays in the career bank; this only decides how much of it arrives.
+  const loop = createRunLoop<ShiftEffect>({ seed: RUN_SEED, changes: SHIFT_TABLE });
+  const savedRun = readRunState(storage);
+  if (savedRun !== null) loop.restore(savedRun);
+  let runSaved = true;
+  let shift: { id: string; label: string; hint: string } | null = shiftInfo(loop.offer().changeId);
+  let compactor: CompactorPlan = compactorPlanForShift(loop.offer().changeId);
 
   // Handling is composed from the installed parts and the damage baked into the body, then handed to
   // the sim as one object. The controller retunes by reference, so an installed part or a bent nose
@@ -142,18 +171,23 @@ export function createRunSession(
 
   const vehicle: VehicleController = createVehicleController({ position: SPAWN_POSITION, heading: SPAWN_HEADING });
 
+  function createField(): OpponentField {
+    return createOpponentField({
+      groundHeightAt,
+      defs: rivalsForShift(loop.offer().changeId),
+      // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
+      // momentum their driver had built up.
+      onPlayerKnock: (dx, dz) => {
+        vehicle.shove(dx, dz);
+        pose = { ...pose, position: [pose.position[0] + dx, pose.position[1], pose.position[2] + dz] };
+      },
+    });
+  }
+
   // The field and its standings run on the same authored corridor and the same composed handling as
   // the player; `createStandings` wraps the shared race state machine, which owns order, laps and
-  // the finish condition.
-  const opponents: OpponentField = createOpponentField({
-    groundHeightAt,
-    // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
-    // momentum their driver had built up.
-    onPlayerKnock: (dx, dz) => {
-      vehicle.shove(dx, dz);
-      pose = { ...pose, position: [pose.position[0] + dx, pose.position[1], pose.position[2] + dz] };
-    },
-  });
+  // the finish condition. The field is rebuilt per run because a shift can change a rival's line.
+  let opponents: OpponentField = createField();
   const standings: Standings = createStandings({
     ...Object.fromEntries(RIVAL_DEFS.map((def) => [def.id, def.name])),
     // Added last so the player starts bottom of the grid, behind all three rivals.
@@ -202,7 +236,7 @@ export function createRunSession(
     installed = grant.installed;
     rebuildTuning();
     collected.add(found.id);
-    haul += SALVAGE_CREDITS;
+    loop.carry(SALVAGE_CREDITS);
     notify(part.radioLine, "success");
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
@@ -220,12 +254,19 @@ export function createRunSession(
     }
   }
 
-  function reset(): void {
+  /** `keepRun` resumes the run already open (a parked checkpoint); otherwise this starts a new one. */
+  function reset(keepRun = false): void {
     phase = "start";
     paused = false;
     runTime = 0;
     installed = ownedParts(career);
-    haul = 0;
+    // Salvage a run still carried when the player walks away from it is gone, and the run counts.
+    if (!keepRun) {
+      if (loop.haul() > 0) loop.settle("lost");
+      loop.start();
+    }
+    shift = shiftInfo(loop.offer().changeId);
+    compactor = compactorPlanForShift(loop.offer().changeId);
     collected = new Set<string>();
     gateAnnounced = new Set<string>();
     announcedSurge = null;
@@ -243,28 +284,39 @@ export function createRunSession(
     gateImpactArmed = true;
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
     pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
-    opponents.reset();
+    opponents = createField();
     standings.reset();
     announcedPlace = standings.placeOf(PLAYER_RACER_ID);
   }
 
-  reset();
+  reset(parkedRun !== null);
 
   function parkRun(): void {
     if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
     const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
-    if (saveParkedRun(checkpoint, storage)) { parkedRun = checkpoint; notify("PARKED RUN SAVED — CONTINUE FROM THE PIT", "success"); }
+    if (saveParkedRun(checkpoint, storage)) {
+      parkedRun = checkpoint;
+      // The salvage in the karts's hold is part of the parked run, so it survives the reload too.
+      runSaved = saveRunState(loop.snapshot(), storage);
+      notify("PARKED RUN SAVED — CONTINUE FROM THE PIT", "success");
+    }
     else notify("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN", "warn");
   }
 
-  function recordOutcome(): void {
+  function recordOutcome(settlement: RunSettlement<ShiftEffect>): void {
     const completed = completeRun(records, { kind: phase === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
     records = completed.records;
     personalBest = completed.personalBest;
     recordsSaved = saveRecords(records, storage);
-    career = settleRun(career, { kind: phase === "won" ? "escape" : "crushed", place: standings.placeOf(PLAYER_RACER_ID), haul: outcome?.haul ?? haul });
+    // What the loop settled is the whole payment: an escape banks its line-scaled salvage, a wreck
+    // carries its salvaged haul into the bank's lost counter and leaves the banked credits alone.
+    career = settleRun(career, {
+      kind: phase === "won" ? "escape" : "crushed",
+      place: standings.placeOf(PLAYER_RACER_ID),
+      haul: phase === "won" ? settlement.banked : settlement.lost,
+    });
     careerSaved = saveCareer(career, storage);
-    haul = 0;
+    runSaved = saveRunState(loop.snapshot(), storage);
     parkedRun = null;
     saveParkedRun(null, storage);
   }
@@ -283,9 +335,9 @@ export function createRunSession(
         pose,
         zone: zoneAt(pose.position[2]),
         progress: zoneProgress(pose.position[2]),
-        compactorZ: compactorZAt(runTime),
-        compactorGap: compactorGap(pose.position[2], compactorZAt(runTime)),
-        compactorSurge: activeSurge(runTime),
+        compactorZ: compactorZAt(runTime, compactor),
+        compactorGap: compactorGap(pose.position[2], compactorZAt(runTime, compactor)),
+        compactorSurge: activeSurge(runTime, compactor),
         installed: installedBySlot(),
         tuning,
         surface: surfaceAt(pose.position[0], pose.position[2]),
@@ -297,6 +349,10 @@ export function createRunSession(
         armorSavesUsed,
         outcome,
         collectedIds: collected,
+        salvageAtRisk: loop.haul(),
+        shift,
+        runsPlayed: loop.snapshot().completed,
+        runSaved,
         race: standings.snapshot(),
         rivals: opponents.bodies(),
         career: {
@@ -354,7 +410,7 @@ export function createRunSession(
       phase = "running";
       pushRadio("BOLT IT ON, GO GO");
     },
-    returnToTitle() { parkRun(); reset(); },
+    returnToTitle() { parkRun(); reset(parkedRun !== null); },
     togglePause() { if (phase === "running") { if (!paused) parkRun(); paused = !paused; } },
     suspend(value) { suspended = value; },
     tick(dt, axis, input) {
@@ -396,8 +452,8 @@ export function createRunSession(
         announcedPlace = place;
       }
 
-      const compactorZ = compactorZAt(runTime);
-      const surge = activeSurge(runTime);
+      const compactorZ = compactorZAt(runTime, compactor);
+      const surge = activeSurge(runTime, compactor);
       if (surge !== null && surge.id !== announcedSurge) {
         announcedSurge = surge.id;
         pushRadio(surge.label);
@@ -423,6 +479,7 @@ export function createRunSession(
         pushRadio("ARMOR PLATE TOOK THE HIT — KEEP MOVING");
       } else if (contact.outcome === "crushed") {
         phase = "crushed";
+        const settlement = loop.settle("lost");
         outcome = {
           kind: "crushed",
           time: runTime,
@@ -433,14 +490,30 @@ export function createRunSession(
           zoneLabel: zoneAt(pose.position[2]).label,
           place: standings.placeOf(PLAYER_RACER_ID),
           fieldSize: FIELD_SIZE,
-          haul,
+          carried: settlement.haul,
+          lineMultiplier: 0,
+          lineNotes: [],
+          banked: settlement.banked,
+          lost: settlement.lost,
+          nextShift: shiftInfo(settlement.next.changeId),
         };
-        recordOutcome();
+        recordOutcome(settlement);
         return;
       }
 
       if (pose.position[2] >= EXIT_Z) {
         phase = "won";
+        // The gate bonus is part of what the run carried, so the line is paid on the whole haul.
+        loop.carry(ESCAPE_BONUS);
+        const place = standings.placeOf(PLAYER_RACER_ID);
+        const line = lineReading({
+          barriers: gateAnnounced.size,
+          place,
+          time: runTime,
+          damageStage: Math.max(0, ...damage.zones().map((zone) => zone.stage)),
+          armorSaves: armorSavesUsed,
+        });
+        const settlement = loop.settle("banked", line.multiplier);
         outcome = {
           kind: "won",
           time: runTime,
@@ -449,11 +522,16 @@ export function createRunSession(
           closestGap: Number.isFinite(closestGap) ? closestGap : 0,
           armorSaves: armorSavesUsed,
           zoneLabel: zoneAt(pose.position[2]).label,
-          place: standings.placeOf(PLAYER_RACER_ID),
+          place,
           fieldSize: FIELD_SIZE,
-          haul: phase === "won" ? haul + ESCAPE_BONUS : haul,
+          carried: settlement.haul,
+          lineMultiplier: line.multiplier,
+          lineNotes: line.notes,
+          banked: settlement.banked,
+          lost: settlement.lost,
+          nextShift: shiftInfo(settlement.next.changeId),
         };
-        recordOutcome();
+        recordOutcome(settlement);
       }
     },
   };

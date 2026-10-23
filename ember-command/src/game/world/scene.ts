@@ -7,6 +7,7 @@ import { editorLayers } from "../../editorLayers";
 import { BUILDINGS, combatantDef, DECOR, isNode, NODES } from "../catalog";
 import { flushCampaign, failCampaignOnKeepLost, noteCampaignDeath, resetCampaignProgress, setCampaignMode, startCampaignMission, syncCampaignHud } from "../campaign";
 import { grantHeroXp, heroXpFor } from "../hero";
+import { loadHeroPicks } from "../heroActs";
 import { registerCommands } from "../commands";
 import { hudStore } from "../hudStore";
 import { GOLD, LUMBER, STARTING_GOLD, STARTING_LUMBER } from "../tuning";
@@ -153,6 +154,8 @@ export function setupSkirmish(ctx: GameContext): void {
   }
 
   initResourceField(ctx.rng);
+  // The kit a previous battle carried is restored for this one; `loadHeroPicks` is idempotent.
+  loadHeroPicks(ctx);
   if (wiredContexts.has(ctx)) { syncCampaignHud(ctx); return; }
   wiredContexts.add(ctx);
   registerCommands(ctx);
