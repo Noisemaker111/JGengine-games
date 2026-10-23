@@ -1,0 +1,62 @@
+{
+  "adopts": [
+    "agents",
+    "audio-probe",
+    "mount-game",
+    "ride-appeal",
+    "ride-choice",
+    "ride-sim"
+  ],
+  "probes": {
+    "@jgengine/core/agents/agent": [
+      "park.staff.*"
+    ],
+    "@jgengine/shell/audio/audioProbe": [
+      "window:__jgengineAudio"
+    ]
+  },
+  "declines": {
+    "cover-field": "Not adopted: this game does not run the engine cover-field system.",
+    "cover-points-from-solids": "Not adopted: this game does not run the engine cover-points-from-solids system.",
+    "cover-points-near": "Not adopted: this game does not run the engine cover-points-near system.",
+    "cover-score": "Not adopted: this game does not run the engine cover-score system.",
+    "cover-select": "Not adopted: this game does not run the engine cover-select system.",
+    "damage-runtime": "Not adopted: this game does not run the engine damage-runtime system.",
+    "damage-target-unknown": "Not adopted: this game does not run the engine damage-target-unknown system.",
+    "equipment-slot-inventory": "Not adopted: this game does not run the engine equipment-slot-inventory system.",
+    "game-save": "Not adopted: this game does not run the engine game-save system.",
+    "game-save-digest": "Not adopted: this game does not run the engine game-save-digest system.",
+    "loan-schedule": "Not adopted: this game does not run the engine loan-schedule system.",
+    "loans": "Not adopted: this game does not run the engine loans system.",
+    "loot-comparison": "Not adopted: this game does not run the engine loot-comparison system.",
+    "loot-generation": "Not adopted: this game does not run the engine loot-generation system.",
+    "loot-roller": "Not adopted: this game does not run the engine loot-roller system.",
+    "loot-score": "Not adopted: this game does not run the engine loot-score system.",
+    "loot-validation": "Not adopted: this game does not run the engine loot-validation system.",
+    "mission-events": "Not adopted: this game does not run the engine mission-events system.",
+    "mission-rewards": "Not adopted: this game does not run the engine mission-rewards system.",
+    "mission-runtime": "Not adopted: this game does not run the engine mission-runtime system.",
+    "mission-validation": "Not adopted: this game does not run the engine mission-validation system.",
+    "nav-crowd": "Not adopted: this game does not run the engine nav-crowd system.",
+    "nav-runtime": "Not adopted: this game does not run the engine nav-runtime system.",
+    "navmesh-from-scene": "Not adopted: this game does not run the engine navmesh-from-scene system.",
+    "near-agents": "Not adopted: this game does not run the engine near-agents system.",
+    "offscreen-world": "Not adopted: this game does not run the engine offscreen-world system.",
+    "perception-service": "Not adopted: this game does not run the engine perception-service system.",
+    "police-response": "Not adopted: this game does not run the engine police-response system.",
+    "police-roads": "Not adopted: this game does not run the engine police-roads system.",
+    "rvo-avoidance": "Not adopted: this game does not run the engine rvo-avoidance system.",
+    "skill-tree": "Not adopted: this game does not run the engine skill-tree system.",
+    "squad-combat": "Not adopted: this game does not run the engine squad-combat system.",
+    "status-runtime": "Not adopted: this game does not run the engine status-runtime system.",
+    "status-unknown": "Not adopted: this game does not run the engine status-unknown system.",
+    "supply-demand-pricing": "Not adopted: this game does not run the engine supply-demand-pricing system.",
+    "traffic": "Not adopted: this game does not run the engine traffic system.",
+    "transaction-ledger": "Not adopted: this game does not run the engine transaction-ledger system.",
+    "utility-brain": "Not adopted: this game does not run the engine utility-brain system.",
+    "vehicle-damage": "Not adopted: this game does not run the engine vehicle-damage system.",
+    "visitor-population": "Not adopted: this game does not run the engine visitor-population system.",
+    "wait-queue": "Not adopted: this game does not run the engine wait-queue system.",
+    "weapon-system": "Not adopted: this game does not run the engine weapon-system system."
+  }
+}

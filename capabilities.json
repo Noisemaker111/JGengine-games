@@ -1,0 +1,537 @@
+{
+  "generatedBy": "bun run capabilities:sync",
+  "engineVersion": "0.33.0",
+  "gameFacingRule": "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it with a reason.",
+  "capabilities": [
+    {
+      "id": "agents",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/agents/agent",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "a needs, thought, action and mood loop an agent runs on the world clock"
+    },
+    {
+      "id": "audio-probe",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/audio/audioProbe",
+      "probe": {
+        "kind": "window",
+        "global": "__jgengineAudio"
+      },
+      "intent": "read the live master RMS/peak and bus gains from a running page for capture and diagnostics"
+    },
+    {
+      "id": "cover-field",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/cover",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "authored-geometry cover with a bounded nearest query and rebuild on edit"
+    },
+    {
+      "id": "cover-points-from-solids",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/cover",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "derive stand-able cover positions from authored solid boxes"
+    },
+    {
+      "id": "cover-points-near",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/cover",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "bounded nearest-cover query"
+    },
+    {
+      "id": "cover-score",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/cover",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "threat-driven cover point scoring"
+    },
+    {
+      "id": "cover-select",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/cover",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "select cover by threat, role range and flank angle"
+    },
+    {
+      "id": "damage-runtime",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/damageRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "resolve hits through a damage table, hit zones, and armor, and tick data-defined statuses with declared stacking"
+    },
+    {
+      "id": "damage-target-unknown",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/damageRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "reject a hit on a target with no registered resistance or armor profile"
+    },
+    {
+      "id": "equipment-slot-inventory",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/inventory/equipment",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "wear gear by slot with item-kind rules, two-handed blocking and replace-on-equip"
+    },
+    {
+      "id": "game-save",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/game/gameSave",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "one versioned save document with per-system sections, named slots, caller-policy autosave, migration and a state digest"
+    },
+    {
+      "id": "game-save-digest",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/game/gameSave",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "hash a save document's state for a determinism test or a diff"
+    },
+    {
+      "id": "loan-schedule",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/economy/loanBook",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "build a loan's interest and principal repayment schedule in integer minor units"
+    },
+    {
+      "id": "loans",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/economy/loanBook",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "draw, schedule, service and default a loan with interest, posted to a ledger"
+    },
+    {
+      "id": "loot-comparison",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/loot/lootGen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "compare two rolled items with per-stat deltas and a weighted score"
+    },
+    {
+      "id": "loot-generation",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/loot/lootGen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "roll a named item from bases, parts, affixes, rarity weights, manufacturer personalities and level scaling"
+    },
+    {
+      "id": "loot-roller",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/loot/lootGen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "roll items from one validated catalog while counting drops per rarity for a debug probe"
+    },
+    {
+      "id": "loot-score",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/loot/lootGen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "split one stat block into per-stat weighted contributions"
+    },
+    {
+      "id": "loot-validation",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/loot/lootGen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "check a rolled item against its catalog and report each defect with its code"
+    },
+    {
+      "id": "mission-events",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/mission",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "count constrained kills and fail a mission on a matching world event"
+    },
+    {
+      "id": "mission-rewards",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/mission",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "pay mission rewards through the quest appliers and the loot registry"
+    },
+    {
+      "id": "mission-runtime",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/mission",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "missions as a data-driven objective state machine with fail states, timers, branches and rewards"
+    },
+    {
+      "id": "mission-validation",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/mission",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "tell whether an objective kind completes from a counter alone"
+    },
+    {
+      "id": "mount-game",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/GameHost",
+      "probe": {
+        "kind": "window",
+        "global": "__jgengineSummonEditor"
+      },
+      "intent": "mount a defined game in the browser — `<GameHost playable={game} editor={() => import(\"@jgengine/editor\")} />`"
+    },
+    {
+      "id": "nav-crowd",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/nav/navCrowd",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "move many agents across an editor-baked nav mesh with avoidance"
+    },
+    {
+      "id": "nav-runtime",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/nav/navRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "route agents on an editor-baked nav mesh with authored links and re-bakes that keep polygon identity"
+    },
+    {
+      "id": "navmesh-from-scene",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/nav/navRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "read the editor's baked nav mesh off a scene document"
+    },
+    {
+      "id": "near-agents",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/nearAgents",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "nav crowd plus per-agent needs and utility brains for on-screen residents"
+    },
+    {
+      "id": "offscreen-world",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/offScreen",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "schedules agents near the player as real state and far ones as cheap state"
+    },
+    {
+      "id": "perception-service",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sensor/perception",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "retain sightings, sounds and damage with cone, range, occlusion, decaying memory and shared squad knowledge"
+    },
+    {
+      "id": "police-response",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/policeResponse",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "witness-gated heat, tiered police response, last-sighting search areas and lane-graph roadblocks"
+    },
+    {
+      "id": "police-roads",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/policeResponse",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "lane-graph roadblock sites and an indexed nearby-lane query for search areas"
+    },
+    {
+      "id": "ride-appeal",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/rides",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "how much one guest likes one ride, from its ratings and their taste"
+    },
+    {
+      "id": "ride-choice",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/rides",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "guests pick rides by taste and queue tolerance through the utility brain"
+    },
+    {
+      "id": "ride-sim",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/rides",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "rides with capacity, cycles, queues, ratings, breakdowns and maintenance"
+    },
+    {
+      "id": "rvo-avoidance",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/rvo",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "reciprocal collision avoidance between many steering agents"
+    },
+    {
+      "id": "skill-tree",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/progression/skillTree",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "spend, refuse and refund points over an authored tree with passives, actives and synergies"
+    },
+    {
+      "id": "squad-combat",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/squadCombat",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "threat-driven cover, flanking, suppression, retreat and role-driven fire discipline"
+    },
+    {
+      "id": "status-runtime",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/statusRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "tick data-defined statuses (burn, shock, slow, corrode) with declared stacking rules and per-tick effects"
+    },
+    {
+      "id": "status-unknown",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/statusRuntime",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "reject a status id the runtime has no definition for"
+    },
+    {
+      "id": "supply-demand-pricing",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/economy/market",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "price goods from finite stock and live demand on a stated curve"
+    },
+    {
+      "id": "traffic",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/nav/traffic",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "lane-graph traffic with car following, signals, right-of-way, lane changes and parking"
+    },
+    {
+      "id": "transaction-ledger",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/economy/transactionLedger",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "record every money movement with its reason over per-account integer minor-unit balances"
+    },
+    {
+      "id": "utility-brain",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/utilityBrain",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "pick actions by decaying-need appeal with response curves, hysteresis and interrupts"
+    },
+    {
+      "id": "vehicle-damage",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/physics/vehicleDamage",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "fixed-zone crash damage that changes handling and shows a bounded dent, serializable"
+    },
+    {
+      "id": "visitor-population",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/population",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "a crowd whose on-site and daily counts are the bodies the game made"
+    },
+    {
+      "id": "wait-queue",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sim/queue",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "a real line whose wait estimate comes from its own measured throughput"
+    },
+    {
+      "id": "weapon-system",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/combat/weaponSystem",
+      "probe": {
+        "kind": "devtools"
+      },
+      "intent": "run a data-defined weapon: fire modes, recoil and bloom, hitscan or ballistic projectiles, interrupted reloads and readable ammo, all resolving through the damage runtime"
+    }
+  ]
+}
