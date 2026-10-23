@@ -18,7 +18,7 @@ import {
   syncAgentStates,
 } from "../agents";
 import { demand } from "./rating";
-import { joinRide, leaveRide, queuePosition, ridePrice, rideView, tickRides, trackPieces } from "../rides";
+import { joinRide, leaveRide, queuePosition, ridePrice, rideView, tickRides } from "../rides";
 
 const ARRIVE_DISTANCE = 2.2;
 const MAX_VISITS = 6;
@@ -215,7 +215,7 @@ function makeRideSink(ctx: GameContext): RideTickSink {
       const guest = session.guests.get(guestId);
       const obj = session.placed.get(rideId);
       if (guest === undefined || obj === undefined) return;
-      agentOf(guest, ctx.rng).needs.refill("fun", rideFun(guest.kind, obj, trackPieces()));
+      agentOf(guest, ctx.rng).needs.refill("fun", rideFun(guest.kind, obj));
       guest.visits += 1;
       guest.phase = "seeking";
       guest.targetId = null;

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
+import { pathFollowSeek } from "@jgengine/core/nav/pathFollow";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Group, Mesh, Plane, Raycaster, TextureLoader, Vector2, Vector3 } from "three";
 import { session, type PlacedObject } from "../session";
 import { BUILDABLES } from "../objects/catalog";
+import { coasterCircuit, rideView } from "../rides";
 import { canPlace, footprintCells } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
@@ -34,8 +36,33 @@ function RideMotion({object}:{object:PlacedObject}) {
   });
   return <group userData={{jgObjectId:object.id}} position={[object.x,object.catalogId==="ride_ferris"?6:0,object.z]}><group ref={ref}><primitive object={scene}/></group></group>;
 }
-function Entrance() {
-  const sign=useLoader(TextureLoader,new URL("../../../public/art/brightway-sign.svg",import.meta.url).href);
+const trainModel = new URL("../../../public/art/models/coaster_train.glb", import.meta.url).href;
+
+/**
+ * The train is the ride made visible. The shared path follower places it at the lap fraction the
+ * ride sim's own cycle reports, so it leaves the station, runs the ring and is back at the platform
+ * when the lap the track measured is over.
+ */
+function CoasterTrain({object,circuit}:{object:PlacedObject;circuit:ReturnType<typeof coasterCircuit>}) {
+  const gltf=useLoader(GLTFLoader,trainModel);
+  const ref=useRef<Group>(null);
+  const reduced=useGameStore(ctx=>Boolean(ctx.game.store.get("park.reduced-motion")));
+  const scene=useMemo(()=>{const copy=gltf.scene.clone();copy.traverse(n=>{if(n instanceof Mesh){n.castShadow=true;n.receiveShadow=true;}});return copy;},[gltf]);
+  const path=useMemo(()=>({waypoints:circuit.waypoints,speed:Math.max(1,circuit.averageSpeed),loop:true}),[circuit]);
+  useFrame(()=>{
+    const root=ref.current; if(!root) return;
+    if(!circuit.closed||path.waypoints.length<3){root.visible=false;return;}
+    root.visible=true;
+    const view=rideView(object.id);
+    const lap=Math.max(4,circuit.lapSeconds);
+    const progress=view?.phase==="riding"&&!reduced?Math.min(1,Math.max(0,1-view.phaseSeconds/lap)):0;
+    const pose=pathFollowSeek(path,{kind:"normalized",value:progress});
+    root.position.set(pose.position[0],pose.position[1]+1.2,pose.position[2]);
+    root.rotation.y=pose.heading;
+  });
+  return <group userData={{jgObjectId:object.id}}><group ref={ref}><primitive object={scene}/></group></group>;
+}
+function Entrance() {  const sign=useLoader(TextureLoader,new URL("../../../public/art/brightway-sign.svg",import.meta.url).href);
   return <group position={[0,0,56]}>
     {[-6,6].map(x=><group key={x}><mesh castShadow position={[x,2.3,0]}><boxGeometry args={[.65,4.6,.65]}/><meshStandardMaterial color="#247f83"/></mesh><mesh position={[x,4.85,0]}><sphereGeometry args={[.4,12,8]}/><meshStandardMaterial color="#edbc5c"/></mesh><mesh castShadow position={[x,1.2,0]}><boxGeometry args={[2,2.4,2.4]}/><meshStandardMaterial color="#ef7059"/></mesh><mesh position={[x,1.65,1.22]}><boxGeometry args={[1.4,.8,.06]}/><meshStandardMaterial color="#77b8c8"/></mesh></group>)}
     <mesh position={[0,4.2,0]}><boxGeometry args={[12,.35,.4]}/><meshStandardMaterial color="#edbc5c"/></mesh>
@@ -83,10 +110,12 @@ function Blueprint() {
 }
 export function BrightwayParkWorldOverlay() {
   const selection=useGameStore(()=>session.selectedObject);
-  useGameStore(()=>[...session.placed.keys()].join("|"));
+  const placed=useGameStore(()=>[...session.placed.keys()].join("|"));
+  const circuit=useMemo(()=>coasterCircuit(),[placed]);
   const obj=selection?session.placed.get(selection):null;
   return <group><Fence/><Blueprint/>
     {[...session.placed.values()].filter(o=>rotors[o.catalogId]).map(o=><RideMotion key={o.id} object={o}/>)}
+    {[...session.placed.values()].filter(o=>o.catalogId==="ride_coaster").map(o=><CoasterTrain key={o.id} object={o} circuit={circuit}/>)}
     {obj&&<mesh position={[obj.x,.23,obj.z]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><ringGeometry args={[Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65),Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65)+.18,48]}/><meshBasicMaterial color="#edbc5c"/></mesh>}
   </group>;
 }

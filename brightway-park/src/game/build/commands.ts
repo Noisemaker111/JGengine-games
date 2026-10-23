@@ -10,7 +10,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
 import { syncAmbience } from "../audio";
 import { payOffLoan, takeLoan } from "../sim/economy";
-import { ridePrice, serviceRide, setRidePrice } from "../rides";
+import { ridePrice, serviceRide, setRidePrice, coasterCircuit } from "../rides";
 import { beginScenario, endScenario, replayScenario } from "../scenarios";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
@@ -39,6 +39,14 @@ function affordable(catalogId: string): boolean {
   return session.cash >= buildableDef(catalogId).cost;
 }
 
+/** Read the circuit back to the player whenever its shape changes: the same numbers the ride runs on. */
+function announceCircuit(ctx: GameContext): void {
+  const circuit = coasterCircuit();
+  ctx.game.notices.push(circuit.closed
+    ? { text: `Circuit closed · ${Math.round(circuit.length)} m · ${circuit.lapSeconds.toFixed(1)} s lap · excitement ${circuit.excitement.toFixed(1)}`, tone: "success" }
+    : { text: `Coaster track at ${Math.round(circuit.length)} m — the loop is still open`, tone: "info" });
+}
+
 function tryBuild(ctx: GameContext, input: PointerInput): void {
   const toolId = session.selectedTool;
   if (toolId === null) return;
@@ -60,6 +68,7 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   if (placed === null) return;
   session.cash -= def.cost;
   ctx.game.notices.push({ text: `${def.label} built · -$${def.cost}`, tone: "success" });
+  if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") announceCircuit(ctx);
   ctx.game.audio.play("place", [placed.x, 0, placed.z]);
   savePark(ctx);
 }
@@ -151,6 +160,7 @@ export function registerBuildCommands(ctx: GameContext): void {
         session.cash += refund;
         if (session.selectedObject === input.id) session.selectedObject = null;
         state.game.notices.push({ text: `Demolished — refunded ${refund}`, tone: "info" });
+        if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") announceCircuit(state);
         state.game.audio.play("sell", [placed.x, 0, placed.z]);
         savePark(state);
         bump(state);

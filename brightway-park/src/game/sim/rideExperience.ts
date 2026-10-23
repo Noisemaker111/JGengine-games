@@ -1,5 +1,5 @@
 import { buildableDef } from "../objects/catalog";
-import { coasterThrill } from "./rating";
+import type { CoasterCircuit } from "../coaster/circuit";
 
 /** Derived from existing saved guest kinds: no new save fields or random draws. */
 export function guestRidePreference(kind: string): { label: string; thrill: number } {
@@ -8,16 +8,18 @@ export function guestRidePreference(kind: string): { label: string; thrill: numb
   return { label: "Explorer", thrill: 8 };
 }
 
-export function rideThrill(catalogId: string, tracks: number): number {
+/** The force a guest feels: a coaster's is what its circuit actually does, a flat ride's is its own. */
+export function rideThrill(catalogId: string, circuit: CoasterCircuit): number {
   const def = buildableDef(catalogId);
-  return (def.ride?.thrill ?? 0) + (catalogId === "ride_coaster" ? coasterThrill(tracks) : 0);
+  if (catalogId === "ride_coaster") return circuit.intensity;
+  return def.ride?.thrill ?? 0;
 }
 
-export function rideFit(kind: string, catalogId: string, tracks: number): number {
-  return Math.max(0.1, 1 - Math.abs(rideThrill(catalogId, tracks) - guestRidePreference(kind).thrill) / 10);
+export function rideFit(kind: string, catalogId: string, circuit: CoasterCircuit): number {
+  return Math.max(0.1, 1 - Math.abs(rideThrill(catalogId, circuit) - guestRidePreference(kind).thrill) / 10);
 }
 
-export function rideHappiness(kind: string, catalogId: string, tracks: number): number {
+export function rideHappiness(kind: string, catalogId: string, circuit: CoasterCircuit): number {
   // A frightening or boring ride can lose happiness; a fitting ride earns return visits.
-  return 12 * rideFit(kind, catalogId, tracks) - 4;
+  return 12 * rideFit(kind, catalogId, circuit) - 4;
 }

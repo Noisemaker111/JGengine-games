@@ -15,6 +15,7 @@ import { session } from "../../session";
 import { placementHintStore } from "../../build/placementHint";
 import { useStore } from "@jgengine/react/store";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
+import { coasterCircuit } from "../../rides";
 
 function unlockLabel(requires: string): string {
   const m = MILESTONES.find((x) => x.unlock === requires);
@@ -28,6 +29,7 @@ export function BuildBar({ onClose }: { onClose: () => void }) {
   const selected = useGameStore(() => session.selectedTool);
   const refusal = useStore(placementHintStore);
   const tracks = useGameStore(() => [...session.placed.values()].filter(obj => obj.catalogId === "track_piece").length);
+  const circuit = coasterCircuit();
   const unlocked = useGameStore((ctx) =>
     (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
   );
@@ -98,8 +100,13 @@ export function BuildBar({ onClose }: { onClose: () => void }) {
       {blueprint !== undefined ? <HudSurface className="max-w-[92vw] text-xs" padding="8px 12px" role="status">
         <div>{blueprint.label} · ${blueprint.cost} to build · ${blueprint.upkeep} / day{cash < blueprint.cost ? " · Not enough cash" : ""}</div>
         {blueprint.ride !== undefined ? <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-          <span>Intensity {rideThrill(blueprint.id, tracks).toFixed(1)}</span>
-          {["guest_a", "guest_c", "guest_d"].map(kind => <span key={kind}>{guestRidePreference(kind).label}: {Math.round(rideFit(kind, blueprint.id, tracks) * 100)}% fit</span>)}
+          <span>Intensity {rideThrill(blueprint.id, circuit).toFixed(1)}</span>
+          {["guest_a", "guest_c", "guest_d"].map(kind => <span key={kind}>{guestRidePreference(kind).label}: {Math.round(rideFit(kind, blueprint.id, circuit) * 100)}% fit</span>)}
+        </div> : null}
+        {blueprint.category === "track" || blueprint.id === "ride_coaster" ? <div className="mt-1 text-slate-300">
+          {tracks} pieces laid · {circuit.closed
+            ? `${Math.round(circuit.length)} m lap · ${circuit.lapSeconds.toFixed(1)} s ride · excitement ${circuit.excitement.toFixed(1)}`
+            : "loop still open — track has to come back to the station"}
         </div> : null}
       </HudSurface> : null}
 
