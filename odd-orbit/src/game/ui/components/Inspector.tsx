@@ -3,7 +3,7 @@ import { HudSurface } from "@jgengine/react/hudSurface";
 import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { NEEDS } from "../../needs/needs";
-import { moodOfNeeds } from "../../agents";
+import { moodOfNeeds, bondWord, householdBook } from "../../agents";
 import { householdStore } from "../../session/store";
 import { pairKey } from "../../session/types";
 import { activeGoalLabel, waitingForStation } from "../../sim/simulate";
@@ -11,7 +11,6 @@ import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShif
 import { bloomHarvest } from "../../sim/bloom";
 import { FURNITURE_BY_ID } from "../../objects/catalog";
 import { shiftIsOpen } from "../../sim/schedule";
-import { relationLabel } from "../../agents";
 import { AlienSwatch, MoodBadge, NeedBar } from "./bits";
 export function Inspector() {
   const household = useStore(householdStore);
@@ -31,10 +30,12 @@ export function Inspector() {
   const shiftProgress = member.lifestyle === "yield" ? member.workToday : member.shiftProgress;
   const shiftLabel = yieldShiftLabel(member, waitingForStation(household, member, objects));
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
+  const book = householdBook(household);
+  const company = member.action.kind === "wander" && member.action.company !== undefined ? household.members[member.action.company]?.name : undefined;
   return <HudSurface className="orbit-inspector" as="section" aria-label={`${member.name} care and schedule`}>
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><HudButton className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</HudButton></header>
     <div className="orbit-inspector-body">
-    <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{activeGoalLabel(member)}</span></div>
+    <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{activeGoalLabel(member, company)}</span></div>
     <div className="orbit-stress"><span>{member.recovering ? "Burnout recovery" : "Stress"}</span><meter aria-label="Stress" min={0} max={100} value={member.stress}/><b>{Math.round(member.stress)}</b></div>
     {member.recovering && <p className="orbit-warning">Paid work stops during recovery. Reach 50 Nourish and Rest, then reduce stress below 35.</p>}
     <div className="orbit-full-needs">{NEEDS.map(need => <NeedBar key={need} need={need} value={member.needs[need]}/>)}</div>
@@ -53,7 +54,7 @@ export function Inspector() {
     <p className="orbit-fine">Today: {member.workToday.toFixed(0)} seconds worked · {member.harvestToday} rations grown</p>
     <HudButton className="orbit-release" onClick={() => commands.run("member.release", { id })}>Release direction · let {member.name.split(" ")[0]} choose</HudButton>
     <h3>Relationships</h3><p className="orbit-fine">Conversations ease stress. Two stressed beings may dispute instead.</p>
-    <div className="orbit-bonds">{bonds.map(bond => <div key={bond.id}><span><strong>{bond.name}</strong><small>{relationLabel(bond.value)} · {Math.round(bond.value)}</small></span><HudButton onClick={() => commands.run("member.socialize", { id, withId:bond.id })}>Talk</HudButton></div>)}</div>
+    <div className="orbit-bonds">{bonds.map(bond => <div key={bond.id}><span><strong>{bond.name}</strong><small>{bondWord(book, id, bond.id)} · {Math.round(bond.value)}</small></span><HudButton onClick={() => commands.run("member.socialize", { id, withId:bond.id })}>Talk</HudButton></div>)}</div>
     <p className="orbit-fine">Select a furnishing in the habitat to direct this being. A Bond Ring used alone can only restore Social to 55.</p>
     {member.concern && <p role="status" className="orbit-warning">{member.concern}</p>}
     </div>

@@ -1,4 +1,5 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { RelationshipBook } from "@jgengine/core/agents/relationships";
 import type { SceneObject } from "@jgengine/core/scene/objectStore";
 import { householdBook, memberAgent, syncBook, syncMember } from "../agents";
 
@@ -32,7 +33,7 @@ function usersOf(state: HouseholdState, objId: string): MemberState[] {
   return state.order.map((id) => state.members[id]!).filter((m) => m !== undefined && (m.action.kind === "use" || m.action.kind === "seek") && m.action.objId === objId);
 }
 
-function hasRoom(state: HouseholdState, member: MemberState, obj: SceneObject): boolean {
+export function hasRoom(state: HouseholdState, member: MemberState, obj: SceneObject): boolean {
   const def = FURNITURE_BY_ID[obj.catalogId];
   if (def === undefined) return false;
   const users = usersOf(state, obj.instanceId);
@@ -174,11 +175,11 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
     }
     closeMissedShift(ctx, state, member, now);
   }
+  const book = householdBook(state);
   for (const id of state.order) {
     const member = state.members[id];
-    if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt);
+    if (member !== undefined) stepMember(ctx, state, member, objects, availability, now, dt, book);
   }
-  const book = householdBook(state);
   stepSocialPairs(ctx, state, now, dt, book);
   advanceLifeEvents(state, now, ctx.game.notices);
   for (const id of state.order) {
@@ -195,7 +196,7 @@ function stepHousehold(ctx: GameContext, dt: number, now: number): void {
   householdStore.write(ctx, { ...state, members: { ...state.members } });
 }
 
-function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], availability: RoleAvailability, now: number, dt: number): void {
+function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState, objects: readonly SceneObject[], availability: RoleAvailability, now: number, dt: number, book: RelationshipBook): void {
   const agent = memberAgent(member, ctx.rng);
   const speed = (2.1 * (0.7 + member.bodyPlan.limbCount * 0.06)) / member.bodyPlan.size * (member.recovering ? 0.65 : 1);
   const action = member.action;
@@ -336,13 +337,48 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
     if (companion !== null) startConversation(state, member, companion, now, false);
   } else {
     if (action.kind !== "wander" || now >= member.actionUntil) {
-      const angle = (hashId(member.id) % 360) * Math.PI / 180 + member.actionUntil;
-      const r = 6 + (hashId(member.id) % 9);
-      member.action = { kind: "wander", x: Math.cos(angle) * r, z: Math.sin(angle) * r };
-      member.actionUntil = now + 4 + (hashId(member.id) % 4);
+      const company = companySpot(ctx, state, book, member);
+      if (company !== null) {
+        member.action = { kind: "wander", x: company.x, z: company.z, company: company.company };
+        member.actionUntil = now + 8;
+      } else {
+        const angle = (hashId(member.id) % 360) * Math.PI / 180 + member.actionUntil;
+        const r = 6 + (hashId(member.id) % 9);
+        member.action = { kind: "wander", x: Math.cos(angle) * r, z: Math.sin(angle) * r };
+        member.actionUntil = now + 4 + (hashId(member.id) % 4);
+      }
     }
     if (member.action.kind === "wander") moveMember(ctx, member.id, [member.action.x, 0, member.action.z], speed * 0.6, dt);
   }
+}
+
+/**
+ * A spot beside the being this one prefers, so a friend chooses a friend over a random stroll.
+ * Only a friend who is free is followed: nobody trails a being who is on a paid station or under the
+ * player's direction. A friend resting, playing or talking is exactly who off-hours are for.
+ */
+function companySpot(ctx: GameContext, state: HouseholdState, book: RelationshipBook, member: MemberState): { x: number; z: number; company: string } | null {
+  const mine = positionOf(ctx, member.id);
+  if (mine === null) return null;
+  let spot: { x: number; z: number; company: string } | null = null;
+  let bestOpinion = -Infinity;
+  for (const id of state.order) {
+    if (id === member.id || !book.prefersCompanyOf(member.id, id)) continue;
+    const other = state.members[id];
+    if (other === undefined || other.assignedByPlayer) continue;
+    const onPaidStation = (other.action.kind === "seek" || other.action.kind === "use") && other.action.goal === "work";
+    if (onPaidStation) continue;
+    const opinion = book.opinion(member.id, id);
+    if (opinion <= bestOpinion) continue;
+    const theirs = positionOf(ctx, id);
+    if (theirs === null) continue;
+    const dx = mine[0] - theirs[0];
+    const dz = mine[2] - theirs[2];
+    const apart = Math.hypot(dx, dz) || 1;
+    spot = { x: theirs[0] + (dx / apart) * 1.7, z: theirs[2] + (dz / apart) * 1.7, company: id };
+    bestOpinion = opinion;
+  }
+  return spot;
 }
 
 function findIdleCompanion(ctx: GameContext, state: HouseholdState, member: MemberState): MemberState | null {
@@ -400,12 +436,12 @@ function stepSocialPairs(ctx: GameContext, state: HouseholdState, now: number, d
   }
 }
 
-export function activeGoalLabel(member: MemberState): string {
+export function activeGoalLabel(member: MemberState, companyName?: string): string {
   if (member.recovering) return "Recovering from overload";
   const action = member.action;
   switch (action.kind) {
     case "idle": return member.concern ?? "Idling";
-    case "wander": return "Strolling the habitat";
+    case "wander": return companyName === undefined ? "Strolling the habitat" : `Keeping ${companyName} company`;
     case "seek": return action.goal === "work" ? "Heading to Yield shift" : `Seeking ${goalWord(action.goal)}`;
     case "use": return action.goal === "work" ? `Yield shift ${Math.floor(member.workToday)}/${SHIFT_SECONDS}s` : goalWord(action.goal);
     case "social": return member.concern === "Signals clashed; rest before reconnecting" ? "Signals clashing" : "Trading signals together";

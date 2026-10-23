@@ -4,6 +4,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { DAY_LENGTH } from "../../world";
 import { game } from "../../game.config";
 import { registerCommands } from "../commands";
+import { householdBook } from "../agents";
 import { content } from "../content";
 import { householdStore } from "../session/store";
 import { pairKey, type Lifestyle } from "../session/types";
@@ -374,4 +375,64 @@ test("a second Yield worker sent to a full console reads as waiting, not heading
   expect(waitingForStation(state, first, objects)).toBe(false);
   expect(waitingForStation(state, second, objects)).toBe(true);
   expect(yieldShiftLabel(second, waitingForStation(state, second, objects))).toBe("Waiting for a free Yield Console");
+});
+
+function bond(ctx: GameContext, a: string, b: string, opinion: number, familiarity: number): void {
+  const state = householdStore.read(ctx);
+  state.relationships[pairKey(a, b)] = opinion;
+  state.familiarity[pairKey(a, b)] = familiarity;
+  householdStore.write(ctx, { ...state, members: { ...state.members } });
+}
+
+test("a bonded pair refuses to split a shift, then works side by side once a second station stands", () => {
+  const ctx = boot();
+  const state = householdStore.read(ctx);
+  const first = state.members["alien:0"]!;
+  const second = state.members["alien:2"]!;
+  for (const member of [first, second]) ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  bond(ctx, first.id, second.id, 96, 0.9);
+  const notices = noticeLog(ctx);
+  expect(householdBook(state).refusesToSplit(first.id, second.id)).toBe(true);
+
+  ctx.game.commands.run("member.direct", { id:first.id, goal:"work" });
+  expect(first.action.kind).toBe("idle");
+  expect(second.action.kind).toBe("idle");
+  expect(first.concern).toContain("bonded and will not split");
+  expect(first.concern).toContain("furnish a second Yield Console");
+  expect(notices.some(text => text.includes("furnish a second Yield Console"))).toBe(true);
+
+  ctx.scene.object.place("work_console", 8, 0, 8, { instanceId:"placed:work_console:1" });
+  ctx.game.commands.run("member.direct", { id:first.id, goal:"work" });
+  expect(first.action).toMatchObject({ kind:"seek", goal:"work" });
+  expect(second.action).toMatchObject({ kind:"seek", goal:"work" });
+  expect(first.action.kind === "seek" ? first.action.objId : null).not.toBe(second.action.kind === "seek" ? second.action.objId : null);
+  expect(notices.some(text => text.includes("stay together"))).toBe(true);
+});
+
+test("a pair that never bonded still takes separate shifts", () => {
+  const ctx = boot();
+  const state = householdStore.read(ctx);
+  const first = state.members["alien:0"]!;
+  const second = state.members["alien:2"]!;
+  for (const member of [first, second]) ctx.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  ctx.game.commands.run("member.direct", { id:first.id, goal:"work" });
+  expect(first.action).toEqual({ kind:"seek", goal:"work", objId:"starter:work_console" });
+  expect(second.action.kind).toBe("idle");
+});
+
+test("a friend spends off-hours beside a friend instead of a random spot", () => {
+  const ctx = boot();
+  const state = householdStore.read(ctx);
+  const follower = state.members["alien:1"]!;
+  const friend = state.members["alien:3"]!;
+  bond(ctx, follower.id, friend.id, 60, 0.6);
+  for (const member of Object.values(state.members)) member.needs = { hunger:95, energy:95, social:95, fun:95 };
+  ctx.time.hydrate({ ...ctx.time.snapshot(), now: DAY_LENGTH * 19 / 24 });
+  householdStore.write(ctx, { ...state, members: { ...state.members } });
+  expect(householdBook(state).prefersCompanyOf(follower.id, friend.id)).toBe(true);
+  const friendAt = [...ctx.scene.entity.get(friend.id)!.position];
+  advance(ctx, 0.25);
+  expect(follower.action.kind).toBe("wander");
+  if (follower.action.kind !== "wander") return;
+  expect(Math.hypot(follower.action.x - friendAt[0], follower.action.z - friendAt[2])).toBeCloseTo(1.7, 1);
 });

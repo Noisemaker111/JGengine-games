@@ -9,7 +9,7 @@ import type { NeedId } from "../needs/needs";
 
 export type MemberAction =
   | { kind: "idle" }
-  | { kind: "wander"; x: number; z: number }
+  | { kind: "wander"; x: number; z: number; company?: string }
   | { kind: "seek"; goal: NeedId | "work"; objId: string }
   | { kind: "use"; goal: NeedId | "work"; objId: string }
   | { kind: "social"; withId: string };

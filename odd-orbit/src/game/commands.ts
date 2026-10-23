@@ -1,15 +1,17 @@
 import { gamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { SceneObject } from "@jgengine/core/scene/objectStore";
 
 import { PLOT } from "../world";
+import { householdBook } from "./agents";
 import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalog";
 import { noteEvent } from "./session/types";
 import { householdStore } from "./session/store";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
-import { canChangeLifestyle, shiftIsOpen } from "./sim/schedule";
+import { canChangeLifestyle, scheduleLabel, shiftIsOpen } from "./sim/schedule";
 import { stationShortfall } from "./sim/goal";
-import { releaseMember, startConversation } from "./sim/simulate";
-import type { BloomCrop, Lifestyle } from "./session/types";
+import { hasRoom, releaseMember, startConversation } from "./sim/simulate";
+import type { BloomCrop, HouseholdState, Lifestyle, MemberState } from "./session/types";
 
 export interface PointerInput {
   point: { x: number; y: number; z: number };
@@ -136,6 +138,92 @@ export function registerCommands(ctx: GameContext): void {
   });
 }
 
+type ShiftKind = "work" | "tend";
+
+const SHIFT_STATION: Record<ShiftKind, string> = { work: "Yield Console", tend: "Bloom Planter" };
+
+function shiftRole(kind: ShiftKind): FurnitureRole {
+  return kind === "work" ? "work" : "fun";
+}
+
+function isShiftStation(kind: ShiftKind, obj: SceneObject): boolean {
+  return kind === "work" ? FURNITURE_BY_ID[obj.catalogId]?.role === "work" : obj.catalogId === "bloom_planter";
+}
+
+/** A being with nothing of its own to finish and a paid window still ahead. */
+function freeForShift(state: HouseholdState, member: MemberState): boolean {
+  if (member.recovering || member.shiftDay === state.day || member.workToday > 0 || member.harvestToday > 0) return false;
+  return member.action.kind === "idle" || member.action.kind === "wander";
+}
+
+/** Why a bonded partner cannot take this shift yet, or null when they can. */
+function joinBlocker(partner: MemberState, kind: ShiftKind, now: number): string | null {
+  const wanted: Lifestyle = kind === "work" ? "yield" : "bloom";
+  if (partner.lifestyle !== wanted) return `${partner.name} keeps ${wanted === "yield" ? "Bloom" : "Yield"} hours`;
+  if (!shiftIsOpen(partner, now)) return `${partner.name}'s ${scheduleLabel(partner)} window is closed`;
+  if (partner.needs.energy < 35 || partner.needs.hunger < 35) return `${partner.name} is too depleted for a shift`;
+  return null;
+}
+
+/** Walk a being to a station, keeping an ongoing visit rather than restarting it. Returns false when nothing new started. */
+function sendToStation(member: MemberState, kind: ShiftKind, obj: SceneObject, now: number): boolean {
+  const role = shiftRole(kind);
+  const current = member.action;
+  const alreadyThere = (current.kind === "seek" || current.kind === "use") && current.goal === role && current.objId === obj.instanceId;
+  if (!alreadyThere) member.action = { kind: "seek", goal: role, objId: obj.instanceId };
+  member.assignedByPlayer = true;
+  member.actionUntil = now + 12;
+  member.concern = null;
+  return !alreadyThere;
+}
+
+function nearestShiftStation(ctx: GameContext, state: HouseholdState, member: MemberState, kind: ShiftKind): SceneObject | null {
+  const from = ctx.scene.entity.get(member.id)?.position ?? [0, 0, 0];
+  const objects = ctx.scene.object.list().filter(obj => isShiftStation(kind, obj) && hasRoom(state, member, obj));
+  objects.sort((a, b) => Math.hypot(a.position[0] - from[0], a.position[2] - from[2]) - Math.hypot(b.position[0] - from[0], b.position[2] - from[2]));
+  return objects[0] ?? null;
+}
+
+function refuseSplit(ctx: GameContext, state: HouseholdState, member: MemberState, sentence: string): void {
+  member.concern = sentence;
+  noteEvent(state, ctx.game.notices, sentence, "deny");
+  ctx.game.audio.play("denied");
+}
+
+/**
+ * Order a paid station visit. A bonded pair works side by side or not at all: the free partner takes
+ * the neighbouring station, else the order stops with a sentence naming the fix.
+ */
+function orderShift(ctx: GameContext, state: HouseholdState, member: MemberState, kind: ShiftKind, station: SceneObject): boolean {
+  const now = ctx.time.now();
+  const noun = SHIFT_STATION[kind];
+  const partnerId = householdBook(state).bondedWith(member.id);
+  const partner = partnerId === null ? undefined : state.members[partnerId];
+  if (partner === undefined || !freeForShift(state, partner)) {
+    if (sendToStation(member, kind, station, now) && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
+    return true;
+  }
+  const blocker = joinBlocker(partner, kind, now);
+  if (blocker !== null) {
+    refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not take separate shifts; ${blocker}. Match their rhythms or let both rest.`);
+    return false;
+  }
+  const before = { action: member.action, assignedByPlayer: member.assignedByPlayer, actionUntil: member.actionUntil };
+  const started = sendToStation(member, kind, station, now);
+  const mate = nearestShiftStation(ctx, state, partner, kind);
+  if (mate === null) {
+    member.action = before.action;
+    member.assignedByPlayer = before.assignedByPlayer;
+    member.actionUntil = before.actionUntil;
+    refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not split; furnish a second ${noun} so they can work side by side.`);
+    return false;
+  }
+  sendToStation(partner, kind, mate, now);
+  if (started && kind === "work") noteEvent(state, ctx.game.notices, `${member.name} started a Yield shift.`, "info");
+  noteEvent(state, ctx.game.notices, `${member.name} and ${partner.name} stay together: two ${noun === "Bloom Planter" ? "planters" : "consoles"}, one shift.`, "info");
+  return true;
+}
+
 function handlePointer(ctx: GameContext, input: PointerInput): void {
   if (gamePhase(ctx) !== "playing") return;
   const state = householdStore.read(ctx);
@@ -187,14 +275,21 @@ function handlePointer(ctx: GameContext, input: PointerInput): void {
     if (obj !== null && def !== undefined && state.selectedMemberId !== null) {
       const member = state.members[state.selectedMemberId];
       if (member !== undefined) {
-        const current = member.action;
-        // A repeated direction keeps an ongoing activity, including its already-paid meal.
-        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== def.role || current.objId !== obj.instanceId) {
-          member.action = { kind: "seek", goal: def.role, objId: obj.instanceId };
+        const shift: ShiftKind | null = def.role === "work" ? "work" : obj.catalogId === "bloom_planter" ? "tend" : null;
+        if (shift !== null && !orderShift(ctx, state, member, shift, obj)) {
+          householdStore.write(ctx, { ...state, members: { ...state.members } });
+          return;
         }
-        member.assignedByPlayer = true;
-        member.actionUntil = ctx.time.now() + 12;
-        noteEvent(state, ctx.game.notices, `${member.name} sent to the ${def.name}.`, "info");
+        if (shift === null) {
+          const current = member.action;
+          // A repeated direction keeps an ongoing activity, including its already-paid meal.
+          if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== def.role || current.objId !== obj.instanceId) {
+            member.action = { kind: "seek", goal: def.role, objId: obj.instanceId };
+          }
+          member.assignedByPlayer = true;
+          member.actionUntil = ctx.time.now() + 12;
+          noteEvent(state, ctx.game.notices, `${member.name} sent to the ${def.name}.`, "info");
+        }
         householdStore.write(ctx, { ...state, members: { ...state.members } });
         checkpoint(ctx);
         return;
@@ -294,13 +389,19 @@ function registerHouseholdCommands(ctx: GameContext): void {
           return;
         }
         member.concern = null;
-        const current = member.action;
-        if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
-          member.action = { kind: "seek", goal: role, objId: obj.instanceId };
-          if (goal === "work") noteEvent(state, gameCtx.game.notices, `${member.name} started a Yield shift.`, "info");
+        if (goal === "work" || goal === "tend") {
+          if (!orderShift(gameCtx, state, member, goal, obj)) {
+            householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+            return;
+          }
+        } else {
+          const current = member.action;
+          if ((current.kind !== "seek" && current.kind !== "use") || current.goal !== role || current.objId !== obj.instanceId) {
+            member.action = { kind: "seek", goal: role, objId: obj.instanceId };
+          }
+          member.assignedByPlayer = true;
+          member.actionUntil = gameCtx.time.now() + 12;
         }
-        member.assignedByPlayer = true;
-        member.actionUntil = gameCtx.time.now() + 12;
       }
       householdStore.write(gameCtx, { ...state, members: { ...state.members } });
       checkpoint(gameCtx);

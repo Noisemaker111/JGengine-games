@@ -42,8 +42,13 @@ Read from `src/game/{needs,objects,sim,session}`. Numbers are what the build doe
 - **Progression — three systems.**
   - [x] Shift mastery. Three completed shifts unlock the wider 08–18 window; before that a late order
     loses its shift rather than creating overtime.
-  - [x] Bonds. Pair relationships run −100 to 100 with milestones at 35 (friends), 70 (close) and 95
+  - [x] Bonds. Pair relationships run -100 to 100 with milestones at 35 (friends), 70 (close) and 95
     (bonded); tending Bloom together pays more for friends, and two stressed members clash instead.
+    Friends and bonded pairs prefer each other's company, so an off-hours stroll walks to a friend
+    instead of a random spot ("Keeping X company"). A bonded pair will not split for work: ordering one
+    of them to a paid station sends the free partner to the neighbouring station, or the order stops
+    with the reason (a different rhythm, a depleted partner, or a missing second station) until fixed.
+    The household panel shows each being's bond (partner and the book's word) and it moves as friends talk.
   - [x] Furnishing. Six types from 70 to 220 credits, capacity 1–4, running cost 1–4 a day, satisfying
     5–12 points a second — so a full household needs duplicates of the same station.
 - **Failure states.** There is no game over. An unpaid bill becomes debt, which the next bill repays at up

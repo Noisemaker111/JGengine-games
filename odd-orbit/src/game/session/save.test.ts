@@ -4,6 +4,7 @@ import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import type { KeyValueStorage } from "@jgengine/core/game/keyValueStore";
 import { game } from "../../game.config";
 import { registerCommands } from "../commands";
+import { bondLine, householdBook } from "../agents";
 import { FURNITURE_BY_ID } from "../objects/catalog";
 import { content } from "../content";
 import { setupWorld } from "../sim/setup";
@@ -213,4 +214,44 @@ test("legacy v1 households retain pantry crops while new export choices roundtri
   expect(householdStore.read(first).members["alien:1"]!.bloomCrop).toBe("export");
   (current.household.members["alien:1"] as any).bloomCrop = "free-money";
   expect(validOrbitSave(current)).toBe(false);
+});
+
+test("a stroll kept in a friend's company survives a reload and reads in the panel", () => {
+  const first = boot();
+  const state = householdStore.read(first);
+  const [a, b] = [state.members["alien:1"]!, state.members["alien:3"]!];
+  a.action = { kind: "wander", x: 2.5, z: -1.5, company: b.id };
+  a.actionUntil = first.time.now() + 8;
+  householdStore.write(first, { ...state, members: { ...state.members } });
+  const saved = captureOrbitSave(first);
+  expect(validOrbitSave(saved)).toBe(true);
+  const second = boot(); restoreOrbitSave(second, saved);
+  expect(householdStore.read(second).members[a.id]!.action).toEqual({ kind: "wander", x: 2.5, z: -1.5, company: b.id });
+  (saved.household.members[a.id] as any).action.company = "alien:9";
+  expect(validOrbitSave(saved)).toBe(false);
+});
+
+test("a bond survives save and reload and still refuses to split the pair's shift", () => {
+  const first = boot(); registerCommands(first); setGamePhase(first, "playing");
+  const state = householdStore.read(first);
+  const a = state.members["alien:0"]!;
+  const b = state.members["alien:2"]!;
+  for (const member of [a, b]) first.game.commands.run("member.lifestyle", { id:member.id, lifestyle:"yield" });
+  state.relationships[pairKey(a.id, b.id)] = 97;
+  state.familiarity[pairKey(a.id, b.id)] = 0.9;
+  householdStore.write(first, { ...state, members: { ...state.members } });
+  const saved = captureOrbitSave(first);
+  expect(validOrbitSave(saved)).toBe(true);
+  const { storage } = memory();
+  expect(writeOrbitSave(first, storage)).toBe(true);
+
+  const second = boot(); restoreOrbitSave(second, readOrbitSave(storage).save!);
+  registerCommands(second); setGamePhase(second, "playing");
+  const loaded = householdStore.read(second);
+  expect(bondLine(loaded, a.id)).toMatchObject({ id: b.id, name: b.name, word: "Bonded" });
+  expect(householdBook(loaded).refusesToSplit(a.id, b.id)).toBe(true);
+  second.game.commands.run("member.direct", { id:a.id, goal:"work" });
+  expect(loaded.members[a.id]!.action.kind).toBe("idle");
+  expect(loaded.members[b.id]!.action.kind).toBe("idle");
+  expect(loaded.members[a.id]!.concern).toContain("bonded and will not split");
 });
