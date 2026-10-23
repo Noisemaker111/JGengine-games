@@ -7,6 +7,7 @@ import { GARAGE_POS } from "./world/districts";
 import { sessionStore, startedThisBoot, syncSession } from "./session";
 import { registerCourier } from "./jobs/courier";
 import { buyNightMarket } from "./items/nightMarket";
+import { buyFromShop, earn, spend } from "./cash";
 
 export const shopStore = defineStore<string | undefined>("harbor.shop", undefined);
 export const garageStore = defineStore<boolean | undefined>("harbor.garage", undefined);
@@ -165,7 +166,7 @@ export function registerCommands(ctx: GameContext): void {
         return;
       }
       const isWeapon = itemId.startsWith("pistol") || itemId.startsWith("smg") || itemId.startsWith("shotgun");
-      const result = state.game.trade!.buy(itemId, 1, {
+      const result = buyFromShop(state, itemId, {
         shop: "shop_ammunation",
         inventoryId: isWeapon ? "hotbar" : "backpack",
       });
@@ -197,8 +198,7 @@ export function registerCommands(ctx: GameContext): void {
         state.game.notices.push({ text: `Needs street cred ${gate}.`, tone: "deny" });
         return;
       }
-      const charge = state.game.economy.charge(state.player.userId, "cash", def.price);
-      if (charge !== null) {
+      if (!spend(state, def.price, "garage-purchase", def.id)) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
@@ -221,13 +221,12 @@ export function registerCommands(ctx: GameContext): void {
         return;
       }
       if (handrollOf(state).raceActive()) return;
-      const charge = state.game.economy.charge(state.player.userId, "cash", RACE_ENTRY_FEE);
-      if (charge !== null) {
+      if (!spend(state, RACE_ENTRY_FEE, "race-entry")) {
         state.game.notices.push({ text: `Race entry is $${RACE_ENTRY_FEE}.`, tone: "deny" });
         return;
       }
       if (!handrollOf(state).startRace(state)) {
-        state.game.economy.grant(state.player.userId, "cash", RACE_ENTRY_FEE);
+        earn(state, RACE_ENTRY_FEE, "race-refund");
         return;
       }
       state.game.notices.push({ text: `Ocean Loop entry paid — $${RACE_ENTRY_FEE}.`, tone: "info" });
@@ -237,8 +236,7 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define("safehouse.buy", {
     apply(state) {
       if (safehouseStore.read(state) === true) return;
-      const charge = state.game.economy.charge(state.player.userId, "cash", SAFEHOUSE_PRICE);
-      if (charge !== null) {
+      if (!spend(state, SAFEHOUSE_PRICE, "safehouse-purchase")) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }
@@ -263,8 +261,7 @@ export function registerCommands(ctx: GameContext): void {
       const wanted = handrollOf(state).wanted();
       if (wanted.stars === 0) return;
       const cost = wanted.stars * 250;
-      const charge = state.game.economy.charge(state.player.userId, "cash", cost);
-      if (charge !== null) {
+      if (!spend(state, cost, "bribe")) {
         state.game.notices.push({ text: "Not enough cash.", tone: "deny" });
         return;
       }

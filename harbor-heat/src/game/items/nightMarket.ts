@@ -8,6 +8,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { credLevel } from "../progression/cred";
 import type { WeaponDef } from "./weapons/catalog";
+import { earn, spend } from "../cash";
 
 const BASES = [
   { id: "street_pistol", label: "Harbor 9", damage: 14, fireIntervalMs: 280, magSize: 12, ammo: "9mm" as const },
@@ -149,11 +150,10 @@ export function buyNightMarket(ctx: GameContext, id: string): boolean {
     ctx.game.notices.push({ text: `Night market wants $${row.price}.`, tone: "deny" });
     return false;
   }
-  const charge = ctx.game.economy.charge(ctx.player.userId, "cash", row.price);
-  if (charge !== null) return false;
+  if (!spend(ctx, row.price, "market-purchase", id)) return false;
   const put = ctx.player.inventory.put("hotbar", id, 1);
   if (put.status !== "ok") {
-    ctx.game.economy.grant(ctx.player.userId, "cash", row.price);
+    earn(ctx, row.price, "market-refund", id);
     ctx.game.notices.push({ text: "Hotbar is full.", tone: "deny" });
     return false;
   }

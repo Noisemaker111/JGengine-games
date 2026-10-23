@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { grantCred } from "../progression/cred";
+import { earn } from "../cash";
 import { STASH_SPOTS } from "../world/districts";
 
 /** World-item id every hidden stash pickup shares — the tick filters the ground on it. */
@@ -77,12 +78,12 @@ export function tickStashes(ctx: GameContext): void {
 
     const next = [...collected, spot.id];
     stashStore.write(ctx, next);
-    ctx.game.economy.grant(ctx.player.userId, "cash", STASH_PAYOUT);
+    earn(ctx, STASH_PAYOUT, "stash-claim", spot.id);
     grantCred(ctx, STASH_CRED);
     ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: `+$${STASH_PAYOUT} STASH`, kind: "good" });
 
     if (next.length >= STASH_SPOTS.length) {
-      ctx.game.economy.grant(ctx.player.userId, "cash", STASH_COMPLETE_BONUS);
+      earn(ctx, STASH_COMPLETE_BONUS, "stash-bonus");
       ctx.game.notices.push({
         text: `Every stash on Harbor Heat bagged — $${STASH_COMPLETE_BONUS} bonus.`,
         tone: "success",

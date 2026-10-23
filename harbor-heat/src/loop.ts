@@ -15,6 +15,7 @@ import {
 } from "./game/commands";
 import { enemyById } from "./game/entities/enemies/catalog";
 import { landHit } from "./game/combat/damage";
+import { earn, openBooks, recordWalletChange, spend } from "./game/cash";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { drivingStore, raceStore, handrollOf } from "./game/handroll";
 import { vehicleById } from "./game/entities/vehicles/catalog";
@@ -290,14 +291,14 @@ function tickRaceEconomy(ctx: GameContext): void {
   if (!mission(ctx).raceSettled) {
     patchMission(ctx, { raceSettled: true, raceClearAt: ctx.time.now() + RACE_BANNER_SEC });
     if (snapshot.won) {
-      ctx.game.economy.grant(ctx.player.userId, "cash", RACE_WIN_PAYOUT);
+      earn(ctx, RACE_WIN_PAYOUT, "race-purse", snapshot.routeId);
       grantCred(ctx, RACE_WIN_CRED);
       // The persisted best time (and its bonus) stays an Ocean Loop record — other circuits pay the flat purse.
       const best = snapshot.routeId === OCEAN_LOOP_ID ? bestRaceStore.read(ctx) : undefined;
       if (snapshot.routeId === OCEAN_LOOP_ID && (best === undefined || snapshot.timeSec < best)) {
         bestRaceStore.write(ctx, snapshot.timeSec);
         if (best !== undefined) {
-          ctx.game.economy.grant(ctx.player.userId, "cash", RACE_BEST_BONUS);
+          earn(ctx, RACE_BEST_BONUS, "race-record", snapshot.routeId);
           ctx.game.notices.push({
             text: `New ${snapshot.label} record ${snapshot.timeSec.toFixed(1)}s — $${RACE_WIN_PAYOUT + RACE_BEST_BONUS}.`,
             tone: "success",
@@ -336,7 +337,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   if (held < BUSTED_HOLD_SEC) return;
   patchMission(ctx, { bustedHold: 0 });
   const fine = bustedFine(ctx.game.economy.balance(ctx.player.userId, "cash"), stars);
-  if (fine > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fine);
+  if (fine > 0) spend(ctx, fine, "busted-fine");
   const y = ctx.world.groundHeightAt(HHPD_POS[0], HHPD_POS[2]);
   ctx.scene.entity.setPose(ctx.player.userId, { position: [HHPD_POS[0], y, HHPD_POS[2]] });
   handrollOf(ctx).clearWanted(ctx);
@@ -366,7 +367,7 @@ function tickWasted(ctx: GameContext): void {
   const y = ctx.world.groundHeightAt(home[0], home[2]);
   ctx.scene.entity.setPose(ctx.player.userId, { position: [home[0], y, home[2]] });
   const fee = clinicFee(ctx.game.economy.balance(ctx.player.userId, "cash"));
-  if (fee > 0) ctx.game.economy.charge(ctx.player.userId, "cash", fee);
+  if (fee > 0) spend(ctx, fee, "clinic-fee");
   handrollOf(ctx).clearWanted(ctx);
   restageAfterWasted(ctx);
   finishCourier(ctx, false);
@@ -430,6 +431,8 @@ function onInit(ctx: GameContext): void {
     const questId = (event as { questId?: string }).questId ?? "";
     const cred = CRED_BY_QUEST[questId];
     if (cred !== undefined) grantCred(ctx, cred);
+    // The quest's cash reward is the engine's own grant; journal it under the quest that paid it.
+    recordWalletChange(ctx, "quest-reward", questId);
   });
 
   ctx.game.events.on("entity.died", (event) => {
@@ -437,7 +440,7 @@ function onInit(ctx: GameContext): void {
     const catalogId = dead.catalogId ?? "";
     const enemy = enemyById(catalogId);
     if (enemy !== undefined && enemy.bounty > 0) {
-      ctx.game.economy.grant(ctx.player.userId, "cash", enemy.bounty);
+      earn(ctx, enemy.bounty, "bounty", catalogId);
     }
     if (dead.instanceId !== undefined) onBountyKilled(ctx, dead.instanceId);
     if (catalogId.startsWith("ped_")) handrollOf(ctx).addHeat(ctx, 60);
@@ -450,6 +453,8 @@ function onInit(ctx: GameContext): void {
   });
 
   registerCommands(ctx);
+  // The cash journal is live before the first movement, opened at the wallet's balance.
+  openBooks(ctx);
   convoyFeedback(ctx);
   ensureNightMarket(ctx);
   const buildings = setupWorld(ctx);
