@@ -158,6 +158,18 @@ function restoreNullable<T>(store: StoreHandle<T | null>, ctx: GameContext, valu
   else store.write(ctx, value as T | null);
 }
 
+/** Crash bodywork on the cars a reload still has: zone stages, and the handling they cost. */
+function vehiclesSystem(ctx: GameContext): GameSaveSystem {
+  return {
+    name: "vehicles",
+    snapshot: () => handrollOf(ctx).vehicleDamageSave(ctx),
+    restore(section) {
+      if (!isRecord(section)) return;
+      handrollOf(ctx).restoreVehicleDamage(ctx, section as never);
+    },
+  };
+}
+
 /** The cash journal: the wallet is the balance, this section is the reason behind it. */
 function cashSystem(ctx: GameContext): GameSaveSystem {
   return {
@@ -202,7 +214,7 @@ export function createHarborSave(ctx: GameContext, options: { backend?: SaveBack
     migrate: migrateHarborSave,
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [wantedSystem(ctx), convoySystem(ctx), runSystem(ctx), cashSystem(ctx)],
+    systems: [wantedSystem(ctx), convoySystem(ctx), runSystem(ctx), vehiclesSystem(ctx), cashSystem(ctx)],
     devtoolsName: "harbor.save",
   });
 }

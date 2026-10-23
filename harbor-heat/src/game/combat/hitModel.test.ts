@@ -8,7 +8,7 @@ import { loop } from "../../loop";
 import { content } from "../content";
 import { ENEMIES } from "../entities/enemies/catalog";
 import { WEAPONS, weaponById } from "../items/weapons/catalog";
-import { DAMAGE_TABLE, harborDamage, landExplosion, landHit, landWeaponHit, profileFor, registerAsTarget, weaponHit } from "./damage";
+import { DAMAGE_TABLE, harborDamage, landExplosion, landHit, landWeaponHit, profileFor, registerAsTarget, weaponHit } from "./hitModel";
 
 const HERO = "damage-hero";
 

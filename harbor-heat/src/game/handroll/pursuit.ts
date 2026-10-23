@@ -15,7 +15,7 @@ import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
-import { landHit } from "../combat/damage";
+import { landHit } from "../combat/hitModel";
 import { MAX_STARS, PURSUIT_STARS, wantedStore, type WantedSnapshot } from "./shared";
 
 /** Cruiser driving skill by wanted stars: 3★ rookies drive sloppy, 5★ interceptors drive sharp. */

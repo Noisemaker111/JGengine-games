@@ -26,7 +26,9 @@ import { vehicleById, type VehicleDef } from "../entities/vehicles/catalog";
 import { objectById as objectDefById } from "../objects/catalog";
 import { createDrivingAudio, type DrivingAudio } from "../audio/driving";
 import { drivingStore, type VehicleTelemetry } from "./shared";
-import { landBlast, landHit } from "../combat/damage";
+import { landBlast, landHit } from "../combat/hitModel";
+import { crashVehicle, forgetVehicleDamage, restoreVehicleDamage, vehicleDamageSave } from "./bodywork";
+import type { VehicleDamageState } from "@jgengine/core/physics/vehicleDamage";
 
 /** Road-grip sampler for the car sims: full bite on asphalt, a linear washout across the curb, less off-road. */
 const SURFACE_SAMPLER = roadSurfaceSampler(streets, { onRoad: 1, offRoad: 0.72, shoulder: 3 });
@@ -76,6 +78,10 @@ export interface Driving {
   tickDriving(ctx: GameContext, dt: number): void;
   /** Blow up a vehicle; returns true when it was the one the player was driving (so heat can be added). */
   explodeVehicle(ctx: GameContext, vehicleId: string, at: readonly [number, number, number]): boolean;
+  /** Each live car's bodywork stages, for the save document. */
+  vehicleDamageSave(ctx: GameContext): Record<string, VehicleDamageState>;
+  /** Re-apply saved bodywork to the cars a reload still has, handling included. */
+  restoreVehicleDamage(ctx: GameContext, sections: Record<string, VehicleDamageState>): void;
   playerWorldPos(ctx: GameContext): readonly [number, number, number] | null;
   makeCarSim(
     vehicleId: string,
@@ -94,6 +100,8 @@ export function createDriving(): Driving {
   const cruiserVehicles = new Map<string, KinematicVehicle>();
   /** Per-car slide-along clamp + the tick-fresh solid set / dt its hooks read. Keyed by scene entity id. */
   const carClamps = new Map<string, { clamp: VehicleObstacleClamp; frame: { obstacles: CollisionObstacle[]; dt: number }; radius: number }>();
+  /** A crashed car's re-baked tuning, so a car re-entered after a reload still drives dented. */
+  const carTunings = new Map<string, KinematicVehicleTuning>();
   const drivingAudio: DrivingAudio = createDrivingAudio();
   const aircraft = new Map<string, AircraftDynamics>();
   const flightThrottles = new Map<string, number>();
@@ -191,7 +199,7 @@ export function createDriving(): Driving {
     if (def === undefined || def.dynamics.type !== "ground") throw new Error("car_compact must use ground dynamics");
     const created = makeCarSim(
       vehicleId,
-      def.dynamics.tuning,
+      carTunings.get(vehicleId) ?? def.dynamics.tuning,
       def.collisionRadius,
       entity?.position ?? [0, 0, 0],
       entity?.rotationY ?? 0,
@@ -228,6 +236,27 @@ export function createDriving(): Driving {
       if (cs > 8) {
         landHit(ctx, { from: vehicleId, to: vehicleId, type: "impact", base: Math.round((cs - 8) * 7) });
         ctx.scene.entity.vfx({ kind: "spark", color: 0xffc24a, from: vehicleId, radius: 1.6 });
+        // The bodywork takes the same hit: a zone steps a stage and the sim is re-baked with its cost.
+        if (def !== undefined && def.dynamics.type === "ground") {
+          const yaw = entity.rotationY;
+          // The clamp's normal points back at the car, so the blow travels along its negation.
+          const pushX = -impact.normal[0];
+          const pushZ = -impact.normal[1];
+          crashVehicle(
+            ctx,
+            vehicleId,
+            def.dynamics.tuning,
+            {
+              closingSpeed: cs,
+              offsetRight: pushX * Math.cos(yaw) - pushZ * Math.sin(yaw),
+              offsetForward: pushX * Math.sin(yaw) + pushZ * Math.cos(yaw),
+            },
+            (next) => {
+              carTunings.set(vehicleId, next);
+              sim.retune(next);
+            },
+          );
+        }
       }
     }
 
@@ -430,8 +459,25 @@ export function createDriving(): Driving {
     refreshClamp,
     dropCarSim,
     cruiserVehicles,
+    vehicleDamageSave: (ctx: GameContext) => vehicleDamageSave(ctx),
+    restoreVehicleDamage(ctx, sections) {
+      restoreVehicleDamage(
+        ctx,
+        sections,
+        (vehicleId) => {
+          const def = vehicleById(ctx.scene.entity.get(vehicleId)?.name ?? "");
+          return def !== undefined && def.dynamics.type === "ground" ? def.dynamics.tuning : null;
+        },
+        (vehicleId, next) => {
+          carTunings.set(vehicleId, next);
+          carVehicles.get(vehicleId)?.retune(next);
+        },
+      );
+    },
     explodeVehicle(ctx, vehicleId, at) {
       cameraShake(0.7);
+      forgetVehicleDamage(ctx, vehicleId);
+      carTunings.delete(vehicleId);
       landBlast(ctx, { from: vehicleId, at, radius: 6, type: "blast", base: 55 });
       let wasDriven = false;
       if (driving === vehicleId) {

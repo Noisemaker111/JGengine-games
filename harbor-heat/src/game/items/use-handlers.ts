@@ -2,7 +2,7 @@ import { cameraShake } from "@jgengine/shell/camera";
 import type { ItemUseHandler } from "@jgengine/core/item/use";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { handrollOf } from "../handroll";
-import { landExplosion, landWeaponHit } from "../combat/damage";
+import { landExplosion, landWeaponHit } from "../combat/hitModel";
 import { AMMO_STAT_IDS, gearById, weaponById } from "./weapons/catalog";
 
 const lastFiredAt = new Map<string, number>();

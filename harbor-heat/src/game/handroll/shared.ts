@@ -68,5 +68,8 @@ export interface Handroll {
   wanted(): WantedSnapshot;
   startRace(ctx: GameContext): boolean;
   raceActive(): boolean;
+  /** Each live car's bodywork stages, for the save document. */
+  vehicleDamageSave(ctx: GameContext): Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>;
+  restoreVehicleDamage(ctx: GameContext, sections: Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>): void;
   explodeVehicle(ctx: GameContext, vehicleId: string, at: readonly [number, number, number]): void;
 }

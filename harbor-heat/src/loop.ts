@@ -14,7 +14,7 @@ import {
   startedStore,
 } from "./game/commands";
 import { enemyById } from "./game/entities/enemies/catalog";
-import { landHit } from "./game/combat/damage";
+import { landHit } from "./game/combat/hitModel";
 import { earn, openBooks, recordWalletChange, spend } from "./game/cash";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { drivingStore, raceStore, handrollOf } from "./game/handroll";

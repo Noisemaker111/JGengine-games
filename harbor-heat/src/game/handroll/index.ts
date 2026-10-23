@@ -43,6 +43,8 @@ export function createHandroll(): Handroll {
     wanted: () => pursuit.wanted(),
     startRace: (ctx) => race.startRace(ctx),
     raceActive: () => race.raceActive(),
+    vehicleDamageSave: (ctx) => driving.vehicleDamageSave(ctx),
+    restoreVehicleDamage: (ctx, sections) => driving.restoreVehicleDamage(ctx, sections),
     explodeVehicle(ctx, vehicleId, at) {
       const wasDriven = driving.explodeVehicle(ctx, vehicleId, at);
       if (wasDriven) pursuit.addHeat(ctx, 60);
