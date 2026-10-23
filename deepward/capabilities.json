@@ -3,7 +3,11 @@
     "audio-probe",
     "mount-game"
   ],
-  "probes": {},
+  "probes": {
+    "@jgengine/shell/audio/audioProbe": [
+      "window:__jgengineAudio"
+    ]
+  },
   "declines": {
     "agents": {
       "kind": "not-applicable",

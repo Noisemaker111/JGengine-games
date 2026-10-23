@@ -113,19 +113,20 @@ if (skipIssues) {
 
 const report = checkDeclarations(committed, declarations, issues);
 
+if (summary || report.problems.length > 0) {
+  console.log("");
+  console.log(renderSummary(report, committed));
+}
+
 if (report.problems.length > 0) {
   failed = true;
+  console.error("");
   console.error(`capability check: FAIL - ${report.problems.length} problem(s):`);
   for (const problem of report.problems) console.error(`  ${problem.message}`);
   console.error("");
   console.error(`Every game declares each game-facing capability once: adopt it, or decline it as not-applicable (no such domain here) or debt (has the domain, no shared system yet) with ${DECLINE_MIN}+ characters that name the domain.`);
   console.error("A debt entry also needs the number of the open issue that tracks adopting it.");
   console.error("Ledger: capabilities.json   Declarations: <game>/capabilities.json   Rule: AGENTS.md -> Capability adoption");
-}
-
-if (summary || report.problems.length > 0) {
-  console.log("");
-  console.log(renderSummary(report, committed));
 }
 
 if (!summary) {

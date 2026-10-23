@@ -35,7 +35,13 @@ Engine contributors also follow [JGengine's governance](https://github.com/Noise
 
 ## Capability adoption
 
-`capabilities.json` is the generated inventory of game-facing capabilities read from the installed `@jgengine/*` declarations (`bun run capabilities:sync`); a release that adds one shows up as a diff line. Every game owns `<game>/capabilities.json` and declares each capability adopted, or declined with 20+ characters of why. `bun run check:capabilities` fails a missing declaration, a thin decline and a ledger behind the installed packages; `bun run capabilities:probe` boots the games that name a probe and proves the adopted system reports on `window.__jgengineAgent` / `window.__jgengineAudio`. Name a probe only for a system mounted at boot; an on-demand system stays declaration-level until it has one.
+`capabilities.json` is the generated inventory of game-facing capabilities read from the installed `@jgengine/*` declarations (`bun run capabilities:sync`); a release that adds one shows up as a diff line. Every game owns `<game>/capabilities.json` and gives each capability one of three answers:
+
+- **adopted** - the game runs the shared system.
+- **not-applicable** - the capability's domain does not exist in this game, and the reason names that domain. `not-applicable` is a statement about the game, not about our progress.
+- **debt** - the game has the domain and has not adopted the shared system. A debt reason names the gap and carries the number of the open issue in this repo that tracks adopting it. Debt is the backlog the ledger exists to surface; its total is the number that must come down.
+
+Every reason is 20+ characters that name the domain or the gap; the old `Not adopted: this game does not run the engine <id> system.` sentence, a bare string, and a reason copied between games all fail. `bun run check:capabilities` fails a missing declaration, a thin or template reason, debt with no owner, debt whose issue is closed, and a ledger behind the installed packages; `--summary` prints the per-game adopted / not-applicable / debt table that CI keeps in the job log. `bun run capabilities:probe` boots the games that name a probe and proves the adopted system reports on `window.__jgengineAgent` / `window.__jgengineAudio`. Name a probe only for a system mounted at boot; an on-demand system stays declaration-level until it has one.
 
 ## Agent workflow
 

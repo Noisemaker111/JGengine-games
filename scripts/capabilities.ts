@@ -662,28 +662,30 @@ export function checkDeclarations(
           });
         } else {
           debtEntries.push({ game, capability: id, issue });
-          const state = issues?.get(issue);
-          if (state === undefined) {
-            problems.push({
-              game,
-              capability: id,
-              module: entry.module,
-              message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this run did not read - re-run with issue checking (drop --no-issues) so a closed issue cannot keep the debt alive`,
-            });
-          } else if (state.state === "missing") {
-            problems.push({
-              game,
-              capability: id,
-              module: entry.module,
-              message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this repo does not have - point it at the issue that tracks the ${entry.domain} work`,
-            });
-          } else if (state.state === "closed") {
-            problems.push({
-              game,
-              capability: id,
-              module: entry.module,
-              message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which is closed - adopt it, or replace the debt with not-applicable naming the ${entry.domain}`,
-            });
+          if (issues !== undefined) {
+            const state = issues.get(issue);
+            if (state === undefined) {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this run did not find in the repo - it may have been transferred or deleted`,
+              });
+            } else if (state.state === "missing") {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which this repo does not have - point it at the issue that tracks the ${entry.domain} work`,
+              });
+            } else if (state.state === "closed") {
+              problems.push({
+                game,
+                capability: id,
+                module: entry.module,
+                message: `${game} records debt on "${id}" (${entry.module}) against issue #${issue}, which is closed - adopt it, or replace the debt with not-applicable naming the ${entry.domain}`,
+              });
+            }
           }
         }
       } else if (decline.kind === "not-applicable") {
