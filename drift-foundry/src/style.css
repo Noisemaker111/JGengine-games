@@ -33,6 +33,14 @@
 .df-gap b { color:#edc565; }
 .df-gap-track { height:5px; background:#758d9630; margin-top:10px; }
 .df-gap-track i { display:block; height:100%; background:#edc565; }
+/* Race plate: the place is the read, the field line tells you who is where. */
+.df-place { min-width:150px; display:flex; flex-direction:column; }
+.df-place b { font-size:22px; line-height:1.2; font-variant-numeric:tabular-nums; }
+.df-place b small { font-size:11px; color:#758d96; }
+.df-place-field { display:flex; flex-wrap:wrap; gap:4px 8px; margin-top:4px; font-size:9px; letter-spacing:.6px; color:#758d96; }
+.df-place-field i { font-style:normal; color:#edc565; margin-right:3px; }
+.df-place-field .df-you { background:#5de0ce; color:#16282e; padding:0 4px; border-radius:2px; font-weight:800; }
+.df-place-field .df-you i { color:#16282e; }
 .df-ui .df-danger { border-color:#ff4934; color:#ff9a78; }
 .df-danger .df-gap-track i { background:#ff4934; }
 .df-hud-top nav { margin-left:auto; display:flex; gap:8px; }
@@ -58,7 +66,7 @@
 .df-route > div { margin:8px 0; height:3px; background:#758d9640; }
 .df-route i { height:100%; background:#5de0ce; display:block; }
 .df-route small { color:#b7c3c0; font-size:9px; }
-.df-result-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:20px 0; border-block:1px solid #758d9640; }
+.df-result-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:16px; padding:20px 0; border-block:1px solid #758d9640; }
 .df-result-grid b { display:block; color:#edc565; font-size:26px; }
 .df-result-grid span { font-size:8px; color:#758d96; letter-spacing:1px; }
 .df-result-build { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; font-size:11px; }
@@ -69,7 +77,7 @@
 .df-touch > div { display:flex; gap:6px; }
 .df-touch button { touch-action:none; user-select:none; min-height:52px; min-width:48px; background:#142329cc; }
 @media (pointer:coarse) { .df-touch { display:flex; } .df-hud-bottom { bottom:84px; } }
-@media (max-width:760px) { .df-title-art { display:none; } .df-overlay { padding:16px; } .df-card { padding:24px; } .df-hud-top { left:10px; right:10px; top:10px; gap:8px; } .df-location { min-width:110px; padding:8px; } .df-location .df-eyebrow { font-size:8px; letter-spacing:.6px; } .df-gap { flex:1; max-width:none; padding:8px; font-size:8px; } .df-hud-top nav button { padding:8px; min-height:38px; font-size:9px; } .df-hud-top nav kbd { display:none; } .df-gate-cue { left:10px; top:91px; max-width:calc(100% - 140px); padding:8px; } .df-gate-cue b { font-size:10px; } .df-gate-cue .df-eyebrow { font-size:8px; letter-spacing:.7px; } .df-build { right:10px; top:91px; width:125px; } .df-build summary { font-size:8px; } .df-build details > div > span { font-size:9px; } .df-hud-bottom { left:10px; bottom:10px; gap:8px; } .df-speed { width:102px; padding:8px; } .df-speed b { font-size:30px; } .df-route { width:min(230px,calc(100vw - 140px)); padding:8px; } .df-result-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:760px) { .df-title-art { display:none; } .df-overlay { padding:16px; } .df-card { padding:24px; } .df-hud-top { left:10px; right:10px; top:10px; gap:8px; } .df-location { min-width:110px; padding:8px; } .df-location .df-eyebrow { font-size:8px; letter-spacing:.6px; } .df-gap { flex:1; max-width:none; padding:8px; font-size:8px; } .df-place { min-width:78px; padding:8px; } .df-place b { font-size:18px; } .df-place .df-eyebrow { font-size:8px; letter-spacing:.6px; } .df-place-field { display:none; } .df-hud-top nav button { padding:8px; min-height:38px; font-size:9px; } .df-hud-top nav kbd { display:none; } .df-gate-cue { left:10px; top:91px; max-width:calc(100% - 140px); padding:8px; } .df-gate-cue b { font-size:10px; } .df-gate-cue .df-eyebrow { font-size:8px; letter-spacing:.7px; } .df-build { right:10px; top:91px; width:125px; } .df-build summary { font-size:8px; } .df-build details > div > span { font-size:9px; } .df-hud-bottom { left:10px; bottom:10px; gap:8px; } .df-speed { width:102px; padding:8px; } .df-speed b { font-size:30px; } .df-route { width:min(230px,calc(100vw - 140px)); padding:8px; } .df-result-grid { grid-template-columns:1fr 1fr; } }
 @media (max-height:600px) { .df-overlay { align-items:flex-start; } .df-card { margin:auto 0; padding:20px; } .df-ui h1 { font-size:38px; margin:12px 0; } .df-title-art { max-width:30vw; } .df-controls-legend { margin:12px 0; gap:5px; } .df-ui p { margin:10px 0; } .df-actions { margin-top:14px; } .df-result-grid { padding:12px 0; } }
 @media (pointer:coarse) and (max-width:760px) { .df-hud-bottom { bottom:78px; } }
 @media (prefers-reduced-motion:reduce) { .df-ui * { transition:none!important; animation:none!important; } }

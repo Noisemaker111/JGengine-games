@@ -107,8 +107,23 @@ describe("drift-foundry run session", () => {
     expect(snapshot.ticker[0]?.text).toBe("BOLT IT ON, GO GO");
   });
 
-  test("a centerline run with timed jumps collects the route parts and escapes", () => {
+  test("the run reports a place in a four-kart field, and every rival raced the corridor", () => {
     const session = createRunSession();
+    session.start();
+    driveStraight(session, PAR_SECONDS);
+    const snapshot = session.snapshot();
+    expect(snapshot.phase).toBe("won");
+    expect(snapshot.rivals).toHaveLength(3);
+    expect(snapshot.race.total).toBe(4);
+    expect(snapshot.race.place).toBeGreaterThanOrEqual(1);
+    expect(snapshot.race.place).toBeLessThanOrEqual(4);
+    expect(snapshot.outcome?.fieldSize).toBe(4);
+    expect(snapshot.outcome?.place).toBe(snapshot.race.place);
+    // Three karts that actually drove: they are down the corridor, not parked on the grid.
+    expect(snapshot.rivals.every((rival) => rival.position[2] > 20)).toBe(true);
+  });
+
+  test("a centerline run with timed jumps collects the route parts and escapes", () => {    const session = createRunSession();
     session.start();
     driveStraight(session, PAR_SECONDS);
     const snapshot = session.snapshot();
