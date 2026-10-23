@@ -21,10 +21,12 @@ Read from `src/game/{waves,entities,combat,build,world}`. Every number below is 
   - [x] Bounty ladder. Kill pay is the raider's weight × `1 + 0.25 × (wave − 1)`, capped at ×4, so the
     same Scout pays 4 on wave 1 and 11 on wave 8. The HUD shows the live multiplier and the result card
     prints both ends.
-  - [x] Between-run growth. A finished defense banks half its remaining purse (capped at 200), adds the
-    waves it reached to the keep's standing, and offers three relics drawn from a seeded table — opening
-    gold, keep lives or a kill-pay multiplier. The pick rides into the next defense, and the bank is its
-    own save section, so a new run clears the field but not what the last one left.
+  - [x] Between-run growth. A finished defense hands its remaining purse to the engine run loop, which
+    banks half of it (the keep's vault caps the bank at 200) and remembers the relic the next defense
+    opens with; the result card presents three relics through the engine's seeded draft - opening gold,
+    keep lives or a kill-pay multiplier - and the pick becomes the next run's change. The keep adds the
+    waves it reached to its standing, and the bank is its own save section, so a new run clears the
+    field but not what the last one left.
 - **Failure states.** 20 lives, then "The Keep Has Fallen" and a rebuild from the banked purse and the
   chosen relic. Waves are also the escalation clock: budget per second climbs 1.0 → 2.5, duration
   20 → 30 seconds, Brutes go from weight 1 to weight 4, and at most 18 raiders are alive. Victory is

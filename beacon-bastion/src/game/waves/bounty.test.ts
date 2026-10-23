@@ -8,7 +8,7 @@ import { CREEP_CATALOG } from "../entities/enemies/catalog";
 import { resetSession, session } from "../session";
 import { setupWorld } from "../world/setup";
 import { BOUNTY_RULE, bountyReadout, bountyScale, killBounty } from "./bounty";
-import { legacy, writeLegacy, freshLegacy, chooseBoon, drawBoons } from "./legacy";
+import { carriedRelic, chooseRelic, drawRelics, freshLegacy, legacy, writeLegacy, type LegacyState } from "./legacy";
 
 let runner: HeadlessRunner;
 const gold = () => runner.ctx.game.economy.balance(runner.ctx.player.userId, GOLD_CURRENCY);
@@ -86,7 +86,7 @@ describe("the bounty on the live field", () => {
   });
 
   test("a carried relic raises the pay without changing the wave curve", () => {
-    writeLegacy(runner.ctx, { ...freshLegacy(), boonId: "writ" });
+    writeLegacy(runner.ctx, carrying("writ"));
     const before = gold();
     runner.ctx.game.events.emit("entity.died", {
       instanceId: "scout-writ",
@@ -100,24 +100,31 @@ describe("the bounty on the live field", () => {
 
 describe("the seeded relic offer", () => {
   test("the same seed offers the same three relics", () => {
-    const first = drawBoons(41);
+    const first = drawRelics("beacon:bounty");
     expect(first).toHaveLength(3);
     expect(new Set(first).size).toBe(3);
-    expect(drawBoons(41)).toEqual(first);
+    expect(drawRelics("beacon:bounty")).toEqual(first);
   });
 
   test("the next run's offer is drawn, not remembered", () => {
-    const seeds = [7, 8, 9, 10, 11, 12, 13, 14];
-    const offers = seeds.map((seed) => drawBoons(seed).join(","));
+    const seeds = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    const offers = seeds.map((seed) => drawRelics(seed).join(","));
     expect(new Set(offers).size).toBeGreaterThan(1);
   });
 
   test("a relic can only be taken from the current offer", () => {
-    const state = { ...freshLegacy(), offer: drawBoons(3) };
-    const chosen = chooseBoon(state, state.offer[0]!);
-    expect(chosen.boonId).toBe(state.offer[0]!);
-    expect(chosen.offer).toHaveLength(0);
-    expect(chooseBoon(state, "writ")).toBe(state);
-    expect(legacy.read(runner.ctx).boonId).toBeNull();
+    writeLegacy(runner.ctx, { ...freshLegacy(), offer: drawRelics("beacon:pick") });
+    const offered = legacy.read(runner.ctx).offer;
+    expect(chooseRelic(runner.ctx, offered[0]!)).toBe(true);
+    expect(carriedRelic(legacy.read(runner.ctx))?.id).toBe(offered[0]!);
+    expect(legacy.read(runner.ctx).offer).toHaveLength(0);
+    expect(chooseRelic(runner.ctx, "not-a-relic")).toBe(false);
+    expect(carriedRelic(legacy.read(runner.ctx))?.id).toBe(offered[0]!);
   });
 });
+
+/** The keep as a loaded document would leave it: one relic carried, nothing at risk. */
+function carrying(id: string | null): LegacyState {
+  const fresh = freshLegacy();
+  return { ...fresh, run: { ...fresh.run, run: 1, changeId: id } };
+}

@@ -4,7 +4,7 @@ import { ResultsScreen } from "@/components/ui/results-screen";
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
 import { currentWaveNumber, session } from "../../session";
 import { bountyReadout } from "../../waves/bounty";
-import { boonDef, legacy, relicBountyScale } from "../../waves/legacy";
+import { boonDef, carriedRelic, legacy, relicBountyScale } from "../../waves/legacy";
 import { TOTAL_WAVES } from "../../waves/manifest";
 
 /**
@@ -21,7 +21,7 @@ export function EndScreens() {
 
   const wave = Math.max(1, Math.min(TOTAL_WAVES, currentWaveNumber()));
   const readout = bountyReadout(wave, session.bountyEarned, relicBountyScale(account));
-  const relic = boonDef(account.boonId);
+  const relic = carriedRelic(account);
   const entries = [
     ...account.offer.map((id) => {
       const boon = boonDef(id);

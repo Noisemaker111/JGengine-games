@@ -16,7 +16,7 @@ import {
   restoreDefense,
   validDefenseSave,
 } from "./save";
-import { drawBoons, freshLegacy, legacy, validLegacy, writeLegacy } from "./waves/legacy";
+import { drawRelics, freshLegacy, legacy, upgradeLegacy, writeLegacy } from "./waves/legacy";
 import { WARDEN_ID, bossProfile } from "./waves/manifest";
 
 let runner: HeadlessRunner;
@@ -78,10 +78,9 @@ describe("the defense document", () => {
     playedIntoWave();
     const banked = {
       standing: 18,
-      runs: 2,
       bankedGold: 120,
-      boonId: "gate",
-      offer: drawBoons(5),
+      offer: drawRelics("beacon:save"),
+      run: { run: 3, completed: 2, haul: 0, changeId: "gate", bankedTotal: 240, lostTotal: 0, bestHaul: 120 },
     };
     writeLegacy(runner.ctx, banked);
     expect(captureDefense(runner.ctx).banked).toBe(false);
@@ -103,9 +102,9 @@ describe("the defense document", () => {
   });
 
   test("an unreadable bank section is refused rather than half applied", async () => {
-    expect(validLegacy({ standing: -1, runs: 0, bankedGold: 0, boonId: null, offer: [] })).toBe(false);
-    expect(validLegacy({ standing: 1, runs: 0 })).toBe(false);
-    expect(validLegacy(freshLegacy())).toBe(true);
+    expect(upgradeLegacy({ standing: -1, runs: 0, bankedGold: 0, boonId: null, offer: [] })).toBeNull();
+    expect(upgradeLegacy({ standing: 1, runs: 0 })).toBeNull();
+    expect(upgradeLegacy(freshLegacy())).not.toBeNull();
 
     const save = createGameSave({
       backend: memorySaveBackend(),

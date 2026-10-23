@@ -12,11 +12,12 @@ import { registerWaveCommands } from "../waves/director";
 import { killBounty } from "../waves/bounty";
 import {
   legacy,
-  chooseBoon,
+  chooseRelic,
   finishRun,
   openingGold,
   openingLives,
   relicBountyScale,
+  startDefense,
 } from "../waves/legacy";
 import { beginRun, pauseRun } from "../menu";
 
@@ -46,6 +47,8 @@ export function restartDefense(ctx: GameContext): void {
   }
   resetSession();
   resetProjectiles();
+  // The engine loop opens the defense and adopts the relic it carries.
+  startDefense(ctx);
   const banked = legacy.read(ctx);
   const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
   if (gold > 0) ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, gold);
@@ -85,7 +88,7 @@ export function setupWorld(ctx: GameContext): void {
     },
     apply: (state, input) => {
       const pick = input?.boon ?? null;
-      legacy.write(state, chooseBoon(legacy.read(state), pick));
+      chooseRelic(state, pick);
       restartDefense(state);
       return state;
     },
