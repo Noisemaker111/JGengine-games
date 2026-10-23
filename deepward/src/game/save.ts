@@ -169,8 +169,6 @@ export interface RecordSession {
    * a return lands both sections in one document before the screen changes.
    */
   commit(next: Home, run?: RunSnapshot | null): Promise<void>;
-  /** Capture the live run without changing the record - a checkpoint inside a dive. */
-  write(): Promise<void>;
   isCurrent(): boolean;
   digest(): string;
 }
@@ -272,10 +270,6 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
       try { await flush(); }
       catch (error) { home = previous; throw error; }
       finally { override = undefined; }
-    },
-    async write(): Promise<void> {
-      if (!isCurrent()) throw new Error("Marrow changed in another window. Reload before continuing.");
-      await flush();
     },
     isCurrent,
     digest: () => save.digest(),

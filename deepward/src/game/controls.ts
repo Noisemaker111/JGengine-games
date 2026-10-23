@@ -14,7 +14,7 @@ import { buySupply, dismantle } from "./counter";
 import { canCache, loadOf } from "./haul";
 import { itemValue, kindOf } from "./items";
 import { createDeepwardDamage, createDeepwardWeapon, MAGAZINE, weaponDefinition, weaponReadout } from "./combat";
-import { openRecord, storedMarrow, type RecordSession, type RunSnapshot } from "./save";
+import { openRecord, type RecordSession, type RunSnapshot } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
 export const keybinds: ActionCodesMap = {
