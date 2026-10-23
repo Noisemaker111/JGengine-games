@@ -1,6 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { clamp, type NeedId } from "../needs/needs";
+import { bumpNeed } from "../agents";
+import type { NeedId } from "../needs/needs";
 import { householdStore } from "../session/store";
 import { PANTRY_CAP } from "./economy";
 import type { NoticeFeed, NoticeTone } from "@jgengine/core/game/notices";
@@ -52,7 +53,7 @@ const EVENT_DEFS: LifeEventDef[] = [
 function bump(state: HouseholdState, memberId: string, need: NeedId, delta: number): void {
   const member = state.members[memberId];
   if (member === undefined) return;
-  member.needs[need] = clamp(member.needs[need] + delta);
+  bumpNeed(member, need, delta);
 }
 
 export function registerLifeEvents(ctx: GameContext): void {

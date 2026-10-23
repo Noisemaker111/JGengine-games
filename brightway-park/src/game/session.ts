@@ -3,6 +3,7 @@ import {
   createResourceLedger,
   type ResourceLedger,
 } from "@jgengine/core/economy/resourceLedger";
+import type { AgentSnapshot } from "@jgengine/core/agents/agent";
 
 import { DAY_LENGTH, STARTING_CASH } from "./catalog";
 
@@ -44,17 +45,24 @@ export type GuestPhase = "seeking" | "busy" | "leaving";
 export interface GuestState {
   id: string;
   kind: string;
-  happy: number;
   money: number;
-  hunger: number;
-  thirst: number;
-  souvenir: number;
   visits: number;
   phase: GuestPhase;
   targetId: string | null;
   target: readonly [number, number, number] | null;
+  /** Absolute game-second the guest gives up on a target it cannot reach. */
+  targetUntil: number;
   busy: number;
   litterTimer: number;
+  /** Everything the shared agent loop owns: needs, mood, held action and the far flag. */
+  agent: AgentSnapshot;
+}
+
+/** One staffed post's janitor: an agent walking the beat its post authored. */
+export interface StaffState {
+  id: string;
+  postId: string;
+  agent: AgentSnapshot;
 }
 
 export interface Session {
@@ -63,6 +71,7 @@ export interface Session {
   placed: Map<string, PlacedObject>;
   occupied: Map<string, string>;
   guests: Map<string, GuestState>;
+  staff: Map<string, StaffState>;
   cash: number;
   ledger: ResourceLedger;
   rating: number;
@@ -94,6 +103,7 @@ function freshSession(): Session {
     placed: new Map(),
     occupied: new Map(),
     guests: new Map(),
+    staff: new Map(),
     cash: STARTING_CASH,
     ledger: createParkLedger(),
     rating: 0,

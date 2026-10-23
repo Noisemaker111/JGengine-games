@@ -5,6 +5,7 @@ import type { ClockSnapshot } from "@jgengine/core/time/simClock";
 
 import { WORLD_SEED } from "../../world";
 import { setupWorld } from "../sim/setup";
+import { resetAgents, resetBook } from "../agents";
 import { readOrbitSave, restoreOrbitSave, writeOrbitSave } from "./save";
 import { householdStore } from "./store";
 import { createHousehold } from "./types";
@@ -44,6 +45,8 @@ export function prepareOrbit(ctx: GameContext): void {
 export function startOrbit(ctx: GameContext): void {
   const session = orbitSession.read(ctx);
   ctx.hydrate({ objects: [], entities: [] });
+  resetAgents();
+  resetBook();
   householdStore.write(ctx, createHousehold(WORLD_SEED));
   if (session.initialClock !== null) ctx.time.hydrate(session.initialClock);
   setupWorld(ctx);
@@ -79,3 +82,4 @@ export function registerOrbitLifecycle(ctx: GameContext): void {
     ctx.game.commands.define<Record<string, never>>(name, { apply: state => { action(state); return state; } });
   }
 }
+

@@ -7,6 +7,7 @@ import { keybinds } from "../keybinds";
 import { content } from "../content";
 import { loop } from "../../loop";
 import { session } from "../session";
+import { DAY_LENGTH } from "../catalog";
 import { seedGuests } from "../sim/guests";
 import { BUILD_PANEL, PARK_PANELS } from "../ui/panels";
 
@@ -74,8 +75,8 @@ describe("click selection", () => {
     const guest = [...session.guests.keys()][0]!;
     live.ui.invoke("park.pointer", { point: [0, 0, 0], object: null, entity: guest });
     expect(live.ctx.scene.entity.selection.has(guest)).toBe(true);
-    // Closing the gates sends guests home; the selection must not outlive them.
-    session.open = false;
+    // Night closes the gates sends guests home; the selection must not outlive them.
+    live.ctx.time.hydrate({ ...live.ctx.time.snapshot(), now: DAY_LENGTH * 0.95, paused: false });
     for (let frame = 0; frame < 200 && session.guests.has(guest); frame++) live.step(1);
     expect(session.guests.has(guest)).toBe(false);
     expect(live.ctx.scene.entity.selection.has(guest)).toBe(false);

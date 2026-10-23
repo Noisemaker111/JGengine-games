@@ -10,9 +10,9 @@ export const DAY_LENGTH = 150;
 
 export const ENTRANCE: readonly [number, number, number] = [0, 0, PARK_HALF - 2];
 
-export const GUEST_CAP_BASE = 60;
+export const GUEST_CAP_BASE = 34;
 
-export const GUEST_CAP_PER_RATING = 0.6;
+export const GUEST_CAP_PER_RATING = 0.14;
 
 export const OPEN_FRACTION = 0.24;
 
@@ -48,3 +48,4 @@ export function withinPark(x: number, z: number): boolean {
 export function cellKey(x: number, z: number): string {
   return `${snapToGrid(x)},${snapToGrid(z)}`;
 }
+

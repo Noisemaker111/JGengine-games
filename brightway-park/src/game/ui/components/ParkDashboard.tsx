@@ -21,7 +21,7 @@ export function ParkDashboard() {
       <Stat label="Park funds" value={`$${Math.round(session.cash).toLocaleString()}`} tone={session.cash<0?"bad":"good"}/>
       <Stat label="Park rating" value={`${Math.round(session.rating)} ★`} tone="gold"/>
       <Stat label="Visitors" value={`${session.guests.size} / ${guestCap(session.rating)}`}/>
-      <Stat label="Happiness" value={`${Math.round(session.happinessAvg)}%`} tone={session.happinessAvg<50?"bad":"good"}/>
+      <Stat label="Guest mood" value={`${Math.round(session.happinessAvg)}%`} tone={session.happinessAvg<50?"bad":"good"}/>
       <Stat label="Cleanliness" value={`${Math.round(100-session.litter)}%`} tone={session.litter>40?"bad":"good"}/>
       <div className="park-ticket"><span>Entry ticket</span><div><HudButton size="icon" aria-label="Lower ticket price" onClick={()=>commands.run("park.ticket",{delta:-1})}>−</HudButton><strong>${session.ticketPrice}</strong><HudButton size="icon" aria-label="Raise ticket price" onClick={()=>commands.run("park.ticket",{delta:1})}>+</HudButton></div></div>
     </HudSurface>

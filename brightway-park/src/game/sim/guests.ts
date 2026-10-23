@@ -1,90 +1,59 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { ENTRANCE, PARK_HALF, guestCap } from "../catalog";
+import { guestCap } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { GUEST_WALK_SPEED, guestKindFor } from "../entities/guests/catalog";
-import { nextGuestId, session, type GuestState, type PlacedObject } from "../session";
+import { nextGuestId, session, type GuestState } from "../session";
+import {
+  agentOf,
+  clearAgents,
+  createGuestAgent,
+  forgetAgent,
+  guestTargets,
+  midwayPoint,
+  parkMood,
+  rideFun,
+  syncAgentStates,
+} from "../agents";
 import { demand } from "./rating";
-import { rideFit, rideHappiness } from "./rideExperience";
 
-const HUNGER_RATE = 1.2;
-const THIRST_RATE = 1.5;
-const HAPPY_DRIFT = 0.18;
 const ARRIVE_DISTANCE = 2.2;
 const MAX_VISITS = 6;
 const MIN_SPEND = 6;
 const STALL_SERVICE = 2.2;
-
-export function needPressure(value: number): number {
-  return Math.max(0, (value - 45) / 55);
-}
-
-export function targetScore(
-  guest: GuestState,
-  obj: PlacedObject,
-  tracks: number,
-  distance: number,
-): number {
-  const def = buildableDef(obj.catalogId);
-  const proximity = 1 / (1 + distance * 0.05);
-  if (def.stall !== undefined) {
-    if (obj.stock <= 0 || guest.money < def.stall.price) return -1;
-    const pressure =
-      def.stall.need === "hunger"
-        ? needPressure(guest.hunger)
-        : def.stall.need === "thirst"
-          ? needPressure(guest.thirst)
-          : guest.souvenir;
-    if (pressure <= 0.02) return -1;
-    return (2 + pressure * 8 + def.appeal) * proximity;
-  }
-  if (def.ride !== undefined) {
-    if (obj.occupants >= def.ride.capacity) return -1;
-    return (1.5 + def.appeal * 0.9) * rideFit(guest.kind, def.id, tracks) * proximity;
-  }
-  return -1;
-}
+const BROWSE_SECONDS = 3;
+const TARGET_PATIENCE = 25;
+const LEAVE_PATIENCE = 30;
 
 function distance2(ax: number, az: number, bx: number, bz: number): number {
   return Math.hypot(ax - bx, az - bz);
 }
 
-function chooseTarget(guest: GuestState, pos: readonly [number, number, number], tracks: number): PlacedObject | null {
-  let best: PlacedObject | null = null;
-  let bestScore = 0.01;
-  for (const obj of session.placed.values()) {
-    const dist = distance2(pos[0], pos[2], obj.x, obj.z);
-    const score = targetScore(guest, obj, tracks, dist);
-    if (score > bestScore) {
-      bestScore = score;
-      best = obj;
-    }
-  }
-  return best;
-}
-
-function spawnGuest(ctx: GameContext): void {
-  const id = nextGuestId();
+function makeGuest(ctx: GameContext, id: string, start: readonly [number, number, number]): GuestState {
   const kind = guestKindFor(id);
-  const jitter = (ctx.rng() - 0.5) * 10;
-  const start: [number, number, number] = [jitter, 0, ENTRANCE[2]];
+  const agent = createGuestAgent(id, kind, ctx.rng);
   const guest: GuestState = {
     id,
     kind,
-    happy: 62 - Math.max(0, session.ticketPrice - 16) * 1.1,
-    money: 34 + ctx.rng() * 46,
-    hunger: 12 + ctx.rng() * 22,
-    thirst: 16 + ctx.rng() * 24,
-    souvenir: ctx.rng() * 0.6,
+    money: 30 + ctx.rng() * 50,
     visits: 0,
     phase: "seeking",
     targetId: null,
     target: null,
+    targetUntil: 0,
     busy: 0,
-    litterTimer: 4 + ctx.rng() * 6,
+    litterTimer: 3 + ctx.rng() * 6,
+    agent: agent.snapshot(),
   };
   session.guests.set(id, guest);
   ctx.scene.entity.spawn(kind, { id, position: start, role: "npc" });
+  return guest;
+}
+
+function spawnGuest(ctx: GameContext): void {
+  const id = nextGuestId();
+  const jitter = (ctx.rng() - 0.5) * 10;
+  makeGuest(ctx, id, [jitter, 0, 56]);
   session.cash += session.ticketPrice;
   session.revenueToday += session.ticketPrice;
   session.guestsToday += 1;
@@ -93,26 +62,7 @@ function spawnGuest(ctx: GameContext): void {
 export function seedGuests(ctx: GameContext, count: number): void {
   for (let i = 0; i < count; i += 1) {
     const id = nextGuestId();
-    const kind = guestKindFor(id);
-    const x = (ctx.rng() - 0.5) * 80;
-    const z = (ctx.rng() - 0.5) * 80;
-    const guest: GuestState = {
-      id,
-      kind,
-      happy: 60 + ctx.rng() * 15,
-      money: 30 + ctx.rng() * 50,
-      hunger: 20 + ctx.rng() * 40,
-      thirst: 20 + ctx.rng() * 40,
-      souvenir: ctx.rng() * 0.5,
-      visits: 0,
-      phase: "seeking",
-      targetId: null,
-      target: null,
-      busy: 0,
-      litterTimer: 3 + ctx.rng() * 6,
-    };
-    session.guests.set(id, guest);
-    ctx.scene.entity.spawn(kind, { id, position: [x, 0, z], role: "npc" });
+    makeGuest(ctx, id, [(ctx.rng() - 0.5) * 80, 0, (ctx.rng() - 0.5) * 80]);
   }
 }
 
@@ -129,14 +79,16 @@ export function spawnGuests(ctx: GameContext, dt: number, totalAppeal: number): 
   }
 }
 
+/** Undo the park-wide effects of sending one guest home, and drop its agent. */
 function releaseOccupant(guest: GuestState): void {
   if (guest.targetId === null) return;
   const obj = session.placed.get(guest.targetId);
   if (obj !== undefined && obj.occupants > 0) obj.occupants -= 1;
 }
 
-function finishInteraction(guest: GuestState, tracks: number): void {
+function finishInteraction(ctx: GameContext, guest: GuestState, tracks: number): void {
   const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
+  const agent = agentOf(guest, ctx.rng);
   if (obj !== undefined) {
     const def = buildableDef(obj.catalogId);
     if (def.stall !== undefined && obj.stock > 0 && guest.money >= def.stall.price) {
@@ -145,30 +97,23 @@ function finishInteraction(guest: GuestState, tracks: number): void {
       obj.soldTotal += 1;
       session.cash += def.stall.price;
       session.revenueToday += def.stall.price;
-      if (def.stall.need === "hunger") guest.hunger = Math.max(0, guest.hunger - 70);
-      else if (def.stall.need === "thirst") guest.thirst = Math.max(0, guest.thirst - 75);
-      else guest.souvenir = 0;
-      guest.happy = Math.min(100, guest.happy + 5);
+      const fill = def.stall.need === "hunger" ? 70 : def.stall.need === "thirst" ? 75 : 100;
+      agent.needs.refill(def.stall.need, fill);
     } else if (def.ride !== undefined) {
-      guest.happy = Math.max(0, Math.min(100, guest.happy + rideHappiness(guest.kind, def.id, tracks)));
-    } else if (def.stall !== undefined) {
-      guest.happy = Math.max(0, guest.happy - 6);
+      agent.needs.refill("fun", rideFun(guest.kind, obj, tracks));
     }
     guest.visits += 1;
   }
   releaseOccupant(guest);
   guest.targetId = null;
   guest.target = null;
+  guest.busy = 0;
   guest.phase = "seeking";
 }
 
-function shouldLeave(guest: GuestState): boolean {
-  return (
-    !session.open ||
-    guest.money < MIN_SPEND ||
-    guest.happy < 18 ||
-    guest.visits >= MAX_VISITS
-  );
+function shouldLeave(ctx: GameContext, guest: GuestState): boolean {
+  const agent = agentOf(guest, ctx.rng);
+  return !session.open || guest.money < MIN_SPEND || agent.mood().score < 18 || guest.visits >= MAX_VISITS;
 }
 
 function moveGuest(ctx: GameContext, guest: GuestState, target: readonly [number, number, number], dt: number): boolean {
@@ -184,41 +129,72 @@ function moveGuest(ctx: GameContext, guest: GuestState, target: readonly [number
 
 function despawnGuest(ctx: GameContext, guest: GuestState): void {
   releaseOccupant(guest);
-  const weight = 0.06;
-  session.happinessAvg = session.happinessAvg * (1 - weight) + guest.happy * weight;
-  // Drop the departing guest from the shared entity selection so the HUD never points at a gone visitor.
+  guest.agent = agentOf(guest, ctx.rng).snapshot();
+  forgetAgent(guest.id);
   if (ctx.scene.entity.selection.has(guest.id)) ctx.scene.entity.selection.remove(guest.id);
   session.guests.delete(guest.id);
   ctx.scene.entity.despawn(guest.id);
 }
 
+/** The queue a guest is standing in: the ride it is heading for, or the stall crowd it waits behind. */
+function queuePenalty(guest: GuestState): number {
+  if (guest.targetId === null) return 0;
+  const obj = session.placed.get(guest.targetId);
+  if (obj === undefined) return 0;
+  const def = buildableDef(obj.catalogId);
+  if (def.ride !== undefined) return -((obj.occupants / Math.max(1, def.ride.capacity)) * 14);
+  return def.stall !== undefined && obj.stock <= 0 ? -12 : 0;
+}
+
+/** Walk where the agent chose; a guest gives up on a target it has not reached in time. */
+function followAction(ctx: GameContext, guest: GuestState, dt: number, tracks: number): void {
+  if (guest.target === null) return;
+  if (dt > 0 && ctx.time.now() > guest.targetUntil) {
+    releaseOccupant(guest);
+    guest.targetId = null;
+    guest.target = null;
+    guest.phase = "seeking";
+    return;
+  }
+  const arrived = moveGuest(ctx, guest, guest.target, dt);
+  if (!arrived) return;
+  if (guest.targetId === null) {
+    guest.busy = BROWSE_SECONDS;
+    guest.phase = "busy";
+    return;
+  }
+  const obj = session.placed.get(guest.targetId);
+  const def = obj === undefined ? undefined : buildableDef(obj.catalogId);
+  guest.phase = "busy";
+  guest.busy = def?.ride?.rideSeconds ?? STALL_SERVICE;
+}
+
 export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
+  const now = ctx.time.now();
   for (const guest of session.guests.values()) {
-    guest.hunger = Math.min(100, guest.hunger + HUNGER_RATE * dt);
-    guest.thirst = Math.min(100, guest.thirst + THIRST_RATE * dt);
-    guest.souvenir = Math.min(1, guest.souvenir + 0.02 * dt);
-    guest.happy = Math.max(
-      0,
-      guest.happy - HAPPY_DRIFT * dt - session.litter * 0.002 * dt - needPressure(guest.hunger) * dt * 0.5 - needPressure(guest.thirst) * dt * 0.3,
-    );
+    const agent = agentOf(guest, ctx.rng);
+    agent.moodSources.setSource("litter", -session.litter * 0.02);
+    agent.moodSources.setSource("queue", queuePenalty(guest));
+
     guest.litterTimer -= dt;
     if (guest.litterTimer <= 0) {
       guest.litterTimer = 5 + ctx.rng() * 6;
-      session.litter = Math.min(100, session.litter + 0.12);
+      session.litter = Math.min(100, session.litter + 0.08);
     }
-
-    const ent = ctx.scene.entity.get(guest.id);
-    const pos: readonly [number, number, number] = ent?.position ?? ENTRANCE;
 
     if (guest.phase === "busy") {
       guest.busy -= dt;
-      if (guest.busy <= 0) finishInteraction(guest, tracks);
+      if (guest.busy <= 0) finishInteraction(ctx, guest, tracks);
+      agent.update({ dt, now, targets: guestTargets(guest, tracks, guest.target ?? midwayPoint()) });
       continue;
     }
 
     if (guest.phase === "leaving") {
-      void pos;
-      if (moveGuest(ctx, guest, ENTRANCE, dt)) despawnGuest(ctx, guest);
+      agent.update({ dt, now });
+      const arrived = moveGuest(ctx, guest, [0, 0, 58], dt);
+      if (arrived || now > guest.targetUntil) {
+        despawnGuest(ctx, guest);
+      }
       continue;
     }
 
@@ -227,29 +203,50 @@ export function tickGuests(ctx: GameContext, dt: number, tracks: number): void {
       guest.target = null;
     }
 
+    const position = ctx.scene.entity.get(guest.id)?.position ?? [0, 0, 56];
+    const frame = agent.update({
+      dt,
+      now,
+      targets: guestTargets(guest, tracks, position),
+    });
+
     if (guest.targetId === null) {
-      if (shouldLeave(guest)) {
+      if (shouldLeave(ctx, guest)) {
         guest.phase = "leaving";
+        guest.target = null;
+        guest.targetUntil = now + LEAVE_PATIENCE;
         continue;
       }
-      const target = chooseTarget(guest, pos, tracks);
-      if (target === null) {
-        guest.phase = "leaving";
-        continue;
+      const target = frame.action.target;
+      if (target === null || target === "midway") {
+        guest.target = midwayPoint();
+        guest.targetUntil = now + TARGET_PATIENCE;
+      } else {
+        const obj = session.placed.get(target);
+        if (obj === undefined) {
+          guest.target = midwayPoint();
+          guest.targetUntil = now + TARGET_PATIENCE;
+        } else {
+          guest.targetId = obj.id;
+          guest.target = [obj.x, 0, obj.z];
+          guest.targetUntil = now + TARGET_PATIENCE;
+          obj.occupants += 1;
+        }
       }
-      guest.targetId = target.id;
-      guest.target = [target.x, 0, target.z];
-      target.occupants += 1;
     }
 
-    if (guest.target !== null) {
-      const arrived = moveGuest(ctx, guest, guest.target, dt);
-      if (arrived) {
-        const obj = guest.targetId === null ? undefined : session.placed.get(guest.targetId);
-        const def = obj === undefined ? undefined : buildableDef(obj.catalogId);
-        guest.phase = "busy";
-        guest.busy = def?.ride?.rideSeconds ?? STALL_SERVICE;
-      }
-    }
+    followAction(ctx, guest, dt, tracks);
   }
+
+  session.happinessAvg = parkMood();
 }
+
+/** Refresh the plain guest state from the live agents before a save is written. */
+export { syncAgentStates };
+
+/** Drop every live agent - a new park or a restore replaces them from their own snapshots. */
+export function resetGuestAgents(): void {
+  clearAgents();
+}
+
+

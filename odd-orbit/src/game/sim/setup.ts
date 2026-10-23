@@ -3,9 +3,10 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { generateBodyPlan } from "../creatures/bodyPlan";
 import { makeNamer } from "../creatures/names";
 import { ALIEN_KIND, JOBS } from "../entities/aliens/catalog";
-import { emptyNeeds } from "../needs/needs";
 import { householdStore } from "../session/store";
 import { createHousehold, pairKey, type HouseholdState, type MemberState } from "../session/types";
+import { emptyNeeds } from "../needs/needs";
+import { householdBook, resetAgents, resetBook, syncBook } from "../agents";
 import { LIFE_EVENT_SECONDS } from "./events";
 import { createHouseholdEconomy } from "./economy";
 import { SCENE_PLACEMENTS } from "../../editorLayers";
@@ -16,6 +17,8 @@ const SPAWN_RING = 3.5;
 export function setupWorld(ctx: GameContext): void {
   const current = householdStore.read(ctx);
   if (current.order.length > 0) return;
+  resetAgents();
+  resetBook();
   const state = createHousehold(current.seed);
   state.day = ctx.time.calendar().day;
   state.nextLifeEventAt = ctx.time.now() + LIFE_EVENT_SECONDS;
@@ -75,10 +78,15 @@ export function setupWorld(ctx: GameContext): void {
 }
 
 function seedRelationships(state: HouseholdState): void {
+  const book = householdBook(state);
   for (let i = 0; i < state.order.length; i++) {
     for (let j = i + 1; j < state.order.length; j++) {
-      const key = pairKey(state.order[i]!, state.order[j]!);
-      state.relationships[key] = 8;
+      const a = state.order[i]!;
+      const b = state.order[j]!;
+      state.relationships[pairKey(a, b)] = 8;
+      state.familiarity[pairKey(a, b)] = 0.3;
+      book.socialise(a, b, { opinion: 8, familiarity: 0.3 });
     }
   }
 }
+

@@ -1,86 +1,145 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
+
 import { content } from "../content";
-import { resetSession, session } from "../session";
-import type { GuestState, PlacedObject } from "../session";
-import { needPressure, targetScore, tickGuests } from "./guests";
+import { agentOf, clearAgents, guestTargets, liveAgent } from "../agents";
+import { resetSession, session, type PlacedObject } from "../session";
+import { tickStaff } from "../staff";
+import { seedGuests, tickGuests } from "./guests";
 
-function guest(overrides: Partial<GuestState>): GuestState {
-  return {
-    id: "g1",
-    kind: "guest",
-    happy: 60,
-    money: 50,
-    hunger: 20,
-    thirst: 20,
-    souvenir: 0,
-    visits: 0,
-    phase: "seeking",
-    targetId: null,
-    target: null,
-    busy: 0,
-    litterTimer: 5,
-    ...overrides,
-  };
+function context() {
+  return createGameContext({
+    definition: defineGameDefinition({ name: "Brightway test", multiplayer: "off" }),
+    content,
+    player: { userId: "p1", isNew: true },
+    seed: "park-test",
+  });
 }
 
-function obj(catalogId: string, patch: Partial<PlacedObject> = {}): PlacedObject {
-  return { id: `${catalogId}#1`, catalogId, x: 0, z: 0, stock: 40, soldTotal: 0, occupants: 0, ...patch };
+function obj(catalogId: string, x: number, z: number, patch: Partial<PlacedObject> = {}): PlacedObject {
+  return { id: `${catalogId}#1`, catalogId, x, z, stock: 40, soldTotal: 0, occupants: 0, ...patch };
 }
 
-describe("brightway-park guest logic", () => {
-  test("need pressure rises past the comfort threshold", () => {
-    expect(needPressure(30)).toBe(0);
-    expect(needPressure(100)).toBeCloseTo(1);
-    expect(needPressure(80)).toBeGreaterThan(needPressure(60));
-  });
+function onlyGuest() {
+  const guest = [...session.guests.values()][0]!;
+  return guest;
+}
 
-  test("a hungry guest with cash is drawn to a stocked food stall", () => {
-    const hungry = guest({ hunger: 90 });
-    expect(targetScore(hungry, obj("stall_food"), 0, 4)).toBeGreaterThan(0);
-  });
-
-  test("empty stall or broke guest is not a valid target", () => {
-    expect(targetScore(guest({ hunger: 90 }), obj("stall_food", { stock: 0 }), 0, 4)).toBe(-1);
-    expect(targetScore(guest({ hunger: 90, money: 2 }), obj("stall_food"), 0, 4)).toBe(-1);
-  });
-
-  test("a full ride is skipped", () => {
-    const full = obj("ride_carousel", { occupants: 6 });
-    expect(targetScore(guest({}), full, 0, 4)).toBe(-1);
-    expect(targetScore(guest({}), obj("ride_carousel", { occupants: 0 }), 0, 4)).toBeGreaterThan(0);
-  });
-});
-
-
-describe("ride audience choices", () => {
-  test("families prefer gentle rides while thrill seekers prefer the drop tower at the same distance", () => {
-    const family = guest({ kind: "guest_a" });
-    const thrill = guest({ kind: "guest_d" });
-    expect(targetScore(family, obj("ride_carousel"), 0, 4)).toBeGreaterThan(targetScore(family, obj("ride_dropzone"), 0, 4));
-    expect(targetScore(thrill, obj("ride_dropzone"), 0, 4)).toBeGreaterThan(targetScore(thrill, obj("ride_carousel"), 0, 4));
-  });
-
-  function completeRide(kind: string, ride: string): number {
-    resetSession();
-    const ctx = createGameContext({ definition: defineGameDefinition({ name: "Ride fit", multiplayer: "off" }), content, player: { userId: "p1", isNew: true } });
-    const attraction = obj(ride, { occupants: 1 });
-    const rider = guest({ kind, phase: "busy", targetId: attraction.id, busy: 0.1 });
-    session.placed.set(attraction.id, attraction);
-    session.guests.set(rider.id, rider);
-    ctx.scene.entity.spawn(kind, { id: rider.id, position: [0, 0, 0], role: "npc" });
-    tickGuests(ctx, 0.2, 0);
-    expect(attraction.occupants).toBe(0);
-    expect(rider.visits).toBe(1);
-    return rider.happy;
+function fillNeeds(ctx: ReturnType<typeof context>, values: Record<string, number>): void {
+  const agent = agentOf(onlyGuest(), ctx.rng);
+  for (const [need, value] of Object.entries(values)) {
+    agent.needs.refill(need, value - agent.needs.value(need));
   }
+}
 
-  test("actual ride completion improves matching audiences and disappoints the opposite audience", () => {
-    expect(completeRide("guest_a", "ride_carousel")).toBeGreaterThan(60);
-    expect(completeRide("guest_a", "ride_dropzone")).toBeLessThan(60);
-    expect(completeRide("guest_d", "ride_dropzone")).toBeGreaterThan(60);
-    expect(completeRide("guest_d", "ride_carousel")).toBeLessThan(60);
+describe("brightway-park guest agents", () => {
+  beforeEach(() => {
+    resetSession();
+    clearAgents();
+    session.open = true;
+  });
+
+  test("a hungry guest picks the food stall its own need and mood point at", () => {
+    const ctx = context();
+    session.placed.set("stall_food#1", obj("stall_food", 0, 8));
+    seedGuests(ctx, 1);
+    fillNeeds(ctx, { hunger: 5, thirst: 95, fun: 95, souvenir: 0, energy: 95 });
+
+    tickGuests(ctx, 0.1, 0);
+
+    expect(onlyGuest().targetId).toBe("stall_food#1");
+    expect(liveAgent(onlyGuest().id)?.action().option).toBe("hunger");
+  });
+
+  test("an empty stall and a broke guest are not offered the stall at all", () => {
+    const ctx = context();
+    seedGuests(ctx, 1);
+    const guest = onlyGuest();
+    fillNeeds(ctx, { hunger: 5, thirst: 95, fun: 95, energy: 95 });
+
+    session.placed.set("stall_food#1", obj("stall_food", 0, 8, { stock: 0 }));
+    expect(guestTargets(guest, 0, [0, 0, 0]).some((target) => target.target === "stall_food#1")).toBe(false);
+
+    session.placed.set("stall_food#1", obj("stall_food", 0, 8, { stock: 10 }));
+    guest.money = 2;
+    expect(guestTargets(guest, 0, [0, 0, 0]).some((target) => target.target === "stall_food#1")).toBe(false);
+  });
+
+  test("litter lowers a guest's mood until a janitor post is staffed", () => {
+    const ctx = context();
+    seedGuests(ctx, 1);
+    fillNeeds(ctx, { hunger: 90, thirst: 90, fun: 90, energy: 90 });
+    session.litter = 0;
+    tickGuests(ctx, 0.1, 0);
+    const clean = liveAgent(onlyGuest().id)!.mood().score;
+
+    session.litter = 80;
+    tickGuests(ctx, 0.1, 0);
+    expect(liveAgent(onlyGuest().id)!.mood().score).toBeLessThan(clean);
+
+    session.litter = 0;
+    tickGuests(ctx, 0.1, 0);
+    expect(liveAgent(onlyGuest().id)!.mood().score).toBeGreaterThan(clean - 1);
+  });
+
+  test("eating fills the need and the mood follows it up", () => {
+    const ctx = context();
+    session.placed.set("stall_food#1", obj("stall_food", 0, 8));
+    seedGuests(ctx, 1);
+    fillNeeds(ctx, { hunger: 10, thirst: 90, fun: 80, energy: 90 });
+    ctx.scene.entity.setPose(onlyGuest().id, { position: [0, 0, 14] });
+
+    tickGuests(ctx, 0.1, 0);
+    const hungry = liveAgent(onlyGuest().id)!.mood().score;
+
+    for (let i = 0; i < 120; i += 1) tickGuests(ctx, 0.1, 0);
+
+    const agent = liveAgent(onlyGuest().id)!;
+    expect(agent.needs.value("hunger")).toBeGreaterThan(60);
+    expect(agent.mood().score).toBeGreaterThan(hungry);
+    expect(onlyGuest().visits).toBe(1);
+  });
+
+  test("a crowded ride is priced as a worse choice than an empty one", () => {
+    const ctx = context();
+    seedGuests(ctx, 1);
+    const guest = onlyGuest();
+    fillNeeds(ctx, { hunger: 95, thirst: 95, fun: 5, energy: 95 });
+
+    session.placed.set("ride_carousel#1", obj("ride_carousel", 0, 20, { occupants: 0 }));
+    const empty = guestTargets(guest, 0, [0, 0, 0]).find((target) => target.target === "ride_carousel#1")!;
+    session.placed.set("ride_carousel#1", obj("ride_carousel", 0, 20, { occupants: 5 }));
+    const busy = guestTargets(guest, 0, [0, 0, 0]).find((target) => target.target === "ride_carousel#1")!;
+
+    expect(busy.cost!).toBeGreaterThan(empty.cost!);
+  });
+
+  test("a janitor walks the beat its post authored", () => {
+    const ctx = context();
+    session.placed.set("staff_janitor#1", obj("staff_janitor", 12, -12));
+    ctx.time.hydrate({ ...ctx.time.snapshot(), now: 60, paused: true });
+
+    tickStaff(ctx, 0.1);
+    expect(session.staff.size).toBe(1);
+    const staff = [...session.staff.values()][0]!;
+    const start = ctx.scene.entity.get(staff.id)!.position;
+
+    for (let i = 0; i < 40; i += 1) tickStaff(ctx, 0.1);
+    const moved = ctx.scene.entity.get(staff.id)!.position;
+    expect(Math.hypot(moved[0] - start[0], moved[2] - start[2])).toBeGreaterThan(0.5);
+    expect(Math.hypot(moved[0] - 12, moved[2] + 12)).toBeLessThanOrEqual(7);
+  });
+
+  test("demolishing the post sends its janitor home", () => {
+    const ctx = context();
+    session.placed.set("staff_janitor#1", obj("staff_janitor", 12, -12));
+    tickStaff(ctx, 0.1);
+    const id = [...session.staff.values()][0]!.id;
+    session.placed.delete("staff_janitor#1");
+    tickStaff(ctx, 0.1);
+    expect(session.staff.size).toBe(0);
+    expect(ctx.scene.entity.get(id)).toBeNull();
   });
 });

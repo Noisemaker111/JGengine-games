@@ -12,6 +12,7 @@ import { FURNITURE_BY_ID, objectEntries } from "../objects/catalog";
 import { LIFE_EVENT_SECONDS } from "../sim/events";
 import { createHouseholdEconomy, PANTRY_CAP } from "../sim/economy";
 import { householdStore } from "./store";
+import { resetAgents, resetBook } from "../agents";
 import { pairKey, type HouseholdState } from "./types";
 
 export const ORBIT_SAVE_KEY = "odd-orbit.household-save.v1";
@@ -80,7 +81,8 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   }
   const pairs = h.order.flatMap((a, i) => h.order.slice(i + 1).map((b: string) => pairKey(a, b)));
   if (!object(h.relationships) || !keys(h.relationships, pairs) || !Object.values(h.relationships).every(value => number(value, -100, 100))) return false;
-  if (!object(h.milestones) || Object.entries(h.milestones).some(([key, value]) => !pairs.includes(key) || !["friends", "close", "bonded"].includes(value))) return false;
+  if (h.familiarity !== undefined && (!object(h.familiarity) || !keys(h.familiarity, pairs) || !Object.values(h.familiarity).every(value => number(value, 0, 1)))) return false;
+  if (h.milestones !== undefined) return false;
   return integer(h.eventSeq);
 }
 
@@ -108,8 +110,11 @@ export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   if (!validOrbitSave(save)) throw new Error("Invalid Odd Orbit save");
   const detached = structuredClone(save);
   // v1 saves written before the shell notice feed carried a household journal; it no longer exists.
-  const legacy = detached.household as HouseholdState & { events?: unknown };
+  const legacy = detached.household as HouseholdState & { events?: unknown; milestones?: unknown };
   delete legacy.events;
+  delete legacy.milestones;
+  resetAgents();
+  resetBook();
   ctx.time.hydrate(detached.clock);
   ctx.hydrate({ objects: detached.objects, entities: detached.entities, stats: detached.stats });
   householdStore.write(ctx, detached.household);
@@ -141,3 +146,4 @@ export function writeOrbitSave(ctx: GameContext, storage: KeyValueStorage | null
   }).set(save);
   return written;
 }
+
