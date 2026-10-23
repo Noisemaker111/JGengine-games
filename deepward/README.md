@@ -16,10 +16,10 @@ repack it. Close the cache to return to movement.
 
 The verified native slice includes Garage departure, copper-spool search,
 grid repacking, return extraction, a full reload retaining the banked spool,
-and a second dive interrupted by reload. That interruption loses the carried
-haul and advances the life once, retaining the banked stash; another reload
-does not repeat the loss. The save is local to this browser under
-`deepward.marrow.v1`.
+and a reload mid-dive that resumes from its checkpoint. The record is one shared
+save document (`deepward.marrow.record`) with a section for the persistent Marrow
+record and a section for the dive in progress; v1–v4 bytes at
+`deepward.marrow.v1` still load and are rewritten as a record.
 
 At Marrow's stash, spend banked salvage on two permanent refits. A sealed tank
 costs one copper spool and one set of suit seals and starts each departure with 145
@@ -33,7 +33,7 @@ Travel light to keep banked rifles safe and all twelve cache squares free, or
 bring one for its own rolled damage per shot instead of the sidearm's 20. It
 takes three cache squares. Preparation does not spend the rifle; verified
 departure removes its exact instance from the stash. Return banks it again,
-while death or dive reload loses it.
+while death loses it.
 
 Every salvage instance is a roll: its level is the depth of the room it was
 found in, and its affixes come from one weighted table (`src/game/items.ts`).
@@ -61,14 +61,15 @@ take free space.
 
 A lost Life now stops at Halloway's reprint screen. The loss is already saved;
 accept the next Life before moving or departing again. Reloading at this screen
-keeps the acknowledgement pending. The pause menu offers an explicit reload /
-abandon action. Save records use schema v4 under the original key; v1-v3 bytes
-migrate on the next verified transition, rolling the instance each legacy item
-would have had. Damaged and future saves remain
+keeps the acknowledgement pending. The pause menu offers an explicit reload
+action. The record is schema v5 under `deepward.marrow.record`; v1-v4 bytes
+migrate on load, rolling the instance each legacy item would have had and
+opening the counter's books at the banked scrip. Damaged and future saves remain
 untouched. Cost, loadout, failure and reload boundaries have deterministic tests
-against published engine commands. Native after-play confirmed Garage departure, explicit pause-menu abandonment,
-the reprint screen, acknowledgement and another reload retaining Life 2 with
-one loss. The full refit purchase and upgraded departure were tested through
+against published engine commands. Native after-play confirmed Garage departure, explicit pause-menu reload,
+the reprint screen and acknowledgement; the mid-dive checkpoint restore is
+covered by a two-context test that boots a second world from the same bytes.
+The full refit purchase and upgraded departure were tested through
 published engine commands but remain unverified in native browser play.
 Validation status is tracked in
 [slice #35](https://github.com/Noisemaker111/JGengine-games/issues/35).
@@ -105,7 +106,7 @@ See [credits](CREDITS.md) for original content and dependency provenance.
 
 ## Design checklist
 
-Read from `src/game/{state,progression,save,stationModels}`, `DESIGN.md` and the authored scene. The slice,
+Read from `src/game/{state,combat,save,counter,navigation,progression,stationModels}`, `DESIGN.md` and the authored scene. The slice,
 not the full design, is what the numbers describe.
 
 - **Core loop.** At Marrow, depart through the Garage, walk Bellwether with 110 seconds of air, channel
@@ -123,9 +124,10 @@ not the full design, is what the numbers describe.
     A service rifle can be prepared for one departure (its rolled damage against the sidearm's 20), leaves
     the stash on departure, and is gone if that dive ends in death.
 - **Failure states.** Air at zero suffocates at 12 health a second; steam costs 18 a second; the Fitter
-  print has 80 health and a windup. Death banks nothing carried and requires acknowledging the reprint
-  before departing again. A dive interrupted by reload loses its carried haul exactly once and keeps the
-  banked stash.
+  print has 80 health, sees through a 12 m cone, hears a search at 15 m and winds up before it swings.
+  Death banks nothing carried and requires acknowledging the reprint
+  before departing again. A reload mid-dive resumes from its last checkpoint (tank, magazine, position
+  and HUD lines) and keeps the banked stash.
 - **Minute 5 → hour 5.** At 5:00 you are on the first departure with the sidearm and two or three items,
   still deciding whether the rifle is worth three cache squares. Hour five is roughly two or three Lives
   in, both refits installed, and the light-or-armed departure actually costing something.
