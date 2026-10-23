@@ -78,12 +78,14 @@ export function memberNeeds(plan: AlienBodyPlan): NeedDefinition[] {
   }));
 }
 
-/** One agent per saved being, keyed by the state object so a second world in a test stays separate. */
-let agents = new WeakMap<MemberState, Agent>();
+/**
+ * One agent per saved being. The WeakMap is keyed by the member object, so a second world in the
+ * same process gets its own agents and an abandoned world's entries go with its objects.
+ */
+const agents = new WeakMap<MemberState, Agent>();
 
-export function resetAgents(): void {
-  agents = new WeakMap();
-}
+/** A new world brings new member objects, so there is nothing to clear; kept for the call sites. */
+export function resetAgents(): void {}
 
 /** The live agent for a being, built from its saved need record and kept for the session. */
 export function memberAgent(member: MemberState, rng: () => number): Agent {
