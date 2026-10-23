@@ -454,6 +454,8 @@ export function registerControls(ctx: GameContext): void {
   ctx.game.commands.define("deepward.enter", { apply(state) { enterFromTitle(state); } });
   ctx.game.commands.define("deepward.openStash", { apply(state) {
     const v = viewStore.read(state);
+    // The capture harness presses this right after Enter; wait for the record like Enter does.
+    if (v.mode === "loading") { void runtime(state).boot.then(() => state.game.commands.run("deepward.openStash", {})); return; }
     if (v.mode !== "home" || v.paused) return;
     viewStore.write(state, { ...v, panel: "stash", paused: true });
   } });
