@@ -1,7 +1,14 @@
 {
   "adopts": [
     "audio-probe",
-    "mount-game"
+    "damage-runtime",
+    "damage-target-unknown",
+    "game-save",
+    "game-save-digest",
+    "mount-game",
+    "perception-service",
+    "transaction-ledger",
+    "weapon-system"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [
@@ -33,29 +40,9 @@
       "kind": "not-applicable",
       "reason": "Cover is not part of deepward: the station offers line of sight only, and nothing takes or holds cover."
     },
-    "damage-runtime": {
-      "kind": "debt",
-      "reason": "Hits subtract from health in controls.ts with no damage table, hit zone or armor profile; adopt the shared damage table.",
-      "issue": 129
-    },
-    "damage-target-unknown": {
-      "kind": "debt",
-      "reason": "The local hit path never validates a target's resistance profile; adopt the shared damage table with its unknown-target refusal.",
-      "issue": 129
-    },
     "equipment-slot-inventory": {
       "kind": "not-applicable",
       "reason": "Equipment slots is not part of deepward: one held weapon and a pack grid, with nothing worn in equipment slots."
-    },
-    "game-save": {
-      "kind": "debt",
-      "reason": "save.ts writes its own Marrow document and validates every field by hand; adopt the shared save document.",
-      "issue": 132
-    },
-    "game-save-digest": {
-      "kind": "debt",
-      "reason": "The hand-written save has no state digest to compare between runs; adopt the shared save document's digest.",
-      "issue": 132
     },
     "loan-schedule": {
       "kind": "not-applicable",
@@ -101,21 +88,6 @@
       "kind": "not-applicable",
       "reason": "Mission runtime is not part of deepward: a dive is a run loop with a return condition, not an objective state machine."
     },
-    "nav-crowd": {
-      "kind": "debt",
-      "reason": "The station has one walker on a local grid route; adopt the shared navigation runtime and its crowd step.",
-      "issue": 131
-    },
-    "nav-runtime": {
-      "kind": "debt",
-      "reason": "navigation.ts bakes its own 0.5 m grid and runs a local A*; adopt the shared navigation runtime.",
-      "issue": 131
-    },
-    "navmesh-from-scene": {
-      "kind": "debt",
-      "reason": "The route graph is derived at runtime from world bounds; adopt the shared navigation from the editor's baked mesh.",
-      "issue": 131
-    },
     "near-agents": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."
@@ -123,11 +95,6 @@
     "offscreen-world": {
       "kind": "not-applicable",
       "reason": "Offscreen simulation is not part of deepward: the station is one small room set, and no far-away bodies are simulated."
-    },
-    "perception-service": {
-      "kind": "debt",
-      "reason": "The fitter hears shots through an inline sound check and line of sight; adopt the shared perception service.",
-      "issue": 130
     },
     "police-response": {
       "kind": "not-applicable",
@@ -177,11 +144,6 @@
       "kind": "not-applicable",
       "reason": "Traffic is not part of deepward: nothing drives on the station."
     },
-    "transaction-ledger": {
-      "kind": "debt",
-      "reason": "Scrip is banked and settled in counter.ts without a ledger of reasons; adopt the shared transaction ledger.",
-      "issue": 133
-    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."
@@ -198,10 +160,17 @@
       "kind": "not-applicable",
       "reason": "Queue is not part of deepward: nothing queues at the receiving rail."
     },
-    "weapon-system": {
-      "kind": "debt",
-      "reason": "SIDEARM and RIFLE carry their own damage, range, cadence and reload in state.ts; adopt the shared weapon runtime.",
-      "issue": 129
+    "nav-crowd": {
+      "kind": "not-applicable",
+      "reason": "Crowd navigation is not part of deepward: one printed fitter walks the station on its own, and no second body is steered, avoided or queued behind it."
+    },
+    "nav-runtime": {
+      "kind": "not-applicable",
+      "reason": "A polygon navmesh navigation runtime is not part of deepward: the station is one flat authored floor, and its single walker routes on the shared 0.5 m navigation grid derived from those room and machinery volumes, so there is no baked mesh to route over."
+    },
+    "navmesh-from-scene": {
+      "kind": "not-applicable",
+      "reason": "An editor-baked navigation mesh is not part of deepward: the scene document carries room and machine boxes, not a navigation bake, and a flat one-room station gains nothing from a polygon mesh over its navigation grid."
     }
   }
 }
