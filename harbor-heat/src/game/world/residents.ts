@@ -1,18 +1,21 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { defineStore } from "@jgengine/core/store/defineStore";
 import {
   createOffScreenWorld,
   resolveRoutine,
   type NearAgents,
   type NearHandoff,
   type NearSpawn,
-  type NeedDefinition,
   type OffScreenWorld,
   type RoutineTimeline,
 } from "@jgengine/core/gameplay";
+import type { AgentScheduleStop } from "@jgengine/core/agents/schedule";
+import type { Vec3 } from "@jgengine/core/world/geometry";
 import { createNavGrid, findPath, type NavGrid, type NavPoint } from "@jgengine/core/nav/navGrid";
 
 import { editorLayers } from "../../editorLayers";
+import { createResidentAgents, residentAgentStore, type ResidentAgentSystem } from "./residentAgents";
 import type { BuildingFootprintXZ } from "./setup";
 
 /**
@@ -27,7 +30,7 @@ import type { BuildingFootprintXZ } from "./setup";
  */
 
 /** One game day in game-seconds — the same 720 s the clock in `game.config.ts` runs on. */
-const CYCLE_SECONDS = 720;
+export const CYCLE_SECONDS = 720;
 /** Walking pace in metres per game-second. */
 const WALK_SPEED = 1.35;
 /** Distance at which a resident is simulated for real, and the band past which it goes cheap again. */
@@ -37,12 +40,6 @@ const FAR_RADIUS = 88;
 const SWITCH_BUDGET = 4;
 /** How close a walker must be to a waypoint before it turns for the next one. */
 const WAYPOINT_REACH = 0.6;
-
-/** Needs every resident carries; a meal stop refills hunger. */
-const NEEDS: readonly NeedDefinition[] = [
-  { id: "hunger", max: 100, rate: 0.05 },
-  { id: "rest", max: 100, rate: 0.02 },
-];
 
 /** An authored `resident_place` marker: where a routine stop actually happens. */
 export interface ResidentPlace {
@@ -109,7 +106,7 @@ export const RESIDENTS: readonly ResidentSpec[] = [
  * departure — `createOffScreenWorld` then spins on that boundary forever. Integer stops keep the
  * boundary comparison exact.
  */
-function walkTime(from: string, to: string): number {
+export function walkTime(from: string, to: string): number {
   const a = PLACES[from];
   const b = PLACES[to];
   if (a === undefined || b === undefined) return 0;
@@ -117,23 +114,30 @@ function walkTime(from: string, to: string): number {
 }
 
 /**
- * One resident's day: home overnight, work from the morning, a proper sit-down meal at lunch, a
- * second stretch at work and home for the evening. Each resident is shifted a few seconds off the
- * hour so the boardwalk does not empty and refill in lockstep.
+ * One resident's day, as authored stops. Shared by the routine the city walks and the agent schedule
+ * that decides the same resident's meals and moods, so the two can never disagree.
  */
-export function routineFor(spec: ResidentSpec, index: number): RoutineTimeline {
+export function residentStops(spec: ResidentSpec, index: number): AgentScheduleStop[] {
   // Up to twenty minutes off the shared work day, so neighbours leave for lunch at different times.
   const jitter = ((index * 13) % 21) - 10;
+  return [
+    { place: spec.home, arriveAt: 0, activity: "sleep" },
+    { place: spec.work, arriveAt: 240 + jitter, activity: "work" },
+    { place: spec.meal, arriveAt: 372 + jitter, activity: "meal", refill: { hunger: 45 } },
+    { place: spec.work, arriveAt: 450 + jitter, activity: "work" },
+    { place: spec.home, arriveAt: 630 + jitter, activity: "home" },
+  ];
+}
+
+/**
+ * One resident's day resolved against the world clock: home overnight, work from the morning, a
+ * proper sit-down meal at lunch, a second stretch at work and home for the evening.
+ */
+export function routineFor(spec: ResidentSpec, index: number): RoutineTimeline {
   return resolveRoutine({
     cycleSeconds: CYCLE_SECONDS,
     travelSeconds: walkTime,
-    stops: [
-      { place: spec.home, arriveAt: 0, activity: "sleep" },
-      { place: spec.work, arriveAt: 240 + jitter, activity: "work" },
-      { place: spec.meal, arriveAt: 372 + jitter, activity: "meal", refill: { hunger: 45 } },
-      { place: spec.work, arriveAt: 450 + jitter, activity: "work" },
-      { place: spec.home, arriveAt: 630 + jitter, activity: "home" },
-    ],
+    stops: residentStops(spec, index),
   });
 }
 
@@ -142,7 +146,6 @@ interface Walker {
   entityId: string;
   path: readonly NavPoint[];
   index: number;
-  needs: Record<string, number>;
   position: [number, number, number];
 }
 
@@ -195,7 +198,6 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
         entityId,
         path: route(next.position, next.goal),
         index: 0,
-        needs: { ...next.needs },
         position: [x, next.position[1], z],
       });
     },
@@ -204,15 +206,12 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
       if (walker === undefined) return null;
       ctx.scene.entity.despawn(walker.entityId);
       walkers.delete(id);
-      return { position: walker.position, needs: walker.needs };
+      return { position: walker.position, needs: {} };
     },
     position(id: string) {
       const walker = walkers.get(id);
       if (walker === undefined) return null;
       return ctx.scene.entity.get(walker.entityId)?.position ?? walker.position;
-    },
-    needs(id: string) {
-      return walkers.get(id)?.needs ?? null;
     },
     setGoal(id: string, goal) {
       const walker = walkers.get(id);
@@ -243,12 +242,6 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
           z += (dz / distance) * step;
           budget -= step;
         }
-        // The near side decays the same needs the cheap state does, so a handoff keeps the numbers.
-        for (const need of NEEDS) {
-          const value = walker.needs[need.id];
-          if (value === undefined) continue;
-          walker.needs[need.id] = Math.max(need.min ?? 0, value - need.rate * dt);
-        }
         const moved = Math.abs(x - fromX) > 1e-6 || Math.abs(z - fromZ) > 1e-6;
         const y = ctx.world.groundHeightAt(x, z);
         walker.position = [x, y, z];
@@ -269,9 +262,30 @@ function createCityWalkers(ctx: GameContext, buildings: readonly BuildingFootpri
   };
 }
 
+/** One resident as the HUD reads them: who, how they feel, and what they decided to do. */
+export interface ResidentCard {
+  id: string;
+  name: string;
+  mood: number;
+  moodLabel: string;
+  doing: string;
+}
+
+/** The nearest few residents, refreshed a few times a second for the HUD. */
+export const residentBoardStore = defineStore<readonly ResidentCard[]>("harbor.residentBoard", []);
+
+const BOARD_RADIUS = 46;
+const BOARD_SIZE = 3;
+const BOARD_INTERVAL = 0.4;
+
 interface CityResidents {
   world: OffScreenWorld;
   near: CityWalkers;
+  people: ResidentAgentSystem;
+  /** Place each near body was last aimed at, so a decision re-routes once rather than every tick. */
+  aimed: Map<string, string>;
+  boardTimer: number;
+  day: number;
 }
 
 const residentsStore = perContext<{ value: CityResidents | null }>(() => ({ value: null }));
@@ -280,15 +294,23 @@ function city(ctx: GameContext): CityResidents | null {
   return residentsStore(ctx).value;
 }
 
+const PLACE_LABEL: Readonly<Record<string, string>> = Object.fromEntries(
+  RESIDENT_PLACES.map((place) => [place.id, place.label]),
+);
+
+function placeOf(id: string): Vec3 | null {
+  return PLACES[id] ?? null;
+}
+
 /**
  * Build Mainsail's population: one off-screen world over the authored places, one resident per
- * authored day, and the near half that walks the ones in range.
+ * authored day, the near half that walks the ones in range, and one agent system over the whole cast.
  */
 export function setupResidents(ctx: GameContext, buildings: readonly BuildingFootprintXZ[]): void {
   const near = createCityWalkers(ctx, buildings);
   const world = createOffScreenWorld({
     places: PLACES,
-    needs: NEEDS,
+    needs: [],
     policy: { nearRadius: NEAR_RADIUS, farRadius: FAR_RADIUS, switchBudget: SWITCH_BUDGET },
     near,
     residents: RESIDENTS.map((spec, index) => ({
@@ -298,20 +320,105 @@ export function setupResidents(ctx: GameContext, buildings: readonly BuildingFoo
     })),
     devtoolsName: "harbor.residents",
   });
-  residentsStore(ctx).value = { world, near };
+  const people = createResidentAgents({
+    clock: ctx.time,
+    rng: ctx.rng,
+    position: (id) => world.agent(id)?.position ?? null,
+    places: placeOf,
+    storage: {
+      read: () => residentAgentStore.read(ctx),
+      write: (next) => residentAgentStore.write(ctx, next),
+    },
+  });
+  residentsStore(ctx).value = {
+    world,
+    near,
+    people,
+    aimed: new Map(),
+    boardTimer: 0,
+    day: Math.floor(ctx.time.now() / CYCLE_SECONDS),
+  };
 }
 
-/** Split the population by distance from the player and advance the ones in range. */
+/** Split the population by distance, advance the ones in range, then let every resident decide. */
 export function tickResidents(ctx: GameContext, dt: number): void {
   const residents = city(ctx);
   if (residents === null) return;
+  const now = ctx.time.now();
   const player = ctx.scene.entity.get(ctx.player.userId);
-  residents.world.tick(dt, ctx.time.now(), player?.position ?? [0, 0, 0]);
+  residents.world.tick(dt, now, player?.position ?? [0, 0, 0]);
+  residents.people.system.tick(dt);
+  aimBodies(residents);
+  publishBoard(ctx, residents, dt);
+  // A day is the natural save point: the cast writes its needs and moods into the world save once a cycle.
+  const day = Math.floor(now / CYCLE_SECONDS);
+  if (day !== residents.day) {
+    residents.day = day;
+    residents.people.system.save();
+  }
+}
+
+/**
+ * A resident whose decision points at another place walks there: the near body takes the agent's
+ * target, and keeps it until its decision changes.
+ */
+function aimBodies(residents: CityResidents): void {
+  for (const id of residents.world.ids()) {
+    const view = residents.world.agent(id);
+    if (view === null || view.mode !== "near") continue;
+    const target = residents.people.system.action(id)?.target ?? null;
+    if (target === null || residents.aimed.get(id) === target) continue;
+    const place = PLACES[target];
+    if (place === undefined) continue;
+    residents.aimed.set(id, target);
+    residents.near.setGoal(id, place);
+  }
+}
+
+function publishBoard(ctx: GameContext, residents: CityResidents, dt: number): void {
+  residents.boardTimer -= dt;
+  if (residents.boardTimer > 0) return;
+  residents.boardTimer = BOARD_INTERVAL;
+  const cards = residents.world
+    .ids()
+    .map((id) => residents.world.agent(id))
+    .filter((view): view is NonNullable<typeof view> => view !== null && view.distance <= BOARD_RADIUS)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, BOARD_SIZE)
+    .map((view): ResidentCard => {
+      const agent = residents.people.system.get(view.id);
+      const mood = agent?.mood();
+      const action = residents.people.system.action(view.id);
+      const doing = action?.target !== null && action?.target !== undefined
+        ? (PLACE_LABEL[action.target] ?? view.activity ?? "about")
+        : (view.activity === null ? "walking" : PLACE_LABEL[view.place ?? ""] ?? view.activity);
+      return {
+        id: view.id,
+        name: residents.people.spec(view.id)?.name ?? view.id,
+        mood: mood?.score ?? 50,
+        moodLabel: mood?.label ?? "Fine",
+        doing,
+      };
+    });
+  residentBoardStore.write(ctx, cards);
 }
 
 /** Where a resident is and what it is doing, for a HUD, a probe or a test. */
 export function residentAt(ctx: GameContext, id: string) {
   return city(ctx)?.world.agent(id) ?? null;
+}
+
+/** A resident's live mind: mood and the action its own needs chose, for a probe or a test. */
+export function residentMind(ctx: GameContext, id: string) {
+  const residents = city(ctx);
+  if (residents === null) return null;
+  const agent = residents.people.system.get(id);
+  if (agent === null) return null;
+  return {
+    mood: agent.mood(),
+    action: residents.people.system.action(id),
+    agent,
+  };
 }
 
 /** Population counters: how many residents exist, how many are simulated, how many are cheap. */
@@ -321,6 +428,10 @@ export function residentStats(ctx: GameContext) {
 
 /** Tear the population down with the world. */
 export function disposeResidents(ctx: GameContext): void {
-  city(ctx)?.world.dispose();
+  const residents = city(ctx);
+  if (residents === null) return;
+  residents.people.system.save();
+  residents.people.system.dispose();
+  residents.world.dispose();
   residentsStore(ctx).value = null;
 }
