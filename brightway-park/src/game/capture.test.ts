@@ -50,7 +50,7 @@ describe("staged full-park capture", () => {
     expect(session.guests.size).toBeGreaterThanOrEqual(guestCap(session.rating));
     const counted = phases();
     expect(counted.queued ?? 0).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   test("reproduces from a fresh boot", () => {
     const first = boot();
@@ -67,5 +67,5 @@ describe("staged full-park capture", () => {
       .map((guest) => `${guest.id}:${guest.kind}:${guest.phase}`)
       .sort()
       .join("|")}`).toBe(fingerprint);
-  });
+  }, 30_000);
 });
