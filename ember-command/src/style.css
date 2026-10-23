@@ -51,6 +51,14 @@ body,
 .ec-credits { max-height: min(40vh, 330px); text-align: left; overflow-y: auto; margin: 20px 0; --jg-text: #d7d8c5; --jg-accent: #efc878; }
 .ec-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; padding: 18px 0; border-block: 1px solid #bca16d55; font: 12px system-ui, sans-serif; color: #9db6ac; }
 .ec-results strong { display: block; font: bold 25px Georgia, serif; color: #efc878; margin-top: 8px; }
+.ec-order-bar { display: block; height: 4px; flex: 1 1 48px; min-width: 40px; max-width: 90px; overflow: hidden; border-radius: 2px; background: #0a1013; box-shadow: inset 0 0 0 1px #bca16d44; }
+.ec-order-bar > span { display: block; height: 100%; background: linear-gradient(#f0cd8a, #b88947); transition: width .25s linear; }
+.ec-mission { margin: 18px 0 8px; padding: 14px 16px; text-align: left; background: #071a1d88; border: 1px solid #bca16d55; border-left: 3px solid #ecc985; border-radius: 4px; }
+.ec-mission-eyebrow { text-transform: uppercase; letter-spacing: .14em; font: bold 10px/1.6 system-ui, sans-serif; color: #9fc0bd; }
+.ec-mission-title { display: block; margin: 4px 0 6px; color: #ffe4a9; font-size: 21px; line-height: 1.15; }
+.ec-mission p { margin: 0; font-size: 14px; }
+.ec-mission-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 10px; font: bold 11px/1.4 system-ui, sans-serif; color: #b6c9c1; }
+.ec-mission-stores { color: #efc878; }
 .ec-contrast .ec-frame, .ec-contrast .ec-front { background: #0b1a20; border-color: #ffdb90; }
 .ec-contrast .text-slate-400, .ec-contrast .text-slate-500 { color: #d6e1dc; }
 .ec-large .ec-stock span, .ec-large .ec-objectives div, .ec-large .ec-large .ec-slot span { font-size: 11px; }

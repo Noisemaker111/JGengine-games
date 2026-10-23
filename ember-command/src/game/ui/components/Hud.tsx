@@ -6,6 +6,7 @@ import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 
 import { hudStore, type ArmyUnit, type HudSnapshot } from "../../hudStore";
+import { campaignOrdinal, type CampaignReadout } from "../../campaign";
 import { BARRACKS_UNITS, BUILDINGS, COMBATANTS, TRAINABLE } from "../../catalog";
 import { UPGRADES, WEAPON_DMG_PER_RANK, ARMOR_REDUCE_PER_RANK } from "../../upgrades";
 import { HERO_DMG_PER_LEVEL, THUNDERCLAP_COOLDOWN, THUNDERCLAP_COST } from "../../hero";
@@ -77,27 +78,73 @@ function TopBar() {
   );
 }
 
-/** Top-left objective card with a collapsible controls crib. */
+/** Mission clock as the field desk writes it: whole minutes and seconds. */
+export function orderClock(seconds: number): string {
+  const whole = Math.max(0, Math.ceil(seconds));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+}
+
+/** The live campaign mission in the orders card: step pips, the objective and its clock. */
+function CampaignOrders({ campaign }: { campaign: CampaignReadout }) {
+  const pips = Array.from({ length: Math.max(1, campaign.steps) }, (_, i) => i < campaign.step);
+  const fill = campaign.remaining !== null && campaign.duration !== null && campaign.duration > 0
+    ? Math.max(0, Math.min(1, campaign.remaining / campaign.duration))
+    : null;
+  return (
+    <div className="mt-1.5 flex items-start gap-2">
+      <Icon name="medal" className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+      <div className="min-w-0 leading-tight">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-sky-300/85">
+            {campaignOrdinal(campaign.index - 1)} · {campaign.title}
+          </span>
+          <span aria-label={`objective ${campaign.step} of ${campaign.steps}`} className="shrink-0 text-[8px] tracking-tight">
+            {pips.map((filled, i) => <span key={i} className={filled ? "text-amber-300" : "text-slate-600"}>◆</span>)}
+          </span>
+        </div>
+        <div className="text-[13px] font-bold text-amber-100">{campaign.objective}</div>
+        {campaign.remaining !== null ? (
+          <div className="ec-order mt-1 flex items-center gap-2">
+            <span className="text-[15px] font-bold tabular-nums text-amber-200">{orderClock(campaign.remaining)}</span>
+            {fill !== null ? <span className="ec-order-bar"><span style={{ width: `${Math.round(fill * 100)}%` }} /></span> : null}
+          </div>
+        ) : null}
+        {campaign.count > 0 ? (
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-sky-200 tabular-nums">
+            <span>{campaign.counted} / {campaign.count}</span>
+            <span className="ec-order-bar"><span style={{ width: `${Math.round((campaign.counted / Math.max(1, campaign.count)) * 100)}%` }} /></span>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** Top-left orders card: the campaign mission and its clock, or the skirmish objective, plus a crib. */
 function ObjectivesPanel() {
   const hud = useHud();
   const [open, setOpen] = useState(true);
   const done = hud.enemyKeepHp <= 0;
+  const campaign = hud.campaign;
+  const live = campaign !== null && campaign.phase === "live";
   return (
     <HudSurface className={"ec-objectives absolute left-3 top-3 z-20 w-64 px-3 py-2 " + FRAME}>
       <Corners />
       <HudButton variant="ghost" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="ec-objectives-toggle">
-        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">Objectives</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/90">{live ? "Orders" : "Objectives"}</span>
         <span className={"text-sky-300/70 transition-transform " + (open ? "rotate-0" : "-rotate-90")}>⌄</span>
       </HudButton>
       {open ? (
         <>
-          <div className="mt-1.5 flex items-start gap-2">
-            <Icon name="medal" className={"mt-0.5 h-5 w-5 shrink-0 " + (done ? "text-slate-500" : "text-amber-300")} />
-            <div className="leading-tight">
-              <div className="text-[13px] font-bold text-amber-100">Raze the Marauder Warcamp</div>
-              <div className="text-[11px] text-slate-400">Destroy the Warcamp to win</div>
+          {live ? <CampaignOrders campaign={campaign} /> : (
+            <div className="mt-1.5 flex items-start gap-2">
+              <Icon name="medal" className={"mt-0.5 h-5 w-5 shrink-0 " + (done ? "text-slate-500" : "text-amber-300")} />
+              <div className="leading-tight">
+                <div className="text-[13px] font-bold text-amber-100">Raze the Marauder Warcamp</div>
+                <div className="text-[11px] text-slate-400">Destroy the Warcamp to win</div>
+              </div>
             </div>
-          </div>
+          )}
           <div className="mt-2 border-t border-slate-500/20 pt-1.5 text-[10px] leading-relaxed text-slate-400">
             <div>Drag to box-select · left-click a unit</div>
             <div>Right-click to move · on an enemy to attack</div>

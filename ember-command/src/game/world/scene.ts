@@ -5,6 +5,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { editorLayers } from "../../editorLayers";
 import { BUILDINGS, combatantDef, DECOR, isNode, NODES } from "../catalog";
+import { flushCampaign, failCampaignOnKeepLost, noteCampaignDeath, resetCampaign, setCampaignMode, startCampaignMission, syncCampaignHud } from "../campaign";
 import { grantHeroXp, heroXpFor } from "../hero";
 import { registerCommands } from "../commands";
 import { hudStore } from "../hudStore";
@@ -39,6 +40,7 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
   session.units.delete(event.instanceId);
   const def = combatantDef(event.catalogId);
   if (def === null) return;
+  noteCampaignDeath(ctx, event.catalogId);
   if (def.id === "keep_enemy") {
     session.over = true;
     session.victory = true;
@@ -48,9 +50,14 @@ function onDied(ctx: GameContext, event: EntityDiedEvent): void {
     setGamePhase(ctx, "ended");
     ctx.game.audio.stopLoop(BED_LOOP);
     ctx.game.audio.play("victory");
+    // The finale's last objective is the Warcamp falling; the clock is already stopped, so the
+    // machine is flushed with a zero tick instead of waiting for a frame that will not run.
+    flushCampaign(ctx);
     return;
   }
   if (def.id === "keep_player") {
+    // A lost keep ends the skirmish; a campaign mission lands in its named fail state first.
+    failCampaignOnKeepLost(ctx);
     session.over = true;
     session.victory = false;
     hudStore.set({ phase: "lost" });
@@ -88,6 +95,8 @@ export function setupSkirmish(ctx: GameContext): void {
   session.started = false;
   hudStore.reset();
   hudStore.set({ phase: "ready", gold: STARTING_GOLD, lumber: STARTING_LUMBER });
+  // The field desk always has an offer: the next campaign mission, or nothing in a free skirmish.
+  syncCampaignHud(ctx);
   setGamePhase(ctx, "menu");
   ctx.time.pause();
   ctx.game.audio.stopLoop(BED_LOOP);
@@ -114,8 +123,9 @@ export function setupSkirmish(ctx: GameContext): void {
         leash: 0,
         attackCooldown: 0,
       };
-      if (def.kind === "building" && def.faction === "player") {
-        // Depot anchor for peasant hauling.
+      if (def.kind === "building") {
+        // Every building carries a guard point: for the player it is the peasants' depot anchor, and
+        // for the Marauders it is the camp a wave musters from (the director reads `guardPoint`).
         unit.guardPoint = { x: pos[0], z: pos[2] };
       }
       if (def.kind === "unit" && def.faction === "enemy") {
@@ -143,7 +153,7 @@ export function setupSkirmish(ctx: GameContext): void {
   }
 
   initResourceField(ctx.rng);
-  if (wiredContexts.has(ctx)) return;
+  if (wiredContexts.has(ctx)) { syncCampaignHud(ctx); return; }
   wiredContexts.add(ctx);
   registerCommands(ctx);
   ctx.game.commands.define("match.start", { apply: (state) => {
@@ -155,6 +165,8 @@ export function setupSkirmish(ctx: GameContext): void {
       state.time.play();
       state.game.audio.loop("bed", "bed");
       state.game.audio.setLoop(BED_LOOP, { gain: 1 });
+      // The campaign's next mission opens with the match; a free skirmish starts bare.
+      startCampaignMission(state);
     }
     return state;
   } });
@@ -184,5 +196,18 @@ export function setupSkirmish(ctx: GameContext): void {
     return state;
   } });
   ctx.game.commands.define("match.title", { apply: (state) => { setupSkirmish(state); return state; } });
+  // Field desk: run the vale without the campaign track, or start the campaign over from mission I.
+  ctx.game.commands.define("match.skirmish", { apply: (state) => {
+    setCampaignMode(state, "skirmish");
+    setupSkirmish(state);
+    state.game.commands.run("match.start", {});
+    return state;
+  } });
+  ctx.game.commands.define("campaign.reset", { apply: (state) => {
+    setCampaignMode(state, "campaign");
+    setupSkirmish(state);
+    resetCampaign(state);
+    return state;
+  } });
   ctx.game.events.on("entity.died", (event) => onDied(ctx, event));
 }

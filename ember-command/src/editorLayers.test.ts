@@ -25,8 +25,13 @@ describe("authored skirmish scene", () => {
     expect(enemies.length).toBeGreaterThanOrEqual(4);
   });
 
-  test("every authored marker resolves to a known combatant, node, or decor", () => {
+  test("every authored marker resolves to a known combatant, node, or decor — or is a waypoint", () => {
     for (const marker of editorLayers.markers) {
+      // `poi` markers author a place (a campaign waypoint), not a body or a prop: nothing spawns there.
+      if (marker.kind === "poi") {
+        expect(catalogId(marker)).toBe("");
+        continue;
+      }
       const id = catalogId(marker);
       expect(combatantDef(id) !== null || isNode(id) || DECOR.has(id)).toBe(true);
     }

@@ -24,6 +24,10 @@ export const game = defineGame({
   audio: { sounds: EMBER_SOUNDS },
   server: { mode: "single" },
   save: "none",
+  // Offline whole-world save, written only at campaign beats (mission start, win, loss) so a battle
+  // is never captured mid-fight: the campaign track, the carried stores and the entity world persist
+  // to localStorage, and `loop.ts` restores the track on boot behind the field desk.
+  persist: { mode: "manual" },
   content,
   systems,
   loop: { onInit, onNewPlayer, onTick },

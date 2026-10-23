@@ -1,11 +1,28 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { matchRunning } from "./game/session";
+import { restoreCampaign } from "./game/campaign";
+import { matchRunning, session } from "./game/session";
 import { setupSkirmish } from "./game/world/scene";
 
 /** @internal Spawn the roster and wire the skirmish once, at world boot. */
 export function onInit(ctx: GameContext): void {
   setupSkirmish(ctx);
+  void resumeCampaign(ctx);
+}
+
+/**
+ * Bring the vale campaign back from the session save. A checkpoint holds a whole mid-battle world;
+ * the campaign carries its track and its stores across, so the field is restaged fresh and the
+ * offered mission is re-offered rather than resumed half-played. If the player already took command
+ * before the load landed (a capture boot, a fast click), keep that battle and only adopt the track.
+ */
+async function resumeCampaign(ctx: GameContext): Promise<void> {
+  const save = ctx.game.save;
+  if (save === undefined) return;
+  if (!(await save.hasSave())) return;
+  if (!(await save.load())) return;
+  if (!session.started) setupSkirmish(ctx);
+  restoreCampaign(ctx);
 }
 
 /** @internal No avatar — Ember Command is a commander-view RTS, so a joining player controls the army. */
