@@ -9,7 +9,6 @@ import { airAt, gust } from "../world/air";
 import { zoneAt } from "../world/zones";
 
 const WIND_LOOP = "wind";
-const INDUSTRY_LOOP = "industry";
 const THREAT_RADIUS = 42;
 
 
@@ -65,13 +64,17 @@ function cue(ctx: GameContext, sound: string, at?: EntityPosition): void {
   ctx.game.audio.play(sound, at);
 }
 
+/**
+ * Wind is the one bed Scrap still owns: its gust curve and per-zone playback rate are this world's
+ * own weather, and the engine's zone beds take a static gain with no live level hook. The industry
+ * bed moved to `audio.zones`, which the shell starts and crossfades by listener position.
+ */
 export function startAmbience(ctx: GameContext): void {
   const state = stateOf(ctx);
   if (state.started) return;
   state.started = true;
   ctx.game.audio.loop(WIND_LOOP, "amb_wind");
-  ctx.game.audio.loop(INDUSTRY_LOOP, "amb_industry");
-  state.loops = 2;
+  state.loops = 1;
 }
 
 
@@ -120,7 +123,6 @@ export function tickAudio(ctx: GameContext, nowMs: number): void {
   const zone = zoneAt(position[0], position[2]);
   const air = airAt(zone?.id ?? null);
   ctx.game.audio.setLoop(WIND_LOOP, { gain: air.wind * gust(nowMs), rate: air.rate });
-  ctx.game.audio.setLoop(INDUSTRY_LOOP, { gain: air.industry });
 
   if (state.lastPosition !== null) {
     const travelled = Math.hypot(position[0] - state.lastPosition[0], position[2] - state.lastPosition[2]);

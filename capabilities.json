@@ -1,6 +1,6 @@
 {
   "generatedBy": "bun run capabilities:sync",
-  "engineVersion": "0.34.0",
+  "engineVersion": "0.35.0",
   "gameFacingRule": "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it as not-applicable (its domain does not exist here) or debt (this game has the domain and has not adopted the shared system, so an open issue tracks it).",
   "capabilities": [
     {
@@ -279,6 +279,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "measure a vehicle's jumps and air control — apex height and time, double jump, air rotation rates"
+    },
+    {
+      "id": "ambience-zones",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/audio/ambience",
+      "domain": "audio",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a scene declares looping sound beds keyed to world volumes; walking between them crossfades bed levels on the existing buses instead of cutting."
     },
     {
       "id": "anim-graph",
@@ -590,6 +601,28 @@
       "intent": "timed bid auctions with escrowed bids, buyout, anti-snipe close extension, and collection-box settlement"
     },
     {
+      "id": "audio-ducking",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/audio/audioEngine",
+      "domain": "audio",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a cue with a `duck` policy lowers the music or ambience bus for its duration and restores the player's own gain exactly, even when the slider moves mid-duck."
+    },
+    {
+      "id": "audio-occlusion",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/audio/occlusion",
+      "domain": "audio",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "an emitter behind blocking world geometry is attenuated and darkened by a budgeted line test, and falls back to distance-only once the tick's budget is spent."
+    },
+    {
       "id": "audio-probe",
       "packages": [
         "@jgengine/shell"
@@ -601,7 +634,7 @@
         "kind": "window",
         "global": "__jgengineAudio"
       },
-      "intent": "read the live master RMS/peak and bus gains from a running page for capture and diagnostics"
+      "intent": "read the live master RMS/peak, bus gains, ambience zone mix and occlusion cost from a running page for capture and diagnostics"
     },
     {
       "id": "audio-voice-budget",
@@ -1231,7 +1264,7 @@
       "domain": "render",
       "gameFacing": false,
       "probe": null,
-      "intent": "draw distant animated characters on the GPU instead of posing their skeletons"
+      "intent": "draw animated or static characters as batched instanced draws instead of posing each skeleton"
     },
     {
       "id": "character-paperdoll",
@@ -6357,6 +6390,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "cap live particles to a graphics tier and drop whole effects lowest-priority-first when over budget"
+    },
+    {
+      "id": "play-script",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/play/run",
+      "domain": "play",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "play a real game from a deterministic script — spawn, move, aim, fire, command, and assert world state with no browser and no wall clock"
     },
     {
       "id": "player-creator",
