@@ -206,16 +206,33 @@ export function relationLabel(opinion: number): string {
 
 /** The one relationship that shapes a being's day: its bonded partner, else its warmest. */
 export function partnerOf(state: HouseholdState, id: string): string | null {
+  return bondLine(state, id)?.id ?? null;
+}
+
+/**
+ * The being a member keeps closest, with the book's own word for the pair. A milestone ("Friends",
+ * "Bonded") comes from the book, so the panel cannot claim a bond the rules have not reached; below
+ * the first milestone the household uses its standing words.
+ */
+export function bondLine(state: HouseholdState, id: string): { id: string; name: string; word: string } | null {
   const book = householdBook(state);
-  const bonded = book.bondedWith(id);
-  if (bonded !== null) return bonded;
-  let best: string | null = null;
-  let bestOpinion = -Infinity;
-  for (const other of state.order) {
-    if (other === id) continue;
-    const opinion = book.opinion(id, other);
-    if (opinion > bestOpinion) { bestOpinion = opinion; best = other; }
+  let partner: string | null = book.bondedWith(id);
+  if (partner === null) {
+    let bestOpinion = -Infinity;
+    for (const other of state.order) {
+      if (other === id) continue;
+      const opinion = book.opinion(id, other);
+      if (opinion > bestOpinion) { bestOpinion = opinion; partner = other; }
+    }
   }
-  return best;
+  if (partner === null) return null;
+  const name = state.members[partner]?.name;
+  if (name === undefined) return null;
+  return { id: partner, name, word: bondWord(book, id, partner) };
+}
+
+/** The book's word for one pair: its milestone when reached, else the household's standing words. */
+export function bondWord(book: RelationshipBook, a: string, b: string): string {
+  return book.milestone(a, b)?.label ?? relationLabel(book.opinion(a, b));
 }
 
