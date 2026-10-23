@@ -10,6 +10,7 @@ import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
 import { Operations } from "./components/Operations";
+import { FieldGearPanel } from "./components/FieldGearPanel";
 
 export function GameUI() {
   const layout = useHudLayout({ storageKey: "scrap-signal" });
@@ -18,6 +19,10 @@ export function GameUI() {
       <Operations />
       <HudPanel id="missions" anchor="left" compact="keep" interactive={false}>
         <MissionTracker />
+      </HudPanel>
+
+      <HudPanel id="field-loot" anchor="left" order={1} compact="keep" interactive={true}>
+        <FieldGearPanel />
       </HudPanel>
 
       <HudPanel id="settings" anchor="top-right" order={-1} compact="keep" interactive={false}>

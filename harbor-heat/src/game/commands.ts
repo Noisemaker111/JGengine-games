@@ -6,6 +6,7 @@ import { CRED_GATES, credLevel } from "./progression/cred";
 import { GARAGE_POS } from "./world/districts";
 import { sessionStore, startedThisBoot, syncSession } from "./session";
 import { registerCourier } from "./jobs/courier";
+import { buyNightMarket } from "./items/nightMarket";
 
 export const shopStore = defineStore<string | undefined>("harbor.shop", undefined);
 export const garageStore = defineStore<boolean | undefined>("harbor.garage", undefined);
@@ -145,6 +146,12 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define("shop.close", {
     apply(state) {
       shopStore.clear(state);
+    },
+  });
+
+  ctx.game.commands.define<{ itemId?: string }>("market.buy", {
+    apply(state, input) {
+      if (input.itemId !== undefined) buyNightMarket(state, input.itemId);
     },
   });
 

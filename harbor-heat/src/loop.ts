@@ -19,6 +19,7 @@ import { drivingStore, raceStore, handrollOf } from "./game/handroll";
 import { vehicleById } from "./game/entities/vehicles/catalog";
 import { advanceBustedHold, BUSTED_HOLD_SEC, BUSTED_RADIUS, bustedFine, clinicFee } from "./game/failStates";
 import { itemUseHandlers, resetWeaponState } from "./game/items/use-handlers";
+import { ensureNightMarket } from "./game/items/nightMarket";
 import { onBountyKilled, tickBounties } from "./game/jobs/bounties";
 import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
@@ -433,6 +434,7 @@ function onInit(ctx: GameContext): void {
   });
 
   registerCommands(ctx);
+  ensureNightMarket(ctx);
   const buildings = setupWorld(ctx);
   setupTraffic(ctx);
   setupResidents(ctx, buildings);
@@ -470,6 +472,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickRaceEconomy(ctx);
   tickBusted(ctx, dt);
   tickPedPanic(ctx, dt);
+  ensureNightMarket(ctx);
   tickWasted(ctx);
   tickCourier(ctx, dt);
 }

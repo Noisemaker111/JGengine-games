@@ -17,6 +17,7 @@ import { StatusPanel } from "./components/StatusPanel";
 import { TitleScreen, useGameStarted } from "./components/TitleScreen";
 import { WantedStars } from "./components/WantedStars";
 import { CourierHud, SessionUI } from "./components/SessionUI";
+import { CargoPanel } from "./components/CargoPanel";
 
 function PromptHint() {
   const prompts = useGameStore((ctx) => buildPrompts(ctx));
@@ -69,6 +70,9 @@ export function GameUI() {
       </HudPanel>
       <HudPanel id="status" anchor="top-left" compact="keep" interactive={false}>
         <StatusPanel />
+      </HudPanel>
+      <HudPanel id="cargo" anchor="top-left" order={1} compact="keep" interactive={false}>
+        <CargoPanel />
       </HudPanel>
       <HudPanel id="mission" anchor="right" compact="hide" interactive={false}>
         <MissionTracker />
