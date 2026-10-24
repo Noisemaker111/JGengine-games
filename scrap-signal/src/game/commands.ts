@@ -22,6 +22,7 @@ import {
   discoveredStationsStore,
   echoStore,
   lastPickupStore,
+  menuRunStartedStore,
   openedChestsStore,
   skillsOpenStore,
   talentRanksStore,
@@ -458,7 +459,7 @@ export function registerCommands(ctx: GameContext): void {
       if (activeCharacter() !== null) return;
       const def = characterById(input.characterId ?? "");
       if (def === undefined) return;
-      runStartedFlag = true;
+      menuRunStartedStore.write(state, true);
       pickCharacter(def.id);
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
@@ -520,13 +521,6 @@ export function registerCommands(ctx: GameContext): void {
  * whole-world `ctx.game.save.load()` — they live outside the world snapshot, unlike the character id,
  * talent ranks and `skillPoints` stat the load already restored. Returns whether a saved build was found.
  */
-let runStartedFlag = false;
-
-/** True once the player picked a reclaimer or continued a kept run in this page. */
-export function runStarted(): boolean {
-  return runStartedFlag;
-}
-
 export function resumeBuild(ctx: GameContext): boolean {
   const characterId = characterIdStore.read(ctx);
   if (characterId === null) return false;
@@ -553,6 +547,8 @@ function applyPassiveEffects(ctx: GameContext, previousHealthMult = 1): void {
     movement: { walkSpeed: Math.round(player.walkSpeed * (1 + bonus("moveSpeed")) * 10) / 10 },
   });
 }
+
+
 
 
 

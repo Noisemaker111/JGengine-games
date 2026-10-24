@@ -8,9 +8,9 @@ import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, resetCharacterState, talentTree } from "./game/characters";
-import { characterIdStore } from "./game/stores";
+import { characterIdStore, menuBootedStore, menuRunStartedStore } from "./game/stores";
 import { perContext } from "@jgengine/core/runtime/perContext";
-import { registerCommands, resumeBuild, runStarted } from "./game/commands";
+import { registerCommands, resumeBuild } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
@@ -337,17 +337,16 @@ function stageReserveForCapture(ctx: GameContext): void {
   ctx.game.commands.run("reserve.capture", {});
 }
 
-let bootedToMenu = false;
-
 function onTick(ctx: GameContext, dt: number): void {
   // A reload restores the run and the phase store with it. The front end still comes first: one
   // frame after the restore, a run nobody has continued yet sits behind the menu.
-  if (!bootedToMenu) {
-    bootedToMenu = true;
+  // A headless run (a test) has no menu to open; the boot pass is a browser concern.
+  if (typeof document !== "undefined" && !menuBootedStore.read(ctx)) {
+    menuBootedStore.write(ctx, true);
     const openMenu = () => {
       // A restored run waits behind the roster: the menu is the way back in, and Continue is the
       // only thing that puts the reclaimer back in the field.
-      if (!runStarted() && activeCharacter() !== null) {
+      if (!menuRunStartedStore.read(ctx) && activeCharacter() !== null) {
         characterIdStore.write(ctx, null);
         resetCharacterState();
         setGamePhase(ctx, "menu");
@@ -377,6 +376,9 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+
+
+
 
 
 
