@@ -1,0 +1,1 @@
+{ "steps": [ { "assert": "String(typeof window.__jgengineRun)", "is": "object" }, { "assert": "JSON.stringify(window.__jgengineRun ? window.__jgengineRun.read() : null)", "is": "{\"session\":1,\"phase\":\"open\",\"kind\":\"wave\",\"carried\":0,\"closed\":0,\"offered\":null}" } ] }

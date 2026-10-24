@@ -4,6 +4,7 @@ import { AMMO_LABELS, AMMO_STAT_IDS, type AmmoPool } from "./ammo";
 import { buyGear, spend } from "./cash";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
+import { stageRelay } from "./relay";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
 import { noteEquipped } from "./feel";
@@ -436,6 +437,13 @@ export function registerCommands(ctx: GameContext): void {
       apply(state: GameContext, input) {
         if (input.mode === "fight") stageFrontFight(state);
         else stageFrontBoss(state);
+      },
+    });
+    // Dev-only: stand at the copper ring and take the contract, so a flow can prove the session
+    // opens in the real game without a two-minute walk from the crash site.
+    ctx.game.commands.define("relay.capture", {
+      apply(state: GameContext) {
+        stageRelay(state);
       },
     });
   }

@@ -171,6 +171,9 @@ export const game = defineGame({
         { name: "character.pick", input: { characterId: "gunk" } },
         { name: "front.capture", input: { mode: "fight" } },
       ],
+      // The relay contract's first ambush, so a flow can prove the session opens in the real game
+      // without a two-minute walk from the crash site.
+      "dead-air": [{ name: "character.pick", input: { characterId: "gunk" } }, "relay.capture", "relay.capture"],
     },
     probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx) }),
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
