@@ -15,9 +15,7 @@ test("a real parked run reloads its accepted build and clock once; New Run clear
   for (let frame = 0; frame < 240 && first.snapshot().collectedIds.size === 0; frame++) first.tick(1 / 30, { throttle: 1, brake: 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
   expect(first.snapshot().installed.engine?.id).toBe("salvage_v6");
   first.togglePause();
-  // A pause while moving does not write a parked physics state, but the autosave the pickup already
-  // wrote is still there: that is the state a reload resumes.
-  expect(readParkedRun(saved)).not.toBeNull();
+  expect(readParkedRun(saved)).toBeNull(); // A moving pause cannot claim a saved physics state.
   first.togglePause();
   for (let frame = 0; frame < 180 && first.snapshot().pose.speedKmh > 0.1; frame++) first.tick(1 / 30, { throttle: 0, brake: first.snapshot().pose.speedKmh > 1 ? 1 : 0, steer: 0 }, { jumpPressed: false, plowBracing: false });
   first.togglePause();

@@ -153,21 +153,12 @@ export function createRunSession(
   let outcome: RunOutcome | null = null;
   let career: CareerSave = readCareer(storage);
   let careerSaved = true;
-  let runSaved = true;
   // The run loop owns what a run carries, what a settled run banks or loses, and the shift the next
-  // run draws. The money stays in the career bank; this only decides how much of it arrives. Every
-  // carry writes the loop's own state and a checkpoint of the live run, so a reload or a crash
-  // mid-run comes back to the haul and the route instead of the pit.
-  const loop = createRunLoop<ShiftEffect>({
-    seed: RUN_SEED,
-    changes: SHIFT_TABLE,
-    persist: {
-      load: () => readRunState(storage),
-      save: (state) => {
-        runSaved = saveRunState(state, storage);
-      },
-    },
-  });
+  // run draws. The money stays in the career bank; this only decides how much of it arrives.
+  const loop = createRunLoop<ShiftEffect>({ seed: RUN_SEED, changes: SHIFT_TABLE });
+  const savedRun = readRunState(storage);
+  if (savedRun !== null) loop.restore(savedRun);
+  let runSaved = true;
   let shift: { id: string; label: string; hint: string } | null = shiftInfo(loop.offer().changeId);
   let compactor: CompactorPlan = compactorPlanForShift(loop.offer().changeId);
 
@@ -263,9 +254,6 @@ export function createRunSession(
     rebuildTuning();
     collected.add(found.id);
     loop.carry(SALVAGE_CREDITS);
-    // The loop has just written what the kart carries; write where it is too, so the reload resumes
-    // the route instead of handing the haul back at the start line.
-    checkpointLiveRun();
     notify(part.radioLine, "success");
     pushRadio(part.radioLine);
     if (ejected !== null) pushRadio(`${ejected.label.toUpperCase()} FLEW OFF THE BACK`);
@@ -320,28 +308,12 @@ export function createRunSession(
 
   reset(parkedRun !== null);
 
-  /** The live run as the pit would restore it: parts, route, clocks, haul-side details. */
-  function checkpointNow(): ParkedRun {
-    return { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
-  }
-
-  /**
-   * Write the checkpoint the loop's own persistence hook fires on each carry, so a reload finds the
-   * route too. A pause or a banner is not written: only what the run has already earned.
-   */
-  function checkpointLiveRun(): void {
-    if (phaseNow() !== "running" || runTime <= 0) return;
-    const checkpoint = checkpointNow();
-    if (saveParkedRun(checkpoint, storage)) parkedRun = checkpoint;
-  }
-
   function parkRun(): void {
     if (phaseNow() !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
-    const checkpoint: ParkedRun = checkpointNow();
+    const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
     if (saveParkedRun(checkpoint, storage)) {
       parkedRun = checkpoint;
-      // The salvage in the kart's hold is part of the parked run; the loop has already written it, and
-      // this keeps an explicit park in step with an autosaved one.
+      // The salvage in the karts's hold is part of the parked run, so it survives the reload too.
       runSaved = saveRunState(loop.snapshot(), storage);
       notify("PARKED RUN SAVED — CONTINUE FROM THE PIT", "success");
     }
