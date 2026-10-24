@@ -16,10 +16,13 @@ repack it. Close the cache to return to movement.
 
 The verified native slice includes Garage departure, copper-spool search,
 grid repacking, return extraction, a full reload retaining the banked spool,
-and a reload mid-dive that resumes from its checkpoint. The record is one shared
-save document (`deepward.marrow.record`) with a section for the persistent Marrow
-record and a section for the dive in progress; v1–v4 bytes at
-`deepward.marrow.v1` still load and are rewritten as a record.
+and a reload mid-dive that holds the title with Continue reading the dive's depth
+and carry. The front end is the shared game menu over the station: Continue, New
+dive, Dives & hauls (three record slots), Settings and Credits, with the same
+system scaled down for pause. Each record is one shared save document
+(`deepward.marrow.record:<slot>`) with a section for the persistent Marrow record,
+one for the dive in progress and one for its captured frame and playtime; v1-v4
+bytes at `deepward.marrow.v1` still load and are rewritten as Record I.
 
 At Marrow's stash, spend banked salvage on two permanent refits. A sealed tank
 costs one copper spool and one set of suit seals and starts each departure with 145
@@ -126,8 +129,8 @@ not the full design, is what the numbers describe.
 - **Failure states.** Air at zero suffocates at 12 health a second; steam costs 18 a second; the Fitter
   print has 80 health, sees through a 12 m cone, hears a search at 15 m and winds up before it swings.
   Death banks nothing carried and requires acknowledging the reprint
-  before departing again. A reload mid-dive resumes from its last checkpoint (tank, magazine, position
-  and HUD lines) and keeps the banked stash.
+  before departing again. A reload holds the title; Continue resumes the dive from its last checkpoint
+  (tank, magazine, position and HUD lines) and keeps the banked stash.
 - **Minute 5 → hour 5.** At 5:00 you are on the first departure with the sidearm and two or three items,
   still deciding whether the rifle is worth three cache squares. Hour five is roughly two or three Lives
   in, both refits installed, and the light-or-armed departure actually costing something.

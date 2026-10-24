@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/react";
 import { useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
-import { CreditsPanel } from "@jgengine/react/creditsPanel";
 import { useOptionalGamePhase } from "@jgengine/react/hooks";
-import { PauseMenu } from "@jgengine/react/modals";
 import { useSettings } from "@jgengine/react/settings";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
@@ -18,10 +16,9 @@ import { loadOf, CACHE_WEIGHT } from "../haul";
 import { breakdownValue, compareToPrepared, itemValue, kindOf, statLines, type Item } from "../items";
 import { REFITS, refitMissing, type RefitId } from "../progression";
 import { counterRows, marrowStanding, OPERATOR, SCRIP, scripJournal } from "../counter";
-import { DEEPWARD_CREDITS } from "../credits";
 import { ItemMark } from "./ItemMark";
-import { TitleGate } from "./menu/TitleGate";
-import { RECORD_ENTRY, SAVE_KEY } from "../save";
+import { DeepwardMenu } from "./menu/DeepwardMenu";
+import { RECORD_KEY, SAVE_KEY } from "../save";
 import { placement } from "./hudPanels";
 
 function grab(): void {
@@ -56,11 +53,10 @@ export function GameUI() {
   const at = useGameStore(state => state.scene.entity.get(state.player.userId)?.position ?? [0, 0, 14] as const);
   const target = useGameStore(nearby);
   const [selected, setSelected] = useState<string | null>(null);
-  const [credits, setCredits] = useState(false);
   const settings = useSettings();
   const command = (name: string, input: unknown = {}) => ctx.game.commands.run(`deepward.${name}`, input);
   const shiftDialogRef = useDialogBehavior({
-    open: view.panel !== null || view.paused || view.mode === "reprinting" || view.mode === "saving" || view.mode === "blocked",
+    open: view.panel !== null || view.mode === "reprinting" || view.mode === "saving" || view.mode === "blocked",
     focusKey: view.panel ?? view.mode,
     onClose: view.mode === "home" || view.mode === "dive" ? () => command("close") : undefined,
   });
@@ -77,20 +73,23 @@ export function GameUI() {
     const key = (event: KeyboardEvent) => {
       if (event.code !== "Escape" || event.repeat || settings.isOpen) return;
       const current = viewStore.read(ctx);
-      if (credits || current.panel !== null || current.paused || (current.mode !== "home" && current.mode !== "dive")) return;
+      if (current.panel !== null || current.paused || (current.mode !== "home" && current.mode !== "dive")) return;
       event.preventDefault(); event.stopImmediatePropagation();
       ctx.game.commands.run("deepward.pause", {});
     };
-    const storage = (event: StorageEvent) => { if (event.key === SAVE_KEY || event.key === RECORD_ENTRY || event.key === null) storageChanged(ctx); };
+    const storage = (event: StorageEvent) => {
+      if (event.key === null || event.key === SAVE_KEY || event.key.startsWith(RECORD_KEY)) storageChanged(ctx);
+    };
     window.addEventListener("keydown", key, true);
     window.addEventListener("storage", storage);
     return () => {
       window.removeEventListener("keydown", key, true);
       window.removeEventListener("storage", storage);
     };
-  }, [ctx, credits, settings.isOpen]);
-  // The title owns the frame alone: no live chrome is painted behind a front-end.
-  if (phase === "menu") return <TitleGate />;
+  }, [ctx, settings.isOpen]);
+  // The title and the pause are one menu system: the live station stays behind both. A save
+  // boundary or a pending reprint keeps its own sheet, so the menu steps aside for it.
+  if (phase === "menu" || (phase === "paused" && view.panel === null && (view.mode === "home" || view.mode === "dive"))) return <DeepwardMenu />;
   const dive = view.dive;
   const low = dive !== null && dive.oxygen <= 25;
   const weapon = weaponReadout(dive);
@@ -119,14 +118,6 @@ export function GameUI() {
       <HudPanel {...placement("shift")} compact="keep" locked>
         <div className="dw-shift-buttons">
           <HudButton disabled={view.mode !== "home" && view.mode !== "dive"} onClick={() => command("pause")} className="dw-small">Pause / Esc</HudButton>
-          <HudButton className="dw-small" onClick={() => {
-            if (!view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive")) command("pause");
-            settings.open();
-          }}>Settings & controls</HudButton>
-          <HudButton className="dw-small" onClick={() => {
-            if (!view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive")) command("pause");
-            setCredits(true);
-          }}>Credits</HudButton>
         </div>
       </HudPanel>
       {dive !== null && <>
@@ -226,20 +217,6 @@ export function GameUI() {
       {dive.cache.some(i => kindOf(i) === "service-rifle") && <div className="dw-hand-wheel"><span>ONE HAND</span><HudButton aria-pressed={dive.hand === "sidearm"} onClick={() => command("equip", { hand: "sidearm" })}>Issue sidearm</HudButton><HudButton aria-pressed={dive.hand === "service-rifle"} onClick={() => command("equip", { hand: "service-rifle" })}>Found service rifle</HudButton></div>}
       <HudButton onClick={() => { command("cache"); grab(); }}>Close cache / Tab</HudButton>
     </HudSurface></div>}
-    {view.paused && view.panel === null && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" role="dialog" aria-modal="true" aria-label="Shift paused" tabIndex={-1} data-hud-window className="dw-sheet dw-pause"><span className="dw-eyebrow">Shift suspended / simulation paused</span><h2>Shift on hold.</h2><dl className="dw-control-list"><div><dt>Move / sprint</dt><dd>WASD or arrows / Shift</dd></div><div><dt>Look / fire</dt><dd>Click world / left mouse</dd></div><div><dt>Search / reload</dt><dd>E / R</dd></div><div><dt>Carried cache</dt><dd>Tab</dd></div></dl><p>Air and prints are paused. Reloading mid-dive resumes from the last checkpoint; dying still loses the haul.</p><PauseMenu
-      className="dw-pause-menu"
-      title={null}
-      resumeLabel="Resume / Esc"
-      width={300}
-      // The sheet is already a surface: the block sits flush inside it rather than nesting a second frame.
-      style={{ background: "transparent", border: "none", boxShadow: "none", padding: 0, margin: "0 auto", width: "min(320px, 100%)" }}
-      onResume={() => { command("pause"); grab(); }}
-      items={[
-        { id: "settings", label: "Settings & controls", onSelect: settings.open },
-        { id: "credits", label: "Credits", onSelect: () => setCredits(true) },
-        { id: "reload", label: dive === null ? "Reload saved Marrow" : "Reload / resume this Life", danger: true, onSelect: () => window.location.reload() },
-      ]}
-    /></HudSurface></div>}
     {view.mode === "reprinting" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet dw-pause" aria-label="Life ended" role="alertdialog" aria-modal="true" tabIndex={-1}>
       <span className="dw-eyebrow">Halloway / reprint docket · Life {view.home.life - 1} ended</span><h2>Bellwether kept the haul.</h2>
       <p>{view.home.last?.reason}</p><p>{view.home.last?.count === null ? "Carried haul lost." : `${view.home.last?.count ?? 0} carried items lost.`} {view.home.stash.length} banked items and {view.home.refits.length} installed refits remain safe in Marrow.</p>
@@ -254,6 +231,5 @@ export function GameUI() {
       {view.mode === "saving" && <HudButton onClick={() => command("retrySave")}>Retry saving this return</HudButton>}
       <HudButton onClick={() => window.location.reload()}>Reload saved Marrow</HudButton>
     </HudSurface></div>}
-    {credits && <CreditsPanel document={DEEPWARD_CREDITS} onBack={() => setCredits(false)} title="Deepward / credits" backLabel="Back to the shift" open />}
   </div>;
 }

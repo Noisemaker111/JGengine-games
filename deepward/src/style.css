@@ -123,16 +123,11 @@ html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .dw-hand-wheel span { font: 10px monospace; letter-spacing: 2px; margin-right: 8px; }
 
 /* Deepward's front-end: the Marrow platform behind it, the record read on Continue. */
-.dw-title { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
-.dw-title > * { pointer-events: auto; }
 .dw-wordmark { display: block; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase; color: #eceddc; }
 .dw-wordmark span { display: block; margin-top: 10px; font: 12px monospace; letter-spacing: 0.3em; color: #d5b879; }
-.dw-title-note { margin: 0; font: 11px monospace; line-height: 1.7; color: #bac7c1; max-width: 46ch; }
-.dw-pause-menu { margin-top: 6px; }
-/* A held shift hides its live chrome; only the pause sheet stays on screen. */
-.dw-ui.dw-held > :not(.dw-modal) { visibility: hidden; }
-/* The field theme's global button skin would flatten the SDK pause block; the resume keeps its accent. */
-.dw-pause-menu [data-pause-resume] { background: var(--jg-accent); border-color: var(--jg-accent); color: var(--jg-surface-deep); text-shadow: none; }
+.dw-menu { position: absolute; inset: 0; z-index: 40; }
+.dw-menu-busy { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(9,14,16,0.66); backdrop-filter: blur(3px); }
+.dw-menu-busy span { font: 11px monospace; letter-spacing: 2.4px; text-transform: uppercase; color: #eaddba; background: #142227e6; border: 1px solid #d5b879; padding: 12px 18px; }
 .dw-pause-menu [data-pause-resume]:hover, .dw-pause-menu [data-pause-resume]:focus-visible { background: var(--jg-accent-bright, var(--jg-accent)); filter: brightness(1.08); }
 
 /* Short landscape: the departure docket keeps its numbers and drops its prose, so the top-left lane never reaches the radio. */
