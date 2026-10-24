@@ -97,7 +97,7 @@ function coastalHeight(x: number, z: number): number {
 export const world: EnvironmentWorldFeature = environment({
   terrain: terrain({
     bounds: { w: WORLD_W, d: WORLD_D },
-    segments: 300,
+    segments: 150,
     seed: "harbor-heat-06",
     heightField: coastalHeight,
     waterLevel: -0.6,
