@@ -12,6 +12,15 @@
  * when it *defines* one of the systems below and is long enough to be a system rather than adoption
  * glue - importing and calling a shared system is the point, not an offence.
  *
+ * Two seams are deliberately narrow, because a gate that reddens a game's own tuning teaches lanes
+ * to rename:
+ *
+ *   - the damage seam is a model type, a model implementation or a table constant no shared model
+ *     owns; an authored `DAMAGE_TABLE: DamageTableDef` handed to `createDamageRuntime`, and a
+ *     `resolveDamage` / `applyDamage` wrapper over shared primitives, are both content and pass;
+ *   - a module that runs `@jgengine/core/run/runLoop` composes the shared loop, so a local
+ *     `RunPhase` there passes: it is adoption debt tracked by an issue, not a second engine.
+ *
  * Usage: bun run check:framework [--base origin/beta] [--allow "<reason>"]
  */
 import { spawnSync } from "node:child_process";
@@ -61,7 +70,11 @@ export const ENGINE_SEAMS: readonly EngineSeam[] = [
   {
     name: "damage or status table",
     owner: "damage and status",
-    defines: [/\bfunction\s+\w*(?:applyStatus|applyDamage|resolveDamage|tickStatus)\b/, /\bconst\s+\w*(?:Damage|Status|DAMAGE|STATUS)\w*(?:Table|Matrix|Chart)\b/],
+    defines: [
+      /\b(?:type|interface)\s+\w*(?:DamageTable|StatusTable|DamageModel|StatusModel)\w*\b/,
+      /\b(?:class|function)\s+\w*(?:DamageTable|StatusTable|DamageModel|StatusModel)\b/,
+      /\bfunction\s+\w*(?:resolveTableDamage|assertDamageTable|typeMultiplier|armorMitigation|createStatusRuntime|applyStatusEffect)\b/,
+    ],
   },
   {
     name: "spawn director",
@@ -83,6 +96,22 @@ function definesStateMachine(code: string): boolean {
   const moves = code.match(STATE_TRANSITION)?.length ?? 0;
   return moves >= 2 && STATE_UNION.test(code);
 }
+
+/**
+ * A module that already runs the engine's run loop composes its state: a local `RunPhase` there is a
+ * view over `loop.read()`, not a second engine. It is still adoption debt when it re-states the
+ * readout, and that is tracked as an issue rather than a gate red - a gate that pushed a lane to
+ * rename a phase field would be the same disease as judging a filename.
+ */
+const SHARED_RUN_LOOP = /from\s+"@jgengine\/core\/run\/(?:runLoop|sessionLoop)"/;
+
+/**
+ * A game authors its own damage rows and hands them to the shared model - `const DAMAGE_TABLE:
+ * DamageTableDef` fed to `createDamageRuntime`. That table is content, so a table constant is only
+ * engine-shaped in a module that does not adopt the shared damage or status model.
+ */
+const ADOPTS_DAMAGE_MODEL = /from\s+"@jgengine\/core\/combat\/(?:damageTable|damageRuntime|damageResolution|statusRuntime|statusApplication|resistance)"/;
+const DAMAGE_TABLE_CONST = /\b(?:const|let|var)\s+\w*(?:Damage|DAMAGE|Status|STATUS)_?(?:Table|TABLE|Matrix|MATRIX|Chart|CHART)\b/;
 
 /** A file the runner can execute. Anything else - a JSON flow, a note, an asset - is never an engine. */
 const CODE_FILE = /\.[cm]?[jt]sx?$/;
@@ -114,9 +143,17 @@ export function engineSeams(path: string, source: string): EngineSeam[] {
   if (!CODE_FILE.test(path) || TEST_FILE.test(path)) return [];
   if (codeLines(source) < MIN_SYSTEM_LINES) return [];
   const code = stripComments(source);
-  const seams = ENGINE_SEAMS.filter((seam) => seam.defines.some((pattern) => pattern.test(code)));
-  if (definesStateMachine(code) && !seams.some((seam) => seam.name === STATE_MACHINE_SEAM.name)) {
-    seams.unshift(STATE_MACHINE_SEAM);
+  const seams: EngineSeam[] = [];
+  if (!SHARED_RUN_LOOP.test(code) && (definesStateMachine(code) || STATE_MACHINE_SEAM.defines.some((pattern) => pattern.test(code)))) {
+    seams.push(STATE_MACHINE_SEAM);
+  }
+  for (const seam of ENGINE_SEAMS) {
+    if (seam === STATE_MACHINE_SEAM) continue;
+    if (seam.defines.some((pattern) => pattern.test(code))) seams.push(seam);
+  }
+  const damage = ENGINE_SEAMS.find((seam) => seam.name === "damage or status table");
+  if (damage !== undefined && !seams.includes(damage) && DAMAGE_TABLE_CONST.test(code) && !ADOPTS_DAMAGE_MODEL.test(code)) {
+    seams.push(damage);
   }
   return seams;
 }

@@ -111,7 +111,7 @@ export function reset(): void {
       ["spawn director", "harbor-heat/src/game/waves.ts", "export class SpawnDirector {\n  private spawnBudget = 10;\n  next(): number { return this.spawnBudget--; }\n}\n"],
       ["progression curve", "harbor-heat/src/game/xp.ts", "export function xpForLevel(level: number): number {\n  return Math.round(100 * level ** 1.5);\n}\n"],
       ["resource pool", "scrap-signal/src/game/pool.ts", "export class BulletPool {\n  private freeList: Bullet[] = [];\n  take(): Bullet { return this.freeList.pop()!; }\n}\n"],
-      ["damage or status table", "deepward/src/game/hit.ts", "export function applyDamage(target: Target, amount: number): void {\n  target.health -= amount;\n}\n"],
+      ["damage or status table", "deepward/src/game/hit.ts", "export const ENEMY_DAMAGE_TABLE: DamageTableDef = { rows: [] };\n"],
     ];
     for (const [seam, path, source] of cases) {
       expect({ path, seams: engineSeams(path, pad(source)).map((found) => found.name) }).toEqual({ path, seams: [seam] });
@@ -144,6 +144,132 @@ export function closeMission(session: ReturnType<typeof useRunSession>): void {
     const short = `export function applyDamage(target: Target, amount: number): void {\n  target.health -= amount;\n}\n`;
     expect(codeLines(short)).toBeLessThan(MIN_SYSTEM_LINES);
     expect(engineSeams("deepward/src/game/hit.ts", short)).toEqual([]);
+  });
+});
+
+/**
+ * The damage seam is the table, not a game's tuning wrapper. Ember Command's `resolveDamage`
+ * (`max(1, base + weapon - armor)`) and Beacon Bastion's splash `applyDamage` are game rules over
+ * shared primitives; a gate that reddened them taught lanes to rename, so only a table definition,
+ * a damage/status model type or the shared resolution functions count now.
+ */
+describe("damage: the table is the system, the tuning wrapper is not", () => {
+  const EMBER = `export function resolveDamage(base: number, attacker: Faction, defender: Faction): number {
+  return Math.max(1, base + weaponBonus(attacker) - armorReduction(defender));
+}
+`;
+  const BEACON = `function applyDamage(ctx: GameContext, stats: TowerCombatStats, towerId: string, targetId: string): void {
+  ctx.scene.entity.effect({ from: towerId, to: targetId, effect: "damage", via: { amount: stats.damage } });
+  const target = ctx.scene.entity.get(targetId);
+  if (target === null) return;
+  for (const id of ctx.scene.entity.inRadius(target.position, stats.splashRadius)) {
+    if (!session.creeps.has(id)) continue;
+    ctx.scene.entity.effect({ from: towerId, to: id, effect: "damage", via: { amount: stats.damage * 0.5 } });
+  }
+}
+`;
+
+  test("a game's damage tuning formula passes: two of eight games had one", () => {
+    expect(engineSeams("ember-command/src/game/upgrades.ts", pad(EMBER))).toEqual([]);
+    expect(engineSeams("beacon-bastion/src/game/combat/towerAI.ts", pad(BEACON))).toEqual([]);
+    expect(engineSeams("scrap-signal/src/game/status.ts", pad(`export function tickStatus(target: Target, dt: number): void {\n  target.statusMs -= dt;\n}\n`))).toEqual([]);
+  });
+
+  test("an authored table typed by the shared model passes: three games do exactly this", () => {
+    const HARBOR = `import type { DamageTableDef } from "@jgengine/core/combat/damageTable";
+import { createDamageRuntime } from "@jgengine/core/combat/damageRuntime";
+
+export const DAMAGE_TABLE: DamageTableDef = {
+  types: [{ id: "ballistic", vs: { flesh: 1, chassis: 1 } }],
+  defaultMultiplier: 1,
+};
+
+export const damage = createDamageRuntime({ table: DAMAGE_TABLE });
+`;
+    expect(engineSeams("harbor-heat/src/game/combat/hitModel.ts", pad(HARBOR))).toEqual([]);
+  });
+
+  test("a real damage or status table still fails, naming the seam and #2312", () => {
+    for (const source of [
+      `export const ENEMY_DAMAGE_TABLE = { rifle: 12, shotgun: 30 };\n`,
+      `export interface DamageTableDef {\n  rows: readonly DamageTableRow[];\n}\n`,
+      `export function resolveTableDamage(table: DamageTableDef, input: Hit): number {\n  return input.amount;\n}\n`,
+      `const STATUS_TABLE = { burn: { seconds: 3 } };\n`,
+    ]) {
+      const seams = engineSeams("deepward/src/game/combat.ts", pad(source));
+      expect(seams.map((seam) => seam.name)).toEqual(["damage or status table"]);
+      expect(seamAdvice(seams[0]!)).toContain("#2312");
+      expect(seamAdvice(seams[0]!)).toContain("damage and status");
+    }
+  });
+});
+
+/**
+ * The two real state machines, recorded rather than implied. Drift Foundry's `RunPhase` duplicates
+ * `loop.read()` inside a module that runs the shared loop: that is adoption debt (#2352), not a
+ * second engine, so the gate passes it. Scrap Signal's reserve machine has no shared owner yet, so
+ * it fails and points at #2351.
+ */
+describe("state machine: composition passes, a fresh machine fails", () => {
+  const DRIFT = `import { createRunLoop } from "@jgengine/core/run/runLoop";
+
+export type RunPhase = "start" | "running" | "won" | "crushed";
+
+let phase: RunPhase = "start";
+
+export function begin(): void {
+  if (phase !== "start") return;
+  phase = "running";
+}
+
+export function bank(): void {
+  if (phase !== "running") return;
+  phase = "won";
+}
+
+export function crush(): void {
+  phase = "crushed";
+}
+
+export function read(): RunPhase {
+  return phase;
+}
+`;
+
+  const SCRAP = `export type ReservePhase = "up" | "downed" | "dead";
+
+const reserveOf = perContext(() => ({ phase: "up" as ReservePhase, downedUntilMs: 0 }));
+
+export function reserveSave(ctx: GameContext): ReserveState {
+  return { ...reserveOf(ctx) };
+}
+
+export function restoreReserve(ctx: GameContext, state: ReserveState): void {
+  const reserve = reserveOf(ctx);
+  reserve.phase = state.phase === "downed" || state.phase === "dead" ? state.phase : "up";
+  reserve.downedUntilMs = Number.isFinite(state.downedUntilMs) ? state.downedUntilMs : 0;
+}
+
+export function enterDowned(ctx: GameContext, nowMs: number): void {
+  const reserve = reserveOf(ctx);
+  reserve.phase = "downed";
+  reserve.downedUntilMs = nowMs + RESERVE_WINDOW_MS;
+}
+
+export function markRespawned(ctx: GameContext): void {
+  reserveOf(ctx).phase = "up";
+}
+`;
+
+  test("RunPhase over the shared run loop passes; the duplicate is adoption debt (#2352)", () => {
+    expect(engineSeams("drift-foundry/src/game/run/session.ts", pad(DRIFT))).toEqual([]);
+  });
+
+  test("a reserve phase machine with no shared owner fails and points at #2351", () => {
+    const seams = engineSeams("scrap-signal/src/game/handroll/reserve.ts", pad(SCRAP));
+    expect(seams.map((seam) => seam.name)).toEqual(["state machine"]);
+    expect(seamAdvice(seams[0]!)).toContain("#2312");
+    expect(seamAdvice(seams[0]!)).toContain("run and session loop");
   });
 });
 
