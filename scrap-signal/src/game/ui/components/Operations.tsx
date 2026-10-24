@@ -60,6 +60,8 @@ export function Operations() {
     try {
       if (ctx.game.save === undefined) { setSaveMessage("Save unavailable in this host"); return; }
       await ctx.game.save.checkpoint();
+      // The world snapshot alone cannot restore the reclaimer; the run document keeps the character.
+      commands.run("run.save", {});
       setSaveMessage(ctx.game.save.status() === "error" ? "Save failed · your current session is still running" : "Checkpoint saved · resume after reload");
     } catch { setSaveMessage("Save failed · your current session is still running"); }
   }
@@ -99,3 +101,4 @@ export function Operations() {
     </div>}
   </>;
 }
+

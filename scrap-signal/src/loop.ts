@@ -7,7 +7,8 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
-import { activeCharacter, talentTree } from "./game/characters";
+import { activeCharacter, resetCharacterState, talentTree } from "./game/characters";
+import { characterIdStore, menuBootedStore, menuRunStartedStore } from "./game/stores";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
@@ -337,6 +338,24 @@ function stageReserveForCapture(ctx: GameContext): void {
 }
 
 function onTick(ctx: GameContext, dt: number): void {
+  // A reload restores the run and the phase store with it. The front end still comes first: one
+  // frame after the restore, a run nobody has continued yet sits behind the menu.
+  // A headless run (a test) has no menu to open; the boot pass is a browser concern.
+  if (typeof document !== "undefined" && !menuBootedStore.read(ctx)) {
+    menuBootedStore.write(ctx, true);
+    const openMenu = () => {
+      // A restored run waits behind the roster: the menu is the way back in, and Continue is the
+      // only thing that puts the reclaimer back in the field.
+      if (!menuRunStartedStore.read(ctx) && activeCharacter() !== null) {
+        characterIdStore.write(ctx, null);
+        resetCharacterState();
+        setGamePhase(ctx, "menu");
+        ctx.time.pause();
+      }
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(openMenu));
+    else openMenu();
+  }
   stageReserveForCapture(ctx);
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
@@ -357,4 +376,11 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+
+
+
+
+
+
+
 

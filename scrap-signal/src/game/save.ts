@@ -20,6 +20,7 @@ import {
 } from "./handroll";
 import { session } from "./session";
 import { characterIdStore, talentRanksStore } from "./stores";
+import { scrapProfileSystem } from "./scrapProfile";
 
 /**
  * What the live game holds outside the world snapshot: the chosen character and its talent build,
@@ -202,7 +203,7 @@ export function createScrapSave(ctx: GameContext, options: { backend?: SaveBacke
     slot: options.slot ?? ctx.game.save?.slot() ?? "default",
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [characterSystem(ctx), runSystem(ctx), combatSystem(ctx), ledgerSystem(ctx), gunsSystem()],
+    systems: [characterSystem(ctx), runSystem(ctx), combatSystem(ctx), ledgerSystem(ctx), gunsSystem(), scrapProfileSystem()],
     autosave: { debounceMs: 500, maxWaitMs: 2000 },
     devtoolsName: "scrap.save",
   });
@@ -263,4 +264,5 @@ export function followWorldSave(ctx: GameContext): () => void {
 export function armWorldSave(ctx: GameContext): void {
   worldMirror(ctx).armed = true;
 }
+
 

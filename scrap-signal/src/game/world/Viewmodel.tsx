@@ -1,3 +1,5 @@
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { bindScrapCapture } from "../scrapProfile";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Group, Vector3 } from "three";
 import { useRef, useState } from "react";
@@ -343,6 +345,7 @@ function FerralonAir() {
 export function FerralonWorldOverlay() {
   return (
     <>
+      <SceneCaptureBinding bind={bindScrapCapture} />
       <FerralonAir />
       <SalvageRelay />
       <FerralonViewmodel />
@@ -413,3 +416,4 @@ export function FerralonViewmodel() {
     </group>
   );
 }
+
