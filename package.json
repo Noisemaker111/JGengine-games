@@ -47,6 +47,7 @@
     "check:framework": "bun scripts/framework-check.ts",
     "check:seam-line": "bun scripts/seam-line-check.ts",
     "check:module-globals": "bun scripts/module-globals-check.ts",
+    "check:game-design": "bun scripts/check-game-design.ts",
     "check:capabilities": "bun scripts/check-capabilities.ts",
     "capabilities:sync": "bun scripts/capabilities-sync.ts",
     "capabilities:declare": "bun scripts/capabilities-declare.ts",

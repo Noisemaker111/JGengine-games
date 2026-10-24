@@ -48,6 +48,21 @@ bun run dev:harbor-heat     # or another playable game id
 `bun run provision <game-id>` pulls one game's packs. A pack counts as referenced when its source
 id appears in the game's `src/`. CI runs the same command, then `check-types` and `test`.
 
+## Design checklist and loop proofs
+
+Every game's README states the same six-section design checklist (core loop, progression, failure
+states, minute 5 → hour 5, references, gap to target) and ends it with one `Loop proof:` line naming
+the flow that proves the stated loop. `bun run check:game-design` (also run by CI) fails a game that
+is missing a section, names a flow whose `<game>/proofs/flows/<name>.json` is absent or does not
+parse, or ships a flow with no arrival assert. A name marked `TODO` is a promised flow nobody has
+written: it is reported, and `--strict` fails it.
+
+A flow runs headless from the engine checkout, with the game visible to it:
+
+```sh
+bun run drive harbor-heat --state chase --flow to-chase     # add --state when the flow needs a staged entry
+```
+
 Deepward uses original procedural industrial geometry and needs no downloaded
 asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).
 

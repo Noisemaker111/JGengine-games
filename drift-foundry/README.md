@@ -62,6 +62,8 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
   through a different yard, or a ghost of your best run would give the records board something to
   chase after the first escape.
 
+Loop proof: to-corridor
+
 Part stats live in `src/game/parts/catalog.ts`, zone palettes in `src/game/zones/catalog.ts`, and
 the run's scattered prop field and barricade tiling in `src/game/world/setup.ts`. The corridor's
 authored landmarks and shoulder rhythm live in `src/editor.scene.json` (authored by
