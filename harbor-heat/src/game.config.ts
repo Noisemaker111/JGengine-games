@@ -10,6 +10,7 @@ import { entityModels, objectModels } from "./game/world/models";
 import { GameUI } from "./game/ui/GameUI";
 import { harborTheme } from "./game/ui/theme";
 import { loop } from "./loop";
+import { residentBoardStore } from "./game/world/residents";
 import { physics, world } from "./world";
 import { drivingStore } from "./game/handroll";
 
@@ -97,7 +98,14 @@ export const game = defineGame({
     probe: (ctx) => {
       const vehicleId = drivingStore.read(ctx);
       const entity = ctx.scene.entity.get(vehicleId ?? ctx.player.userId);
-      return { x: entity?.position[0] ?? 0, y: entity?.position[1] ?? 0, z: entity?.position[2] ?? 0 };
+      const nearest = residentBoardStore.read(ctx)[0];
+      return {
+        x: entity?.position[0] ?? 0,
+        y: entity?.position[1] ?? 0,
+        z: entity?.position[2] ?? 0,
+        // The nearest resident's mood, so a drive can prove the cast is alive: -1 when nobody is near.
+        residentMood: nearest === undefined ? -1 : Math.round(nearest.mood),
+      };
     },
   },
   prompts,

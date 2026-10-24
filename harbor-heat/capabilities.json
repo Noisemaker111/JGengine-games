@@ -1,5 +1,6 @@
 {
   "adopts": [
+    "agents",
     "audio-probe",
     "damage-runtime",
     "damage-target-unknown",
@@ -41,10 +42,6 @@
     ]
   },
   "declines": {
-    "agents": {
-      "kind": "not-applicable",
-      "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."
-    },
     "cover-field": {
       "kind": "not-applicable",
       "reason": "Cover is not part of harbor-heat: fights happen on open streets, and nothing authors or holds cover."

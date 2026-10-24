@@ -61,6 +61,11 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
   "harbor.bestRace": { kind: "world-snapshot", reason: "A durable lap record the world snapshot already keeps." },
   "harbor.stashes": { kind: "world-snapshot", reason: "Which stashes are claimed is durable profile progress." },
   "harbor.bounty": { kind: "world-snapshot", reason: "The bounty board's progress is durable profile progress." },
+  "harbor.residentAgents": {
+    kind: "world-snapshot",
+    reason: "Each resident's needs, mood and held action are durable profile progress the world snapshot keeps.",
+  },
+  "harbor.residentBoard": { kind: "transient", reason: "The resident card is a HUD mirror rebuilt from the agents each tick." },
   "harbor.shop": { kind: "transient", reason: "Which shop panel is open is a menu, not run state." },
   "harbor.garage": { kind: "transient", reason: "Which garage panel is open is a menu, not run state." },
   "harbor.market": { kind: "transient", reason: "The night market's stock re-rolls from a daily seed each boot." },
