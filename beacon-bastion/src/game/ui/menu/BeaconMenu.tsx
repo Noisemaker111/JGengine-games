@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
 import { HudButton } from "@jgengine/react/hudButton";
 import { useGamePhase } from "@jgengine/react/hooks";
 import { LoadingScreen } from "@jgengine/react/loadingScreen";
@@ -335,7 +335,7 @@ export function BeaconMenu() {
         }
       }}
       footer={<span>Beacon Bastion - the keep remembers - {gold} gold</span>}
-      style={MENU_TOKENS}
+      style={MENU_TOKENS as CSSProperties}
     />
   );
 
@@ -368,7 +368,7 @@ export function BeaconMenu() {
         else if (id === "title") void whileLoading("Writing the keep", () => withdrawToTitle(ctx, beaconSave(ctx).slot()));
       }}
       footer={<span>{notice ?? `${gold} gold`}</span>}
-      style={MENU_TOKENS}
+      style={MENU_TOKENS as CSSProperties}
     />
   );
 
@@ -418,6 +418,7 @@ function SettingsPane({ onBack, onCaptureChange }: { onBack: () => void; onCaptu
     </div>
   );
 }
+
 
 
 
