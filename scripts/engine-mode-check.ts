@@ -32,7 +32,8 @@ const SHA = /^[0-9a-f]{7,40}$/;
 export const ACCEPTED_FORM = '"Engine pin: <7-40 hex characters of the pinned engine commit>"';
 
 export function pinLine(sha: string): string {
-  return `Engine pin: ${sha.slice(0, 12)}`;
+  // The full commit: CI fetches it by sha, and `git fetch --depth 1 origin <prefix>` fails.
+  return `Engine pin: ${sha}`;
 }
 
 /** The commit a PR body claims, and why the claim is unusable when it is. */
