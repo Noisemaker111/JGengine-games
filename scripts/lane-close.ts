@@ -19,8 +19,12 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { checkPrBody } from "./seam-line-check";
+
 const root = join(import.meta.dir, "..");
-const BASE = "beta";
+/** The branch a games PR merges into, and the ref a lane's own change is measured against. */
+export const TARGET = "beta";
+export const DIFF = "origin/beta";
 
 export const EXIT_CLOSED = 0;
 export const EXIT_FAILED = 1;
@@ -99,6 +103,18 @@ export function prBody(message: string, seam: string, verified: string): string 
   ].join("\n");
 }
 
+/**
+ * Why `--seam` cannot open this PR, or null when the body says it. A shell that mangled the
+ * line would otherwise open a PR whose own CI fails on it, so the body is checked here first.
+ */
+export function seamProblem(seam: string | undefined): string | null {
+  if (seam === undefined || seam.trim().length === 0) {
+    return 'opening a PR needs its seam line: --seam "none - <reason>" or --seam "packages/<pkg>/src/<file> (adopts #<n>)"';
+  }
+  const verdict = checkPrBody(prBody("what changed", seam.trim(), "verify:fast passed"));
+  return verdict.ok ? null : `${verdict.message}. The --seam value reached this command as: ${JSON.stringify(seam)}`;
+}
+
 function git(args: string[], inherit = false): { status: number; stdout: string; stderr: string } {
   const result = spawnSync("git", args, {
     cwd: root,
@@ -152,13 +168,13 @@ function close(args: Args): number {
   }
 
   const before = git(["status", "--porcelain", "--untracked-files=all"]).stdout;
-  const changed = lines(git(["diff", "--name-only", `${BASE}...HEAD`]).stdout);
+  const changed = lines(git(["diff", "--name-only", `${DIFF}...HEAD`]).stdout);
   const pr = openPr(branch);
 
   if (args.dryRun) {
-    console.log(`lane:close: dry run — ${changed.length} committed file(s) against ${BASE}, ${lines(before).length} uncommitted`);
+    console.log(`lane:close: dry run — ${changed.length} committed file(s) against ${DIFF}, ${lines(before).length} uncommitted`);
     for (const line of lines(before)) console.log(`  uncommitted  ${line}`);
-    console.log(`lane:close: would commit ${lines(before).length} path(s), push ${branch}, ${pr === null ? "open the PR into " + BASE : `update PR #${pr.number}`} and arm auto-merge`);
+    console.log(`lane:close: would commit ${lines(before).length} path(s), push ${branch}, ${pr === null ? "open the PR into " + TARGET : `update PR #${pr.number}`} and arm auto-merge`);
     return EXIT_CLOSED;
   }
 
@@ -203,15 +219,16 @@ function close(args: Args): number {
   let number = pr?.number ?? null;
   let url = pr?.url ?? "";
   if (number === null) {
-    if (args.seam === undefined || args.seam.trim().length === 0) {
-      console.error('lane:close: opening a PR needs its seam line: --seam "none - <reason>" or --seam "packages/<pkg>/src/<file> (adopts #<n>)"');
+    const problem = seamProblem(args.seam);
+    if (problem !== null) {
+      console.error(`lane:close: ${problem}`);
       return EXIT_CANNOT_ANSWER;
     }
     const title = args.message ?? branch;
     const dir = mkdtempSync(join(tmpdir(), "lane-close-"));
     const bodyFile = join(dir, "body.md");
-    writeFileSync(bodyFile, prBody(title, args.seam.trim(), `\`bun run verify:fast\` passed (${changed.length} committed file(s) against ${BASE})`));
-    const created = gh(["pr", "create", "--base", BASE, "--head", branch, "--title", title, "--body-file", bodyFile]);
+    writeFileSync(bodyFile, prBody(title, args.seam!.trim(), `\`bun run verify:fast\` passed (${changed.length} committed file(s) against ${DIFF})`));
+    const created = gh(["pr", "create", "--base", TARGET, "--head", branch, "--title", title, "--body-file", bodyFile]);
     rmSync(dir, { recursive: true, force: true });
     if (created.status !== 0) {
       console.error(`lane:close: gh pr create failed: ${created.stderr.trim()}`);

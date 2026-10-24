@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { branchRefusal, guardStaged, parseArgs, prBody } from "./lane-close";
+import { branchRefusal, guardStaged, parseArgs, prBody, seamProblem } from "./lane-close";
 import { checkPrBody } from "./seam-line-check";
 
 test("a lane is a task branch, not the base", () => {
@@ -29,6 +29,15 @@ test("the body a lane:close opens passes the games CI seam check", () => {
   expect(prBody("x", "packages/shell/src/render/x.ts (adopts #1234)", "verified")).toContain(
     "Engine seam: packages/shell/src/render/x.ts (adopts #1234)",
   );
+});
+
+test("a seam line a shell mangled is refused before the PR exists, not by CI after", () => {
+  expect(seamProblem(undefined)).toContain("needs its seam line");
+  expect(seamProblem("")).toContain("needs its seam line");
+  expect(seamProblem("none")).toContain("needs");
+  expect(seamProblem('\\none - lane scripts and docs,no game source\\')).toContain("names no path or issue");
+  expect(seamProblem("none - authored content only")).toBe(null);
+  expect(seamProblem("packages/core/src/x.ts (adopts #12)")).toBe(null);
 });
 
 test("flags parse, and the commit message is optional until there is something to commit", () => {
