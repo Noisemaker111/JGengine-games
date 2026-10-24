@@ -1,6 +1,6 @@
 # JGengine Games
 
-Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the published `@jgengine/*` packages.
+Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the `@jgengine/*` packages, either the published catalog build or a pinned build of one engine commit.
 
 These games use familiar genres with their own titles, settings, characters, and authored content. They also probe engine capabilities. To build a new game, use `npx jgengine create`; assets and upstream source retain their individual licenses.
 
@@ -12,11 +12,15 @@ of implementing the same fix separately in each game. Adopt existing SDK behavio
 and remove redundant local machinery. Games retain their unique rules, stories,
 items, assets, editor-authored worlds and presentation.
 
-Compatible engine fixes reach games through one root SDK catalog update. API changes
-may need small consumer migrations; a beta engine merge alone does not change the
-installed packages. Shared behavior must support different designs and art directions,
-not impose identical assets or layouts. [AGENTS.md](AGENTS.md#framework-first-development)
-owns the discovery, upstream implementation, adoption and verification workflow.
+An engine change reaches a game by **pinning the commit**, not by waiting for a release:
+`bun run engine:pin --ref <sha>`, adopt the change, prove it in the game, land. The one
+root SDK catalog update that moves every game to a published version is a **milestone
+release**, not a step after each engine merge. API changes may need small consumer
+migrations; a beta engine merge alone does not change the installed packages. A pinned
+build is a real installed package, so no engine source is imported here. Shared behavior
+must support different designs and art directions, not impose identical assets or layouts.
+[AGENTS.md](AGENTS.md#framework-first-development) owns the discovery, upstream
+implementation, adoption and verification workflow.
 
 ## Games
 
@@ -78,23 +82,31 @@ The root catalog below owns the current SDK version.
 
 One root `package.json` workspace catalog owns all published `@jgengine/*` SDK
 versions; game and shared workspace manifests use `catalog:` and never own SDK
-versions. Change the root catalog and regenerate `bun.lock` for an intentional
-SDK update. The CLI `jgengine` keeps its separate version cadence.
+versions. A published version is adopted by changing the root catalog and regenerating
+`bun.lock` at a milestone release. The CLI `jgengine` keeps its separate version cadence.
 
 The current catalog installs SDK 0.38.3, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
-To test unpublished engine work, link a checkout instead of releasing:
+**Adopting an engine change without a release.** Pin the commit you need, adopt it, prove
+it, land it. The PR carries one line naming that commit - `Engine pin: <sha>` - and
+`bun run check:engine-mode` fails a pinned or local lane whose body does not name the
+commit it installed, or an install whose packages disagree with the catalog:
 
 ```sh
-bun run engine:local      # link ../jgengine (or --dir <path>): live, sees uncommitted edits
-bun run engine:pin        # link a cached build of one commit (--ref <sha|branch>): immutable
-bun run engine:watch      # rebuild changed engine packages (live mode only)
+bun run engine:pin --ref <sha>  # link a cached build of one commit: the adoption path
 bun run engine:status     # mode, engine commit, stale-or-fresh dist, uncommitted live edits
+bun run engine:local      # link ../jgengine (or --dir <path>): live, sees uncommitted edits
+bun run engine:watch      # rebuild changed engine packages (live mode only)
 bun run engine:snapshots  # cached snapshots, with --prune <sha|all>
 bun run engine:published  # restore the catalog install (--version <x.y.z> pins that release)
+bun run check:engine-mode # does the PR name the commit this lane installed?
 ```
 
 `engine:local` links the checkout itself, so an edit there — even an uncommitted one — lands in every workspace in live mode at once. `engine:pin` builds `git archive <commit>` once into `%LOCALAPPDATA%\jgengine-snapshots`, keys it by commit and build inputs, and links that; concurrent lanes pinning the same commit share the one build, and edits in the live checkout stay invisible. `.engine-mode` (ignored) records the link; never commit it.
+
+A lane that edits the engine uses `engine:local` and sees its uncommitted work; every other
+lane that needs the same engine change pins a commit and never queues behind it. Local mode
+proves no commit, so it is not adoptable evidence: pin the commit you proved before closing.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

@@ -6,6 +6,7 @@ import { join } from "node:path";
 import {
   DECLINE_MIN,
   checkDeclarations,
+  deriveLedger,
   ledgerDrift,
   namesDomain,
   probeMatches,
@@ -675,5 +676,32 @@ describe("budget file", () => {
       history: [{ total: 3, on: "2026-10-23" }],
     });
     expect(buildBudget(budget(2, { ember: 2, harbour: 0 }), tallies, "2026-10-24").history).toEqual([]);
+  });
+});
+
+/** A root with one installed engine build, and optionally the catalog version it ships. */
+function installedTree(coreVersion: string, catalog: string | null): string {
+  const root = mkdtempSync(join(tmpdir(), "lane-ledger-engine-"));
+  roots.push(root);
+  if (catalog !== null) {
+    writeFileSync(join(root, "package.json"), `${JSON.stringify({ workspaces: { catalog: { "@jgengine/core": catalog } } })}\n`);
+  }
+  const packageDir = join(root, "node_modules", "@jgengine", "core");
+  mkdirSync(join(packageDir, "dist"), { recursive: true });
+  writeFileSync(join(packageDir, "package.json"), `${JSON.stringify({ name: "@jgengine/core", version: coreVersion })}\n`);
+  writeFileSync(
+    join(packageDir, "dist", "index.d.ts"),
+    "/** @capability hud.readout Live HUD readout. */\nexport declare function readout(): void;\n",
+  );
+  return root;
+}
+
+describe("the ledger records the SDK this repo ships, not the build a lane linked", () => {
+  test("a pinned build does not move the ledger off the catalog version", () => {
+    expect(deriveLedger(installedTree("0.38.4", "0.38.3")).engineVersion).toBe("0.38.3");
+  });
+
+  test("with no catalog the installed version is still the answer", () => {
+    expect(deriveLedger(installedTree("0.38.4", null)).engineVersion).toBe("0.38.4");
   });
 });

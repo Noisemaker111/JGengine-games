@@ -46,6 +46,7 @@
     "check-types": "bun --filter='*' run check-types",
     "check:framework": "bun scripts/framework-check.ts",
     "check:seam-line": "bun scripts/seam-line-check.ts",
+    "check:engine-mode": "bun scripts/engine-mode-check.ts",
     "check:module-globals": "bun scripts/module-globals-check.ts",
     "check:save-states": "bun scripts/check-save-states.ts",
     "check:glb-textures": "bun scripts/check-glb-textures.ts",

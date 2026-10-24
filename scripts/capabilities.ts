@@ -196,6 +196,24 @@ function dtsFiles(dir: string): string[] {
 
 let installedCache: { root: string; installed: Installed } | null = null;
 
+/**
+ * The SDK version this repository ships: what the root workspace catalog names. A pinned or
+ * local lane links another build for a while, so reading the version off the linked files
+ * would move every ledger once per pin - the release queue this repo no longer waits in.
+ * Published mode is unchanged, because `engine:published` keeps the two identical.
+ */
+function catalogEngineVersion(root: string): string | null {
+  try {
+    const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+      workspaces?: { catalog?: Record<string, string> };
+    };
+    const version = manifest.workspaces?.catalog?.["@jgengine/core"];
+    return typeof version === "string" ? version : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Read every installed declaration that carries a `@capability` tag. */
 export function readInstalled(root: string): Installed {
   if (installedCache !== null && installedCache.root === root) return installedCache.installed;
@@ -247,7 +265,7 @@ export function readInstalled(root: string): Installed {
     }
   }
 
-  installedCache = { root, installed: { packagesRoot, version, modules } };
+  installedCache = { root, installed: { packagesRoot, version: catalogEngineVersion(root) ?? version, modules } };
   return installedCache.installed;
 }
 
