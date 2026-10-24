@@ -8,10 +8,6 @@ body,
   background: #14100c;
 }
 
-.signal-start { overflow-y: auto; padding: clamp(18px, 4vh, 48px) 20px; background-image: repeating-linear-gradient(0deg, transparent 0 39px, #d4923310 40px), radial-gradient(ellipse at 50% 0, #42302180, transparent 65%); }
-.signal-title { font-size: clamp(28px, 5vw, 52px); }
-.signal-brief { max-width: 640px; text-align: center; font-size: 13px; line-height: 1.6; color: #baa78e; }
-.signal-roster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: min(900px, 100%); }
 .signal-character { width: 100%; }
 .signal-portrait { width: 100%; height: 100%; }
 .signal-scroll { max-height: calc(100dvh - 40px); overflow-y: auto; }
@@ -36,8 +32,8 @@ body,
 .signal-control-grid b { display: block; color: #ecbf78; font-size: 11px; margin-bottom: 4px; }
 .signal-result { display: flex; gap: 40px; font: 900 30px monospace; color: #91e5d3; padding: 16px 0; border-block: 1px solid #43514a; }
 .signal-result small { font: 500 11px sans-serif; margin-top: 4px; }
-@media (max-width: 760px) { .signal-roster { grid-template-columns: repeat(2, minmax(0, 1fr)); } .signal-contract { --signal-contract-pad: 8px 10px; width: min(220px, 40vw); } .signal-contract strong { font-size: 14px; } .signal-contract p { font-size: 11px; } }
-@media (max-height: 540px) { .signal-start { gap: 12px; } .signal-character > div { height: 72px; margin-bottom: 6px; } .signal-brief { font-size: 11px; } .signal-character.scrap-character { --scrap-character-pad: 10px; } .signal-roster { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .signal-contract { --signal-contract-pad: 8px 10px; width: min(220px, 40vw); } .signal-contract strong { font-size: 14px; } .signal-contract p { font-size: 11px; } }
+@media (max-height: 540px) { .signal-character > div { height: 72px; margin-bottom: 6px; } .signal-character.scrap-character { --scrap-character-pad: 10px; } }
 @media (max-width: 480px) { .signal-control-grid { grid-template-columns: 1fr; } .signal-contract p { max-width: 160px; } .signal-contract small { font-size: 9px; } }
 @media (prefers-reduced-motion: reduce) { .scrap-banner, .scrap-levelup, .scrap-hitmarker { animation: none; } }
 

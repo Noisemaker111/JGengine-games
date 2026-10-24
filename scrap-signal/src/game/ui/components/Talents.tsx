@@ -1,4 +1,3 @@
-import { useCanvasCover } from "@jgengine/react";
 import { useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HudButton } from "@jgengine/react/hudButton";
@@ -6,46 +5,13 @@ import {
   activeCharacter,
   characterNodes,
   talentTree,
-  CHARACTERS,
   type CharacterDef,
   type CharacterNode,
 } from "../../characters";
 import { FERRALON } from "../../palette";
-import { characterIdStore, skillsOpenStore, talentRanksStore } from "../../stores";
+import { skillsOpenStore, talentRanksStore } from "../../stores";
 import { ReclaimerPortrait } from "./Portrait";
 import { ScrapPanel } from "./ScrapPanel";
-
-export function CharacterSelect() {
-  const { commands } = useGame();
-  const picked = useStore(characterIdStore);
-  // Choosing a reclaimer happens over a 95% black sheet: the field behind it is only bleed-through.
-  useCanvasCover(picked === null);
-  if (picked !== null) return null;
-  return (
-    <div className="signal-start pointer-events-auto absolute inset-0 z-[60] flex flex-col items-center gap-6 bg-[#0c0a08]/95">
-      <div className="text-center">
-        <div className="text-[10px] font-bold uppercase tracking-[0.5em] text-stone-500">Reactivate. Reclaim. Rise.</div>
-        <div className="signal-title font-black uppercase tracking-[0.12em] text-amber-400 drop-shadow-[0_4px_0_#3a2c10]">
-          Scrap Signal
-        </div>
-        <div className="mt-1 text-xs font-bold uppercase tracking-[0.35em] text-stone-400">Choose your Reclaimer</div>
-      </div>
-      <p className="signal-brief">A broken carrier. A desert of stolen machines. Reclaim the copper-ring relay north of the crash site, then follow B0-LT’s campaign across Ferralon.</p>
-      <div className="signal-roster">
-        {CHARACTERS.map((character) => (
-          <CharacterCard
-            key={character.id}
-            character={character}
-            onPick={() => commands.run("character.pick", { characterId: character.id })}
-          />
-        ))}
-      </div>
-      <div className="max-w-[34rem] text-center text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-        WASD move · mouse fire · R reload · E interact · G grenade · Q heal · K skill tree · 1-4 weapons
-      </div>
-    </div>
-  );
-}
 
 export function CharacterCard({ character, onPick }: { character: CharacterDef; onPick: () => void }) {
   return (

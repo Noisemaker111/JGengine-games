@@ -43,8 +43,6 @@ export function ScrapMenu(): ReactNode {
   const [slotId, setSlotId] = useState<string>(SCRAP_SLOTS[0].id);
   const [notice, setNotice] = useState<string | null>(null);
   const recent = slots.find((slot) => !slot.empty) ?? null;
-  const paused = phase === "paused";
-  // Pause is Operations' own in-game overlay; this menu is the front end only.
 
   // Refresh the kept-run index when the menu appears, not on every render: the refresh writes the
   // index, the index notifies the pane, and an effect keyed on the context identity would loop.
@@ -54,14 +52,14 @@ export function ScrapMenu(): ReactNode {
     void refreshScrapSlots(ctxRef.current);
   }, [phase]);
 
-  // The boot menu owns the menu phase; a restored reclaimer waits behind it until Continue.
-  if (phase !== "menu" || paused) return null;
+  // The front end owns the menu phase: a restored run waits behind it until Continue, and every
+  // boot lands here, so this is the only surface a boot shows.
+  if (phase !== "menu") return null;
   if (settings.isOpen) return null;
 
   return (
     <GameMenu
       label="Scrap Signal"
-      data-scrap-phase={phase}
       initialId={scrapFocus.id ?? (recent === null ? "new" : "continue")}
       eyebrow="Ferralon - reactivate, reclaim, rise"
       logo={{ text: <span>Scrap<br />Signal</span>, title: "Scrap Signal" }}
@@ -94,7 +92,7 @@ export function ScrapMenu(): ReactNode {
               onSlot={setSlotId}
               onPick={(characterId) => {
                 scrapProfile.name = name.trim() === "" ? null : name.trim();
-                commands.run("character.pick", { characterId });
+                commands.run("character.pick", { characterId, slot: slotId });
               }}
             />
           );
@@ -146,7 +144,7 @@ function NewRunPane({
   onPick: (characterId: string) => void;
 }): ReactNode {
   return (
-    <div data-new-run-pane="" style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+    <div data-new-run-pane="" style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0, flex: 1, overflow: "hidden" }}>
       <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800 }}>New run</div>
       <label style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 420 }}>
         <span style={{ fontSize: "var(--jg-type-xs)", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(231,229,228,0.6)" }}>

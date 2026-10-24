@@ -28,7 +28,9 @@ export function Operations() {
   const paused = manual || modal;
 
   useEffect(() => {
-    if (character === null || gamePhase(ctx) === "ended") return;
+    // The front end owns the phase until the player starts or continues a run: a restored run waits
+    // behind the menu, so this overlay must never promote it to `playing` on its own.
+    if (character === null || phase === "menu" || gamePhase(ctx) === "ended") return;
     setGamePhase(ctx, paused ? "paused" : "playing");
     if (paused) { ctx.time.pause(); document.exitPointerLock?.(); }
     else ctx.time.play();

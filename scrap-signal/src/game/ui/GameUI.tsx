@@ -1,11 +1,12 @@
 import { HudCanvas, HudPanel, SettingsTrigger, useHudLayout } from "@jgengine/react";
+import { useGamePhase } from "@jgengine/react/hooks";
 import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { itemNameById } from "../content";
 import { DamageVignette, HitMarker, LevelUpBurst } from "./components/Feedback";
 import { CashPlate, CreditBadge, MissionTracker } from "./components/Mission";
 import { ReserveOverlay, VendorPanel } from "./components/Overlays";
-import { CharacterSelect, TalentsPanel } from "./components/Talents";
+import { TalentsPanel } from "./components/Talents";
 import { ScrapMenu } from "./menu/ScrapMenu";
 import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
@@ -15,6 +16,10 @@ import { FieldGearPanel } from "./components/FieldGearPanel";
 
 export function GameUI() {
   const layout = useHudLayout({ storageKey: "scrap-signal" });
+  const { phase } = useGamePhase();
+  // The front end replaces the field: the menu is the only surface a boot shows, and no run overlay
+  // paints through it. A run's HUD mounts when the player leaves the menu.
+  if (phase === "menu") return <ScrapMenu />;
   return (
     <>
     <HudCanvas layout={layout} className="z-20 font-sans text-stone-100">
@@ -95,9 +100,6 @@ export function GameUI() {
       <ReactorEnding />
       <LevelUpBurst />
     </HudCanvas>
-    {/* The menu block is behind a flag until its overlay stops shifting under the pointer; the
-        game keeps its long-standing roster screen while the flag is off. */}
-    {import.meta.env.VITE_SCRAP_MENU === "1" ? <ScrapMenu /> : <CharacterSelect />}
     </>
   );
 }
