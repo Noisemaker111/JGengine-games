@@ -12,6 +12,8 @@ import { canPlace, footprintCells } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
 import { hoverRefusal, placementHintStore } from "../build/placementHint";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { bindParkCapture } from "../parkProfile";
 
 const rotors: Record<string,string> = {
   ride_carousel: new URL("../../../public/art/models/carousel_rotor.glb",import.meta.url).href,
@@ -109,6 +111,15 @@ function Blueprint() {
   return <group>{footprintCells(def,...hover).map(key=>{const [x,z]=key.split(",").map(Number);return <mesh key={key} position={[x!,.22,z!]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><planeGeometry args={[GRID-.12,GRID-.12]}/><meshBasicMaterial color={color} transparent opacity={.4} depthWrite={false}/></mesh>;})}</group>;
 }
 export function BrightwayParkWorldOverlay() {
+  return (
+    <>
+      <SceneCaptureBinding bind={bindParkCapture} />
+      <OverlayBodies />
+    </>
+  );
+}
+
+function OverlayBodies() {
   const selection=useGameStore(()=>session.selectedObject);
   const placed=useGameStore(()=>[...session.placed.keys()].join("|"));
   const circuit=useMemo(()=>coasterCircuit(),[placed]);
@@ -119,3 +130,5 @@ export function BrightwayParkWorldOverlay() {
     {obj&&<mesh position={[obj.x,.23,obj.z]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><ringGeometry args={[Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65),Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65)+.18,48]}/><meshBasicMaterial color="#edbc5c"/></mesh>}
   </group>;
 }
+
+

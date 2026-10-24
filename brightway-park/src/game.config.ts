@@ -49,8 +49,16 @@ export const game = defineGame({
     // park's own tick forward instead of the lane waiting out a day at 4x.
     states: {
       title: [],
+      menu: ["park.start", "menu.saveDoc", "menu.title"],
+      "menu-saves": ["park.start", "menu.saveDoc", "menu.saves"],
+      "menu-new": ["menu.new"],
       paused: ["park.start", "pauseToggle"],
       "full-park": ["park.start", { name: "park.stage", input: { mode: "full" } }],
+    },
+    views: {
+      menu: { description: "Gate board over the park, Continue highlighted", state: "menu", settleMs: 1800 },
+      menuSaves: { description: "Park saves with the saved day", state: "menu-saves", settleMs: 1800 },
+      menuNew: { description: "New day pane with the scenarios", state: "menu-new", settleMs: 1200 },
     },
     probe: () => {
       let queued = 0;
@@ -80,3 +88,4 @@ export const game = defineGame({
     },
   },
 });
+

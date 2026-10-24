@@ -37,22 +37,9 @@ export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion
       <small className="park-save-note">Your award and park are saved.</small>
     </ParkDialog>;
   }
-  if(!session.started) return <ParkDialog title="Welcome to Brightway Park">{logo}
-    <div className="park-section-label">THE SEASIDE IS CALLING</div><h1>Your midway.<br/>Your magnificent little world.</h1>
-    <p>Turn a quiet coastal fair into a blue ribbon park. Pick a scenario for a goal and a deadline, or open free play and build at your own pace.</p>
-    <div className="park-scenarios">
-      {SCENARIOS.map((scenario)=><button key={scenario.id} className="park-scenario" onClick={()=>commands.run("park.scenario",{id:scenario.id})}>
-        <strong>{scenario.title}</strong>
-        <span>{scenario.blurb}</span>
-        <em>{scenario.goal} · ${scenario.cash.toLocaleString()} to start</em>
-      </button>)}
-    </div>
-    <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.start", {})}>{session.hasSave?`Free play · continue day ${session.day}`:"Free play · open the park"}</HudButton>
-    {session.hasSave&&<HudButton className="park-button" onClick={()=>commands.run("park.new", {})}>Start fresh · archive current save</HudButton>}
-    <small className="park-save-note">{session.saveStatus}. P pauses · WASD pans · scroll zooms.</small>
-  </ParkDialog>;
   if(session.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(session.rating)} stars in {session.day-1} days.</p><p>Next time, keep an eye on nightly upkeep, staff wages and the loan instalment, and give guests somewhere to eat and drink.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.new", {})}>Reopen a new park · archive this save</HudButton></ParkDialog>;
   if(session.won&&!session.winDismissed) return <ParkDialog title="Blue ribbon awarded">{logo}<div className="park-ribbon">★</div><div className="park-section-label">BRIGHT DAYS AHEAD</div><h1>Your first blue ribbon!</h1><p>Three rides, a profitable day, and a happy, tidy park. Brightway has become a seaside favorite.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.continue", {})}>Keep building in free play</HudButton><small className="park-save-note">Your award and park are saved.</small></ParkDialog>;
-  if(clock.paused) return <ParkDialog title="Park paused" onClose={()=>commands.run("pauseToggle", {})}><div className="park-section-label">TAKE A BREATHER</div><h1>The midway can wait</h1><p>Your visitors and finances are paused. Resume to keep the park moving.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("pauseToggle", {})}>Resume park</HudButton><HudButton className="park-button" onClick={()=>commands.run("park.save", {})}>Save park</HudButton><small className="park-save-note" role="status">{session.saveStatus}</small></ParkDialog>;
+
   return null;
 }
+

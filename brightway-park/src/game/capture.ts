@@ -4,6 +4,9 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { CLOSE_FRACTION, DAY_LENGTH, OPEN_FRACTION, guestCap } from "./catalog";
 import { resetPark } from "./parkReset";
 import { savePark } from "./persistence";
+import { captureParkThumb } from "./parkProfile";
+import { refreshParkSlot } from "./parkSlot";
+import { parkFocus } from "./ui/menu/ParkMenu";
 import { session } from "./session";
 import { syncAmbience } from "./audio";
 import { currentMetrics, tickRating } from "./sim/economy";
@@ -85,4 +88,40 @@ export function registerCaptureCommands(ctx: GameContext): void {
       return state;
     },
   });
+  // The menu states a capture host reaches: keep the park, stand at the gate.
+  ctx.game.commands.define("menu.saveDoc", {
+    apply(state) {
+      void captureParkThumb().then(() => {
+        savePark(state);
+        refreshParkSlot();
+      });
+      return state;
+    },
+  });
+  ctx.game.commands.define("menu.title", {
+    apply(state) {
+      parkFocus.id = null;
+      session.started = false;
+      setGamePhase(state, "menu");
+      return state;
+    },
+  });
+  ctx.game.commands.define("menu.saves", {
+    apply(state) {
+      parkFocus.id = "saves";
+      session.started = false;
+      setGamePhase(state, "menu");
+      return state;
+    },
+  });
+  ctx.game.commands.define("menu.new", {
+    apply(state) {
+      parkFocus.id = "new";
+      session.started = false;
+      setGamePhase(state, "menu");
+      return state;
+    },
+  });
 }
+
+

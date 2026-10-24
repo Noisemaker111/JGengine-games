@@ -10,6 +10,7 @@ import { BuildBar } from "./components/BuildBar";
 import { Inspector } from "./components/Inspector";
 import { ParkDashboard } from "./components/ParkDashboard";
 import { ParkFlow } from "./components/ParkFlow";
+import { ParkMenu } from "./menu/ParkMenu";
 import { CameraPad } from "./components/CameraPad";
 import { BUILD_PANEL, PARK_PANELS } from "./panels";
 import { session } from "../session";
@@ -64,7 +65,9 @@ export function GameUI() {
         {buildOpen&&<div className="park-build"><BuildBar onClose={()=>panels.close(BUILD_PANEL)}/></div>}
         {!clock.paused&&!settings&&<CameraPad/>}
       </>}
+      <ParkMenu settings={settings} onCloseSettings={()=>setSettings(false)} reducedMotion={reducedMotion} onReducedMotion={v=>{setReducedMotion(v);savePreference("reduced-motion",v);commands.run("park.motion",{reduced:v});}} contrast={contrast} onContrast={v=>{setContrast(v);savePreference("contrast",v);}}/>
       <ParkFlow settings={settings} onCloseSettings={()=>setSettings(false)} reducedMotion={reducedMotion} onReducedMotion={v=>{setReducedMotion(v);savePreference("reduced-motion",v);commands.run("park.motion",{reduced:v});}} contrast={contrast} onContrast={v=>{setContrast(v);savePreference("contrast",v);}}/>
     </div>
   );
 }
+
