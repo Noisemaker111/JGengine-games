@@ -30,7 +30,7 @@ Repeated generic glue is framework friction or adoption debt, even if the game w
 
 **Say which it is in the PR**, using the template's required line: `Engine seam: packages/shell/src/render/x.ts (adopts #1234)` or `Engine seam: none - authored content only`. `bun run check:framework` (also run by CI) fails on a new engine-shaped module inside a game; pass `-- --allow "<reason>"` only when you can name why it cannot live upstream.
 
-**Say which engine proved it.** A lane that ran against a pinned build writes one line, `Engine pin: <sha>` - the commit `bun run engine:status` reports - instead of "waiting on the release". `lane:close` writes it from the installed snapshot, and `bun run check:engine-mode` fails a pinned or local lane whose body does not name that commit, or whose installed tree and catalog disagree about what is installed.
+**Say which engine proved it.** A lane that ran against a pinned build writes one line, `Engine pin: <sha>` - the commit `bun run engine:status` reports - instead of "waiting on the release". `lane:close` writes it from the installed snapshot, and `bun run check:engine-mode` fails a pinned or local lane whose body does not name that commit, or whose installed tree and catalog disagree about what is installed. CI reads the same line and installs that commit, so the `games` job checks the engine the PR claims instead of refusing it for the version it is not; with no line the published catalog is the engine, as before.
 
 Precedents: Harbor's 6 -> 60 FPS and Odd Orbit's missing-material fallback were each corrected once in the engine and every game gained; Brightway's flat turf was patched inside the game and had to be paid for twice.
 
