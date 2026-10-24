@@ -50,6 +50,9 @@ export const game = defineGame({
     // wave are already on screen. Nothing is staged, and nothing needs to be played first.
     states: {
       "mission-live": ["match.start"],
+      // Dev-only: the first muster played through its world reports, so a flow can reach the
+      // mission's own cleared boundary instead of the counter's next tick.
+      "mission-cleared": ["campaign.capture"],
     },
     views: {
       "keep-player": {

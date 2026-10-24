@@ -9,5 +9,12 @@
 
   { "assert": "(() => { if (window.__shiftCredits === undefined) window.__shiftCredits = __jgProbe().credits; return __jgProbe().credits > window.__shiftCredits; })()",
     "before": { "is": "(() => { if (window.__shiftCredits === undefined) window.__shiftCredits = __jgProbe().credits; return __jgProbe().credits > window.__shiftCredits; })()", "timeoutMs": 150000 },
-    "note": "arrival: that shift finished and paid a wage into the household ledger, which is the loop's own payout and not a clock advancing" }
+    "note": "arrival: that shift finished and paid a wage into the household ledger, which is the loop's own payout and not a clock advancing" },
+
+  { "assert": "window.__jgengineRun !== undefined && window.__jgengineRun.read().closed >= 1",
+    "before": { "is": "window.__jgengineRun !== undefined && window.__jgengineRun.read().closed >= 1", "timeoutMs": 90000 },
+    "note": "arrival: the shift's own boundary settled on the shared loop — the session the member was working closed" },
+
+  { "assert": "(() => { const readout = window.__jgengineRun.read(); return readout.kind === 'shift' && readout.closed >= 1 && readout.phase === 'closed'; })()",
+    "note": "arrival: the loop names the closed shift session, and the day's paid work is spent until tomorrow" }
 ] }
