@@ -308,7 +308,8 @@ export function statusLine(): { line: string; ok: boolean; state: unknown } {
     };
   }
 
-  const commit = state?.engine ?? (existsSync(enginePath) ? engineCommit(enginePath) : "unknown");
+  // Live mode changes with the checkout, so the commit is read now, never from link time.
+  const commit = existsSync(join(enginePath, "packages")) ? engineCommit(enginePath) : (state?.engine ?? "unknown");
   const links = linkChecks(join(enginePath, "packages"));
   const broken = links.filter((check) => !check.ok);
   if (broken.length > 0) {
