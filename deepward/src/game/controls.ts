@@ -14,7 +14,7 @@ import { buySupply, dismantle } from "./counter";
 import { canCache, loadOf } from "./haul";
 import { itemValue, kindOf } from "./items";
 import { createDeepwardDamage, createDeepwardWeapon, MAGAZINE, weaponDefinition, weaponReadout } from "./combat";
-import { openRecord, type RecordSession, type RunSnapshot } from "./save";
+import { openRecord, recordProfile, type RecordSession, type RunSnapshot } from "./save";
 import { advanceRoute, createNavigator } from "./navigation";
 
 export const keybinds: ActionCodesMap = {
@@ -562,11 +562,37 @@ async function boot(ctx: GameContext): Promise<void> {
     await save.load();
     state.save = save;
     state.ready = true;
-    await applyRecord(ctx, save, validRun(restored) ? restored : null);
+    holdAtHome(ctx, save, validRun(restored) ? restored : null);
   } catch (error) {
     viewStore.update(ctx, v => ({ ...v, mode: "blocked", error: message(error), dive: null, panel: null }));
     freeze(ctx);
   }
+}
+
+/**
+ * Put the loaded home on screen and leave a dive in the record for Continue. Boot never resumes a
+ * dive by itself: the title shows what the record holds, and only Continue puts the diver back in it.
+ */
+function holdAtHome(ctx: GameContext, save: RecordSession, record: RunSnapshot | null): void {
+  const home = save.home;
+  // A departure with no run section is a Life the record lost mid-dive; settle it as before.
+  const recovered = record === null || record.dive === null ? recoverInterrupted(home) : home;
+  if (recovered !== home) void save.commit(recovered).catch(() => { /* the next departure retries the record */ });
+  viewStore.write(ctx, { ...viewStore.read(ctx), home: recovered, mode: recovered.reprintPending ? "reprinting" : "home", dive: null, panel: null, paused: false,
+    pending: null, error: "", trace: null, ammo: null, hint: recovered.last?.reason ?? viewStore.read(ctx).hint });
+  teleport(ctx, HOME_SPAWN); clearLoot(ctx); syncPrint(ctx, null); syncPlayer(ctx, null);
+  // A lost Life is acknowledged before anything else; every other record waits at the title.
+  if (recovered.reprintPending) freeze(ctx); else openTitle(ctx);
+}
+
+/** Continue: put the record's dive (or its home) back on screen and run it. */
+export async function resumeRecord(ctx: GameContext): Promise<void> {
+  const save = runtime(ctx).save;
+  if (save === null) return;
+  const run = save.restoredRun;
+  await applyRecord(ctx, save, validRun(run) ? run : null);
+  const mode = viewStore.read(ctx).mode;
+  if (mode === "home" || mode === "dive") enterFromTitle(ctx);
 }
 
 /** Put the loaded record on screen: resume the dive it holds, or stand at Marrow again. */
@@ -624,6 +650,46 @@ export function continueSaved(ctx: GameContext): void {
   });
 }
 
+/** The record session the menu reads and switches. */
+export function recordOf(ctx: GameContext): RecordSession | null {
+  return runtime(ctx).save;
+}
+
+/** Commit the record as it stands, so a reload resumes exactly this screen. */
+export async function persistRecord(ctx: GameContext): Promise<void> {
+  const state = runtime(ctx);
+  if (state.save === null) throw new Error("Persistent storage unavailable");
+  state.writing = true;
+  await persist(ctx, viewStore.read(ctx).home, snapshotRun(ctx));
+}
+
+/** Open a record by slot: switch the document, then put the run it holds on screen. */
+export async function loadRecordSlot(ctx: GameContext, slot: string): Promise<void> {
+  const state = runtime(ctx);
+  if (state.save === null) return;
+  await state.save.switchSlot(slot);
+  await resumeRecord(ctx);
+}
+
+/**
+ * Start a fresh record in a slot. `replace` deletes the record already there first, so a new dive
+ * never inherits another Life's stash; an empty slot needs no deletion.
+ */
+export async function beginRecordSlot(ctx: GameContext, slot: string, replace = false): Promise<void> {
+  const state = runtime(ctx);
+  if (state.save === null) return;
+  if (replace) await state.save.deleteSlot(slot);
+  await state.save.switchSlot(slot);
+  await applyRecord(ctx, state.save, null);
+  enterFromTitle(ctx);
+}
+
+/** Save the record and stand back at Marrow's title, the way a shift is left. */
+export async function withdrawToTitle(ctx: GameContext): Promise<void> {
+  await persistRecord(ctx);
+  openTitle(ctx);
+}
+
 export function seatPlayer(ctx: GameContext): void {
   ctx.scene.entity.spawn("diver", { id: ctx.player.userId, position: HOME_SPAWN, rotationY: Math.PI, role: "player" });
   syncPlayer(ctx, null);
@@ -643,6 +709,8 @@ export function storageChanged(ctx: GameContext): void {
 export function tick(ctx: GameContext, dt: number): void {
   const v = viewStore.read(ctx);
   if (v.paused || v.mode === "saving" || v.mode === "blocked" || !(dt > 0)) return;
+  // Seconds at the home or in a dive are the record's playtime, written with the next record.
+  if (v.mode === "home" || v.mode === "dive") recordProfile.playtime += dt;
   const at = playerAt(ctx);
   if (v.mode !== "dive" || v.dive === null || at === null || v.paused) return;
   const steam = v.dive.elapsed % 8 < 3 && inside(at[0], at[2], STEAM);

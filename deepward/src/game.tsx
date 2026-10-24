@@ -16,6 +16,9 @@ import { FitterModel } from "./game/fitterArt";
 import { ServiceWeapon, serviceWeaponPose } from "./game/weaponArt";
 import { activeRoomLamps, deriveRoomPresentation, ROOM_LIGHT_BUDGET, ROOM_LIGHT_REACH, ROOM_LIGHT_INTENSITY } from "./game/roomPresentation";
 import { captureProbe, initialize, keybinds, seatPlayer, setAim, tick, viewStore } from "./game/controls";
+import { registerCaptureCommands } from "./game/capture";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { registerSceneCapture } from "@jgengine/shell/render/sceneCaptureRequest";
 import { ITEMS } from "./game/state";
 import { StationStructure, StationBatch } from "./game/stationArt";
 import { GameUI } from "./game/ui/GameUI";
@@ -158,6 +161,7 @@ function WorldOverlay() {
   const view = useStore(viewStore), dive = view.dive;
   const steamOn = dive !== null && dive.elapsed % 8 < 3;
   return <>
+    <SceneCaptureBinding bind={registerSceneCapture} />
     <Architecture place={dive === null ? "home" : "vault"} /><StationStructure place={dive === null ? "home" : "vault"} /><RoomLights /><StationModels place={dive === null ? "home" : "vault"} assets={stationAssets} />
     {editorLayers.markers.filter(m => m.kind === "deepward-station-sign" && m.meta?.place === (dive === null ? "home" : "vault")).map(m => <Sign key={m.id} at={[m.position.x,m.position.y,m.position.z]} title={m.label ?? m.id} sub={String(m.meta?.subtitle ?? "")} width={Number(m.meta?.width ?? 2.6)} turn={m.rotationY ?? 0} color={C.amber} />)}
     <group visible={dive === null}>
@@ -229,7 +233,7 @@ export const game = defineGame({
   presentation: "3d", scenePlacement: false, touch: false, platforms: ["web"],
   // Engine records own acquisition; the vault's authored meshes own presentation.
   worldItem: { filter: [{ id: "authored-salvage", when: {}, hide: true }] },
-  loop: { onInit: initialize, onNewPlayer: seatPlayer, onTick: tick },
+  loop: { onInit: (ctx) => { initialize(ctx); registerCaptureCommands(ctx); }, onNewPlayer: seatPlayer, onTick: tick },
   GameUI, WorldOverlay, renderEntity,
   hudTheme: shiftTheme,
   camera: { perspective: "first", firstPerson: { eyeHeight: 1.62, sensitivity: 0.0021, reticle: false, viewmodel: false }, frustum: { far: 95 } },
@@ -261,6 +265,11 @@ export const game = defineGame({
     // The stash sheet with the fitter's counter: scrip, standing and the locked shelves.
     states: {
       title: [],
+      // The menu as a returning player sees it: a dive written to Record I, so Continue carries its
+      // depth, its carry and its captured frame. Dev-only staging; the departure is the real one.
+      menu: ["deepward.enter", "menu.record"],
+      "menu-records": ["deepward.enter", "menu.record", { name: "menu.focus", input: { verb: "records" } }],
+      "menu-new": [],
       pause: ["deepward.enter", { name: "deepward.pause", input: { paused: true } }],
       counter: ["deepward.enter", "deepward.openStash"],
       // `deepward.stage` (dev-only) departs through the garage and searches three lockers through the

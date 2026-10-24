@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { GARAGE, physics, world } from "../world";
-import { initialize, keybinds, seatPlayer, tick, viewStore, whenReady, whenWritten } from "./controls";
+import { initialize, keybinds, resumeRecord, seatPlayer, tick, viewStore, whenReady, whenWritten } from "./controls";
 import { RECORD_ENTRY, SAVE_KEY, validHome } from "./save";
 import { depart, newDive, newHome, recoverInterrupted, settle, takeLoot } from "./state";
 
@@ -104,9 +104,14 @@ test("a reload mid-dive resumes the run the HUD was showing, not a lost Life", a
     const before = viewStore.read(first);
     expect(before.ammo!.loaded).toBe(5);
 
-    // A second world booted from the same bytes is the reload.
+    // A second world booted from the same bytes is the reload: the title holds the record and
+    // Continue is what puts the diver back in the dive with the round count it left.
     const second = world2(storage);
     await whenReady(second);
+    const held = viewStore.read(second);
+    expect(held.mode).toBe("home");
+    expect(held.home.activeDive).toBe(before.home.activeDive);
+    await resumeRecord(second);
     const after = viewStore.read(second);
     expect(after.mode).toBe("dive");
     expect(after.home.activeDive).toBe(before.home.activeDive);

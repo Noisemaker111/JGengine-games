@@ -13,8 +13,17 @@ export const SAVE_KEY = "deepward.marrow.v1";
 /** The game-save document: one section for the persistent record, one for the live run. */
 export const RECORD_KEY = "deepward.marrow.record";
 export const RECORD_SLOT = "marrow";
+/** The three records the save-select pane offers: the original slot plus two more. */
+export const RECORD_SLOTS = ["marrow", "marrow-2", "marrow-3"] as const;
+/** A record's own name, in the game's words rather than a bare slot id. */
+export const RECORD_LABEL: Record<string, string> = { marrow: "Record I", "marrow-2": "Record II", "marrow-3": "Record III" };
 /** The backend key the save store actually writes (`<key>:<slot>`); the storage event and isCurrent compare it. */
-export const RECORD_ENTRY = `${RECORD_KEY}:${RECORD_SLOT}`;
+export function recordEntry(slot: string): string {
+  return `${RECORD_KEY}:${slot}`;
+}
+export const RECORD_ENTRY = recordEntry(RECORD_SLOT);
+/** What a record remembers about the screen it left: the save card's captured frame and seconds played. */
+export const recordProfile: { thumbnail: string | null; playtime: number } = { thumbnail: null, playtime: 0 };
 
 export interface StoragePort {
   getItem(key: string): string | null;
@@ -169,6 +178,16 @@ export interface RecordSession {
    * a return lands both sections in one document before the screen changes.
    */
   commit(next: Home, run?: RunSnapshot | null): Promise<void>;
+  /** The record this session currently reads and writes. */
+  slot(): string;
+  /** Read another record's document without applying it - the save-select pane's data source. */
+  peek(slot: string): Promise<GameSaveDocument | null>;
+  /** Records already written on this profile. */
+  slots(): Promise<string[]>;
+  /** Open another record (an empty slot resets both sections to a fresh Marrow). */
+  switchSlot(slot: string): Promise<Home>;
+  /** Delete a record's document; deleting the open record leaves a fresh one live. */
+  deleteSlot(slot: string): Promise<boolean>;
   isCurrent(): boolean;
   digest(): string;
 }
@@ -198,9 +217,10 @@ function readRecord(raw: string): GameSaveDocument {
  * and the live run, so mounted systems snapshot themselves instead of a hand-written shape. The
  * v1-v4 bytes at {@link SAVE_KEY} are read once and rewritten as a record; the old bytes stay put.
  */
-export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
+export function openRecord(storage: StoragePort, run: RunHooks, initialSlot: string = RECORD_SLOT): RecordSession {
   let home = newHome();
   let restored: RunSnapshot | null = null;
+  let active = initialSlot;
   let lastRaw: string | null = null;
   let legacyRaw: string | null = null;
   let failure: unknown = null;
@@ -219,12 +239,24 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
     restore: next => { restored = next; run.restore(next); },
     reset: () => { restored = null; run.restore(null); },
   };
+  /** The card's captured frame and the record's played seconds, written with the same document. */
+  const profile: GameSaveSystem<{ thumbnail: string | null; playtime: number }> = {
+    name: "profile",
+    snapshot: () => ({ thumbnail: recordProfile.thumbnail, playtime: recordProfile.playtime }),
+    restore: next => {
+      const value = (next ?? {}) as { thumbnail?: unknown; playtime?: unknown };
+      recordProfile.thumbnail = typeof value.thumbnail === "string" ? value.thumbnail : null;
+      recordProfile.playtime = typeof value.playtime === "number" && Number.isFinite(value.playtime) && value.playtime >= 0 ? value.playtime : 0;
+    },
+    reset: () => { recordProfile.thumbnail = null; recordProfile.playtime = 0; },
+  };
   const save: GameSave = createGameSave({
     backend: backendOver(storage),
     game: "deepward",
     key: RECORD_KEY,
-    slot: RECORD_SLOT,
-    systems: [marrow, live],
+    slot: initialSlot,
+    systems: [marrow, live, profile],
+    playtime: () => recordProfile.playtime,
     onError: error => { failure = error; },
     devtoolsName: "deepward.save",
   });
@@ -233,11 +265,11 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
     failure = null;
     await save.save();
     if (save.status() === "error" || failure !== null) throw failure instanceof Error ? failure : new Error("Marrow could not verify the written record. Reload before continuing.");
-    lastRaw = storage.getItem(RECORD_ENTRY);
+    lastRaw = storage.getItem(recordEntry(active));
   }
 
   function isCurrent(): boolean {
-    const stored = storage.getItem(RECORD_ENTRY);
+    const stored = storage.getItem(recordEntry(active));
     if (stored !== null) return stored === lastRaw;
     return storage.getItem(SAVE_KEY) === legacyRaw;
   }
@@ -246,8 +278,8 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
     get home() { return home; },
     get restoredRun() { return restored; },
     async load(): Promise<Home> {
-      const stored = storage.getItem(RECORD_ENTRY);
-      legacyRaw = storage.getItem(SAVE_KEY);
+      const stored = storage.getItem(recordEntry(active));
+      legacyRaw = active === RECORD_SLOT ? storage.getItem(SAVE_KEY) : null;
       if (stored !== null) {
         readRecord(stored); // a damaged or future record blocks play instead of silently starting over
         await save.load();
@@ -257,7 +289,7 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
       } else {
         await save.load(); // no bytes: both systems reset to a fresh Marrow
       }
-      lastRaw = storage.getItem(RECORD_ENTRY);
+      lastRaw = storage.getItem(recordEntry(active));
       save.touch();
       return home;
     },
@@ -271,14 +303,33 @@ export function openRecord(storage: StoragePort, run: RunHooks): RecordSession {
       catch (error) { home = previous; throw error; }
       finally { override = undefined; }
     },
+    slot: () => active,
+    peek: slot => save.peek(slot),
+    slots: () => save.slots(),
+    async switchSlot(slot: string): Promise<Home> {
+      if (slot === active) return home;
+      const stored = storage.getItem(recordEntry(slot));
+      if (stored !== null) readRecord(stored); // the same damaged-record gate the first load gets
+      await save.switchSlot(slot, { flush: false });
+      active = slot;
+      lastRaw = storage.getItem(recordEntry(slot));
+      save.touch();
+      return home;
+    },
+    async deleteSlot(slot: string): Promise<boolean> {
+      const removed = await save.deleteSlot(slot);
+      // Deleting the open record resets both sections to a fresh Marrow, so the cursor moves with it.
+      if (slot === active) lastRaw = null;
+      return removed;
+    },
     isCurrent,
     digest: () => save.digest(),
   };
 }
 
-/** Whether a Marrow record is actually on disk - the title's Continue gate, not a remembered flag. */
+/** Whether any Marrow record is on disk - the title's Continue gate, not a remembered flag. */
 export function storedMarrow(storage: StoragePort): boolean {
-  return storage.getItem(RECORD_ENTRY) !== null || storage.getItem(SAVE_KEY) !== null;
+  return RECORD_SLOTS.some(slot => storage.getItem(recordEntry(slot)) !== null) || storage.getItem(SAVE_KEY) !== null;
 }
 
 function backendOver(storage: StoragePort): SaveBackend {

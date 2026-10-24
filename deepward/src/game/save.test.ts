@@ -130,6 +130,34 @@ describe("the one Marrow record", () => {
     expect(record.home.activeDive).toBeNull();
   });
 
+  test("a second record is its own document, and switching back restores the first Life", async () => {
+    const storage = memory();
+    const record = openRecord(storage, hooks());
+    await record.load();
+    expect(record.slot()).toBe("marrow");
+    await record.commit(depart(record.home), run);
+
+    await record.switchSlot("marrow-2");
+    expect(record.slot()).toBe("marrow-2");
+    expect(record.home.activeDive).toBeNull();
+    await record.commit(depart(record.home, null), { ...run, dive: newDive(1), player: [0, 0, 9] });
+    expect(storage.getItem("deepward.marrow.record:marrow-2")).not.toBeNull();
+
+    await record.switchSlot("marrow");
+    expect(record.restoredRun?.player).toEqual([0, 0, 4]);
+    expect((await record.slots()).sort()).toEqual(["marrow", "marrow-2"]);
+    expect((await record.peek("marrow-2"))?.systems).toHaveProperty("marrow");
+  });
+
+  test("a damaged record in another slot blocks opening it instead of starting a new Life", async () => {
+    const storage = memory();
+    const record = openRecord(storage, hooks());
+    await record.load();
+    storage.setItem("deepward.marrow.record:marrow-3", "{}");
+    await expect(record.switchSlot("marrow-3")).rejects.toThrow();
+    expect(record.slot()).toBe("marrow");
+  });
+
   test("a saved instance is checked against the catalog, not a copied shape", () => {
     const item = rollItem("ink", 4, "save:catalog", "purchase-1:ink");
     const home = { ...newHome(), stash: [item], extractions: 0, last: null };
