@@ -66,6 +66,15 @@ jobs:
         working-directory: ../jgengine
       - run: bun run engine:local --dir ../jgengine
       - run: bun run engine:status
+      - uses: actions/cache@v4
+        with:
+          path: |
+            */public/models
+            */public/materials
+            */public/sprites
+          key: game-assets-${{ hashFiles('bun.lock', '*/src/game/assets.ts') }}
+          restore-keys: game-assets-
+      - run: bun run provision
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
