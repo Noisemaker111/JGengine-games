@@ -26,6 +26,10 @@ import { browserRecordStorage, completeRun, readRecords, saveRecords, type Perso
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
 import { ESCAPE_BONUS, bankOf, buyPart as buyGaragePart, garageRows, ownedParts, readCareer, SALVAGE_CREDITS, saveCareer, settleRun, standingOf, DRIVER, type CareerSave } from "../career";
 
+/**
+ * Where a run stands, in the player's words. It is derived, never stored: a settled run reports the
+ * outcome the shared run loop closed it with, and an open run is playing once it has begun.
+ */
 export type RunPhase = "start" | "running" | "won" | "crushed";
 
 export interface RadioLine {
@@ -108,6 +112,8 @@ export interface RunSession {
   returnToTitle(): void;
   /** Buy the next rung of a slot's ladder; the pit screen re-reads the career from the snapshot. */
   buyPart(slot: PartSlotId): { ok: boolean; reason?: string };
+  /** Park the stopped, grounded run where it stands; false when it is moving or airborne. */
+  park(): boolean;
   togglePause(): void;
   suspend(value: boolean): void;
   tick(dt: number, axis: DriveAxis, input: { jumpPressed: boolean; plowBracing: boolean; salvageSwap?: boolean }): void;
@@ -125,7 +131,7 @@ export function createRunSession(
   storage: RecordStorage | undefined = browserRecordStorage(),
   notices?: Pick<NoticeFeed, "push">,
 ): RunSession {
-  let phase: RunPhase = "start";
+  let begun = false;
   let paused = false;
   let suspended = false;
   let records = readRecords(storage);
@@ -215,6 +221,17 @@ export function createRunSession(
     notices?.push({ text, tone });
   }
 
+  /**
+   * Where the run stands. A settled run reports the outcome the shared run loop closed it with: the
+   * readout has no outcome field, and its banked/lost totals cannot tell a zero-haul escape from a
+   * zero-haul wreck, so the settlement the loop returned is the only honest answer. `begun` is the
+   * one bit the loop cannot know - it opens a run at the pit, before the engine starts.
+   */
+  function phaseNow(): RunPhase {
+    if (outcome !== null) return outcome.kind;
+    return begun ? "running" : "start";
+  }
+
   function installedBySlot(): Record<PartSlotId, DriftFoundryPartDef | null> {
     const result = {} as Record<PartSlotId, DriftFoundryPartDef | null>;
     for (const slot of PART_SLOTS) {
@@ -256,7 +273,7 @@ export function createRunSession(
 
   /** `keepRun` resumes the run already open (a parked checkpoint); otherwise this starts a new one. */
   function reset(keepRun = false): void {
-    phase = "start";
+    begun = false;
     paused = false;
     runTime = 0;
     installed = ownedParts(career);
@@ -292,7 +309,7 @@ export function createRunSession(
   reset(parkedRun !== null);
 
   function parkRun(): void {
-    if (phase !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
+    if (phaseNow() !== "running" || pose.airborne || pose.speedKmh > 0.1 || runTime <= 0) return;
     const checkpoint: ParkedRun = { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
     if (saveParkedRun(checkpoint, storage)) {
       parkedRun = checkpoint;
@@ -304,16 +321,16 @@ export function createRunSession(
   }
 
   function recordOutcome(settlement: RunSettlement<ShiftEffect>): void {
-    const completed = completeRun(records, { kind: phase === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
+    const completed = completeRun(records, { kind: outcome?.kind === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
     records = completed.records;
     personalBest = completed.personalBest;
     recordsSaved = saveRecords(records, storage);
     // What the loop settled is the whole payment: an escape banks its line-scaled salvage, a wreck
     // carries its salvaged haul into the bank's lost counter and leaves the banked credits alone.
     career = settleRun(career, {
-      kind: phase === "won" ? "escape" : "crushed",
+      kind: outcome?.kind === "won" ? "escape" : "crushed",
       place: standings.placeOf(PLAYER_RACER_ID),
-      haul: phase === "won" ? settlement.banked : settlement.lost,
+      haul: outcome?.kind === "won" ? settlement.banked : settlement.lost,
     });
     careerSaved = saveCareer(career, storage);
     runSaved = saveRunState(loop.snapshot(), storage);
@@ -330,7 +347,7 @@ export function createRunSession(
         personalBest,
         parkedRun,
         clearedGateIds: gateAnnounced,
-        phase,
+        phase: phaseNow(),
         runTime,
         pose,
         zone: zoneAt(pose.position[2]),
@@ -365,7 +382,7 @@ export function createRunSession(
       };
     },
     start() {
-      if (phase === "start") {
+      if (phaseNow() === "start") {
         if (parkedRun !== null) {
           const checkpoint = parkedRun;
           installed = checkpointParts(checkpoint);
@@ -386,7 +403,7 @@ export function createRunSession(
           rebuildTuning();
           pushRadio("PARKED RUN RESTORED — YOUR BUILD IS STILL BOLTED ON");
         }
-        phase = "running";
+        begun = true;
         if (parkedRun === null) pushRadio("BOLT IT ON, GO GO");
       }
     },
@@ -394,7 +411,7 @@ export function createRunSession(
       try {
         career = buyGaragePart(career, slot);
         careerSaved = saveCareer(career, storage);
-        if (phase === "start") {
+        if (phaseNow() === "start") {
           installed = ownedParts(career);
           rebuildTuning();
         }
@@ -407,14 +424,15 @@ export function createRunSession(
       parkedRun = null;
       saveParkedRun(null, storage);
       reset();
-      phase = "running";
+      begun = true;
       pushRadio("BOLT IT ON, GO GO");
     },
     returnToTitle() { parkRun(); reset(parkedRun !== null); },
-    togglePause() { if (phase === "running") { if (!paused) parkRun(); paused = !paused; } },
+    park() { parkRun(); return parkedRun !== null; },
+    togglePause() { if (phaseNow() === "running") { if (!paused) parkRun(); paused = !paused; } },
     suspend(value) { suspended = value; },
     tick(dt, axis, input) {
-      if (phase !== "running" || paused || suspended) return;
+      if (phaseNow() !== "running" || paused || suspended) return;
       // A resumed/background tab cannot advance the crusher by a large wall-clock delta.
       dt = Math.max(0, Math.min(dt, 0.05));
       runTime += dt;
@@ -478,7 +496,6 @@ export function createRunSession(
         notify("ARMOR PLATE SAVED YOUR HIDE", "warn");
         pushRadio("ARMOR PLATE TOOK THE HIT — KEEP MOVING");
       } else if (contact.outcome === "crushed") {
-        phase = "crushed";
         const settlement = loop.settle("lost");
         outcome = {
           kind: "crushed",
@@ -502,7 +519,6 @@ export function createRunSession(
       }
 
       if (pose.position[2] >= EXIT_Z) {
-        phase = "won";
         // The gate bonus is part of what the run carried, so the line is paid on the whole haul.
         loop.carry(ESCAPE_BONUS);
         const place = standings.placeOf(PLAYER_RACER_ID);

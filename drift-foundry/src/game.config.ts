@@ -1,4 +1,6 @@
 import { defineGame } from "@jgengine/shell/defineGame";
+import { createElement } from "react";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
 import { editorLayers } from "./editorLayers";
 
 import { DRIFT_SOUNDS } from "./game/audio";
@@ -25,6 +27,8 @@ export const game = defineGame({
   loop: { onInit, onNewPlayer, onTick },
   lifecycle,
   GameUI,
+  // Hands the live corridor frame to the card Continue opens.
+  WorldOverlay: () => createElement(SceneCaptureBinding, {}),
   hudTheme: driftTheme,
   // One salvage call at a time, above the speed/route plates, like the old pit-radio toast.
   notices: { placement: "bottom", cap: 1 },
