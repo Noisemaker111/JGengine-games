@@ -24,6 +24,9 @@ export const game = defineGame({
   scenePlacement: false,
   scenePathKinds: [],
   physics,
+  // One 1/60 step per tick whatever the display runs at, so travel, jump apex, traffic and the
+  // wanted/search clocks advance identically on a 30 Hz and a 144 Hz machine.
+  simulation: { hz: 60 },
   inventories,
   input: keybinds,
   server: { mode: "openworld" },
