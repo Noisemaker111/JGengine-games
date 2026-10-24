@@ -38,9 +38,11 @@ export const scrapFocus: { id: string | null } = { id: null };
 export function MenuGuard(): null {
   const ctx = useGameContext();
   const phase = useSyncExternalStore(ctx.subscribe, () => gamePhase(ctx), () => gamePhase(ctx));
+  const held = useRef(false);
   useEffect(() => {
-    if (menuRunStartedStore.read(ctx).started) return;
+    if (held.current || menuRunStartedStore.read(ctx).started) return;
     if (phase !== "playing") return;
+    held.current = true;
     setGamePhase(ctx, "menu");
     ctx.time.pause();
   }, [ctx, phase]);
