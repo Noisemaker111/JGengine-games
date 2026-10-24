@@ -7,10 +7,15 @@
  *   bun run prove harbor-heat --view boulevard --view downtown --sizes 1600x900,1024x640 \
  *     --flow to-chase --state chase
  *
- * Evidence is captured by the engine's own `shoot`/`drive` (this repo serves games to them as
- * `<engine>/Games/<game>`), so their guards decide what is provable: no 3D canvas, a flat frame,
- * a missing graphics tier or engine-identity mismatch fail the capture and the bundle, with the
+ * Evidence is captured by the engine's own `shoot`/`drive`, pointed at the game directory this
+ * checkout owns (`--game-dir`), so the run renders the tree under test and not the engine's
+ * `Games/<game>` clone - their guards still decide what is provable: no 3D canvas, a flat frame, a
+ * missing graphics tier or engine-identity mismatch fail the capture and the bundle, with the
  * reason in the manifest. A cell that could not be captured is a failure, never a blank line.
+ *
+ * The manifest names the tree the runner served - its directory, its hash, the engine commit and
+ * mode - and re-reads that hash after the captures: a bundle whose served tree is not the tree
+ * under test fails with both hashes instead of describing someone else's checkout.
  *
  * Artefacts are cached on the code state that produced them - the game's git tree, the engine
  * commit and the capture tools, plus the view, size and tier. An identical input reuses the
@@ -85,6 +90,13 @@ export interface Manifest {
     engineCommit: string;
     engineMode: string;
     tools: string;
+    /** The directory the dev runner was told to serve - the tree this bundle describes. */
+    servedDir: string;
+    /**
+     * The same hash read again after the captures. It equals `gameTree` or the bundle failed:
+     * a proof only describes the tree it served.
+     */
+    servedTree: string;
   };
   sizes: string[];
   views: string[];
@@ -227,7 +239,7 @@ export function gameTreeHash(repo: string, game: string): { hash: string; head: 
 /** The capture tools' own bytes, so a change to shoot/drive cannot reuse an older proof. */
 export function toolsHash(engine: string): string {
   const hash = createHash("sha256");
-  for (const name of ["shoot-dev.ts", "drive-dev.ts", "png-reader.ts"]) {
+  for (const name of ["shoot-dev.ts", "drive-dev.ts", "png-reader.ts", "servedGame.ts"]) {
     const path = join(engine, "scripts", name);
     hash.update(`${name}:`);
     try {
@@ -238,6 +250,22 @@ export function toolsHash(engine: string): string {
     hash.update("\n");
   }
   return hash.digest("hex");
+}
+
+/**
+ * Whether this engine can serve a game from another checkout at all. An engine older than
+ * `--game-dir` captures `Games/<game>` whatever it is told, which is exactly the silent wrong-tree
+ * proof this script exists to prevent, so it is refused before anything is captured.
+ */
+export function engineServesGameDir(engine: string, run: (file: string) => string = defaultHelpRun): boolean {
+  const file = join(engine, "scripts", "shoot-dev.ts");
+  if (!existsSync(file)) return false;
+  return run(file).includes("--game-dir");
+}
+
+function defaultHelpRun(file: string): string {
+  const result = spawnSync(process.execPath, [file, "--help"], { encoding: "utf8", timeout: 60_000 });
+  return `${result.stdout ?? ""}${result.stderr ?? ""}`;
 }
 
 /** The cache key: every input that can change the pixels, and nothing else. */
@@ -316,6 +344,8 @@ export interface ProveDeps {
   drive: (args: { flow: string; state?: string; size: SizeSpec; tier: string; log: string; params: string[] }) => { ok: boolean; wallMs: number; output: string };
   diff: (a: string, b: string) => DiffNumbers;
   now: () => number;
+  /** The served tree's hash read again after the captures finished. */
+  rereadServedTree: () => string;
 }
 
 function sha256File(path: string): string {
@@ -408,6 +438,8 @@ export interface CodeState {
   engineCommit: string;
   engineMode: string;
   tools: string;
+  /** The directory the dev runner serves for this run. */
+  servedDir: string;
 }
 
 export function runProve(args: ProveArgs, deps: ProveDeps, paths: { bundleRoot: string; code: CodeState }): ProveResult {
@@ -421,7 +453,6 @@ export function runProve(args: ProveArgs, deps: ProveDeps, paths: { bundleRoot: 
   const code = paths.code;
   const failures: string[] = [];
   const artefacts: Artefact[] = [];
-
   for (const view of args.views) {
     for (const size of args.sizes) {
       const key = proofKey({ gameTree: code.hash, engineCommit: code.engineCommit, tools: code.tools, view, size: size.label, tier: args.tier, params: args.params });
@@ -535,6 +566,16 @@ export function runProve(args: ProveArgs, deps: ProveDeps, paths: { bundleRoot: 
     if (!run.ok) failures.push(`flow ${args.flow} at ${size.label}: the driven round trip failed (${flow.failed} failed step${flow.failed === 1 ? "" : "s"}); see ${flow.output}`);
   }
 
+  // The bundle describes the tree the runner served, so read that tree again once the captures
+  // are done: an edit during the run, or a runner that ignored --game-dir, must fail here with
+  // both hashes rather than ship pixels of one tree under the other's name.
+  const servedTree = deps.rereadServedTree();
+  if (servedTree !== code.hash) {
+    failures.push(
+      `${args.game}: served tree ${servedTree.slice(0, 12)} is not the tree under test ${code.hash.slice(0, 12)} at ${code.servedDir}; this bundle would describe another checkout`,
+    );
+  }
+
   const manifest: Manifest = {
     v: 1,
     game: args.game,
@@ -546,6 +587,8 @@ export function runProve(args: ProveArgs, deps: ProveDeps, paths: { bundleRoot: 
       engineCommit: code.engineCommit ?? "unknown",
       engineMode: code.engineMode ?? "unknown",
       tools: code.tools ?? "unknown",
+      servedDir: code.servedDir,
+      servedTree,
     },
     sizes: args.sizes.map((size) => size.label),
     views: args.views,
@@ -577,6 +620,7 @@ export function summarise(manifest: Manifest): string {
   const lines: string[] = [];
   const head = `${manifest.game}: ${manifest.views.length} view(s) x ${manifest.sizes.length} size(s), tier ${manifest.tier}, game tree ${manifest.code.gameTree.slice(0, 12)}${manifest.code.dirty ? " (dirty)" : ""}, engine ${manifest.code.engineCommit}`;
   lines.push(head);
+  lines.push(`  served ${manifest.code.servedDir} (tree ${manifest.code.servedTree.slice(0, 12)}${manifest.code.servedTree === manifest.code.gameTree ? "" : " - NOT the tree under test"})`);
   for (const artefact of manifest.artefacts) {
     const noise = `noise ${artefact.control.meanAbs.toFixed(2)} mean-abs, ${formatPercent(artefact.control.over8Share)} >8`;
     const state = artefact.state.taken
@@ -601,6 +645,9 @@ function help(): string {
     "Captures each view at each size in play mode, adds a same-code control pair for this",
     "machine's noise floor and a pixel diff against the previous bundle of another code state,",
     "runs the flow with its step log, and writes one manifest. Identical input reuses the cache.",
+    "",
+    `The run serves this checkout's ${"<game>"} directory through the engine's --game-dir, so the`,
+    "capture renders the tree under test; the manifest names that directory and its hash.",
   ].join("\n");
 }
 
@@ -621,34 +668,33 @@ async function main(): Promise<number> {
   const engine = resolveEngine(args.engine);
   const servedRoot = existsSync(join(engine, "Games")) ? join(engine, "Games") : engine;
   // Standing in a games checkout proves that checkout; standing in the engine checkout proves the
-  // clone it serves (`Games/<game>`), because that is the code its dev runner renders.
+  // clone at `Games/<game>`. Either way the run serves the directory it proved, so the bundle and
+  // the tree under test cannot drift apart.
   const repo = existsSync(join(cwd, args.game, "package.json")) ? cwd : servedRoot;
   if (!existsSync(join(repo, args.game, "package.json"))) {
     console.error(`prove: no game at ${join(repo, args.game)} (nor at ${join(cwd, args.game)})`);
     return 2;
   }
-  if (!existsSync(join(servedRoot, args.game, "package.json"))) {
-    console.error(`prove: the engine at ${engine} serves no ${args.game} (looked in ${servedRoot}); run bun run games:update there, or prove from the checkout the engine serves`);
-    return 2;
-  }
-
-  const checkoutHash = gameTreeHash(repo, args.game);
-  const servedHash = gameTreeHash(servedRoot, args.game);
-  if (checkoutHash.hash !== servedHash.hash) {
+  const gameDir = join(repo, args.game);
+  const gameDirFlag = ["--game-dir", gameDir];
+  if (!engineServesGameDir(engine)) {
     console.error(
-      `prove: ${args.game} here is tree ${checkoutHash.hash.slice(0, 12)}${checkoutHash.dirty ? " (dirty)" : ""}, but the engine captures tree ${servedHash.hash.slice(0, 12)}${servedHash.dirty ? " (dirty)" : ""} from ${join(servedRoot, args.game)}.\n` +
-        "prove: a bundle that captured another checkout's code would be wrong evidence, so nothing was captured. Run prove from the checkout the engine serves (bun run games:update there), or move these edits into it.",
+      `prove: the engine at ${engine} cannot serve ${gameDir} - its shoot/drive have no --game-dir, so they would capture whatever Games/${args.game} the clone holds instead.\n` +
+        "prove: update that engine checkout to a beta that has --game-dir (git -C " + engine + " pull --ff-only origin beta), or prove from the checkout it serves.",
     );
     return 1;
   }
 
+  const treeUnderTest = gameTreeHash(repo, args.game);
+
   const state = readState();
   const engineMode = state?.mode ?? "published";
   const code = {
-    ...servedHash,
+    ...treeUnderTest,
     engineCommit: engineCommit(engine),
     engineMode,
     tools: toolsHash(engine),
+    servedDir: gameDir,
   };
   const bundleRoot = resolve(args.out ?? join(cwd, ".scratch", "proofs", args.game));
 
@@ -670,6 +716,7 @@ async function main(): Promise<number> {
       String(request.size.height),
       "--out",
       request.out,
+      ...gameDirFlag,
       ...request.params.flatMap((param) => ["--param", param]),
     ];
     const startedAt = Date.now();
@@ -699,6 +746,7 @@ async function main(): Promise<number> {
       String(request.size.height),
       "--log",
       request.log,
+      ...gameDirFlag,
       ...(request.state === undefined ? [] : ["--state", request.state]),
       ...request.params.flatMap((param) => ["--param", param]),
     ];
@@ -714,7 +762,7 @@ async function main(): Promise<number> {
 
   const result = runProve(
     args,
-    { shoot: shootOne, drive: driveFlow, diff, now: () => performance.now() },
+    { shoot: shootOne, drive: driveFlow, diff, now: () => performance.now(), rereadServedTree: () => gameTreeHash(repo, args.game).hash },
     { bundleRoot, code },
   );
 

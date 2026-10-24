@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { diffFrames, findBaseline, gameTreeHash, parseProveArgs, proofKey, runProve, summarise, type CodeState, type Manifest } from "./prove";
+import { diffFrames, engineServesGameDir, findBaseline, gameTreeHash, parseProveArgs, proofKey, runProve, summarise, type CodeState, type Manifest } from "./prove";
 
 function frame(width: number, height: number, fill: number): { width: number; height: number; data: Uint8Array } {
   const data = new Uint8Array(width * height * 4);
@@ -20,7 +20,7 @@ function scratch(): string {
   return mkdtempSync(join(tmpdir(), "prove-"));
 }
 
-const code: CodeState = { hash: "game-tree", head: "abc123", dirty: false, engineCommit: "eng123", engineMode: "published", tools: "tools1" };
+const code: CodeState = { hash: "game-tree", head: "abc123", dirty: false, engineCommit: "eng123", engineMode: "published", tools: "tools1", servedDir: "/games/harbor-heat" };
 
 const args = {
   game: "harbor-heat",
@@ -144,6 +144,7 @@ describe("runProve cache", () => {
       return { meanAbs: same ? 0.5 : 2, over8Share: same ? 0.001 : 0.01, pixels: 100 };
     },
     now: () => 0,
+    rereadServedTree: () => code.hash,
   });
 
   test("captures once, then reuses the identical input and reports it", () => {
@@ -193,12 +194,39 @@ describe("runProve cache", () => {
       drive: () => ({ ok: true, wallMs: 1, output: "" }),
       diff: () => ({ meanAbs: 0, over8Share: 0, pixels: 1 }),
       now: () => 0,
+      rereadServedTree: () => code.hash,
     };
     const result = runProve({ ...args, views: ["boulevard", "downtown"], keepGoing: true }, refusal, { bundleRoot: root, code });
     expect(result.manifest.ok).toBe(false);
     expect(result.manifest.artefacts).toHaveLength(0);
     expect(result.manifest.failures[0]).toContain("flat - no 3D canvas");
     expect(readManifest(result.manifestPath).failures).toHaveLength(2);
+  });
+
+  test("a served tree that is not the tree under test fails the bundle and names both hashes", () => {
+    const root = scratch();
+    const counter = { runs: 0 };
+    const drifted = { ...deps(counter, () => 1), rereadServedTree: () => "another-tree" };
+    const result = runProve(args, drifted, { bundleRoot: root, code });
+    expect(result.manifest.ok).toBe(false);
+    expect(result.manifest.code.servedTree).toBe("another-tree");
+    expect(result.manifest.code.gameTree).toBe("game-tree");
+    expect(result.manifest.code.servedDir).toBe("/games/harbor-heat");
+    const failure = result.manifest.failures.join("\n");
+    expect(failure).toContain("another-tree");
+    expect(failure).toContain("game-tree");
+    expect(failure).toContain("not the tree under test");
+  });
+});
+
+describe("engineServesGameDir", () => {
+  test("an engine whose shoot help names --game-dir can serve another checkout, an older one cannot", () => {
+    const root = scratch();
+    mkdirSync(join(root, "scripts"), { recursive: true });
+    writeFileSync(join(root, "scripts", "shoot-dev.ts"), "// shoot\n");
+    expect(engineServesGameDir(root, () => "bun run shoot [game] [options]\n  --game-dir <path> serves a checkout")).toBe(true);
+    expect(engineServesGameDir(root, () => "bun run shoot [game] [options]")).toBe(false);
+    expect(engineServesGameDir(join(root, "absent"), () => "--game-dir")).toBe(false);
   });
 });
 
@@ -208,7 +236,7 @@ describe("summarise", () => {
       v: 1,
       game: "harbor-heat",
       capturedAt: "2026-10-24T00:00:00.000Z",
-      code: { gameTree: "abcdef1234567890", head: "h", dirty: false, engineCommit: "e", engineMode: "published", tools: "t" },
+      code: { gameTree: "abcdef1234567890", head: "h", dirty: false, engineCommit: "e", engineMode: "published", tools: "t", servedDir: "/games/harbor-heat", servedTree: "abcdef1234567890" },
       sizes: ["1600x900"],
       views: ["boulevard"],
       tier: "high",
