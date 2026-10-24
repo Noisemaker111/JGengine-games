@@ -38,6 +38,7 @@ export interface MemberState {
   workToday: number;
   harvestToday: number;
   shiftProgress: number;
+  /** Published from the shift session loop: the day whose shift closed, -1 before any. */
   shiftDay: number;
   completedShifts: number;
   missedShifts: number;

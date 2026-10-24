@@ -9,6 +9,7 @@ import {
   RUNG_NAMES,
 } from "../../careers";
 import { householdStore } from "../../session/store";
+import { shiftRan } from "../../session/shiftSessions";
 import { pairKey } from "../../session/types";
 import { activeGoalLabel, waitingForStation } from "../../sim/simulate";
 import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShiftLabel } from "../../sim/schedule";

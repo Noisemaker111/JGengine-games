@@ -7,6 +7,7 @@ import { DAY_LENGTH } from "../../world";
 import { FURNITURE_BY_ID, type FurnitureRole } from "../objects/catalog";
 import { clamp, lowestNeed, type NeedId } from "../needs/needs";
 import { householdStore } from "../session/store";
+import { closeShift, openShift, probeShift, shiftLoop, shiftRan } from "../session/shiftSessions";
 import { noteEvent, pairKey, type HouseholdState, type MemberState } from "../session/types";
 import { chooseDesire, isIdleish, SOCIAL_RANGE, SOCIAL_SECONDS, USE_FULL, type RoleAvailability } from "./ai";
 import { advanceLifeEvents } from "./events";
@@ -96,8 +97,13 @@ function concern(ctx: GameContext, state: HouseholdState, member: MemberState, t
 }
 
 function finishShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number, view: CareerView): void {
-  if (member.shiftDay === state.day) return;
+  const loop = shiftLoop(ctx, member.id);
+  if (shiftRan(ctx, member.id, state.day)) return;
+  probeShift(ctx, member.id);
+  // The shift's boundary is the loop's: it settles the pay it carried and reports a finished shift.
+  const settlement = closeShift(loop, state.day, true);
   member.shiftDay = state.day;
+  if (!settlement.finished) return;
   member.completedShifts += 1;
   const station = member.lifestyle;
   const changes = view.standing.apply(member.id, station === "yield" ? "shift:yield" : "shift:bloom");
@@ -118,10 +124,13 @@ function finishShift(ctx: GameContext, state: HouseholdState, member: MemberStat
 
 function closeMissedShift(ctx: GameContext, state: HouseholdState, member: MemberState, now: number, view: CareerView): void {
   const hour = ((now % DAY_LENGTH) / DAY_LENGTH) * 24;
-  if (member.shiftDay >= state.day || hour < shiftWindow(member).end) return;
+  const loop = shiftLoop(ctx, member.id);
+  if (shiftRan(ctx, member.id, state.day) || hour < shiftWindow(member).end) return;
   const finished = member.lifestyle === "yield" ? member.workToday >= SHIFT_SECONDS : member.harvestToday > 0;
+  // A window that closes without the work finished settles as a missed shift: it banks nothing.
+  const settlement = closeShift(loop, state.day, finished);
   member.shiftDay = state.day;
-  if (finished) return;
+  if (settlement.finished) return;
   member.missedShifts += 1;
   view.standing.apply(member.id, "missed");
   state.standing = view.standing.snapshot();
@@ -278,6 +287,11 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       const earned = creditAmount(member.workToday * rate) - before;
       state.credits = creditAmount(state.credits + earned);
       state.dayIncome = creditAmount(state.dayIncome + earned);
+      // The shift is a session on the shared loop; it carries the pay the household banked for it.
+      const loop = shiftLoop(ctx, member.id);
+      openShift(loop, state.day);
+      probeShift(ctx, member.id);
+      if (earned > 0) loop.carry(earned);
       agent.needs.refill("energy", -0.55 * worked);
       agent.needs.refill("hunger", -0.2 * worked);
       member.stress = clamp(member.stress + worked);
@@ -295,6 +309,9 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
     if (isTending && member.lifestyle === "bloom" && shiftIsOpen(member, now) && !member.recovering) {
       member.shiftProgress = Math.min(SHIFT_SECONDS, member.shiftProgress + dt);
       if (member.shiftProgress > SHIFT_SECONDS - 1e-8) member.shiftProgress = SHIFT_SECONDS;
+      const bloomLoop = shiftLoop(ctx, member.id);
+      openShift(bloomLoop, state.day);
+      probeShift(ctx, member.id);
       agent.needs.refill("energy", -0.2 * dt);
       if (member.shiftProgress >= SHIFT_SECONDS) {
         const book = householdBook(state);
@@ -311,6 +328,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
         state.dayHarvest += harvest;
         state.credits = creditAmount(state.credits + income);
         state.dayIncome = creditAmount(state.dayIncome + income);
+        if (income > 0) bloomLoop.carry(income);
         noteEvent(state, ctx.game.notices, `${member.name} harvested ${member.bloomCrop === "export" ? "an export" : "a pantry"} crop: ${harvest} rations and earned ${income} credits${friend ? " with a friend's help" : ""}.`, "success");
         ctx.game.audio.play("harvest", [obj.position[0], obj.position[1], obj.position[2]]);
         finishShift(ctx, state, member, now, view);
