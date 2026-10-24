@@ -123,7 +123,20 @@ describe("flow parsing", () => {
 
   test("an assert may carry the expected value beside its expression", () => {
     expect(parseFlow(`{ "steps": [ { "assert": "units.length", "is": 5 } ] }`, "g/a.json").problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "click": "a", "is": 5 } ] }`, "g/a.json").problems[0]).toContain('unknown field "is"');
+    expect(parseFlow(`{ "steps": [ { "click": "a", "is": 5 } ] }`, "g/a.json").problems[0]).toContain('"is" is the expected value of an assert');
+  });
+
+  test("a waitFor with its cap parses: the runner honours both", () => {
+    const flow = `{ "steps": [ { "waitFor": "__jgProbe().started === 1", "timeoutMs": 45000 }, { "assert": "true" } ] }`;
+    const parsed = parseFlow(flow, "g/proofs/flows/to-front.json");
+    expect(parsed.problems).toEqual([]);
+    expect(parsed.asserts).toBe(1);
+  });
+
+  test("a cap on a step that cannot use it fails with the rule named", () => {
+    const stray = parseFlow(`{ "steps": [ { "click": "Start", "timeoutMs": 5000 } ] }`, "g/a.json");
+    expect(stray.problems[0]).toContain("a poll cap proves nothing without a condition");
+    expect(stray.problems[0]).toContain('before { "timeoutMs": n }');
   });
 });
 
