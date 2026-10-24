@@ -5,7 +5,8 @@ import { itemNameById } from "../content";
 import { DamageVignette, HitMarker, LevelUpBurst } from "./components/Feedback";
 import { CashPlate, CreditBadge, MissionTracker } from "./components/Mission";
 import { ReserveOverlay, VendorPanel } from "./components/Overlays";
-import { CharacterSelect, TalentsPanel } from "./components/Talents";
+import { TalentsPanel } from "./components/Talents";
+import { ScrapMenu } from "./menu/ScrapMenu";
 import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
@@ -92,7 +93,8 @@ export function GameUI() {
       <BlackMarketPanel />
       <ReactorEnding />
       <LevelUpBurst />
-      <CharacterSelect />
+      <ScrapMenu />
     </HudCanvas>
   );
 }
+

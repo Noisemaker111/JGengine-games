@@ -6,7 +6,10 @@ import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { stageRelay } from "./relay";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
-import { activeCharacter, characterById, pickCharacter, talentTree, bonus } from "./characters";
+import { activeCharacter, characterById, pickCharacter, resetCharacterState, talentTree, bonus } from "./characters";
+import { scrapSave } from "./save";
+import { captureScrapThumb, scrapProfile } from "./scrapProfile";
+import { refreshScrapSlots } from "./scrapSlots";
 import { noteEquipped } from "./feel";
 import { gunById, rollGun, startReload, reservePhase } from "./handroll";
 import { equipFieldGun, salvageFieldGun, bankFieldHaul } from "./items/fieldGear";
@@ -397,11 +400,65 @@ export function registerCommands(ctx: GameContext): void {
     },
   });
 
+  // The menu's own verbs: keep the run where it stands, and open a kept one.
+  ctx.game.commands.define<{ slot?: string }>("run.save", {
+    apply(state, input) {
+      scrapProfile.name = activeCharacter()?.name ?? scrapProfile.name;
+      void captureScrapThumb().then(async () => {
+        const save = scrapSave(state);
+        if (typeof input?.slot === "string" && input.slot !== save.slot()) await save.switchSlot(input.slot, { flush: false });
+        await save.save();
+        await refreshScrapSlots(state);
+        state.scene.entity.floatText({ instanceId: state.player.userId, text: "SIGNAL KEPT", kind: "pickup" });
+      });
+      return state;
+    },
+  });
+  ctx.game.commands.define<{ slot?: string }>("run.continue", {
+    apply(state, input) {
+      void (async () => {
+        const save = scrapSave(state);
+        if (typeof input?.slot === "string" && input.slot !== save.slot()) await save.switchSlot(input.slot, { flush: false });
+        await save.load();
+        if (activeCharacter() === null) return;
+        setGamePhase(state, "playing");
+        state.time.play();
+      })();
+      return state;
+    },
+  });
+  if (import.meta.env.DEV) {
+    // The menu states a capture host reaches: keep a run, then stand at the carrier.
+    ctx.game.commands.define<{ characterId?: string; name?: string }>("menu.run", {
+      apply(state, input) {
+        const id = input?.characterId ?? "gunk";
+        const def = characterById(id);
+        if (def === undefined) return state;
+        scrapProfile.name = input?.name ?? def.name;
+        pickCharacter(def.id);
+        characterIdStore.write(state, def.id);
+        applyPassiveEffects(state);
+        setGamePhase(state, "playing");
+        state.time.play();
+        return state;
+      },
+    });
+    ctx.game.commands.define("menu.title", {
+      apply(state) {
+        resetCharacterState();
+        characterIdStore.write(state, null);
+        setGamePhase(state, "menu");
+        state.time.pause();
+        return state;
+      },
+    });
+  }
   ctx.game.commands.define<{ characterId?: string }>("character.pick", {
     apply(state: GameContext, input) {
       if (activeCharacter() !== null) return;
       const def = characterById(input.characterId ?? "");
       if (def === undefined) return;
+      runStartedFlag = true;
       pickCharacter(def.id);
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
@@ -463,6 +520,13 @@ export function registerCommands(ctx: GameContext): void {
  * whole-world `ctx.game.save.load()` — they live outside the world snapshot, unlike the character id,
  * talent ranks and `skillPoints` stat the load already restored. Returns whether a saved build was found.
  */
+let runStartedFlag = false;
+
+/** True once the player picked a reclaimer or continued a kept run in this page. */
+export function runStarted(): boolean {
+  return runStartedFlag;
+}
+
 export function resumeBuild(ctx: GameContext): boolean {
   const characterId = characterIdStore.read(ctx);
   if (characterId === null) return false;
@@ -489,3 +553,8 @@ function applyPassiveEffects(ctx: GameContext, previousHealthMult = 1): void {
     movement: { walkSpeed: Math.round(player.walkSpeed * (1 + bonus("moveSpeed")) * 10) / 10 },
   });
 }
+
+
+
+
+

@@ -8,6 +8,9 @@ import { activeCharacter, pickCharacter, resetCharacterState, talentTree } from 
 import { resumeBuild } from "./commands";
 import { characterIdStore, talentRanksStore } from "./stores";
 import { loadSavedProgress } from "./saveCompatibility";
+import { createScrapSave, scrapSave } from "./save";
+import { combatState, restoreCombat } from "./combat/hitModel";
+import { reserveSave, restoreReserve } from "./handroll/reserve";
 import { quests } from "./quests/catalog";
 
 afterEach(() => resetCharacterState());
@@ -107,3 +110,51 @@ describe("scrap-signal whole-world save", () => {
     expect(activeCharacter()).toBeNull();
   });
 });
+
+/**
+ * A run saved mid-wave carries things a fixed decoder can quietly reject: a status with stacks left
+ * on its timer, and a reclaimer inside the Emergency Reserve window. If `peek` returns null the
+ * document was refused, which is what a player sees as "Continue disappeared".
+ */
+describe("scrap-signal mid-wave documents", () => {
+  test("a carried status and a downed reclaimer survive a save and a reload", async () => {
+    const backend = memorySaveBackend();
+    const live = bootContext(backend);
+    live.scene.entity.spawn("player", { id: "p1", position: [0, 0, 0] });
+    pickCharacter("gunk");
+    characterIdStore.write(live, "gunk");
+    restoreCombat(live, {
+      ...combatState(live),
+      statuses: {
+        targets: [
+          {
+            id: "p1",
+            entries: [
+              {
+                instance: { status: "corrode", stacks: 2, remainingMs: 3000, ticks: 3, magnitude: 4, source: "raider#1" },
+                untilTickMs: 1500,
+              },
+            ],
+          },
+        ],
+        ticks: 1,
+        applied: 1,
+        expired: 0,
+      },
+    });
+    restoreReserve(live, { p1: { phase: "downed", bleedoutRemaining: 5, reviveProgress: 0, bannerRemaining: null } });
+
+    const save = createScrapSave(live, { backend, slot: "relay" });
+    await save.save();
+    expect(await save.peek("relay")).not.toBeNull();
+
+    const reboot = bootContext(backend);
+    const reloaded = createScrapSave(reboot, { backend, slot: "relay" });
+    await reloaded.load();
+    expect(combatState(reboot).statuses.targets[0]?.entries[0]?.instance.status).toBe("corrode");
+    expect(reserveSave(reboot).p1?.phase).toBe("downed");
+  });
+});
+
+
+

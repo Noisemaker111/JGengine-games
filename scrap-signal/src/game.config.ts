@@ -163,6 +163,8 @@ export const game = defineGame({
     play: [{ name: "character.pick", input: { characterId: "gunk" } }],
     states: {
       title: [],
+      menu: [{ name: "menu.run", input: { characterId: "gunk", name: "Mara Vell" } }, "run.save", "menu.title"],
+      "menu-new": ["menu.title"],
       // The boss shot: pick a character, then open the front's last wave with the Foreman one shot
       // above its second phase. The phase change itself is the next real hit.
       boss: [{ name: "character.pick", input: { characterId: "gunk" } }, "front.capture"],
@@ -186,6 +188,8 @@ export const game = defineGame({
     // 2.5 s wait was landing the capture before anything had been rasterised at all.
     settleMs: 9000,
     views: {
+      menu: { description: "Boot menu over the wastes, Continue highlighted", state: "menu", settleMs: 1800 },
+      menuNew: { description: "New run pane with the reclaimer roster", state: "menu-new", settleMs: 1200 },
       convoy: {
         description: "The wrecked hauler landmark that gives the opening view its midground.",
         look: "@marker:rustflat_convoy_hauler",
@@ -317,3 +321,6 @@ export const game = defineGame({
   },
   orientation: "landscape",
 });
+
+
+

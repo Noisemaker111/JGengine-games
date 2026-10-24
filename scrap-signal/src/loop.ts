@@ -9,7 +9,7 @@ import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/rel
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, talentTree } from "./game/characters";
 import { perContext } from "@jgengine/core/runtime/perContext";
-import { registerCommands, resumeBuild } from "./game/commands";
+import { registerCommands, resumeBuild, runStarted } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
@@ -336,7 +336,22 @@ function stageReserveForCapture(ctx: GameContext): void {
   ctx.game.commands.run("reserve.capture", {});
 }
 
+let bootedToMenu = false;
+
 function onTick(ctx: GameContext, dt: number): void {
+  // A reload restores the run and the phase store with it. The front end still comes first: one
+  // frame after the restore, a run nobody has continued yet sits behind the menu.
+  if (!bootedToMenu) {
+    bootedToMenu = true;
+    const openMenu = () => {
+      if (!runStarted() && activeCharacter() !== null && gamePhase(ctx) === "playing") {
+        setGamePhase(ctx, "menu");
+        ctx.time.pause();
+      }
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(openMenu));
+    else openMenu();
+  }
   stageReserveForCapture(ctx);
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
@@ -357,4 +372,7 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+
+
+
 
