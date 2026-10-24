@@ -40,5 +40,7 @@ Numbers are what the build does now.
   branch. A sixth zone for the level 24–30 band, or a reason to rebuild a character, is what hour five
   needs.
 
+Loop proof: TODO to-front
+
 The whole-world save restores character, talents, quests, inventory and economy; `src/game/saveCompatibility.ts`
 handles the legacy identifiers. Run `bun run check-types` and `bun run test` here after changes.

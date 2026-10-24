@@ -28,3 +28,5 @@ Read from `src/game/{quests,jobs,progression,entities,handroll}`. Numbers are wh
   - *Crazy Taxi* — feel: timer pressure with a clean run always available; density: constant pickups, no downtime; UI: one arrow and one clock, legible while driving.
   - *Need for Speed: Most Wanted* — feel: pursuit that escalates by star; density: street races sharing the same roads; UI: speedometer plus wanted stars readable at a glance.
 - **Gap to target.** The chain is eight missions and four circuits long; past them the city repeats courier and bounty work with no new tier. Hour five wants either a second act of missions or a reason the repeatable jobs change.
+
+Loop proof: to-chase (run with `--state chase`, the game's own `chase.stage`; the flow drives out of the search area and asserts it grew, so the heat ran and the keypress was not the whole event)
