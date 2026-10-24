@@ -1,0 +1,7 @@
+{ "steps": [
+  { "assert": "window.__jgengineRun !== undefined && window.__jgengineRun.read().kind === 'wave'",
+    "note": "arrival: the Dead Air contract's session loop is mounted and reporting on the page, so its waves are sessions of the shared loop" },
+
+  { "assert": "(() => { const readout = window.__jgengineRun.read(); return readout.carried === 0 && document.body.innerText.length > 0; })()",
+    "note": "arrival: the loop reads its own carried signal, and the game is rendered around it" }
+] }
