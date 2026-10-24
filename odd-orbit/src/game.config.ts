@@ -1,4 +1,6 @@
 import { defineGame } from "@jgengine/shell/defineGame";
+import { createElement } from "react";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
 
 import { ORBIT_SOUNDS } from "./game/audio";
 import { assets } from "./game/assets";
@@ -24,6 +26,8 @@ export const game = defineGame({
   content,
   loop,
   GameUI,
+  // Hands the live habitat frame to the save card's thumbnail request.
+  WorldOverlay: () => createElement(SceneCaptureBinding, {}),
   hudTheme: orbitTheme,
   // Household journal lines are full sentences; give them time to read above the habitat tools.
   notices: { placement: "bottom", ttlMs: 8000 },

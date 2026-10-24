@@ -19,6 +19,28 @@ import { pairKey, BLOOM_CROPS, LIFESTYLES, type HouseholdState } from "./types";
 export const ORBIT_SAVE_KEY = "odd-orbit.household-save.v1";
 const SAVE_LIMIT = 256 * 1024;
 const MAX_TIME = DAY_LENGTH * 1_000_000;
+/** A wall-clock stamp (ms) is far larger than simulated time; JavaScript dates top out here. */
+const MAX_WALL_CLOCK = 8.64e15;
+/** The households the save-select pane offers: the original key plus two more on the same path. */
+export const ORBIT_SLOTS = ["household", "household-2", "household-3"] as const;
+/** A household's own name for its slot ("Household I"), never a raw storage key. */
+export const ORBIT_SLOT_LABEL: Record<string, string> = {
+  household: "Household I",
+  "household-2": "Household II",
+  "household-3": "Household III",
+};
+/** Slot one keeps the original key, so a household saved by an older build still continues. */
+export function orbitSlotKey(slot: string): string {
+  return slot === ORBIT_SLOTS[0] ? ORBIT_SAVE_KEY : `${ORBIT_SAVE_KEY}:${slot}`;
+}
+/** What the screen leaves behind for the save card: the household's name and a captured frame. */
+export const orbitProfile: OrbitSaveProfile = { name: "", thumbnail: null, savedAt: 0 };
+export interface OrbitSaveProfile {
+  name: string;
+  thumbnail: string | null;
+  /** Wall clock (ms) of the write, so Continue resumes the newest household. */
+  savedAt: number;
+}
 export interface OrbitSave {
   version: 1;
   household: HouseholdState;
@@ -26,6 +48,8 @@ export interface OrbitSave {
   objects: SceneObject[];
   stats: Record<string, StatValueMap>;
   clock: ClockSnapshot;
+  /** Absent in saves written before the menu: the card then falls back to the household's own members. */
+  profile?: OrbitSaveProfile;
 }
 const object = (value: unknown): value is Record<string, any> => !!value && typeof value === "object" && !Array.isArray(value);
 const number = (value: unknown, min = 0, max = 1_000_000): value is number => typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
@@ -107,9 +131,18 @@ function validCareers(value: unknown): boolean {
   return Object.entries(value.ranks).every(([node, rank]) => CAREER_NODE_IDS.has(node) && integer(rank, 0, 2));
 }
 
+/** A card's own fields: the household's name and the captured frame, both bounded. */
+export function validOrbitProfile(value: unknown): value is OrbitSaveProfile {
+  return object(value)
+    && typeof value.name === "string" && value.name.length <= 40
+    && (value.thumbnail === null || (typeof value.thumbnail === "string" && value.thumbnail.length <= SAVE_LIMIT))
+    && number(value.savedAt, 0, MAX_WALL_CLOCK);
+}
+
 /** Reject the entire save before any subsystem can hydrate a partial damaged world. */
 export function validOrbitSave(value: unknown): value is OrbitSave {
   if (!object(value) || value.version !== 1 || !validClock(value.clock) || !validHousehold(value.household, value.clock) || !json(value.household)) return false;
+  if (value.profile !== undefined && !validOrbitProfile(value.profile)) return false;
   const ids = value.household.order;
   if (!Array.isArray(value.entities) || value.entities.length !== ids.length || !value.entities.every(object) || new Set(value.entities.map(entity => entity.id)).size !== ids.length) return false;
   for (const e of value.entities) {
@@ -125,11 +158,18 @@ export function validOrbitSave(value: unknown): value is OrbitSave {
 
 export function captureOrbitSave(ctx: GameContext): OrbitSave {
   const snapshot = ctx.snapshot();
-  return JSON.parse(JSON.stringify({ version: 1, household: householdStore.read(ctx), entities: snapshot.entities, objects: snapshot.objects, stats: snapshot.stats, clock: ctx.time.snapshot() })) as OrbitSave;
+  return JSON.parse(JSON.stringify({
+    version: 1, household: householdStore.read(ctx), entities: snapshot.entities, objects: snapshot.objects, stats: snapshot.stats,
+    clock: ctx.time.snapshot(), profile: { ...orbitProfile },
+  })) as OrbitSave;
 }
 export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   if (!validOrbitSave(save)) throw new Error("Invalid Odd Orbit save");
   const detached = structuredClone(save);
+  // A household restored without a name is named by its members until the player renames it.
+  orbitProfile.name = detached.profile?.name ?? "";
+  orbitProfile.thumbnail = detached.profile?.thumbnail ?? null;
+  orbitProfile.savedAt = detached.profile?.savedAt ?? 0;
   // v1 saves written before the shell notice feed carried a household journal; it no longer exists.
   const legacy = detached.household as HouseholdState & { events?: unknown; milestones?: unknown };
   delete legacy.events;
@@ -147,12 +187,12 @@ export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   ctx.hydrate({ objects: detached.objects, entities: detached.entities, stats: detached.stats });
   householdStore.write(ctx, detached.household);
 }
-export function readOrbitSave(storage: KeyValueStorage | null = defaultKeyValueStorage()): { save: OrbitSave | null; damaged: boolean; unavailable: boolean } {
+export function readOrbitSave(storage: KeyValueStorage | null = defaultKeyValueStorage(), slot: string = ORBIT_SLOTS[0]): { save: OrbitSave | null; damaged: boolean; unavailable: boolean } {
   if (storage === null) return { save: null, damaged: false, unavailable: true };
   let damaged = false;
   let unavailable = false;
   const cell = createKeyValueStore<OrbitSave | null>({
-    key: ORBIT_SAVE_KEY, initial: null,
+    key: orbitSlotKey(slot), initial: null,
     storage: { getItem(key) { try { return storage.getItem(key); } catch { unavailable = true; return null; } }, setItem: (key, raw) => storage.setItem(key, raw), removeItem: key => storage.removeItem(key) },
     deserialize(raw) {
       if (raw.length > SAVE_LIMIT) { damaged = true; return null; }
@@ -163,13 +203,13 @@ export function readOrbitSave(storage: KeyValueStorage | null = defaultKeyValueS
   });
   return { save: cell.get(), damaged, unavailable };
 }
-export function writeOrbitSave(ctx: GameContext, storage: KeyValueStorage | null = defaultKeyValueStorage()): boolean {
+export function writeOrbitSave(ctx: GameContext, storage: KeyValueStorage | null = defaultKeyValueStorage(), slot: string = ORBIT_SLOTS[0]): boolean {
   if (storage === null) return false;
   let save: OrbitSave;
   try { save = captureOrbitSave(ctx); } catch { return false; }
   if (!validOrbitSave(save)) return false;
   let written = false;
-  createKeyValueStore<OrbitSave | null>({ key: ORBIT_SAVE_KEY, initial: null,
+  createKeyValueStore<OrbitSave | null>({ key: orbitSlotKey(slot), initial: null,
     storage: { getItem: () => null, removeItem: key => storage.removeItem(key), setItem(key, raw) { if (raw.length <= SAVE_LIMIT) { storage.setItem(key, raw); written = true; } } },
   }).set(save);
   return written;

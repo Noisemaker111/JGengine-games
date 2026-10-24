@@ -1,6 +1,7 @@
 import { createSessionLoop, installSessionProbe, type SessionLoop } from "@jgengine/core/run/sessionLoop";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { householdStore } from "./store";
 
 /** What a shift's boundary hands back: whether it was worked to the end, and the pay it carried. */
 export interface ShiftSettlement {
@@ -49,6 +50,10 @@ export function openShift(loop: ShiftLoop, day: number): void {
 
 /** Whether this day's shift has already closed, so the paid work is spent until tomorrow. */
 export function shiftRan(ctx: GameContext, memberId: string, day: number): boolean {
+  // The household's own record survives a reload: a shift that closed on the day the member saved is
+  // spent, even though this page builds the shift's session loop fresh.
+  const member = householdStore.read(ctx).members[memberId];
+  if (member !== undefined && member.shiftDay >= day) return true;
   const loop = shiftLoop(ctx, memberId);
   return loop.snapshot().session === day + 1 && loop.phase() === "closed";
 }

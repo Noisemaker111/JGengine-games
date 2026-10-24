@@ -56,6 +56,20 @@ test("the shift session opens for the day, carries its pay and settles at the wi
   expect(shiftRan(ctx, id, householdStore.read(ctx).day)).toBe(true);
 });
 
+test("a reloaded household does not take the same day's shift twice", () => {
+  const ctx = boot();
+  const id = householdStore.read(ctx).order[0]!;
+  startYieldShift(ctx, id);
+  advance(ctx, 22);
+  const saved = householdStore.read(ctx);
+  expect(saved.members[id]!.completedShifts).toBe(1);
+
+  // A reload builds the shift loop fresh; the member's saved day is what keeps the shift spent.
+  const reloaded = boot();
+  householdStore.write(reloaded, structuredClone({ ...saved, members: { ...saved.members } }));
+  expect(shiftRan(reloaded, id, saved.day)).toBe(true);
+});
+
 test("the probe reports the member's live shift session", () => {
   const ctx = boot();
   const id = householdStore.read(ctx).order[0]!;
