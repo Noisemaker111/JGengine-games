@@ -143,6 +143,10 @@ describe("the evidence line itself", () => {
     expect(added).toContain("## Engine pin");
     expect(checkEngineMode(pinned(), added).ok).toBe(true);
   });
+
+  test("the line carries the whole commit, because CI fetches it by sha", () => {
+    expect(pinLine(SHA)).toBe(`Engine pin: ${SHA}`);
+  });
 });
 
 describe("the CLI a lane and CI run", () => {

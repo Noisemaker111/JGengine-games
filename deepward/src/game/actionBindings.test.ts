@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { physics, VAULT_SPAWN, world } from "../world";
+import { createDeepwardDamage, createDeepwardWeapon, sidearmDefinition } from "./combat";
 import { keybinds, registerControls, tick, viewStore } from "./controls";
 import { newDive, takeLoot } from "./state";
 
@@ -97,7 +98,7 @@ test("held fire and the same-frame action command share one shot, repeat at cade
   expect(loaded(ctx)).toBe(3);
 });
 
-test("equipped rifle held fire preserves its interval and reload gate, then resumes until release", () => {
+test("equipped rifle held fire preserves its interval and reload gate, then resumes the moment the reload clears", () => {
   const ctx = diveContext();
   const looted = takeLoot(viewStore.read(ctx).dive!, "fitter", "service-rifle");
   viewStore.update(ctx, view => ({ ...view, dive: looted.ok ? looted.dive : view.dive }));
@@ -119,13 +120,48 @@ test("equipped rifle held fire preserves its interval and reload gate, then resu
   expect(viewStore.read(ctx).ammo!.reloading).toBe(true);
   expect(loaded(ctx)).toBe(4);
   expect(viewStore.read(ctx).ammo!.reserve).toBe(reserve);
+  // Held through the reload, the weapon is ready the instant the magazine is back: the cooldown
+  // ran on the simulation step, so no extra cycle is owed after 1.3 s of reloading.
   advanceFrames(ctx, 3);
   expect(viewStore.read(ctx).ammo!.reloading).toBe(false);
   expect(viewStore.read(ctx).ammo!.reserve).toBe(reserve - 2);
-  expect(loaded(ctx)).toBe(6);
+  expect(loaded(ctx)).toBe(5);
+  expect(viewStore.read(ctx).dive!.flash).toBeGreaterThan(0);
   ctx.input.publish([]);
   advanceFrames(ctx, 11);
+  expect(loaded(ctx)).toBe(5);
+});
+
+test("a press after a released cooldown fires on that frame, not a cycle later", () => {
+  const ctx = diveContext();
+  ctx.input.publish([]);
+  advanceFrames(ctx, 1);
   expect(loaded(ctx)).toBe(6);
+  ctx.game.commands.run("deepwardFire", {});
+  expect(loaded(ctx)).toBe(5);
+  // 0.4 s with the trigger up, past the issue hand's 0.32 s cycle, and nothing is holding the clock.
+  advanceFrames(ctx, 8);
+  expect(loaded(ctx)).toBe(5);
+  ctx.game.commands.run("deepwardFire", {});
+  expect(loaded(ctx)).toBe(4);
+});
+
+test("the issue hand scores the same shots per second at 30, 60 and 144 steps", () => {
+  const stepsPerSecond = [30, 60, 144];
+  const shots = stepsPerSecond.map(steps => {
+    const weapon = createDeepwardWeapon(sidearmDefinition(18), {
+      rng: () => 0.5,
+      damage: createDeepwardDamage(() => 0.5),
+      at: () => [0, 0, 0],
+      print: () => null,
+    });
+    weapon.setTrigger(true);
+    let fired = 0;
+    for (let step = 0; step < steps; step++) fired += weapon.tick(1 / steps).shots.length;
+    weapon.dispose();
+    return fired;
+  });
+  expect(shots).toEqual([4, 4, 4]);
 });
 
 test("one cache action remains open across held-input simulation steps, with UI close intact", () => {
