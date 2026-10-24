@@ -130,6 +130,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of brightway-park: guests use the shared agent loop's movement and never crowd-steer."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Brightway Park runs a continuous park day loop; no session ends with a haul banked or lost, so there is no run boundary for the loop to own."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of brightway-park: unlocks are milestone gates on the park's standing, not a skill tree."

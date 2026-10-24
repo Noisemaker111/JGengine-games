@@ -141,6 +141,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of ember-command: units collide and hold formation, and no reciprocal avoidance layer is authored."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Ember Command resolves missions inside one campaign; a mission banks no haul and loses none, so there is no run-to-run carry for the loop to own."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of ember-command: hero offers and research ranks are picked from authored lists, not spent on a skill tree."

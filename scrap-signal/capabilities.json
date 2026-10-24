@@ -104,6 +104,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of scrap-signal: enemies steer with local separation, and no reciprocal avoidance layer is authored."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Scrap Signal is one continuous salvage session and a relay banks signal inside a wave; nothing carries a haul across runs, so there is no run boundary for the loop to own."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of scrap-signal: talents already spend points on the shared talent tree, so a skill tree would duplicate it."

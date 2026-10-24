@@ -124,6 +124,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of deepward: at most one fitter walks the station, and nothing needs crowd steering."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Deepward banks or loses a run haul through the shared loot haul bank/fail rules; it has no per-run offer or counter, so the run-loop half that offers the next run is not in the game."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of deepward: refits are crafted from salvage through the shared recipe, not spent from a skill tree."

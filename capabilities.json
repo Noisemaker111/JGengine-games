@@ -1,6 +1,6 @@
 {
   "generatedBy": "bun run capabilities:sync",
-  "engineVersion": "0.37.0",
+  "engineVersion": "0.38.0",
   "gameFacingRule": "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it as not-applicable (its domain does not exist here) or debt (this game has the domain and has not adopted the shared system, so an open issue tracks it).",
   "capabilities": [
     {
@@ -1685,6 +1685,17 @@
       "intent": "locate duplicate content ids and broken references across game-owned catalog namespaces with repair guidance"
     },
     {
+      "id": "continue-pane",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSaves",
+      "domain": "continue-pane",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "continue detail pane — the save being resumed with thumbnail, character, playtime and progress"
+    },
+    {
       "id": "contour-interval",
       "packages": [
         "@jgengine/core"
@@ -1891,6 +1902,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "generate credit sections from asset pack metadata, grouped by license or provider"
+    },
+    {
+      "id": "credits-pane",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSaves",
+      "domain": "credits-pane",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "credits detail pane — sections scrolled inside the pane"
     },
     {
       "id": "credits-panel",
@@ -3441,6 +3463,28 @@
       "gameFacing": false,
       "probe": null,
       "intent": "one-stop happy-path import surface for authoring, mounting, state, systems, authored scenes, and HUD"
+    },
+    {
+      "id": "game-menu",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenu",
+      "domain": "game-menu",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "full-bleed game menu — living background, token-sized logo, animated navigable verbs, detail pane, selection sound, pause variant, no page scrollbar"
+    },
+    {
+      "id": "game-pause-menu",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenu",
+      "domain": "game-pause-menu",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "pause menu from the shared game-menu system — same navigation and surface, sized down"
     },
     {
       "id": "game-save",
@@ -5168,6 +5212,17 @@
       "intent": "animated enter/exit menu screen over a live scene, with translucent scrim, backdrop slot, reduced-motion support and exit unmount"
     },
     {
+      "id": "menu-sound",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSound",
+      "domain": "menu-sound",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "generated click for menu move/confirm/back, no audio asset"
+    },
+    {
       "id": "menu-stack-reducer",
       "packages": [
         "@jgengine/react"
@@ -5769,6 +5824,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "decaying needs an agent reads by index to decide what it wants next"
+    },
+    {
+      "id": "new-character-pane",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSaves",
+      "domain": "new-character-pane",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "character creation pane — name field, palette and avatar choice, start action"
     },
     {
       "id": "notice-feed",
@@ -7161,7 +7227,7 @@
         "kind": "window",
         "global": "__jgengineRun"
       },
-      "intent": "bank or lose what a run carries, with one deterministic change per run"
+      "intent": "deprecated roguelike composition of session-loop - bank or lose what a run carries, with one deterministic change per run"
     },
     {
       "id": "run-modifiers",
@@ -7210,6 +7276,17 @@
       "intent": "reciprocal collision avoidance between many steering agents"
     },
     {
+      "id": "save-slot-card",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSaves",
+      "domain": "save-slot-card",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "save slot as a card — thumbnail, character, playtime, progress, timestamp, confirmed delete"
+    },
+    {
       "id": "save-slot-index",
       "packages": [
         "@jgengine/core"
@@ -7252,6 +7329,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "serializable save-slot / profile metadata index — write/clear/rename/mostRecent over free-string per-slot meta, powering New/Continue/Load/Delete menus, with snapshot/restore"
+    },
+    {
+      "id": "save-slots-pane",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenuSaves",
+      "domain": "save-slots-pane",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "slot grid pane for the game menu — Continue newest, per-slot cards, keyboard navigation"
     },
     {
       "id": "scatter-coverage",
@@ -7441,6 +7529,20 @@
       "intent": "join a multiplayer host with status, retry, and teardown"
     },
     {
+      "id": "session-loop",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/run/sessionLoop",
+      "domain": "run",
+      "gameFacing": true,
+      "probe": {
+        "kind": "window",
+        "global": "__jgengineRun"
+      },
+      "intent": "open and close a game session, settle the quantity it carried and optionally draw the next session's authored option"
+    },
+    {
       "id": "set",
       "packages": [
         "@jgengine/core"
@@ -7582,6 +7684,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "resolve one shot description into explicit travel and contact behaviour"
+    },
+    {
+      "id": "shrink-capture",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/saveThumbnail",
+      "domain": "shrink-capture",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "downscale a captured frame to a save-card thumbnail data URL"
     },
     {
       "id": "sim-loop",
@@ -9126,6 +9239,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "live `t(key, params)` translator bound to the active locale, re-rendering on locale change"
+    },
+    {
+      "id": "use-viewport-scroll-lock",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameMenu",
+      "domain": "use-viewport-scroll-lock",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "count-aware document scroll lock for full-bleed surfaces"
     },
     {
       "id": "use-wave-runner",
