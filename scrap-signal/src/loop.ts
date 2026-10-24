@@ -7,7 +7,8 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
-import { activeCharacter, talentTree } from "./game/characters";
+import { activeCharacter, resetCharacterState, talentTree } from "./game/characters";
+import { characterIdStore } from "./game/stores";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild, runStarted } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
@@ -344,7 +345,11 @@ function onTick(ctx: GameContext, dt: number): void {
   if (!bootedToMenu) {
     bootedToMenu = true;
     const openMenu = () => {
-      if (!runStarted() && activeCharacter() !== null && gamePhase(ctx) === "playing") {
+      // A restored run waits behind the roster: the menu is the way back in, and Continue is the
+      // only thing that puts the reclaimer back in the field.
+      if (!runStarted() && activeCharacter() !== null) {
+        characterIdStore.write(ctx, null);
+        resetCharacterState();
         setGamePhase(ctx, "menu");
         ctx.time.pause();
       }
@@ -372,6 +377,7 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+
 
 
 

@@ -1,12 +1,14 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ContinuePane, CreditsPane } from "@jgengine/react/gameMenuSaves";
 import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
-import { useGame, useGamePhase, useGameStore } from "@jgengine/react/hooks";
+import { useGame } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
 import { useStore } from "@jgengine/react/store";
+
+import { gamePhase } from "@jgengine/core/game/gamePhase";
 
 import { CHARACTERS } from "../../characters";
 import { scrapProfile } from "../../scrapProfile";
@@ -33,9 +35,8 @@ export const scrapFocus: { id: string | null } = { id: null };
 export function ScrapMenu(): ReactNode {
   const ctx = useGameContext();
   const { commands } = useGame();
-  const { phase } = useGamePhase();
+  const phase = useSyncExternalStore(ctx.subscribe, () => gamePhase(ctx), () => gamePhase(ctx));
   const settings = useSettings();
-  useGameStore(() => [characterIdStore.read(ctx) ?? "", phase].join("|"));
   const character = useStore(characterIdStore);
   const slots = useSaveSlots(scrapSlots);
   const [name, setName] = useState(scrapProfile.name ?? "");
@@ -45,9 +46,13 @@ export function ScrapMenu(): ReactNode {
   const paused = phase === "paused";
   // Pause is Operations' own in-game overlay; this menu is the front end only.
 
+  // Refresh the kept-run index when the menu appears, not on every render: the refresh writes the
+  // index, the index notifies the pane, and an effect keyed on the context identity would loop.
+  const ctxRef = useRef(ctx);
+  ctxRef.current = ctx;
   useEffect(() => {
-    void refreshScrapSlots(ctx);
-  }, [ctx, phase]);
+    void refreshScrapSlots(ctxRef.current);
+  }, [phase]);
 
   // The boot menu owns the menu phase; a restored reclaimer waits behind it until Continue.\n  if (phase !== "menu" || paused) return null;
   if (settings.isOpen) return null;
@@ -55,6 +60,7 @@ export function ScrapMenu(): ReactNode {
   return (
     <GameMenu
       label="Scrap Signal"
+      data-scrap-phase={phase}
       initialId={scrapFocus.id ?? (recent === null ? "new" : "continue")}
       eyebrow="Ferralon - reactivate, reclaim, rise"
       logo={{ text: <span>Scrap<br />Signal</span>, title: "Scrap Signal" }}
@@ -189,7 +195,7 @@ function NewRunPane({
           </button>
         ))}
       </div>
-      <div data-scrap-roster="" style={{ display: "flex", gap: 10, flexWrap: "wrap", overflowY: "auto", minHeight: 0 }}>
+      <div data-scrap-roster="" style={{ display: "flex", gap: 10, flexWrap: "wrap", overflowY: "auto", scrollbarGutter: "stable", minHeight: 0 }}>
         {CHARACTERS.map((character) => (
           <div key={character.id} data-scrap-character={character.id}>
             <CharacterCard character={character} onPick={() => onPick(character.id)} />
@@ -217,5 +223,13 @@ function ScrapSettings(): ReactNode {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 

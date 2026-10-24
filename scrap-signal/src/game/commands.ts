@@ -558,3 +558,6 @@ function applyPassiveEffects(ctx: GameContext, previousHealthMult = 1): void {
 
 
 
+
+
+
