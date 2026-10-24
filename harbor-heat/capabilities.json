@@ -110,6 +110,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of harbor-heat: residents keep to authored routes without reciprocal avoidance."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Harbor Heat runs are chase missions with per-run timers in runState.ts; no haul is banked or lost across them, so there is no run boundary for the loop to own."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of harbor-heat: standing rises through the shared career track, and there is no player skill tree."

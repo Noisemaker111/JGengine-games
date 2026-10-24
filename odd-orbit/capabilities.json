@@ -148,6 +148,10 @@
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of odd-orbit: room-mates walk around furniture without reciprocal avoidance."
     },
+    "session-loop": {
+      "kind": "not-applicable",
+      "reason": "Odd Orbit persists one career across shifts; a shift banks no haul and loses none, so there is no run boundary for the loop to own."
+    },
     "skill-tree": {
       "kind": "not-applicable",
       "reason": "Skill tree is not part of odd-orbit: there is no experience or point pool to spend."

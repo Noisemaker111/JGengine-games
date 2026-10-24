@@ -3,6 +3,7 @@
     "audio-probe",
     "mount-game",
     "run-loop",
+    "session-loop",
     "vehicle-damage"
   ],
   "probes": {

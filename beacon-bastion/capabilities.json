@@ -4,7 +4,8 @@
     "game-save",
     "game-save-digest",
     "mount-game",
-    "run-loop"
+    "run-loop",
+    "session-loop"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [
