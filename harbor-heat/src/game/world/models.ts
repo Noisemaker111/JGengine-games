@@ -20,7 +20,35 @@ const FURN = "kaykit-furniture";
  * talk out of being a wizard. Overrides multiply the pack's own atlas rather than replacing it, so
  * these are wardrobe tints — the cloth and stitching detail survives them.
  */
-export const entityModels: Record<string, ModelConfig> = resolveModelPlan(assets, {
+/**
+ * The isle's humans plant their feet on the terrain: every rigged humanoid cast below gets foot IK,
+ * which finds each rig's thigh → shin → foot chain by bone name and follows the ground under it.
+ * Vehicles, props and trees are left alone — `ik` on a rig with no legs would only warn.
+ */
+const HUMANOIDS: readonly string[] = [
+  "street_runner",
+  "ped_beach",
+  "ped_city",
+  "ped_docks",
+  "contact_marco",
+  "ganger_dock",
+  "ganger_enforcer",
+  "kingpin_sal",
+  "cop_patrol",
+  "cop_swat",
+  "bounty_mark",
+];
+
+function withGroundedHumans(models: Record<string, ModelConfig>): Record<string, ModelConfig> {
+  const out: Record<string, ModelConfig> = { ...models };
+  for (const id of HUMANOIDS) {
+    const model = out[id];
+    if (model !== undefined) out[id] = { ...model, ik: "auto" };
+  }
+  return out;
+}
+
+export const entityModels: Record<string, ModelConfig> = withGroundedHumans(resolveModelPlan(assets, {
   street_runner: {
     model: `${CHAR}/Rogue`,
     fallbackModel: `${CHAR}/Rogue_Hooded`,
@@ -137,7 +165,7 @@ export const entityModels: Record<string, ModelConfig> = resolveModelPlan(assets
     fallbackModel: `${CITY}/car_police`,
     style: { targetHeight: 1.9, material: { color: "#3d5a45", metalness: 0.68, roughness: 0.3 } },
   },
-});
+}));
 
 /**
  * Licensed tree fallbacks remain available; the three palm casts below are overridden by our
