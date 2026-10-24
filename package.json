@@ -28,6 +28,8 @@
   },
   "scripts": {
     "engine:local": "bun scripts/engine-mode.ts local",
+    "engine:pin": "bun scripts/engine-pin.ts pin",
+    "engine:snapshots": "bun scripts/engine-pin.ts snapshots",
     "engine:published": "bun scripts/engine-mode.ts published",
     "engine:status": "bun scripts/engine-mode.ts status",
     "engine:watch": "bun scripts/engine-watch.ts",

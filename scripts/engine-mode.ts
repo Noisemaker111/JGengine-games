@@ -3,13 +3,16 @@
  * at the published catalog, so engine work is tested here without a release.
  *
  *   bun run engine:local [--dir <engine path>]   link every @jgengine/* to that checkout
+ *   bun run engine:pin [--ref <sha|branch>]      link an immutable snapshot of a commit
  *   bun run engine:published                     restore the published install
  *   bun run engine:status [--json]               one line: mode, engine commit, staleness
  *
  * Local mode replaces each installed `@jgengine/*` entry — root, per-game and bun's
  * store copy — with a junction to the engine package, so every consumer and every
- * transitive import resolves to the checkout. The root catalog and bun.lock are never
- * edited, so both modes install with `--frozen-lockfile` and `git status` stays clean.
+ * transitive import resolves to the checkout. Pinned mode does the same against a
+ * cached build of one commit (scripts/engine-pin.ts), so edits in the live checkout
+ * are invisible to it. The root catalog and bun.lock are never edited, so all modes
+ * install with `--frozen-lockfile` and `git status` stays clean.
  */
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -20,14 +23,18 @@ const statePath = join(root, ".engine-mode");
 const scope = "@jgengine/";
 const skipDirs = new Set([".git", ".claude", ".engine-mode.baseline", ".scratch", "shots"]);
 
-export type Mode = "local" | "published";
+export type Mode = "local" | "published" | "pinned";
 
 export interface EngineState {
   mode: Mode;
   /** Short engine commit, with `+N` when packages/ has N uncommitted files. */
   engine?: string;
+  /** The engine checkout this workspace was switched from, in every mode. */
   path?: string;
-  /** Engine package versions at link time (local) or the catalog version (published). */
+  /** Pinned mode: the ref asked for and the cached snapshot directory. */
+  ref?: string;
+  snapshot?: string;
+  /** Engine package versions at link time (local, pinned) or the catalog version (published). */
   versions?: Record<string, string>;
   switchedAt?: string;
 }
@@ -54,7 +61,7 @@ export function readState(): EngineState | null {
   }
 }
 
-function writeState(state: EngineState): void {
+export function writeState(state: EngineState): void {
   writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -63,11 +70,19 @@ function git(cwd: string, args: string[]): string {
   return result.status === 0 ? result.stdout.trim() : "";
 }
 
+/** Uncommitted files under engine `packages/`, which a live link sees immediately. */
+export function engineDirtyFiles(enginePath: string): string[] {
+  return git(enginePath, ["status", "--porcelain", "--", "packages"])
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+}
+
 /** Short commit plus a dirty count for engine `packages/`, which is what a lane should report. */
 export function engineCommit(enginePath: string): string {
   const head = git(enginePath, ["rev-parse", "--short", "HEAD"]);
   if (head === "") return "unknown";
-  const dirty = git(enginePath, ["status", "--porcelain", "--", "packages"]).split("\n").filter((line) => line !== "").length;
+  const dirty = engineDirtyFiles(enginePath).length;
   return dirty === 0 ? head : `${head}+${dirty}`;
 }
 
@@ -98,6 +113,13 @@ function realpathOrNull(path: string): string | null {
 function samePath(a: string, b: string): boolean {
   const normal = (path: string) => path.replaceAll("\\", "/").replace(/\/$/, "").toLowerCase();
   return normal(a) === normal(b);
+}
+
+export function isInside(path: string, dir: string): boolean {
+  const normal = (value: string) => value.replaceAll("\\", "/").replace(/\/$/, "").toLowerCase();
+  const child = normal(path);
+  const parent = normal(dir);
+  return child === parent || child.startsWith(`${parent}/`);
 }
 
 function isLink(path: string): boolean {
@@ -137,13 +159,35 @@ export interface LinkCheck {
   ok: boolean;
 }
 
-export function linkChecks(enginePath: string): LinkCheck[] {
+export function linkChecks(packagesRoot: string): LinkCheck[] {
   return catalogPackages().map((name) => {
-    const expected = realpathOrNull(enginePackagePath(enginePath, name)) ?? enginePackagePath(enginePath, name);
+    const expected = realpathOrNull(join(packagesRoot, dirName(name))) ?? join(packagesRoot, dirName(name));
     const sites = installedEntries(name).map((path) => ({ path, resolved: realpathOrNull(path) }));
     const ok = sites.length > 0 && sites.every((site) => site.resolved !== null && samePath(site.resolved, expected));
     return { name, sites, expected, ok };
   });
+}
+
+/**
+ * Replace every installed copy of each catalog package — root, per-game and bun's
+ * store copy — with a junction to `targetOf(name)`, and count the sites touched.
+ */
+export function linkCatalog(targetOf: (name: string) => string): number {
+  let linked = 0;
+  for (const name of catalogPackages()) {
+    const target = targetOf(name);
+    for (const path of installedEntries(name)) {
+      const resolved = realpathOrNull(path);
+      if (resolved !== null && samePath(resolved, target)) {
+        linked += 1;
+        continue;
+      }
+      dropEntry(path);
+      symlinkSync(target, path, "junction");
+      linked += 1;
+    }
+  }
+  return linked;
 }
 
 function newestMtime(dir: string, extensions: RegExp): number {
@@ -195,15 +239,13 @@ export function currentMode(): Mode {
   const checks = catalogPackages().flatMap((name) => installedEntries(name));
   if (checks.length === 0) return "published";
   const state = readState();
-  const enginePath = state?.path;
-  const linked = checks.some((path) => {
-    const resolved = realpathOrNull(path);
-    return resolved !== null && enginePath !== undefined && resolved.replaceAll("\\", "/").toLowerCase().startsWith(enginePath.replaceAll("\\", "/").toLowerCase());
-  });
-  return linked ? "local" : "published";
+  const resolved = checks.map(realpathOrNull).filter((path): path is string => path !== null);
+  if (state?.snapshot !== undefined && resolved.some((path) => isInside(path, join(state.snapshot!, "packages")))) return "pinned";
+  if (state?.path !== undefined && resolved.some((path) => isInside(path, join(state.path!, "packages")))) return "local";
+  return "published";
 }
 
-/** One line naming the mode, the engine, and whether the linked dist answers the current source. */
+/** One line naming the mode, the engine, and what that mode can see. */
 export function statusLine(): { line: string; ok: boolean; state: unknown } {
   const pkg = readRootPackage();
   const catalogVersions = Object.fromEntries(
@@ -222,7 +264,7 @@ export function statusLine(): { line: string; ok: boolean; state: unknown } {
     const ok = mismatched.length === 0;
     return {
       line: ok
-        ? `engine published ${catalogVersions[catalogPackages()[0]!] ?? "?"} — installed matches the catalog`
+        ? `engine published ${catalogVersions[catalogPackages()[0]!] ?? "?"} — from the registry; no live or uncommitted engine code can reach this lane`
         : `engine published — MISMATCH: ${mismatched.map((entry) => `${entry.name} ${entry.installed} != catalog ${entry.catalog}`).join(", ")} (run bun run engine:published)`,
       ok,
       state: { mode, catalogVersions, versions },
@@ -236,32 +278,67 @@ export function statusLine(): { line: string; ok: boolean; state: unknown } {
       return "(unknown)";
     }
   })();
-  const commit = state?.engine ?? (existsSync(enginePath) ? engineCommit(enginePath) : "unknown");
-  const links = linkChecks(enginePath);
+  const dirty = existsSync(join(enginePath, "packages")) ? engineDirtyFiles(enginePath) : [];
+
+  if (mode === "pinned") {
+    const snapshot = state?.snapshot ?? "(unknown)";
+    const links = existsSync(join(snapshot, "packages")) ? linkChecks(join(snapshot, "packages")) : [];
+    const broken = links.filter((check) => !check.ok);
+    const ignored = dirty.length === 0 ? "" : `; ${dirty.length} uncommitted live file${dirty.length === 1 ? "" : "s"} ignored`;
+    if (!existsSync(join(snapshot, "packages")) || broken.length > 0) {
+      const first = broken[0];
+      return {
+        line: `engine pinned ${state?.engine ?? "?"} — BROKEN: ${first === undefined ? `${snapshot} is gone` : `${first.name} resolves to ${first.sites.find((site) => !site.ok)?.resolved ?? "nothing"}`} (run bun run engine:pin --ref ${state?.engine ?? "HEAD"})`,
+        ok: false,
+        state: { mode, engine: state?.engine, ref: state?.ref, snapshot, path: enginePath, dirty: dirty.length, broken },
+      };
+    }
+    return {
+      line: `engine pinned ${state?.engine ?? "?"} (immutable snapshot ${snapshot}) — live checkout ${enginePath} is not linked${ignored}`,
+      ok: true,
+      state: {
+        mode,
+        engine: state?.engine,
+        ref: state?.ref,
+        snapshot,
+        path: enginePath,
+        dirty: dirty.length,
+        links: links.map((check) => ({ name: check.name, sites: check.sites.length })),
+      },
+    };
+  }
+
+  // Live mode changes with the checkout, so the commit is read now, never from link time.
+  const commit = existsSync(join(enginePath, "packages")) ? engineCommit(enginePath) : (state?.engine ?? "unknown");
+  const links = linkChecks(join(enginePath, "packages"));
   const broken = links.filter((check) => !check.ok);
   if (broken.length > 0) {
     const first = broken[0]!;
     const site = first.sites.find((entry) => entry.resolved === null || !samePath(entry.resolved, first.expected));
     return {
-      line: `engine local ${commit} ${enginePath} — BROKEN: ${first.name} at ${site?.path ?? "?"} resolves to ${site?.resolved ?? "nothing"} (run bun run engine:local)`,
+      line: `engine local (live, sees uncommitted edits) ${commit} ${enginePath} — BROKEN: ${first.name} at ${site?.path ?? "?"} resolves to ${site?.resolved ?? "nothing"} (run bun run engine:local)`,
       ok: false,
-      state: { mode, engine: commit, path: enginePath, broken },
+      state: { mode, engine: commit, path: enginePath, dirty: dirty.length, broken },
     };
   }
   const stale = staleness(enginePath).filter((report) => report.stale);
+  const dirtyNote =
+    dirty.length === 0
+      ? ""
+      : ` — WARNING: ${dirty.length} uncommitted file${dirty.length === 1 ? "" : "s"} under packages/ ${dirty.length === 1 ? "is" : "are"} live in this lane, so a failing check may not match any commit`;
   if (stale.length > 0) {
     const named = stale.slice(0, 4).map((report) => `${dirName(report.name)}(${report.reason === "no dist" ? "no dist" : `+${age(report.behindSeconds)}`})`);
     const more = stale.length > 4 ? ` +${stale.length - 4} more` : "";
     return {
-      line: `engine local ${commit} ${enginePath} — STALE: ${named.join(", ")}${more} (run bun run engine:watch)`,
+      line: `engine local (live, sees uncommitted edits) ${commit} ${enginePath} — STALE: ${named.join(", ")}${more} (run bun run engine:watch)${dirtyNote}`,
       ok: false,
-      state: { mode, engine: commit, path: enginePath, stale },
+      state: { mode, engine: commit, path: enginePath, dirty: dirty.length, stale },
     };
   }
   return {
-    line: `engine local ${commit} ${enginePath} — fresh, ${links.length} packages linked across ${links.reduce((total, check) => total + check.sites.length, 0)} install sites`,
+    line: `engine local (live, sees uncommitted edits) ${commit} ${enginePath} — fresh, ${links.length} packages linked across ${links.reduce((total, check) => total + check.sites.length, 0)} install sites${dirtyNote}`,
     ok: true,
-    state: { mode, engine: commit, path: enginePath, links: links.map((check) => ({ name: check.name, sites: check.sites.length })) },
+    state: { mode, engine: commit, path: enginePath, dirty: dirty.length, links: links.map((check) => ({ name: check.name, sites: check.sites.length })) },
   };
 }
 
@@ -319,23 +396,12 @@ function linkLocal(args: string[]): number {
 
   const started = Date.now();
   const versions: Record<string, string> = {};
-  let linked = 0;
   for (const name of names) {
-    const enginePackage = enginePackagePath(enginePath, name);
-    versions[name] = JSON.parse(readFileSync(join(enginePackage, "package.json"), "utf8")).version;
-    for (const path of installedEntries(name)) {
-      const resolved = realpathOrNull(path);
-      if (resolved !== null && samePath(resolved, enginePackage)) {
-        linked += 1;
-        continue;
-      }
-      dropEntry(path);
-      symlinkSync(enginePackage, path, "junction");
-      linked += 1;
-    }
+    versions[name] = JSON.parse(readFileSync(join(enginePackagePath(enginePath, name), "package.json"), "utf8")).version;
   }
+  const linked = linkCatalog((name) => enginePackagePath(enginePath, name));
 
-  const broken = linkChecks(enginePath).filter((check) => !check.ok);
+  const broken = linkChecks(join(enginePath, "packages")).filter((check) => !check.ok);
   if (broken.length > 0) {
     for (const check of broken) console.error(`engine:local: ${check.name} -> ${check.sites.map((site) => site.resolved).join(", ")} (expected ${check.expected})`);
     return 1;
@@ -351,16 +417,19 @@ function linkLocal(args: string[]): number {
   return 0;
 }
 
-function publish(): number {
+export function publish(): number {
   const state = readState();
   const started = Date.now();
   const names = catalogPackages();
+  /** Where local or pinned mode linked from, so each link comes out again. */
+  const linkedRoots = [state?.snapshot === undefined ? null : join(state.snapshot, "packages"), state?.path === undefined ? null : join(state.path, "packages")].filter(
+    (value): value is string => value !== null,
+  );
   let removed = 0;
   for (const name of names) {
-    const enginePackage = state?.path === undefined ? null : enginePackagePath(state.path, name);
     for (const path of installedEntries(name)) {
       const resolved = realpathOrNull(path);
-      if (resolved !== null && enginePackage !== null && samePath(resolved, enginePackage)) {
+      if (resolved !== null && linkedRoots.some((linkedRoot) => isInside(resolved, linkedRoot))) {
         dropEntry(path);
         removed += 1;
       }
@@ -381,7 +450,7 @@ function publish(): number {
     installedEntries(name).some((path) => {
       const installed = JSON.parse(readFileSync(join(path, "package.json"), "utf8")).version;
       const resolved = realpathOrNull(path);
-      const stillLinked = state?.path !== undefined && resolved !== null && samePath(resolved, enginePackagePath(state.path, name));
+      const stillLinked = resolved !== null && linkedRoots.some((linkedRoot) => isInside(resolved, linkedRoot));
       return installed !== catalogVersions[name] || stillLinked;
     }),
   );
@@ -407,7 +476,9 @@ function publish(): number {
 function main(): number {
   const [command, ...args] = process.argv.slice(2);
   if (args.includes("--help") || args.includes("-h") || command === undefined) {
-    console.log("bun run engine:local [--dir <engine path>] | bun run engine:published | bun run engine:status [--json]");
+    console.log(
+      "bun run engine:local [--dir <engine path>] | bun run engine:pin [--ref <sha|branch>] [--version <x.y.z>] | bun run engine:snapshots [--prune <sha|all>] | bun run engine:published | bun run engine:status [--json]",
+    );
     return command === undefined ? 2 : 0;
   }
   if (command === "local") return linkLocal(args);
@@ -416,6 +487,10 @@ function main(): number {
     const report = statusLine();
     console.log(args.includes("--json") ? JSON.stringify(report.state) : report.line);
     return report.ok ? 0 : 1;
+  }
+  if (command === "pin" || command === "snapshots") {
+    console.error(`engine-mode: ${command} lives in scripts/engine-pin.ts — run bun run engine:${command}`);
+    return 2;
   }
   console.error("engine-mode: pass local, published or status");
   return 2;
