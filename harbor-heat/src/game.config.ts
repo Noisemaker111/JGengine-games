@@ -8,6 +8,9 @@ import { keybinds } from "./game/keybinds";
 import { prompts } from "./game/prompts";
 import { entityModels, objectModels } from "./game/world/models";
 import { GameUI } from "./game/ui/GameUI";
+import { bindHarborCapture } from "./game/menuProfile";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { createElement } from "react";
 import { harborTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { residentBoardStore } from "./game/world/residents";
@@ -70,6 +73,7 @@ export const game = defineGame({
   content,
   loop,
   GameUI,
+  WorldOverlay: () => createElement(SceneCaptureBinding, { bind: bindHarborCapture }),
   hudTheme: harborTheme,
   capture: {
     play: ["game.start"],
@@ -79,6 +83,9 @@ export const game = defineGame({
     // crimes in front of a pedestrian and waiting for the response.
     states: {
       title: [],
+      menu: ["game.start", { name: "menu.driver", input: { driver: "Mara Vell" } }, "menu.saveDoc", "menu.title"],
+      "menu-bays": ["game.start", { name: "menu.driver", input: { driver: "Mara Vell" } }, "menu.saveDoc", "menu.bays"],
+      "menu-new": ["menu.title"],
       chase: ["game.start", { name: "chase.stage", input: { mode: "chase" } }],
     },
     views: {
@@ -198,3 +205,7 @@ export const game = defineGame({
   time: { dayLength: 720, start: 360 },
   orientation: "landscape",
 });
+
+
+
+

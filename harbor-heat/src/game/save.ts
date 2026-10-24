@@ -7,6 +7,7 @@ import type { SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
 import type { SessionLoopState } from "@jgengine/core/run/sessionLoop";
 
 import { handrollOf } from "./handroll";
+import { harborProfileSystem } from "./menuProfile";
 import type { PursuitSave } from "./handroll/pursuit";
 import { ledgerState, restoreLedger, resetLedger, type CashReason } from "./cash";
 import { cargoStore } from "./items/cargoHaul";
@@ -224,7 +225,7 @@ export function createHarborSave(ctx: GameContext, options: { backend?: SaveBack
     migrate: migrateHarborSave,
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [wantedSystem(ctx), convoySystem(ctx), runSystem(ctx), vehiclesSystem(ctx), cashSystem(ctx)],
+    systems: [wantedSystem(ctx), convoySystem(ctx), runSystem(ctx), vehiclesSystem(ctx), cashSystem(ctx), harborProfileSystem()],
     devtoolsName: "harbor.save",
   });
 }
@@ -304,3 +305,4 @@ export function harborSaveDigest(ctx: GameContext, backend?: SaveBackend): strin
 export const RUN_SECTION_REASON: Record<string, CashReason | string> = {
   wanted: "engine #2243 tracks the general gap: a mounted primitive's state had no saved section",
 };
+

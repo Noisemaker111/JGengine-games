@@ -14,7 +14,7 @@ import { MissionTracker } from "./components/MissionTracker";
 import { ShopPanel } from "./components/ShopPanel";
 import { Speedo } from "./components/Speedo";
 import { StatusPanel } from "./components/StatusPanel";
-import { TitleScreen, useGameStarted } from "./components/TitleScreen";
+import { HarborMenu, useGameStarted } from "./menu/HarborMenu";
 import { WantedStars } from "./components/WantedStars";
 import { CourierHud, SessionUI } from "./components/SessionUI";
 import { CargoPanel } from "./components/CargoPanel";
@@ -50,13 +50,13 @@ export function GameUI() {
   if (!started) {
     return (
       <div className="pointer-events-none absolute inset-0 z-20 font-sans">
-        <TitleScreen />
+        <HarborMenu />
         <SessionUI />
       </div>
     );
   }
   return (
-    <><SessionUI /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
+    <><SessionUI /><HarborMenu /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
       <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}>
         <div className="flex flex-col items-center gap-2">
           <WantedStars />
@@ -118,3 +118,5 @@ export function GameUI() {
     </HudCanvas></>
   );
 }
+
+
