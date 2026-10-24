@@ -8,6 +8,7 @@ import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
 import { activeCharacter, talentTree } from "./game/characters";
+import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
 import { startAmbience, tickAudio } from "./game/audio/drive";
@@ -310,12 +311,33 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
     setGamePhase(ctx, ended ? "ended" : "playing");
     if (ended) ctx.time.pause();
     else ctx.time.play();
+    stageReserveForCapture(ctx);
     return;
   }
   if (activeCharacter() === null) setGamePhase(ctx, "menu");
 }
 
+/** One staged boot per session: the dev hook above must not re-wound a reconstructed chassis. */
+const stagedReserve = perContext(() => ({ staged: false }));
+
+/**
+ * Dev-only staged boot: `?stage=downed` drops the chassis to its last point of health once a live
+ * run exists, so the same proof of the Reserve window runs in a plain `bun run dev` app as in the
+ * engine's `?state=downed` capture. Never shipped.
+ */
+function stageReserveForCapture(ctx: GameContext): void {
+  if (!import.meta.env.DEV) return;
+  const staged = stagedReserve(ctx);
+  if (staged.staged) return;
+  if (new URLSearchParams(window.location.search).get("stage") !== "downed") return;
+  if (ctx.scene.entity.stats.get(ctx.player.userId, "health") === null) return;
+  staged.staged = true;
+  // The same dev command the engine runner's `?state=downed` capture uses, so there is one stage.
+  ctx.game.commands.run("reserve.capture", {});
+}
+
 function onTick(ctx: GameContext, dt: number): void {
+  stageReserveForCapture(ctx);
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);
   if (activeCharacter() === null || gamePhase(ctx) !== "playing" || dt <= 0) return;
