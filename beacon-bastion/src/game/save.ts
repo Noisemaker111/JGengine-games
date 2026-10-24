@@ -18,6 +18,7 @@ import type { EncounterState } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
 import type { TowerBuildSpec, TowerReservation } from "./build/construction";
 import { BUILD_PLOTS, KEEP_POINT } from "./world/path";
+import { captureKeepThumb, keepProfile } from "./thumbs";
 
 /** The keeps a player can hold. One document per keep, all inside the shared save document. */
 export const KEEP_SLOTS = ["keep", "ward", "beacon"] as const;
@@ -192,6 +193,23 @@ export function defenseSystem(ctx: GameContext): GameSaveSystem {
  * What the keep has banked, as its own section: a new defense clears the field but not what the last
  * one left behind, and an empty keep resets it to nothing banked.
  */
+/** The frame the keep was left in - a save card shows it. */
+export function profileSystem(): GameSaveSystem {
+  return {
+    name: "profile",
+    snapshot: () => ({ commander: keepProfile.commander, thumbnail: keepProfile.thumbnail }),
+    restore: (next) => {
+      const value = next as { commander?: string | null; thumbnail?: string | null };
+      keepProfile.commander = typeof value.commander === "string" ? value.commander : null;
+      keepProfile.thumbnail = typeof value.thumbnail === "string" ? value.thumbnail : null;
+    },
+    reset: () => {
+      keepProfile.commander = null;
+      keepProfile.thumbnail = null;
+    },
+  };
+}
+
 export function legacySystem(ctx: GameContext): GameSaveSystem {
   return {
     name: "legacy",
@@ -215,7 +233,7 @@ export function beaconSave(ctx: GameContext): GameSave {
     slot: KEEP_SLOTS[0],
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [defenseSystem(ctx), legacySystem(ctx)],
+    systems: [defenseSystem(ctx), legacySystem(ctx), profileSystem()],
   });
   slot.save = save;
   return save;
@@ -231,6 +249,8 @@ export const beaconSlots: SaveSlots = createSaveSlots({
 export function refreshBeaconSlots(ctx: GameContext): Promise<SaveSlotsRefresh> {
   return refreshSaveSlots(gameSaveSlotSource(beaconSave(ctx)), beaconSlots, {
     nameOf: (slot, document) => {
+      const profile = (document.systems.profile ?? {}) as { commander?: string | null };
+      if (typeof profile.commander === "string" && profile.commander.length > 0) return profile.commander;
       const defense = document.systems.defense;
       const wave = validDefenseSave(defense) ? defense.encounter.wave + 1 : 1;
       return `${KEEP_LABEL[slot] ?? slot} · wave ${wave}`;
@@ -238,7 +258,14 @@ export function refreshBeaconSlots(ctx: GameContext): Promise<SaveSlotsRefresh> 
     metaOf: (_slot, document): Record<string, string | number> => {
       const defense = document.systems.defense;
       if (!validDefenseSave(defense)) return {};
-      return { gold: defense.gold, lives: defense.lives, wave: defense.encounter.wave + 1 };
+      const thumb = (document.systems.profile ?? {}) as { commander?: string | null; thumbnail?: string | null };
+      return {
+        ...(typeof thumb.commander === "string" && thumb.commander.length > 0 ? { character: thumb.commander } : {}),
+        gold: defense.gold,
+        lives: defense.lives,
+        wave: defense.encounter.wave + 1,
+        ...(typeof thumb.thumbnail === "string" && thumb.thumbnail.length > 0 ? { thumbnail: thumb.thumbnail } : {}),
+      };
     },
   });
 }
@@ -246,6 +273,7 @@ export function refreshBeaconSlots(ctx: GameContext): Promise<SaveSlotsRefresh> 
 /** Keep a run under a specific keep: switch the document to it, then write the live state. */
 export async function saveToSlot(ctx: GameContext, slot: string): Promise<void> {
   const save = beaconSave(ctx);
+  await captureKeepThumb();
   if (save.slot() !== slot) await save.switchSlot(slot);
   await save.save();
   await refreshBeaconSlots(ctx);
@@ -287,3 +315,5 @@ export async function prepareKeep(ctx: GameContext, slot: string): Promise<void>
   // Switching only loads documents; a fresh run overwrites nothing until it saves.
   if (save.slot() !== slot) await save.switchSlot(slot);
 }
+
+

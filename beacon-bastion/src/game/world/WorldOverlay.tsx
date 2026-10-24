@@ -3,6 +3,9 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useGameContext } from "@jgengine/react/provider";
 import { useGameStore } from "@jgengine/react/hooks";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+
+import { bindKeepCapture } from "../thumbs";
 
 import { editorLayers } from "../../editorLayers";
 import { GOLD_CURRENCY } from "../entities/base/catalog";
@@ -157,6 +160,7 @@ function ProjectileBolts() {
 export function BeaconBastionWorldOverlay() {
   return (
     <>
+      <SceneCaptureBinding bind={bindKeepCapture} />
       <SpawnGate />
       <BuildPlots />
       <InspectedTower />
@@ -164,3 +168,4 @@ export function BeaconBastionWorldOverlay() {
     </>
   );
 }
+

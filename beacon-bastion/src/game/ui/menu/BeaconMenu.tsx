@@ -1,21 +1,19 @@
-import { type ReactNode, useCallback, useEffect, useState } from "react";
-import { PauseMenu } from "@jgengine/react";
-import { CreditsPanel } from "@jgengine/react/creditsPanel";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
 import { HudButton } from "@jgengine/react/hudButton";
 import { useGamePhase } from "@jgengine/react/hooks";
 import { LoadingScreen } from "@jgengine/react/loadingScreen";
-import { useMenuRouter } from "@jgengine/react/menuRouter";
-import { MenuScreen } from "@jgengine/react/menuScreen";
+import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
+import { ContinuePane, CreditsPane, SaveSlotsPane } from "@jgengine/react/gameMenuSaves";
 import { useGameContext } from "@jgengine/react/provider";
-import { SaveSlotMenu, relativeSavedAt, useSaveSlots } from "@jgengine/react/saveSlots";
-import type { SaveSlotMeta } from "@jgengine/core/game/saveSlots";
+import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
-import { TitleMenu } from "@jgengine/react/titleMenu";
+import type { SaveSlotMeta } from "@jgengine/core/game/saveSlots";
 
 import { BEACON_CREDITS } from "../../credits";
 import { GOLD_CURRENCY } from "../../entities/base/catalog";
-import { beginRun, continueNewest, enterRun, pauseRun, resumeRun, withdrawToTitle } from "../../menu";
+import { keepProfile } from "../../thumbs";
+import { beginRun, enterRun, pauseRun, resumeRun, withdrawToTitle } from "../../menu";
 import {
   KEEP_LABEL,
   beaconSave,
@@ -30,19 +28,22 @@ import {
 import { currentWaveNumber, session } from "../../session";
 import { TOTAL_WAVES } from "../../waves/manifest";
 
-type Screen = "title" | "pause" | "keeps" | "settings" | "credits";
+type Screen = "title" | "pause";
 
-/** SaveSlot cards in Beacon's field-kit palette rather than the neutral default. */
-const KEEP_THEME = {
-  accent: "#d8c169",
-  cardBg: "linear-gradient(160deg, rgba(28,32,19,0.94), rgba(10,11,7,0.96))",
-  cardBorder: "1px solid #454a35",
-  text: "#e6e8d8",
-  muted: "#95997f",
-  chipBg: "rgba(127,184,74,0.14)",
-  fontFamily: "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
-  radius: "2px",
-};
+/** Capture-only focus request: a shot declares which verb it wants highlighted. */
+export const menuFocus: { id: string | null } = { id: null };
+
+/** Beacon's field-kit palette, handed to the shared menu as CSS tokens rather than a preset. */
+const MENU_TOKENS = {
+  "--jg-accent": "#d8c169",
+  "--jg-accent-soft": "rgba(216,193,105,0.26)",
+  "--jg-text": "#e9ebda",
+  "--jg-text-dim": "rgba(214,217,190,0.66)",
+  "--jg-font-display": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
+  "--jg-font-body": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
+  "--jg-menu-logo-size": "clamp(34px, 5vw, 72px)",
+  "--jg-menu-card-radius": "3px",
+} as const;
 
 const TIPS = [
   "Raiders walk the carved road; towers shoot what is in reach.",
@@ -51,58 +52,143 @@ const TIPS = [
   "Pause saves nothing by itself. Withdraw to the title to keep a defense.",
 ];
 
-function Legend() {
-  return (
-    <div className="bb-legend" aria-hidden="true">
-      <span><b>1–3</b> pick tower</span>
-      <span><b>Click ring</b> raise tower</span>
-      <span><b>Right-click</b> inspect</span>
-      <span><b>Space</b> send wave</span>
-      <span><b>Esc</b> pause</span>
-    </div>
-  );
-}
-
 function WaveLine() {
   const wave = Math.min(currentWaveNumber(), TOTAL_WAVES);
   const standing = session.creeps.size;
   return (
     <span className="bb-eyebrow">
-      Wave {wave} / {TOTAL_WAVES} · {standing} raider{standing === 1 ? "" : "s"} on the road
+      Wave {wave} / {TOTAL_WAVES} - {standing} raider{standing === 1 ? "" : "s"} on the road
     </span>
   );
 }
 
-/** Beacon's front-end: the keep's own palette over the live arena, every screen from the SDK blocks. */
+/** The New defense pane: who takes the wall, which keep they raise, and the action that starts it. */
+function NewKeepPane({
+  slot,
+  commander,
+  onCommanderChange,
+  onBegin,
+}: {
+  slot: string | null;
+  commander: string;
+  onCommanderChange: (name: string) => void;
+  onBegin: () => void;
+}): ReactNode {
+  const label = slot === null ? "No keep available" : (KEEP_LABEL[slot] ?? slot);
+  const held = beaconSlots.list().filter((entry) => !entry.empty).length;
+  return (
+    <div data-new-keep-pane="" style={{ display: "flex", flexDirection: "column", gap: 14, minHeight: 0 }}>
+      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800, letterSpacing: "0.02em" }}>
+        New defense
+      </div>
+      <p className="bb-note" style={{ margin: 0 }}>
+        {held >= beaconSlots.list().length
+          ? `Every keep is held. This run replaces the oldest - ${label}.`
+          : `This run raises ${label} from an empty road.`}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 420 }}>
+        <span className="bb-eyebrow">Commander</span>
+        <input
+          data-new-keep-name=""
+          value={commander}
+          maxLength={24}
+          placeholder="Name the commander"
+          onChange={(event) => onCommanderChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onBegin();
+            }
+          }}
+          style={{
+            padding: "10px 12px",
+            borderRadius: 2,
+            border: "1px solid #454a35",
+            background: "rgba(10,11,7,0.72)",
+            color: "#e9ebda",
+            fontFamily: "var(--jg-font-display)",
+            fontSize: "var(--jg-type-xl)",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            outline: "none",
+          }}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {beaconSlots.list().map((entry) => (
+          <span
+            key={entry.id}
+            data-keep-choice={entry.id}
+            data-chosen={entry.id === slot ? "" : undefined}
+            style={{
+              padding: "4px 10px",
+              borderRadius: 2,
+              border: entry.id === slot ? "1px solid #d8c169" : "1px solid #454a35",
+              background: entry.id === slot ? "rgba(216,193,105,0.16)" : "rgba(10,11,7,0.5)",
+              color: entry.empty ? "rgba(230,232,216,0.6)" : "#e6e8d8",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            {KEEP_LABEL[entry.id] ?? entry.id}
+            {entry.empty ? " - empty" : ""}
+          </span>
+        ))}
+      </div>
+      <button
+        type="button"
+        data-new-keep-start=""
+        onClick={onBegin}
+        disabled={slot === null}
+        style={{
+          alignSelf: "flex-start",
+          padding: "11px 22px",
+          borderRadius: 2,
+          border: "none",
+          background: slot === null ? "rgba(148,163,184,0.24)" : "#d8c169",
+          color: "#141609",
+          fontFamily: "var(--jg-font-display)",
+          fontSize: "var(--jg-type-lg)",
+          fontWeight: 800,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          cursor: slot === null ? "not-allowed" : "pointer",
+          boxShadow: slot === null ? "none" : "0 16px 30px -18px rgba(216,193,105,0.9)",
+        }}
+      >
+        Raise the keep
+      </button>
+    </div>
+  );
+}
+
+/** Beacon's front-end: one menu system for the title and the pause, in the keep's own palette. */
 export function BeaconMenu() {
   const ctx = useGameContext();
   const { phase } = useGamePhase();
   const settings = useSettings();
   const root: Screen = phase === "paused" ? "pause" : "title";
-  const router = useMenuRouter<Screen>(root, { escapeToBack: false });
   const keeps = useSaveSlots(beaconSlots);
+  const [screen, setScreen] = useState<Screen>(root);
+  const [commander, setCommander] = useState("");
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const recent = beaconSlots.mostRecent();
-  const emptyKeep = firstEmptyKeep();
   const newKeep = keepForNewRun();
   const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
 
-  const { reset } = router;
   useEffect(() => {
-    reset(root);
+    setScreen(root);
     setNotice(null);
     if (phase === "menu") void refreshBeaconSlots(ctx);
-  }, [phase, root, reset, ctx]);
+  }, [phase, root, ctx]);
 
   const back = useCallback(() => {
-    if (!router.atRoot) {
-      router.back();
-      return;
-    }
     if (phase === "paused") resumeRun(ctx);
-  }, [router, phase, ctx]);
+  }, [phase, ctx]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -128,7 +214,6 @@ export function BeaconMenu() {
   const whileLoading = async (label: string, work: () => Promise<unknown>) => {
     setBusy(label);
     try {
-      // Long enough to read the tip, short enough that a local document never feels slow.
       await Promise.all([work(), new Promise((resolve) => setTimeout(resolve, 320))]);
     } finally {
       setBusy(null);
@@ -148,136 +233,150 @@ export function BeaconMenu() {
       setNotice(`Kept in ${KEEP_LABEL[slot] ?? slot}`);
     });
 
-  const screens: Record<Screen, ReactNode> = {
-    title: (
-      <TitleMenu
-        eyebrow="Field kit · wave defense"
-        title={<span className="bb-wordmark">Beacon<br />Bastion</span>}
-        tagline="Raise the keep, light the beacon, and hold the road the raiders carved."
-        items={[
-          {
-            id: "continue",
-            label: "Continue",
-            hint: recent === null
-              ? "No defense kept yet"
-              : `${recent.name ?? recent.id} · saved ${recent.savedAt === undefined ? "recently" : relativeSavedAt(recent.savedAt)}`,
-            primary: recent !== null,
-            disabled: recent === null,
-          },
-          {
-            id: "new",
-            label: "New defense",
-            hint: newKeep === null
-              ? "No keep available"
-              : emptyKeep === newKeep
-                ? `Raise the first tower in ${KEEP_LABEL[newKeep] ?? newKeep}`
-                : `Every keep is held - replaces the oldest (${KEEP_LABEL[newKeep] ?? newKeep})`,
-            disabled: newKeep === null,
-          },
-          { id: "keeps", label: "Load & save", hint: `${keeps.filter((slot) => !slot.empty).length} of ${keeps.length} keeps held` },
-          { id: "settings", label: "Settings", hint: "Sound, picture, controls" },
-          { id: "credits", label: "Credits" },
-        ]}
-        onSelect={(id) => {
-          if (id === "continue") {
-            void whileLoading("Opening the keep", async () => {
-              const resumed = await continueNewest(ctx);
-              if (!resumed) setNotice("No defense kept yet");
-            });
-            return;
-          }
-          if (id === "new") {
-            const slot = keepForNewRun();
-            if (slot === null) return;
-            void whileLoading("Raising the keep", async () => {
-              await prepareKeep(ctx, slot);
-              beginRun(ctx);
-            });
-            return;
-          }
-          router.open(id as Screen);
-        }}
-        footer={<span>Beacon Bastion · the keep remembers</span>}
-        controlHint="Arrows move · Enter select · Esc back"
-      >
-        <Legend />
-      </TitleMenu>
-    ),
+  const keepCount = `${keeps.filter((slot) => !slot.empty).length} of ${keeps.length} keeps held`;
 
-    keeps: (
-      <MenuScreen transition="slide" scrim="dim" label="Keeps" open>
-        <div className="bb-column">
-          <SaveSlotMenu
-            model={beaconSlots}
-            title="Keeps"
-            theme={KEEP_THEME}
-            metaIcons={{ gold: "coin", lives: "heart", wave: "flag" }}
-            onContinue={(slot: SaveSlotMeta) => void openSlot(slot.id)}
-            onLoad={(slot: SaveSlotMeta) => void openSlot(slot.id)}
-            onNew={(slot: SaveSlotMeta) => {
-              void whileLoading("Raising the keep", async () => {
-                await prepareKeep(ctx, slot.id);
-                beginRun(ctx);
-              });
-            }}
-          />
-          <div className="bb-row">
-            <HudButton onClick={back}>Back</HudButton>
-            {notice !== null && <span className="bb-note" role="status">{notice}</span>}
-          </div>
-        </div>
-      </MenuScreen>
-    ),
+  const titleMenu = (
+    <GameMenu
+      open={screen === "title"}
+      label="Beacon Bastion"
+      initialId={menuFocus.id ?? (recent === null ? "new" : "continue")}
+      eyebrow="Field kit - wave defense"
+      logo={{ text: <span className="bb-wordmark">Beacon<br />Bastion</span>, title: "Beacon Bastion" }}
+      tagline="Raise the keep, light the beacon, and hold the road the raiders carved."
+      items={[
+        {
+          id: "continue",
+          label: "Continue",
+          hint: recent === null ? "No defense kept yet" : `${recent.name ?? recent.id}`,
+          disabled: recent === null,
+        },
+        {
+          id: "new",
+          label: "New defense",
+          hint: newKeep === null ? "No keep available" : `Raises ${KEEP_LABEL[newKeep] ?? newKeep}`,
+          disabled: newKeep === null,
+        },
+        { id: "keeps", label: "Load & save", hint: keepCount },
+        { id: "settings", label: "Settings", hint: "Sound, picture, controls" },
+        { id: "credits", label: "Credits" },
+      ]}
+      detail={(id) => {
+        if (id === "continue") {
+          return (
+            <ContinuePane
+              slot={recent}
+              emptyMessage="No defense kept yet. Raise a keep and withdraw to the title to hold it."
+              onContinue={(slot) => void openSlot(slot.id)}
+            />
+          );
+        }
+        if (id === "new") {
+          return (
+            <NewKeepPane
+              slot={newKeep}
+              commander={commander}
+              onCommanderChange={setCommander}
+              onBegin={() => {
+                if (newKeep === null) return;
+                const slot = newKeep;
+                void whileLoading("Raising the keep", async () => {
+                  keepProfile.commander = commander.trim() === "" ? null : commander.trim();
+                  await prepareKeep(ctx, slot);
+                  beginRun(ctx);
+                });
+              }}
+            />
+          );
+        }
+        if (id === "keeps") {
+          return (
+            <SaveSlotsPane
+              model={beaconSlots}
+              heading="Keeps"
+              columns="auto"
+              onContinue={(slot: SaveSlotMeta) => void openSlot(slot.id)}
+              onLoad={(slot: SaveSlotMeta) => void openSlot(slot.id)}
+              onNew={(slot: SaveSlotMeta) => {
+                void whileLoading("Raising the keep", async () => {
+                  await prepareKeep(ctx, slot.id);
+                  beginRun(ctx);
+                });
+              }}
+              onDelete={(slot: SaveSlotMeta) => {
+                beaconSlots.clear(slot.id);
+                void beaconSave(ctx).deleteSlot(slot.id).then(() => refreshBeaconSlots(ctx));
+              }}
+            />
+          );
+        }
+        if (id === "settings") return <SettingsPane onBack={back} onCaptureChange={setArmed} />;
+        if (id === "credits") return <CreditsPane sections={BEACON_CREDITS.sections} notice={BEACON_CREDITS.notice} />;
+        return null;
+      }}
+      onHighlight={(id) => {
+        if (id === "keeps") void refreshBeaconSlots(ctx);
+      }}
+      onSelect={(id) => {
+        if (id === "continue") {
+          if (recent === null) return;
+          void openSlot(recent.id);
+          return;
+        }
+        if (id === "new") {
+          document.querySelector<HTMLInputElement>("[data-new-keep-name]")?.focus();
+          return;
+        }
+        if (id === "keeps") {
+          document.querySelector<HTMLButtonElement>("[data-save-slot-load]")?.focus();
+          return;
+        }
+        if (id === "credits") {
+          document.querySelector<HTMLElement>("[data-credits-scroller]")?.focus();
+        }
+      }}
+      footer={<span>Beacon Bastion - the keep remembers - {gold} gold</span>}
+      style={MENU_TOKENS as CSSProperties}
+    />
+  );
 
-    settings: (
-      <MenuScreen transition="slide" scrim="dim" label="Settings" open>
-        <SettingsPane onBack={back} onCaptureChange={setArmed} />
-      </MenuScreen>
-    ),
-
-    credits: <CreditsPanel document={BEACON_CREDITS} onBack={back} title="Beacon Bastion / credits" backLabel="Back to the keep" open />,
-
-    pause: (
-      <MenuScreen transition="scale" scrim="dim" label="Defense paused" open>
-        <div className="bb-pause">
-          <WaveLine />
-          <h2 className="bb-pause-title">Hold.</h2>
-          <p className="bb-note">
-            The road is stopped with the simulation: raiders wait where they stood, towers hold their cooldown.
-          </p>
-          <PauseMenu
-            title="Defense paused"
-            resumeLabel="Hold the line"
-            onResume={() => resumeRun(ctx)}
-            width={320}
-            items={[
-              { id: "settings", label: "Settings", onSelect: () => router.open("settings") },
-              { id: "save", label: `Save to ${KEEP_LABEL[beaconSave(ctx).slot()] ?? beaconSave(ctx).slot()}`, onSelect: () => void saveHere() },
-              { id: "credits", label: "Credits", onSelect: () => router.open("credits") },
-              {
-                id: "title",
-                label: "Save & withdraw to title",
-                danger: true,
-                onSelect: () => void whileLoading("Writing the keep", () => withdrawToTitle(ctx, beaconSave(ctx).slot())),
-              },
-            ]}
-          />
-          {notice !== null && <p className="bb-note" role="status">{notice} · {gold} gold</p>}
-        </div>
-      </MenuScreen>
-    ),
-  };
+  const pauseMenu = (
+    <GamePauseMenu
+      open={screen === "pause"}
+      label="Defense paused"
+      onBack={back}
+      onResume={() => resumeRun(ctx)}
+      logo={{ text: <span className="bb-wordmark">Hold.</span>, title: "Hold" }}
+      eyebrow={<WaveLine />}
+      tagline="The road is stopped with the simulation: raiders wait where they stood, towers hold their cooldown."
+      items={[
+        { id: "resume", label: "Hold the line" },
+        { id: "save", label: `Save to ${KEEP_LABEL[beaconSave(ctx).slot()] ?? beaconSave(ctx).slot()}`, hint: "Writes this keep where it is" },
+        { id: "settings", label: "Settings" },
+        { id: "credits", label: "Credits" },
+      ]}
+      secondary={[{ id: "title", label: "Save & withdraw to title" }]}
+      detail={(id) =>
+        id === "settings" ? (
+          <SettingsPane onBack={back} onCaptureChange={setArmed} />
+        ) : id === "credits" ? (
+          <CreditsPane sections={BEACON_CREDITS.sections} notice={BEACON_CREDITS.notice} />
+        ) : null
+      }
+      onSelect={(id) => {
+        if (id === "resume" || id === "back") resumeRun(ctx);
+        else if (id === "save") void saveHere();
+        else if (id === "title") void whileLoading("Writing the keep", () => withdrawToTitle(ctx, beaconSave(ctx).slot()));
+      }}
+      footer={<span>{notice ?? `${gold} gold`}</span>}
+      style={MENU_TOKENS as CSSProperties}
+    />
+  );
 
   return (
     <div className="bb-menu">
-      {screens[router.current]}
-      <LoadingScreen
-        open={busy !== null}
-        title={busy ?? "Loading"}
-        tips={TIPS}
-        scrim="blur"
-        className="bb-loading"
-      />
+      {titleMenu}
+      {pauseMenu}
+      <LoadingScreen open={busy !== null} title={busy ?? "Loading"} tips={TIPS} scrim="blur" className="bb-loading" />
     </div>
   );
 }
@@ -291,11 +390,13 @@ function SettingsPane({ onBack, onCaptureChange }: { onBack: () => void; onCaptu
   const active = categories.find((category) => category.id === activeId);
 
   return (
-    <div className="bb-settings">
+    <div className="bb-settings" data-menu-settings="">
       <header className="bb-settings-head">
         <span className="bb-eyebrow">Field kit / settings</span>
         <h2>Prepare the keep.</h2>
-        <p className="bb-note">Every row writes straight to the shell's settings store; the controls list rebinds the same keys the HUD reads.</p>
+        <p className="bb-note">
+          Every row writes straight to the shell's settings store; the controls list rebinds the same keys the HUD reads.
+        </p>
       </header>
       <SettingsTabs categories={categories} activeId={activeId} onSelect={setChosen} />
       <div className="bb-settings-body">
@@ -312,9 +413,14 @@ function SettingsPane({ onBack, onCaptureChange }: { onBack: () => void; onCaptu
       </div>
       <footer className="bb-row">
         <HudButton onClick={onBack}>Back</HudButton>
-        <span className="bb-note">Click a tab to change category · Tab reaches every row · Esc returns</span>
+        <span className="bb-note">Click a tab to change category - Tab reaches every row - Esc returns</span>
       </footer>
     </div>
   );
 }
+
+
+
+
+
 

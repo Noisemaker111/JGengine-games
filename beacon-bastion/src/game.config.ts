@@ -53,6 +53,10 @@ export const game = defineGame({
     //   result    a defense played to its own ending, with the result card up
     states: {
       title: [],
+      menu: ["run.begin", { name: "menu.commander", input: { commander: "Mara Vell" } }, "menu.save", "menu.title"],
+      "menu-keeps": ["run.begin", { name: "menu.commander", input: { commander: "Mara Vell" } }, "menu.save", "menu.keeps"],
+      "menu-new": ["menu.new"],
+      "menu-keeps-empty": ["menu.keeps"],
       pause: ["run.begin", "run.pause"],
       "mid-wave": ["run.begin", { name: "run.stage", input: { mode: "midwave" } }],
       boss: ["run.begin", { name: "run.stage", input: { mode: "boss" } }],
@@ -73,6 +77,13 @@ export const game = defineGame({
         "buildTower2",
         { name: "tower.build", input: { point: [0, 0, 4] } },
       ],
+    },
+    views: {
+      menu: { description: "Title menu over the standing keep, Continue highlighted", state: "menu", settleMs: 1800 },
+      menuKeeps: { description: "Slot grid with the keep just saved", state: "menu-keeps", settleMs: 1800 },
+      menuNew: { description: "New defense pane", state: "menu-new", settleMs: 1200 },
+      menuKeepsEmpty: { description: "Slot grid with no save", state: "menu-keeps-empty", settleMs: 1200 },
+      pause: { description: "Pause menu over live play", state: "pause", settleMs: 900 },
     },
     probe: (ctx) => ({
       gold: ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY),
@@ -125,3 +136,6 @@ export const game = defineGame({
     },
   },
 });
+
+
+
