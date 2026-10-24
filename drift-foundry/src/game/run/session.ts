@@ -222,8 +222,10 @@ export function createRunSession(
   }
 
   /**
-   * Where the run stands: the outcome the shared run loop closed with, or whether the run it has
-   * open has begun. Nothing else stores a phase, so a settle cannot disagree with the readout.
+   * Where the run stands. A settled run reports the outcome the shared run loop closed it with: the
+   * readout has no outcome field, and its banked/lost totals cannot tell a zero-haul escape from a
+   * zero-haul wreck, so the settlement the loop returned is the only honest answer. `begun` is the
+   * one bit the loop cannot know - it opens a run at the pit, before the engine starts.
    */
   function phaseNow(): RunPhase {
     if (outcome !== null) return outcome.kind;
