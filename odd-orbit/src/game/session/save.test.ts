@@ -12,7 +12,7 @@ import { advanceLifeEvents, LIFE_EVENT_SECONDS } from "../sim/events";
 import { simulateHousehold } from "../sim/simulate";
 import { pairKey } from "./types";
 import { householdStore } from "./store";
-import { captureOrbitSave, ORBIT_SAVE_KEY, readOrbitSave, restoreOrbitSave, validOrbitSave, writeOrbitSave, type OrbitSave } from "./save";
+import { captureOrbitSave, ORBIT_SAVE_KEY, orbitProfile, orbitSlotKey, readOrbitSave, restoreOrbitSave, validOrbitSave, writeOrbitSave, type OrbitSave } from "./save";
 
 function boot() {
   const ctx = createGameContext({ definition: game.game, content, player: { userId: "orbit-save-test", isNew: true } });
@@ -254,4 +254,27 @@ test("a bond survives save and reload and still refuses to split the pair's shif
   expect(loaded.members[a.id]!.action.kind).toBe("idle");
   expect(loaded.members[b.id]!.action.kind).toBe("idle");
   expect(loaded.members[a.id]!.concern).toContain("bonded and will not split");
+});
+
+test("a named household writes to its own slot and continues with its name and frame", () => {
+  orbitProfile.name = "Vega Household";
+  orbitProfile.thumbnail = "data:image/jpeg;base64,AAAA";
+  orbitProfile.savedAt = 1_700_000_000_000;
+  const first = boot();
+  householdStore.write(first, { ...householdStore.read(first), credits: 512 });
+  const { storage, values } = memory();
+  expect(writeOrbitSave(first, storage, "household-2")).toBe(true);
+  expect(values.has(ORBIT_SAVE_KEY)).toBe(false);
+  expect(values.has(orbitSlotKey("household-2"))).toBe(true);
+
+  const written = readOrbitSave(storage, "household-2").save!;
+  expect(written.profile).toMatchObject({ name: "Vega Household", thumbnail: "data:image/jpeg;base64,AAAA", savedAt: 1_700_000_000_000 });
+  const second = boot();
+  restoreOrbitSave(second, written);
+  expect(householdStore.read(second).credits).toBe(512);
+  expect(orbitProfile.name).toBe("Vega Household");
+  expect(orbitProfile.thumbnail).toBe("data:image/jpeg;base64,AAAA");
+  orbitProfile.name = "";
+  orbitProfile.thumbnail = null;
+  orbitProfile.savedAt = 0;
 });
