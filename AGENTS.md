@@ -26,7 +26,7 @@ Repeated generic glue is framework friction or adoption debt, even if the game w
 
 **Size signal.** A game module that owns a state machine, reducer, scheduler, resource pool, pathfinder, damage or status table, spawn director or progression curve is an engine system in the wrong repo. If it would pass roughly 50 lines, or a second game would want it, file the engine seam before writing it.
 
-**Escalate with a shape, not a complaint.** File the engine issue naming the seam (`packages/<pkg>/src/<file>:<line>`), the API needed and the two games that would adopt it; track it in [epic #2038](https://github.com/Noisemaker111/jgengine/issues/2038) under the matching system: missions, progression and economy, AI director, vehicles, items and loot, agents, damage and status, abilities, run and session loop, wanted and heat, shell UI. Until it lands, a game works only on its adoption side.
+**Escalate with a shape, not a complaint.** File the engine issue naming the seam (`packages/<pkg>/src/<file>:<line>`), the API needed and the two games that would adopt it; track it in [epic #2312](https://github.com/Noisemaker111/jgengine/issues/2312) under the matching system: missions, progression and economy, AI director, vehicles, items and loot, agents, damage and status, abilities, run and session loop, wanted and heat, shell UI. Until it lands, a game works only on its adoption side.
 
 **Say which it is in the PR**, using the template's required line: `Engine seam: packages/shell/src/render/x.ts (adopts #1234)` or `Engine seam: none - authored content only`. `bun run check:framework` (also run by CI) fails on a new engine-shaped module inside a game; pass `-- --allow "<reason>"` only when you can name why it cannot live upstream.
 
@@ -46,11 +46,18 @@ Every reason is 20+ characters that name the domain or the gap; the old `Not ado
 
 **Debt only goes down.** `scripts/debt-budget.json` is the committed debt budget - one total and one number per game - that `bun run check:capabilities --write` seeds from the current tally and may only lower. The gate fails when a game or the total carries more debt than its budget (naming the entry and the open issue to clear first) and when a budget is higher than the tally, so clearing a debt entry has to take its budget with it; `--write` refuses to raise a ceiling and never records a tally that already failed. The summary's last line is the trend, such as `debt: 43 (budget 43, was 50 on 2026-10-16)`. A capability that arrives with an engine release is not silent debt either: the stale-ledger failure lists every game that has not answered it.
 
+## Where the work is defined
+
+- **A game's loop is its `README.md` design checklist**: core loop, progression, failure states, minute 5 → hour 5, references, gap to target. Numbers there are what the build does now; a change that moves them updates them.
+- **A game's systems ledger is `<game>/capabilities.json`** (below). The epic for what is left is #2312; a fix that belongs to every game is an engine seam, not a local copy.
+- **The engine checkout** defaults to `../jgengine` beside this repo; `ci:status`, `pr:sweep` and every `engine:*` command take `--dir <path>` when it lives elsewhere.
+
 ## Agent workflow
 
 - Code work happens in `.claude/worktrees/<name>` (`claude --worktree <name>`, or `git worktree add -b <name> .claude/worktrees/<name> origin/beta`); scratch and evidence go in `.scratch/`, which never holds a checkout. Both are ignored.
-- After opening a PR, ask `bun run ci:status` once for where its checks stand; never `--watch`, never wait on a queue.
-- Work lands on `beta`: branch from `origin/beta`, then push verified commits to `beta` directly or open the PR into `beta` and merge it yourself with `gh pr merge <n> --auto --merge` (if that errors for any reason but a failing check, `gh pr merge <n> --merge`), and confirm it shows MERGED; never ask me to merge. When a change needs unreleased engine work, cut the engine release yourself per the engine's AGENTS.md, then adopt it here and merge that too. `stable` is the stable branch: after an SDK adoption PR merges and the games CI is green on `beta`, fast-forward it yourself with `git push origin origin/beta:stable`, then run `bun run games:bump` in the engine and merge that pin PR.
+- **A lane ends with `bun run lane:close -m "<subject>"`.** It runs `verify:fast`, prints what it will commit and refuses what a lane should not land, commits, pushes, opens or updates the PR into `beta`, arms auto-merge, and prints the URL and `ci:status --pr <n>`. `--seam "<line>"` fills the template's seam line when it opens the PR. Never hand-roll `git add`/`commit`/`push`/`gh pr merge`.
+- **Long commands:** `bun run bg:run -- <cmd>` then `bun run bg:await <id>`. Never `Start-Sleep`, never poll a log, never `--watch`. `bun run pr:sweep` lists armed-but-red PRs.
+- Work lands on `beta`: `lane:close` arms auto-merge, so GitHub merges when CI is green. `stable` is the stable branch: after an SDK adoption PR merges and the games CI is green on `beta`, fast-forward it with `git push origin origin/beta:stable`, then `bun run games:bump` in the engine and merge that pin PR.
 - For a reversible choice, pick the option you'd recommend, say which in the PR body, and keep going. Ask only for irreversible actions, money or production data; merges and releases are never questions.
 - Record demo clips and videos yourself with the repo's capture tooling; never ask me to record them.
 - Rewrite a PR body yourself whenever it goes stale.
