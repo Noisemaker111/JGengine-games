@@ -67,6 +67,16 @@ A flow runs headless from the engine checkout, with the game visible to it:
 bun run drive harbor-heat --state chase --flow to-chase     # add --state when the flow needs a staged entry
 ```
 
+`bun run prove harbor-heat --view boulevard --view downtown --sizes 1600x900,1024x640 --flow to-chase --state chase`
+is the whole evidence set for one item in one command: captures each view at each size in play mode, a same-code
+control pair for this machine's noise floor, a pixel diff between the two states (mean-abs and >8 share), the driven
+flow with its step log, and one `.scratch/proofs/<game>/runs/<stamp>/manifest.json` listing every artefact and its
+numbers. A capture the engine's guards refuse - no 3D canvas, a flat frame, a missing tier, an engine-identity
+mismatch - fails the bundle with the reason instead of leaving a blank frame. Artefacts are cached on the game's tree hash, the engine commit, the tools, the view, the size and the tier, so
+an unchanged input says `[cached]` and a changed one re-runs. Run it from the checkout the engine serves
+(`Games/<game>`); it refuses to bundle another checkout's code. A lane cites those numbers in its PR body instead of
+a paragraph of claims.
+
 Deepward uses original procedural industrial geometry and needs no downloaded
 asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).
 
