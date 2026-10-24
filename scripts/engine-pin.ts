@@ -18,7 +18,7 @@
  * `engine:published` (or `engine:local`) takes the links back out.
  */
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -41,7 +41,7 @@ import {
 } from "./engine-mode";
 
 /** Bump when the snapshot layout or the build recipe changes; old caches stop matching. */
-export const SCHEMA = 1;
+export const SCHEMA = 2;
 const ENGINE_SCOPE = "@jgengine/";
 
 interface SnapshotPackage {
@@ -186,6 +186,7 @@ function readMarker(dir: string): SnapshotMarker | null {
 export function snapshotValid(dir: string): boolean {
   const marker = readMarker(dir);
   if (marker === null || marker.schema !== SCHEMA) return false;
+  if (!existsSync(join(dir, "node_modules", ".bun"))) return false;
   return marker.packages.every((pkg) => {
     const packageDir = join(dir, "packages", pkg.dir);
     const dist = join(packageDir, "dist");
@@ -193,28 +194,7 @@ export function snapshotValid(dir: string): boolean {
   });
 }
 
-function copyPackage(from: string, to: string): void {
-  cpSync(from, to, {
-    recursive: true,
-    filter: (source) => {
-      if (source === from) return true;
-      const name = basename(source);
-      if (name === "node_modules" || name === "src") return false;
-      if (/^tsconfig.*\.json$/.test(name)) return false;
-      if (name.endsWith(".tsbuildinfo")) return false;
-      return true;
-    },
-  });
-}
-
-function buildSnapshot(options: {
-  enginePath: string;
-  commit: string;
-  short: string;
-  ref: string;
-  target: string;
-  inputs: string;
-}): number {
+function buildSnapshot(options: { enginePath: string; commit: string; short: string; ref: string; target: string; inputs: string }): number {
   const { enginePath, commit, short, target, inputs, ref } = options;
   mkdirSync(cacheRoot(), { recursive: true });
   const work = mkdtempSync(join(cacheRoot(), `.build-${short}-`));
@@ -244,10 +224,21 @@ function buildSnapshot(options: {
       console.log(`[engine:pin] ${short}: ${pkg.dir} built in ${((Date.now() - at) / 1000).toFixed(1)}s`);
     }
 
-    const out = join(work, "out");
-    for (const pkg of packages) {
-      copyPackage(join(tree, "packages", pkg.dir), join(out, "packages", pkg.dir));
+    // Keep the install beside the packages: a linked package resolves its imports from
+    // its real path in the cache, so @jgengine/* and react/three have to be there.
+    // Bun hardlinks from its store, so this costs less disk than its reported size.
+    for (const entry of readdirSync(tree)) {
+      if (entry === "packages" || entry === "node_modules" || entry === "package.json" || entry === "bun.lock") continue;
+      rmSync(join(tree, entry), { recursive: true, force: true });
     }
+    for (const pkg of packages) {
+      const packageDir = join(tree, "packages", pkg.dir);
+      rmSync(join(packageDir, "src"), { recursive: true, force: true });
+      for (const entry of readdirSync(packageDir)) {
+        if (/^tsconfig.*\.json$/.test(entry)) rmSync(join(packageDir, entry), { force: true });
+      }
+    }
+
     const marker: SnapshotMarker = {
       schema: SCHEMA,
       sha: commit,
@@ -260,10 +251,10 @@ function buildSnapshot(options: {
       buildSeconds: Math.round((Date.now() - started) / 100) / 10,
       packages,
     };
-    writeFileSync(markerPath(out), `${JSON.stringify(marker, null, 2)}\n`);
+    writeFileSync(markerPath(tree), `${JSON.stringify(marker, null, 2)}\n`);
 
     rmSync(target, { recursive: true, force: true });
-    renameSync(out, target);
+    renameSync(tree, target);
     return marker.buildSeconds;
   } finally {
     rmSync(work, { recursive: true, force: true });
@@ -388,6 +379,10 @@ function pinPublished(version: string): number {
   return report.ok ? 0 : 1;
 }
 
+function packageSize(dir: string): number {
+  return directorySize(join(dir, "packages"));
+}
+
 function directorySize(dir: string): number {
   let total = 0;
   const walk = (path: string): void => {
@@ -435,14 +430,14 @@ function snapshots(args: string[]): number {
     console.log(`engine snapshots: none cached in ${cache} (bun run engine:pin caches one per commit)`);
     return 0;
   }
-  const total = entries.reduce((sum, dir) => sum + directorySize(dir), 0);
-  console.log(`engine snapshots: ${entries.length} in ${cache} (${megabytes(total)})`);
+  const total = entries.reduce((sum, dir) => sum + packageSize(dir), 0);
+  console.log(`engine snapshots: ${entries.length} in ${cache} (${megabytes(total)} of package builds; dependencies are hardlinked from bun's store)`);
   for (const dir of entries.sort((a, b) => a.localeCompare(b))) {
     const marker = readMarker(dir);
     const pkg = marker?.packages.find((entry) => entry.name === `${ENGINE_SCOPE}core`) ?? marker?.packages[0];
     const linked = active !== undefined && resolve(active).toLowerCase() === resolve(dir).toLowerCase();
     console.log(
-      `  ${basename(dir)}  ${megabytes(directorySize(dir)).padStart(6)}  ${marker === null ? "no marker" : `built ${ago(marker.builtAt)}, v${pkg?.version ?? "?"}`}${
+      `  ${basename(dir)}  ${megabytes(packageSize(dir)).padStart(6)}  ${marker === null ? "no marker" : `built ${ago(marker.builtAt)}, v${pkg?.version ?? "?"}`}${
         linked ? "  <- linked here" : ""
       }`,
     );
@@ -472,7 +467,7 @@ function pruneSnapshots(entries: string[], want: string, force: boolean): number
   }
   let bytes = 0;
   for (const dir of matches) {
-    bytes += directorySize(dir);
+    bytes += packageSize(dir);
     rmSync(dir, { recursive: true, force: true });
   }
   console.log(`engine snapshots: pruned ${matches.length} snapshot${matches.length === 1 ? "" : "s"} (${megabytes(bytes)}) from ${cacheRoot()}`);

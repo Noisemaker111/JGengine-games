@@ -17,6 +17,7 @@ function marker(dir: string, packages: { dir: string; name: string; version: str
 
 function built(dir: string, name: string): void {
   mkdirSync(join(dir, "packages", name, "dist"), { recursive: true });
+  mkdirSync(join(dir, "node_modules", ".bun"), { recursive: true });
   writeFileSync(join(dir, "packages", name, "package.json"), "{}");
   writeFileSync(join(dir, "packages", name, "dist", "index.js"), "");
 }
@@ -58,8 +59,19 @@ describe("engine snapshot cache", () => {
     }
   });
 
-  test("a marker from an older layout is not reused", () => {
+  test("a snapshot without its install is not reused: links would resolve nothing", () => {
     const dir = tree();
+    try {
+      for (const pkg of [core, shell]) built(dir, pkg.dir);
+      rmSync(join(dir, "node_modules"), { recursive: true, force: true });
+      marker(dir, [core, shell]);
+      expect(snapshotValid(dir)).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("a marker from an older layout is not reused", () => {    const dir = tree();
     try {
       for (const pkg of [core, shell]) built(dir, pkg.dir);
       marker(dir, [core, shell], SCHEMA - 1);
