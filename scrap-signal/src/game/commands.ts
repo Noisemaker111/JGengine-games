@@ -446,6 +446,15 @@ export function registerCommands(ctx: GameContext): void {
         stageRelay(state, input.mode ?? "ambush");
       },
     });
+    // Dev-only: drop the chassis to its last point of health, so the game's own downed tick opens
+    // the Emergency Reserve window for a capture instead of standing in enemy fire for it.
+    ctx.game.commands.define("reserve.capture", {
+      apply(state: GameContext) {
+        const health = state.scene.entity.stats.get(state.player.userId, "health");
+        if (health === null) return;
+        state.scene.entity.stats.delta(state.player.userId, "health", -Math.max(0, health.current - (health.min ?? 1)));
+      },
+    });
   }
 }
 

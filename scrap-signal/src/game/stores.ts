@@ -1,16 +1,16 @@
 import { defineStore } from "@jgengine/core/store/defineStore";
 
 import type { BlackMarketCounts } from "./commands";
-import type { ReservePhase } from "./handroll";
+import type { DownedPhase } from "@jgengine/core/combat/downed";
 
 export const selectedSlotStore = defineStore<number>("selectedSlot", 0);
 
 export interface ReserveView {
-  phase: ReservePhase;
-  untilMs: number;
+  phase: DownedPhase;
+  secondsLeft: number;
 }
 
-export const reserveStore = defineStore<ReserveView>("reserve", { phase: "up", untilMs: 0 });
+export const reserveStore = defineStore<ReserveView>("reserve", { phase: "alive", secondsLeft: 0 });
 
 export const lastPickupStore = defineStore<{ gunId: string; atMs: number } | null>("lastPickup", null);
 
