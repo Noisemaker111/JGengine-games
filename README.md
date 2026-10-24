@@ -71,13 +71,15 @@ The current catalog installs SDK 0.36.0, including editor and its published navb
 To test unpublished engine work, link a checkout instead of releasing:
 
 ```sh
-bun run engine:local      # link ../jgengine (or --dir <path>)
-bun run engine:watch      # rebuild changed engine packages
-bun run engine:status     # mode, engine commit, stale-or-fresh dist
-bun run engine:published  # restore the catalog install
+bun run engine:local      # link ../jgengine (or --dir <path>): live, sees uncommitted edits
+bun run engine:pin        # link a cached build of one commit (--ref <sha|branch>): immutable
+bun run engine:watch      # rebuild changed engine packages (live mode only)
+bun run engine:status     # mode, engine commit, stale-or-fresh dist, uncommitted live edits
+bun run engine:snapshots  # cached snapshots, with --prune <sha|all>
+bun run engine:published  # restore the catalog install (--version <x.y.z> pins that release)
 ```
 
-`.engine-mode` (ignored) records the link; never commit it.
+`engine:local` links the checkout itself, so an edit there — even an uncommitted one — lands in every workspace in live mode at once. `engine:pin` builds `git archive <commit>` once into `%LOCALAPPDATA%\jgengine-snapshots`, keys it by commit and build inputs, and links that; concurrent lanes pinning the same commit share the one build, and edits in the live checkout stay invisible. `.engine-mode` (ignored) records the link; never commit it.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

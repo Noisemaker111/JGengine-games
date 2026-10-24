@@ -8,7 +8,8 @@ Before changing a game, distinguish a broken or missing SDK contract, incorrect 
 
 The games use published `@jgengine/*` packages; [`README.md`](./README.md) owns the game list, dev commands and engine-version rules.
 
-- Engine code arrives two ways: **published** (the catalog install PRs and CI verify) and **local** (`bun run engine:local` links a checkout, `bun run engine:published` restores it). `bun run engine:status` names the engine commit and whether its dist is stale.
+- Engine code arrives three ways: **published** (the catalog install PRs and CI verify), **local** (`bun run engine:local` links a checkout, `bun run engine:published` restores it) and **pinned** (`bun run engine:pin --ref <sha|branch>` links a cached, immutable build of one commit, so edits in the live checkout cannot break a lane). `bun run engine:status` names the active mode, the engine commit, whether its dist is stale or its source dirty, and whether uncommitted live edits are visible.
+- Prefer `engine:pin` when several lanes run at once; use `engine:local` only in the lane that is editing the engine, because it sees uncommitted edits immediately. `bun run engine:snapshots` lists and prunes the cache.
 - Never commit link state: `package.json` and `bun.lock` stay clean after `engine:published`. A probe game is not a template; do not copy one game to start another.
 
 ## Framework-first development
