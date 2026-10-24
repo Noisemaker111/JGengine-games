@@ -38,6 +38,9 @@ export const STEP_KINDS: readonly string[] = [
   "doubleClick",
   "clickAt",
   "rightClickAt",
+  "moveMouse",
+  "look",
+  "aimAt",
   "fill",
   "key",
   "wait",
@@ -50,7 +53,7 @@ export const STEP_KINDS: readonly string[] = [
   "flow",
 ];
 
-const EXTRAS: readonly string[] = ["before", "after", "note"];
+const EXTRAS: readonly string[] = ["before", "after", "note", "tolerancePx"];
 
 /** How deep a flow may include another before the run refuses the script (engine DRIVE_FLOW_MAX_DEPTH). */
 export const MAX_FLOW_DEPTH = 4;
@@ -118,7 +121,11 @@ function stepValueProblem(kind: string, value: unknown): string | null {
       return typeof value === "string" && value.trim().length > 0 ? null : "the assert expression must be a non-empty string";
     case "clickAt":
     case "rightClickAt":
+    case "look":
+    case "moveMouse":
       return isPoint(value) ? null : `${kind} takes [x, y] pixel numbers`;
+    case "aimAt":
+      return typeof value === "string" && value.trim().length > 0 ? null : "aimAt takes the page expression that returns the target's screen point";
     case "wait":
       return typeof value === "number" && value >= 0 ? null : "wait takes milliseconds as a number";
     case "flow":
@@ -172,7 +179,12 @@ export function parseFlow(text: string, label: string): FlowParse {
     }
     const kind = kinds[0]!;
     for (const key of Object.keys(record)) {
-      if (key !== kind && !EXTRAS.includes(key) && !(key === "ms" && kind === "key")) {
+      if (
+        key !== kind &&
+        !EXTRAS.includes(key) &&
+        !(key === "ms" && kind === "key") &&
+        !(key === "is" && kind === "assert")
+      ) {
         problems.push(`${at} has unknown field "${key}"`);
       }
     }
