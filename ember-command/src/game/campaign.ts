@@ -15,6 +15,7 @@ import {
 import { defendMission, escortMission } from "@jgengine/core/mission/compositions";
 import { missionMarkers } from "@jgengine/core/mission/triggers";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { createSessionLoop, installSessionProbe } from "@jgengine/core/run/sessionLoop";
 import { defineStore } from "@jgengine/core/store/defineStore";
 
 import { editorLayers } from "../editorLayers";
@@ -411,6 +412,34 @@ export function campaignRuntime(ctx: GameContext) {
   return runtimes(ctx);
 }
 
+/** What the mission session's boundary hands its `settle`. */
+export interface CampaignSettlementInput {
+  won: boolean;
+  missionId: string;
+  rewards: MissionRewards | null;
+}
+
+/**
+ * A campaign mission is a session on the shared loop: it opens when the field desk starts it, carries
+ * the pay the vale's stores will receive, and its boundary banks that pay or loses it with the order.
+ */
+const sessions = perContext((ctx: GameContext) => {
+  const loop = createSessionLoop<never, CampaignSettlementInput, { banked: boolean }>({
+    kind: "mission",
+    settle: ({ input }) => {
+      if (!input.won || input.rewards === null) return { banked: false };
+      bankMissionRewards(ctx, input.missionId, input.rewards);
+      return { banked: true };
+    },
+  });
+  installSessionProbe(loop);
+  return loop;
+});
+
+export function campaignSession(ctx: GameContext) {
+  return sessions(ctx);
+}
+
 /** World events reported by the game this frame, handed to the machine on the next tick. */
 const pendingEvents = perContext(() => [] as MissionWorldEvent[]);
 
@@ -517,7 +546,9 @@ export function campaignReadout(ctx: GameContext): CampaignReadout | null {
   // A win advances the track, so the finished mission is no longer the offered one: read it as
   // "cleared" rather than "ready" so the field desk can say the vale holds.
   const cleared = view !== null && !live && view.status === "completed" && view.missionId !== shown.mission.id;
-  const phase: CampaignPhase = live
+  // The loop owns whether a mission is open; the machine still owns how far its objectives got.
+  const loop = campaignSession(ctx);
+  const phase: CampaignPhase = loop.phase() === "open"
     ? "live"
     : finished
       ? "finished"
@@ -572,6 +603,10 @@ export function startCampaignMission(ctx: GameContext): boolean {
   stageHostiles(ctx, step.hostiles);
   grantCarriedStores(ctx);
   campaignRuntime(ctx).start(step.mission.id);
+  // The mission opens a session that carries the pay its completion will bank.
+  const loop = campaignSession(ctx);
+  loop.start();
+  loop.carry(missionPayTotal(step.mission.rewards));
   ctx.game.audio.play("muster");
   ctx.game.notices.push({
     text: `Mission ${campaignOrdinal(CAMPAIGN.indexOf(step))} — ${step.mission.title}. ${step.mission.objectives[0]?.label ?? ""}`,
@@ -593,6 +628,14 @@ export function checkpointCampaign(ctx: GameContext): void {
  * restaged after a win, so gold left in the battle economy would be discarded; the campaign purse is
  * what the next battle opens with, and a mission only pays once.
  */
+/** What a mission's authored reward table pays in the vale's two currencies. */
+function missionPayTotal(rewards: MissionRewards | null | undefined): number {
+  if (rewards === null || rewards === undefined) return 0;
+  let total = 0;
+  applyMissionRewards(rewards, { grantEconomy: (currencyId, amount) => { if (currencyId === GOLD || currencyId === LUMBER) total += amount; } });
+  return total;
+}
+
 function bankMissionRewards(ctx: GameContext, missionId: string, rewards: MissionRewards): void {
   if (campaignStore.read(ctx).won.includes(missionId)) return;
   applyMissionRewards(rewards, {
@@ -645,12 +688,15 @@ function handleCampaignEvents(ctx: GameContext, events: readonly MissionEvent[],
       grantHeroXp(ctx, OBJECTIVE_XP);
       ctx.game.notices.push({ text: event.label, ttlMs: 7000 });
     } else if (event.kind === "reward") {
+      // A mid-mission reward pays straight through; the completion's pay is what the session settles.
       bankMissionRewards(ctx, event.missionId, event.rewards);
     } else if (event.kind === "completed") {
-      // The mission's own reward rides the `completed` event, not a `reward` one.
-      if (event.rewards !== null) bankMissionRewards(ctx, event.missionId, event.rewards);
+      // The mission's own reward rides the `completed` event, not a `reward` one; the session's
+      // boundary is what banks it, once, for the mission that closed.
+      campaignSession(ctx).settle({ won: true, missionId: event.missionId, rewards: event.rewards });
       finishCampaignStep(ctx, restage);
     } else if (event.kind === "failed") {
+      campaignSession(ctx).settle({ won: false, missionId: event.missionId, rewards: null });
       failCampaignStep(ctx, event.state, event.reason, restage);
     }
   }
