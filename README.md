@@ -117,6 +117,10 @@ bun run check:engine-mode # does the PR name the commit this lane installed?
 A lane that edits the engine uses `engine:local` and sees its uncommitted work; every other
 lane that needs the same engine change pins a commit and never queues behind it. Local mode
 proves no commit, so it is not adoptable evidence: pin the commit you proved before closing.
+CI follows that claim: the `games` job reads the `Engine pin:` line from the PR body and
+installs that commit before it typechecks, so the checks run against the engine the PR
+proved. A PR without the line runs the published catalog exactly as before, and a claim that
+names a commit lacking the seam the branch uses fails there like any other type error.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 
