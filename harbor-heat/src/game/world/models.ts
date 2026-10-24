@@ -152,6 +152,23 @@ const PALMS: readonly { id: string; model: string; fallbackModel: string; target
 ];
 
 /**
+ * The palm is one authored GLB drawn at three street sizes, so all three species share its two
+ * detail levels. `mainsail-palm-far.glb` keeps every frond vertex (the crown is the look) and
+ * collapses only the trunk rings and coconuts; past 60 m a palm is a silhouette, and the engine's
+ * per-instance switch holds an instance on its level for 6 m either side of the boundary.
+ */
+const PALM_URL = new URL("../../art/mainsail-palm.glb", import.meta.url).href;
+const PALM_FAR_URL = new URL("../../art/mainsail-palm-far.glb", import.meta.url).href;
+const PALM_VARIANTS = { levels: [{ url: PALM_URL, maxDistance: 60 }, { url: PALM_FAR_URL }] } as const;
+
+/**
+ * The planter is a licensed bush of 450 leaf cards and 36 flower heads: its far level keeps a
+ * spread of whole cards, so the bush thins rather than dissolving into collapsed slivers. Its near
+ * level is whatever the catalog resolved, so the variant cannot drift from the planted asset.
+ */
+const PLANTER_FAR_URL = new URL("../../art/planter-far.glb", import.meta.url).href;
+
+/**
  * Street-tree planting cycle — `setup.ts` walks it so no two neighbours match. The flame tree lands
  * once every seven, so its red crown reads as an accent on a green street rather than an autumn wood.
  */
@@ -270,13 +287,22 @@ for (const b of BUILDING_SPECS) {
   };
 }
 
-export const objectModels: Record<string, ModelConfig> = {
-  ...resolveModelPlan(assets, objectPlan),
-  obj_palm: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 7.6, anchor: "origin" },
-  obj_palm_tall: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 9, anchor: "origin" },
-  obj_palm_low: { url: new URL("../../art/mainsail-palm.glb", import.meta.url).href, targetHeight: 6.2, anchor: "origin" },
-  obj_dispatch: { url: new URL("../../art/dispatch-booth.glb", import.meta.url).href, anchor: "origin" },
-  obj_delivery_1: { url: new URL("../../art/parcel-tower-1.glb", import.meta.url).href, anchor: "origin" },
-  obj_delivery_2: { url: new URL("../../art/parcel-tower-2.glb", import.meta.url).href, anchor: "origin" },
-  obj_delivery_3: { url: new URL("../../art/parcel-tower-3.glb", import.meta.url).href, anchor: "origin" },
-};
+export const objectModels: Record<string, ModelConfig> = (() => {
+  const plan = resolveModelPlan(assets, objectPlan);
+  // The planter's far level is our own decimated copy of the resolved near level, so the pair
+  // cannot drift: `url` comes from the catalog, only the second level is authored here.
+  const planter = plan.obj_planter;
+  if (planter !== undefined) {
+    planter.variants = { levels: [{ url: planter.url, maxDistance: 60 }, { url: PLANTER_FAR_URL }] };
+  }
+  return {
+    ...plan,
+    obj_palm: { url: PALM_URL, targetHeight: 7.6, anchor: "origin", variants: PALM_VARIANTS },
+    obj_palm_tall: { url: PALM_URL, targetHeight: 9, anchor: "origin", variants: PALM_VARIANTS },
+    obj_palm_low: { url: PALM_URL, targetHeight: 6.2, anchor: "origin", variants: PALM_VARIANTS },
+    obj_dispatch: { url: new URL("../../art/dispatch-booth.glb", import.meta.url).href, anchor: "origin" },
+    obj_delivery_1: { url: new URL("../../art/parcel-tower-1.glb", import.meta.url).href, anchor: "origin" },
+    obj_delivery_2: { url: new URL("../../art/parcel-tower-2.glb", import.meta.url).href, anchor: "origin" },
+    obj_delivery_3: { url: new URL("../../art/parcel-tower-3.glb", import.meta.url).href, anchor: "origin" },
+  };
+})();
