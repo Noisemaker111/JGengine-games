@@ -38,6 +38,7 @@
     "verify:full": "bun scripts/verify-fast.ts --full",
     "lane:close": "bun scripts/lane-close.ts",
     "pr:sweep": "bun scripts/pr-sweep.ts",
+    "prove": "bun scripts/prove.ts",
     "bg:run": "bun scripts/bg.ts run",
     "bg:await": "bun scripts/bg.ts await",
     "provision": "bun scripts/provision-assets.ts",
