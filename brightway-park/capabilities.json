@@ -10,6 +10,7 @@
     "ride-appeal",
     "ride-choice",
     "ride-sim",
+    "session-loop",
     "wait-queue"
   ],
   "probes": {
@@ -124,15 +125,11 @@
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Brightway Park runs a continuous park day loop; no session ends with a haul banked or lost, so there is no run boundary for the loop to own."
+      "reason": "The roguelike run composition - bank or lose a haul plus one authored change per run - is not a Brightway park day; its days run on the genre-free session loop with no carried quantity."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of brightway-park: guests use the shared agent loop's movement and never crowd-steer."
-    },
-    "session-loop": {
-      "kind": "not-applicable",
-      "reason": "Brightway Park runs a continuous park day loop; no session ends with a haul banked or lost, so there is no run boundary for the loop to own."
     },
     "skill-tree": {
       "kind": "not-applicable",

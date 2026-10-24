@@ -10,6 +10,7 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import { tracePark } from "../evidence";
 import { syncAmbience } from "../audio";
 import { payOffLoan, takeLoan } from "../sim/economy";
+import { openParkDay } from "../daySession";
 import { ridePrice, serviceRide, setRidePrice, coasterCircuit } from "../rides";
 import { beginScenario, endScenario, replayScenario } from "../scenarios";
 
@@ -107,6 +108,7 @@ export function registerBuildCommands(ctx: GameContext): void {
   ctx.game.commands.define<{reduced:boolean}>("park.motion", {apply(state,input){state.game.store.set("park.reduced-motion",input.reduced);}});
   ctx.game.commands.define("park.start", { apply(state) {
     session.started = true;
+    openParkDay(state);
     if (session.gameOver) { setGamePhase(state,"ended"); state.time.pause(); }
     else if (session.won && !session.winDismissed) { setGamePhase(state,"paused"); state.time.pause(); }
     else { setGamePhase(state,"playing"); state.time.play(); }
