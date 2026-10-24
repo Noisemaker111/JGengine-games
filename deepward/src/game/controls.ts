@@ -5,7 +5,6 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { DamageRuntime } from "@jgengine/core/combat/damageRuntime";
 import type { WeaponAmmo, WeaponSystem } from "@jgengine/core/combat/weaponSystem";
-import { weaponIntervalMs } from "@jgengine/core/combat/weaponDefinition";
 import { createPerception, type PerceptionService } from "@jgengine/core/sensor/perception";
 import { distance, depthAt, EXIT, EXIT_REACH, GARAGE, GARAGE_REACH, HOME_SPAWN, inside, lineOfSight, PRINT_ID, PRINT_SPAWN, RECEIVING_BACK_Z, SALVAGE, STASH, STASH_REACH, STEAM, VAULT_SPAWN, walkable, type Point } from "../world";
 import { acknowledgeReprint, ageDive, depart, fits, ITEMS, ledgerOf, newDive, newHome, pack, peekLoot, recoverInterrupted, settle, takeLoot, type Dive, type Home, type ItemKind, type Result } from "./state";
@@ -113,20 +112,6 @@ function disarm(ctx: GameContext): void {
   state.weapon?.dispose();
   state.weapon = null; state.armed = null;
 }
-/**
- * Cool a released trigger. The shared runtime advances its rate gate only while the trigger is down,
- * and this game fires on the press: without this the gun would need to be held before every shot.
- * Removing it needs an engine-side cadence tick on a released trigger, so it is written as the one
- * state edit that does - see the open seam in the PR.
- */
-function cool(weapon: WeaponSystem, dt: number): void {
-  if (!(dt > 0)) return;
-  const state = weapon.snapshot();
-  const interval = weaponIntervalMs(weapon.definition());
-  if (state.trigger || state.cadenceElapsedMs >= interval) return;
-  weapon.restore({ ...state, cadenceElapsedMs: Math.min(interval, state.cadenceElapsedMs + dt * 1000) });
-}
-
 function playable(ctx: GameContext): boolean {  const view = viewStore.read(ctx);
   return !view.paused && view.panel === null && (view.mode === "home" || view.mode === "dive");
 }
@@ -371,7 +356,6 @@ function interact(ctx: GameContext): void {
  */
 function shoot(ctx: GameContext, dive: Dive, dt: number, hint: string): { dive: Dive; hint: string; trace: View["trace"] } {
   const weapon = arm(ctx, dive);
-  cool(weapon, dt);
   const result = weapon.tick(dt);
   if (result.shots.length === 0) return { dive, hint, trace: null };
   ctx.game.audio.play("shot");
