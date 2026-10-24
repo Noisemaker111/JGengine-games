@@ -81,7 +81,7 @@ versions; game and shared workspace manifests use `catalog:` and never own SDK
 versions. Change the root catalog and regenerate `bun.lock` for an intentional
 SDK update. The CLI `jgengine` keeps its separate version cadence.
 
-The current catalog installs SDK 0.38.1, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
+The current catalog installs SDK 0.38.3, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
 To test unpublished engine work, link a checkout instead of releasing:
 
