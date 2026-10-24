@@ -4,12 +4,13 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { StoreHandle } from "@jgengine/core/store/defineStore";
 import type { SpawnDirectorState } from "@jgengine/core/ai/spawnDirector";
+import type { SessionLoopState } from "@jgengine/core/run/sessionLoop";
 
 import { handrollOf } from "./handroll";
 import type { PursuitSave } from "./handroll/pursuit";
 import { ledgerState, restoreLedger, resetLedger, type CashReason } from "./cash";
 import { cargoStore } from "./items/cargoHaul";
-import { courierMissionStore, courierObjectiveStore, courierStore, type CourierState } from "./jobs/courier";
+import { courierLoopState, courierMissionStore, courierObjectiveStore, courierStore, restoreCourierLoop, type CourierState } from "./jobs/courier";
 import {
   convoySnapshot,
   mission,
@@ -135,6 +136,8 @@ function runSystem(ctx: GameContext): GameSaveSystem {
     snapshot: () => ({
       mission: mission(ctx),
       courier: courierStore.peek(ctx) ?? null,
+      // The mission session's own state: which contract is open and how many have closed.
+      courierSession: courierLoopState(ctx),
       courierMission: courierMissionStore.peek(ctx) ?? null,
       courierObjective: courierObjectiveStore.peek(ctx) ?? null,
       cargo: cargoStore.peek(ctx) ?? null,
@@ -143,12 +146,14 @@ function runSystem(ctx: GameContext): GameSaveSystem {
       if (!isRecord(section)) return;
       if (isMissionSave(section.mission)) patchMission(ctx, section.mission);
       if (isCourierSave(section.courier)) courierStore.write(ctx, section.courier);
+      if (isRecord(section.courierSession)) restoreCourierLoop(ctx, section.courierSession as unknown as SessionLoopState);
       restoreNullable(courierMissionStore, ctx, section.courierMission);
       restoreNullable(courierObjectiveStore, ctx, section.courierObjective);
       restoreNullable(cargoStore, ctx, section.cargo);
     },
     reset() {
       patchMission(ctx, { kingpinSpawned: false, bustedHold: 0, raceSettled: false, raceClearAt: 0 });
+      restoreCourierLoop(ctx, { session: 0, closed: 0, carried: 0, optionId: null });
       courierStore.clear(ctx);
       courierMissionStore.clear(ctx);
       courierObjectiveStore.clear(ctx);

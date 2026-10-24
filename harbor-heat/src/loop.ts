@@ -43,7 +43,7 @@ import {
 import { setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
-import { courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
+import { courierLoop, courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 import {
   convoyRunners,
@@ -341,7 +341,7 @@ export function normalizeAfterRestore(ctx: GameContext, alreadyLive = startedSto
   sessionStore.clear(ctx);
   restoreCourier(ctx);
   const courier = courierStore.read(ctx);
-  if (courier.phase === "won" || courier.phase === "lost") courierStore.write(ctx, { ...courier, phase: "idle" });
+  if (courier.receipt != null) courierStore.write(ctx, { ...courier, receipt: null, phase: "idle" });
   setupCourierLandmarks(ctx);
   // Heat is not cleared here any more: the wanted section restored it and the HUD reads the primitive,
   // so a reload mid-pursuit keeps the tier and the search area (engine #2243).
@@ -367,6 +367,8 @@ async function resumeFromSave(ctx: GameContext): Promise<void> {
 function onInit(ctx: GameContext): void {
   resetWeaponState();
   resetMissionState(ctx);
+  // Build the mission session here so its probe is on the window from boot, not from the first parcel.
+  courierLoop(ctx);
   resetStashRuntime();
   ctx.item.use.register(itemUseHandlers);
   ctx.player.loadout.register(loadouts);
