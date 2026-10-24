@@ -116,6 +116,10 @@
       "kind": "not-applicable",
       "reason": "Ride simulation is not part of deepward: no ride or queue exists on the station."
     },
+    "run-loop": {
+      "kind": "not-applicable",
+      "reason": "Deepward banks or loses a run haul through the shared loot haul bank/fail rules; it has no per-run offer or counter, so the run-loop half that offers the next run is not in the game."
+    },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of deepward: at most one fitter walks the station, and nothing needs crowd steering."

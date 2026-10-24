@@ -2,6 +2,7 @@
   "adopts": [
     "audio-probe",
     "mount-game",
+    "run-loop",
     "vehicle-damage"
   ],
   "probes": {

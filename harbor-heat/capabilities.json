@@ -102,6 +102,10 @@
       "kind": "not-applicable",
       "reason": "Ride simulation is not part of harbor-heat: no ride or queue exists in an open city."
     },
+    "run-loop": {
+      "kind": "not-applicable",
+      "reason": "Harbor Heat runs are chase missions with per-run timers in runState.ts; no haul is banked or lost across them, so there is no run boundary for the loop to own."
+    },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of harbor-heat: residents keep to authored routes without reciprocal avoidance."

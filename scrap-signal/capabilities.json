@@ -96,6 +96,10 @@
       "kind": "not-applicable",
       "reason": "Ride simulation is not part of scrap-signal: no ride or queue exists on the relay."
     },
+    "run-loop": {
+      "kind": "not-applicable",
+      "reason": "Scrap Signal is one continuous salvage session and a relay banks signal inside a wave; nothing carries a haul across runs, so there is no run boundary for the loop to own."
+    },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of scrap-signal: enemies steer with local separation, and no reciprocal avoidance layer is authored."
