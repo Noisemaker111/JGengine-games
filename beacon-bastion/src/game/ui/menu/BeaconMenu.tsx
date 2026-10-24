@@ -172,7 +172,6 @@ export function BeaconMenu() {
   const root: Screen = phase === "paused" ? "pause" : "title";
   const keeps = useSaveSlots(beaconSlots);
   const [screen, setScreen] = useState<Screen>(root);
-  const [focus, setFocus] = useState<string | undefined>(undefined);
   const [commander, setCommander] = useState("");
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -240,7 +239,7 @@ export function BeaconMenu() {
     <GameMenu
       open={screen === "title"}
       label="Beacon Bastion"
-      initialId={focus ?? menuFocus.id ?? (recent === null ? "new" : "continue")}
+      initialId={menuFocus.id ?? (recent === null ? "new" : "continue")}
       eyebrow="Field kit - wave defense"
       logo={{ text: <span className="bb-wordmark">Beacon<br />Bastion</span>, title: "Beacon Bastion" }}
       tagline="Raise the keep, light the beacon, and hold the road the raiders carved."
@@ -315,7 +314,6 @@ export function BeaconMenu() {
         return null;
       }}
       onHighlight={(id) => {
-        setFocus(id ?? undefined);
         if (id === "keeps") void refreshBeaconSlots(ctx);
       }}
       onSelect={(id) => {
@@ -420,6 +418,7 @@ function SettingsPane({ onBack, onCaptureChange }: { onBack: () => void; onCaptu
     </div>
   );
 }
+
 
 
 
