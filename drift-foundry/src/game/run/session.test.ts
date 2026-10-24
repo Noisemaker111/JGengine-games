@@ -362,3 +362,24 @@ describe("drift-foundry run session", () => {
     expect(reloaded.career.credits).toBe(played.career.credits);
   });
 });
+
+test("a reload mid-run comes back carrying the salvage and the route", () => {
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const first = createRunSession(undefined, storage);
+  first.start();
+  driveCollectingPickups(first, 8);
+  const before = first.snapshot();
+  expect(before.salvageAtRisk).toBeGreaterThan(0);
+
+  // The process dies here: a second session on the same storage is the reload.
+  const second = createRunSession(undefined, storage);
+  expect(values.get("drift-foundry.run.v1")).not.toBeNull();
+  expect(values.get("drift-foundry.parked-run.v1")).not.toBeNull();
+  second.start();
+  const after = second.snapshot();
+  expect(after.salvageAtRisk).toBe(before.salvageAtRisk);
+  expect(Math.abs(after.runTime - before.runTime)).toBeLessThan(1);
+  expect(Math.abs(after.pose.position[2] - before.pose.position[2])).toBeLessThan(5);
+  expect(after.collectedIds).toEqual(before.collectedIds);
+});
