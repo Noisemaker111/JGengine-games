@@ -505,7 +505,12 @@ export interface DeclarationProblem {
 
 export interface GameTally {
   game: string;
+  /** Every adopted capability. */
   adopted: number;
+  /** Adopted and named with a boot probe, so the running page can prove it. */
+  verified: number;
+  /** Adopted with no probe to name: the capability ships none, or the game has not named its probe. */
+  declared: number;
   notApplicable: number;
   debt: number;
 }
@@ -518,9 +523,13 @@ export interface DebtEntry {
 
 export interface DeclarationReport {
   problems: DeclarationProblem[];
-  /** Adopted capabilities whose module has no boot probe: declaration-level only for now. */
+  /** Adopted capabilities with no boot probe named: a real adoption the gate cannot verify by reading a page. */
   declarationLevel: Array<{ game: string; capability: string; module: string }>;
   adopted: number;
+  /** Adopted with a boot probe named for a capability that ships one. */
+  verified: number;
+  /** Adopted without one: a capability with no probe, or a probe the game has not named. */
+  declared: number;
   notApplicable: number;
   debt: number;
   tallies: GameTally[];
@@ -540,18 +549,20 @@ export function checkDeclarations(
   games: GameDeclaration[],
   issues?: Map<number, IssueState>,
 ): DeclarationReport {
-  const known = new Map(
-    ledger.capabilities.filter((entry) => entry.gameFacing).map((entry) => [entry.id, entry]),
-  );
+  // Any capability in the ledger can be adopted: a probe is how a claim is verified, not a
+  // precondition for making it. Only game-facing capabilities are required from every game.
+  const known = new Map(ledger.capabilities.map((entry) => [entry.id, entry]));
+  const required = ledger.capabilities.filter((entry) => entry.gameFacing);
   const problems: DeclarationProblem[] = [];
   const declarationLevel: DeclarationReport["declarationLevel"] = [];
   const tallies: GameTally[] = [];
   const debtEntries: DebtEntry[] = [];
   const reasons = new Map<string, Array<{ game: string; capability: string; module: string }>>();
   let adopted = 0;
+  let verified = 0;
 
   for (const { game, declaration } of games) {
-    const tally: GameTally = { game, adopted: 0, notApplicable: 0, debt: 0 };
+    const tally: GameTally = { game, adopted: 0, verified: 0, declared: 0, notApplicable: 0, debt: 0 };
     tallies.push(tally);
     if (declaration === null) {
       problems.push({
@@ -573,7 +584,7 @@ export function checkDeclarations(
           game,
           capability: id,
           module: "unknown",
-          message: `${game} adopts "${id}", which is not a game-facing capability in capabilities.json - only probed capabilities need a decision; remove it or run bun run capabilities:sync`,
+          message: `${game} adopts "${id}", which is not a capability in capabilities.json - remove it or run bun run capabilities:sync`,
         });
         continue;
       }
@@ -587,7 +598,12 @@ export function checkDeclarations(
       }
       adopted += 1;
       tally.adopted += 1;
-      if (!probedModules.has(entry.module)) {
+      const proved = entry.probe !== null && probedModules.has(entry.module);
+      if (proved) {
+        verified += 1;
+        tally.verified += 1;
+      } else {
+        tally.declared += 1;
         declarationLevel.push({ game, capability: id, module: entry.module });
       }
     }
@@ -599,7 +615,7 @@ export function checkDeclarations(
           game,
           capability: id,
           module: "unknown",
-          message: `${game} declines "${id}", which is not a game-facing capability in capabilities.json - remove it or run bun run capabilities:sync`,
+          message: `${game} declines "${id}", which is not a capability in capabilities.json - remove it or run bun run capabilities:sync`,
         });
         continue;
       }
@@ -708,8 +724,7 @@ export function checkDeclarations(
       }
     }
 
-    for (const entry of ledger.capabilities) {
-      if (!entry.gameFacing) continue;
+    for (const entry of required) {
       if (adoptSet.has(entry.id) || declineSet.has(entry.id)) continue;
       problems.push({
         game,
@@ -759,6 +774,8 @@ export function checkDeclarations(
     problems,
     declarationLevel,
     adopted,
+    verified,
+    declared: adopted - verified,
     notApplicable: tallies.reduce((sum, tally) => sum + tally.notApplicable, 0),
     debt: tallies.reduce((sum, tally) => sum + tally.debt, 0),
     tallies,
@@ -766,27 +783,25 @@ export function checkDeclarations(
   };
 }
 
-/** The per-game table: adopted / not-applicable / debt, with the debt total last. */
+/** The per-game table: adopted-verified / adopted-declared / not-applicable / debt, with the debt total last. */
 export function renderSummary(report: DeclarationReport, ledger: Ledger): string {
   const gameFacing = ledger.capabilities.filter((entry) => entry.gameFacing).length;
   const name = Math.max(4, ...report.tallies.map((tally) => tally.game.length));
-  const cells = report.tallies.map((tally) => [
-    tally.game.padEnd(name),
-    String(tally.adopted).padStart(7),
-    String(tally.notApplicable).padStart(15),
-    String(tally.debt).padStart(5),
-  ]);
-  const total = [
-    "TOTAL".padEnd(name),
-    String(report.adopted).padStart(7),
-    String(report.notApplicable).padStart(15),
-    String(report.debt).padStart(5),
-  ];
+  const row = (label: string, verified: number, declared: number, notApplicable: number, debt: number): string =>
+    [
+      label.padEnd(name),
+      String(verified).padStart(15),
+      String(declared).padStart(16),
+      String(notApplicable).padStart(15),
+      String(debt).padStart(5),
+    ].join("  ");
   const lines = [
     `capability adoption - ${gameFacing} game-facing capabilities, engine ${ledger.engineVersion}`,
-    `${"game".padEnd(name)}  adopt            n/a   debt`,
-    ...cells.map((row) => row.join("  ")),
-    total.join("  "),
+    `${"game".padEnd(name)}  adopt (verified)  adopt (declared)            n/a   debt`,
+    ...report.tallies.map((tally) =>
+      row(tally.game, tally.verified, tally.declared, tally.notApplicable, tally.debt),
+    ),
+    row("TOTAL", report.verified, report.declared, report.notApplicable, report.debt),
     `debt is the number that has to come down: ${report.debt} entr${report.debt === 1 ? "y" : "ies"} across ${new Set(report.debtEntries.map((entry) => entry.game)).size} game(s)`,
   ];
   return lines.join("\n");
@@ -833,4 +848,21 @@ export function probeMatches(pattern: string, keys: string[]): boolean {
   const escaped = pattern.replace(/[.+^${}()|[\]\\?]/g, "\\$&").replace(/\*/g, ".*");
   const regex = new RegExp(`^${escaped}$`);
   return keys.some((key) => regex.test(key));
+}
+
+/**
+ * Why a declared `window.__jgengine*` probe is not proven, or `null` when it reports live counters.
+ *
+ * A declaration naming a probe is a claim about a running page: the global must exist and answer with
+ * at least one finite number, such as the audio master level or a run's banked total. Absent or empty
+ * counters fail the claim rather than passing it as "imported".
+ */
+export function windowProbeVerdict(global: string, readout: unknown): string | null {
+  if (readout === undefined || readout === null) return `window.${global} is absent on the running page`;
+  if (typeof readout !== "object") return `window.${global} reports no counters`;
+  const fields = readout as Record<string, unknown>;
+  if (fields.error !== undefined) return `window.${global} threw ${String(fields.error)}`;
+  const counters = Object.entries(fields).filter(([, value]) => typeof value === "number" && Number.isFinite(value));
+  if (counters.length === 0) return `window.${global} exists but reports no live counters`;
+  return null;
 }
