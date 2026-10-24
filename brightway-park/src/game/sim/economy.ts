@@ -12,6 +12,7 @@ import { DAY_LENGTH } from "../catalog";
 import { buildableDef } from "../objects/catalog";
 import { session } from "../session";
 import { syncAmbience } from "../audio";
+import { closeParkDay } from "../daySession";
 import { claimMilestones, milestoneContents, syncStanding } from "../milestones";
 import { createLoan, loanDay, LOAN_OFFER } from "../loan";
 import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
@@ -148,7 +149,8 @@ export function economyDayTick(ctx: GameContext): void {
     session.bankruptDays = 0;
   }
 
-  session.day += 1;
+  // The day's boundary is the session loop's: closing it republishes the day number.
+  closeParkDay(ctx);
   session.guestsToday = 0;
   session.revenueToday = 0;
 }

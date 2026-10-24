@@ -1,4 +1,6 @@
 { "steps": [
+  { "click": "open the park", "note": "leave the title so the park day and its gate HUD are live" },
+
   { "assert": "document.body.innerText.includes('GATES OPEN')",
     "before": { "is": "document.body.innerText.includes('GATES OPEN')", "timeoutMs": 30000 },
     "note": "arrival: the park day is running and the gate is open, not a title card" },
