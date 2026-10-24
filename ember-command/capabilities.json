@@ -6,7 +6,8 @@
     "mission-runtime",
     "mission-validation",
     "mount-game",
-    "perception-service"
+    "perception-service",
+    "session-loop"
   ],
   "probes": {
     "@jgengine/core/mission/mission": [
@@ -135,15 +136,11 @@
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Ember Command resolves missions inside one campaign; a mission banks no haul and loses none, so there is no run-to-run carry for the loop to own."
+      "reason": "The roguelike run composition - bank or lose a haul plus one authored change per run - is not an Ember Command mission; its orders run on the genre-free session loop."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of ember-command: units collide and hold formation, and no reciprocal avoidance layer is authored."
-    },
-    "session-loop": {
-      "kind": "not-applicable",
-      "reason": "Ember Command resolves missions inside one campaign; a mission banks no haul and loses none, so there is no run-to-run carry for the loop to own."
     },
     "skill-tree": {
       "kind": "not-applicable",
