@@ -2,12 +2,15 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { restoreCampaign } from "./game/campaign";
 import { loadHeroPicks, pendingHeroOffer } from "./game/heroActs";
+import { commandProfile, recordOfSlot, refreshCampaignSlots } from "./game/menuSave";
+import { registerMenuCapture } from "./game/captureMenu";
 import { matchRunning, session } from "./game/session";
 import { setupSkirmish } from "./game/world/scene";
 
 /** @internal Spawn the roster and wire the skirmish once, at world boot. */
 export function onInit(ctx: GameContext): void {
   setupSkirmish(ctx);
+  registerMenuCapture(ctx);
   void resumeCampaign(ctx);
 }
 
@@ -26,6 +29,10 @@ async function resumeCampaign(ctx: GameContext): Promise<void> {
   restoreCampaign(ctx);
   // The saved kit is the one piece of hero state the campaign carries into this battle.
   loadHeroPicks(ctx);
+  // The field desk reads the commander and the offered mission from the record index.
+  const record = recordOfSlot(save.slot());
+  commandProfile.name = record?.name ?? "";
+  refreshCampaignSlots();
 }
 
 /** @internal No avatar — Ember Command is a commander-view RTS, so a joining player controls the army. */

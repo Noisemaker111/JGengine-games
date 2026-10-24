@@ -444,6 +444,16 @@ export function campaignSession(ctx: GameContext) {
 const pendingEvents = perContext(() => [] as MissionWorldEvent[]);
 
 /**
+ * A loaded record already carries the stores its next battle opens with; the next `match.start`
+ * must not pay them a second time. Kept on the context so two sessions never share the flag.
+ */
+const storesRestoredStore = defineStore<boolean>("ember.campaign.storesRestored", false);
+
+export function markStoresRestored(ctx: GameContext): void {
+  storesRestoredStore.write(ctx, true);
+}
+
+/**
  * Report a death the mission machine may judge: a Vanguard soldier falling (the `vanguard` tag the
  * thin-line fail reads) and anything the Vanguard kills, including the Warcamp. Tagged so `match`
  * filters can tell whose blood it is.
@@ -601,7 +611,9 @@ export function startCampaignMission(ctx: GameContext): boolean {
     return false;
   }
   stageHostiles(ctx, step.hostiles);
-  grantCarriedStores(ctx);
+  // A resumed record already opened with the stores it banked; only a fresh order pays them again.
+  if (!storesRestoredStore.read(ctx)) grantCarriedStores(ctx);
+  storesRestoredStore.write(ctx, false);
   campaignRuntime(ctx).start(step.mission.id);
   // The mission opens a session that carries the pay its completion will bank.
   const loop = campaignSession(ctx);
@@ -765,6 +777,7 @@ export function resetCampaignProgress(ctx: GameContext): void {
   campaignRuntime(ctx).abandon();
   campaignMissionStore.clear(ctx);
   heroPickStore.clear(ctx);
+  storesRestoredStore.write(ctx, false);
   syncCampaignHud(ctx);
 }
 
