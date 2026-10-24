@@ -16,6 +16,16 @@ import { loop } from "./loop";
 import { residentBoardStore } from "./game/world/residents";
 import { physics, world } from "./world";
 import { drivingStore } from "./game/handroll";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { wantedStore } from "./game/handroll/shared";
+import { convoySnapshot } from "./game/runState";
+
+/** The HUD's wanted mirror, read without creating the pursuit slice. */
+function wantedSnapshotOf(ctx: GameContext): { heat: number; stars: number } | null {
+  const value = wantedStore.peek(ctx) as { heat?: unknown; stars?: unknown } | null | undefined;
+  if (value == null || typeof value.heat !== "number" || typeof value.stars !== "number") return null;
+  return { heat: value.heat, stars: value.stars };
+}
 
 export const game = defineGame({
   name: "Harbor Heat",
@@ -109,12 +119,17 @@ export const game = defineGame({
       const vehicleId = drivingStore.read(ctx);
       const entity = ctx.scene.entity.get(vehicleId ?? ctx.player.userId);
       const nearest = residentBoardStore.read(ctx)[0];
+      const wanted = wantedSnapshotOf(ctx);
       return {
         x: entity?.position[0] ?? 0,
         y: entity?.position[1] ?? 0,
         z: entity?.position[2] ?? 0,
         // The nearest resident's mood, so a drive can prove the cast is alive: -1 when nobody is near.
         residentMood: nearest === undefined ? -1 : Math.round(nearest.mood),
+        // Heat, its tier and the convoy's wave: a save/reload proof compares these before and after.
+        heat: wanted?.heat ?? 0,
+        stars: wanted?.stars ?? 0,
+        wave: convoySnapshot(ctx)?.wave ?? 0,
       };
     },
   },
