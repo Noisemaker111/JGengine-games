@@ -1,7 +1,7 @@
 {
-  "drawsFrame": 1253,
-  "previousDraws": 1885,
+  "drawsFrame": 732,
+  "previousDraws": 1253,
   "triangles": 4405210,
-  "nodes": 3146,
-  "baseline": "2026-10-23 bun run perf harbor-heat --seconds 6, whole-frame p95 as the gate compares it, GeForce RTX 3070 D3D11, 1600x900 full, engine 02162d4a at pinned Games dac3865e; three runs read drawsFrame 1,140 / 1,139 / 1,138, triangles 2,122,498 / 1,660,988 / 2,122,498, nodes 2,860 / 2,860 / 2,860. The draw ceiling is +10% over the highest of the three (1,140), rounded down, so a full 10% regression lands over it. The triangle ceiling stays where it was: a triangle count is one sample at snapshot time, not a window p95, and it moved far more than 10% between runs, so it is not ratcheted here. Previous draws 1,885 (itself from 10,420)."
+  "nodes": 3769,
+  "baseline": "2026-10-24 bun run perf harbor-heat --seconds 6 --uncapped --quality high, whole-frame p95 as the gate compares it, GeForce RTX 3070 ANGLE D3D11, 1600x900, tier high (the game's own default), engine 3611d0e1 serving Games 43ccab9; two runs read drawsFrame 666 / 666, triangles 1,421,460 / 1,421,460, nodes 3,427 / 3,427. Ceilings are +10% over the measured value, rounded down: drawsFrame 732 (666), nodes 3,769 (3,427). The triangle ceiling stays where it was: a triangle count is one sample at snapshot time, not a window p95, and it moved far more than 10% between runs historically, so it is not ratcheted here. Previous draws ceiling 1,253 (itself from 10,420). The node baseline rose from 2,860 because the 60 m far levels save draws and triangles at the cost of scene nodes: measured on this same engine in the same session with both far levels disabled, the scene holds 2,969 nodes, 1,524,424 triangles and 646 draws, so the far levels add 458 nodes while removing 102,964 triangles and 20 draws. The other +109 nodes is scene content that landed since the 2026-10-23 baseline. The node ceiling is the old +10% convention applied to a newer measurement, not a loosened rule."
 }
