@@ -8,7 +8,8 @@
  *     minute 5 -> hour 5, references, gap to target);
  *   - has no `Loop proof:` line, or names no flow;
  *   - names a flow whose file is not at `<game>/proofs/flows/<name>.json`, does not parse, has no
- *     step, or has no arrival assert (keys and shapes come from the engine's drive step file);
+ *     step, or has no arrival assert (keys and shapes come from `flow-schema.ts`, which is checked
+ *     against the engine's drive step file);
  *   - includes a flow by name that does not exist, or includes itself in a cycle.
  *
  * A name prefixed `TODO` is a flow the README promises and nobody has written. It is reported as a
@@ -21,6 +22,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { gameDirs } from "./capabilities";
+import { FLOW_NAME, MAX_FLOW_DEPTH, stepProblems } from "./flow-schema";
 
 /** The six sections every game's design checklist states, and the bold label each is written as. */
 export const SECTIONS: ReadonlyArray<{ id: string; label: string; pattern: RegExp }> = [
@@ -31,39 +33,6 @@ export const SECTIONS: ReadonlyArray<{ id: string; label: string; pattern: RegEx
   { id: "references", label: "References it is chasing", pattern: /\*\*References\b/ },
   { id: "gap-to-target", label: "Gap to target", pattern: /\*\*Gap to target\b/ },
 ];
-
-/** The engine's drive step-file keys (captureArgs `driveStepKinds`), plus the per-step extras. */
-export const STEP_KINDS: readonly string[] = [
-  "click",
-  "doubleClick",
-  "clickAt",
-  "rightClickAt",
-  "moveMouse",
-  "look",
-  "aimAt",
-  "fill",
-  "key",
-  "wait",
-  "waitFor",
-  "reload",
-  "shot",
-  "rpc",
-  "probe",
-  "assert",
-  "flow",
-];
-
-const EXTRAS: readonly string[] = ["before", "after", "note", "tolerancePx"];
-
-/** How deep a flow may include another before the run refuses the script (engine DRIVE_FLOW_MAX_DEPTH). */
-export const MAX_FLOW_DEPTH = 4;
-
-const FLOW_NAME = /^[a-z0-9][a-z0-9-]*$/;
-
-/** An `[x, y]` pair of CSS viewport pixels, the shape the engine's step file takes for a click. */
-function isPoint(value: unknown): boolean {
-  return Array.isArray(value) && value.length === 2 && value.every((part) => typeof part === "number" && Number.isFinite(part));
-}
 
 export interface LoopProofEntry {
   name: string;
@@ -115,35 +84,6 @@ export interface FlowParse {
   asserts: number;
 }
 
-function stepValueProblem(kind: string, value: unknown): string | null {
-  switch (kind) {
-    case "assert":
-      return typeof value === "string" && value.trim().length > 0 ? null : "the assert expression must be a non-empty string";
-    case "clickAt":
-    case "rightClickAt":
-    case "look":
-    case "moveMouse":
-      return isPoint(value) ? null : `${kind} takes [x, y] pixel numbers`;
-    case "aimAt":
-      return typeof value === "string" && value.trim().length > 0 ? null : "aimAt takes the page expression that returns the target's screen point";
-    case "wait":
-      return typeof value === "number" && value >= 0 ? null : "wait takes milliseconds as a number";
-    case "flow":
-      return typeof value === "string" && FLOW_NAME.test(value) ? null : 'a flow include takes a flow name (lowercase letters, digits and dashes)';
-    case "probe":
-      return typeof value === "string" ? null : "probe takes a name string";
-    case "key":
-      return typeof value === "string" && value.trim().length > 0 ? null : 'key takes a key chord such as "KeyW" or "KeyW+ShiftLeft"';
-    case "reload":
-      return null;
-    case "before":
-    case "after":
-      return value !== null && typeof value === "object" ? null : `${kind} takes a condition object`;
-    default:
-      return typeof value === "string" && value.trim().length > 0 ? null : `${kind} takes a non-empty string`;
-  }
-}
-
 /** Parse a flow file's text: the shape the engine's drive runner reads, checked without a browser. */
 export function parseFlow(text: string, label: string): FlowParse {
   const problems: string[] = [];
@@ -163,47 +103,11 @@ export function parseFlow(text: string, label: string): FlowParse {
   let asserts = 0;
   root.steps.forEach((step: unknown, index: number) => {
     const at = `${label} steps[${index}]`;
-    if (step === null || typeof step !== "object" || Array.isArray(step)) {
-      problems.push(`${at} is not an object`);
-      return;
-    }
-    const record = step as Record<string, unknown>;
-    const kinds = Object.keys(record).filter((key) => STEP_KINDS.includes(key));
-    if (kinds.length === 0) {
-      problems.push(`${at} has none of the drive step keys (${STEP_KINDS.join(", ")})`);
-      return;
-    }
-    if (kinds.length > 1) {
-      problems.push(`${at} mixes step keys ${kinds.join(" and ")}; one step is one kind`);
-      return;
-    }
-    const kind = kinds[0]!;
-    for (const key of Object.keys(record)) {
-      if (
-        key !== kind &&
-        !EXTRAS.includes(key) &&
-        !(key === "ms" && kind === "key") &&
-        !(key === "is" && kind === "assert")
-      ) {
-        problems.push(`${at} has unknown field "${key}"`);
-      }
-    }
-    if (kind === "key" && "ms" in record && (typeof record.ms !== "number" || record.ms < 0)) {
-      problems.push(`${at} key hold takes ms as a non-negative number`);
-    }
-    for (const key of ["before", "after"] as const) {
-      if (key in record) {
-        const problem = stepValueProblem(key, record[key]);
-        if (problem !== null) problems.push(`${at} ${problem}`);
-      }
-    }
-    const problem = stepValueProblem(kind, record[kind]);
-    if (problem !== null) {
-      problems.push(`${at} ${problem}`);
-      return;
-    }
-    if (kind === "assert") asserts += 1;
-    if (kind === "flow") includes.push(record[kind] as string);
+    const checked = stepProblems(step, at);
+    problems.push(...checked.problems);
+    if (checked.kind === null || checked.problems.length > 0) return;
+    if (checked.kind === "assert") asserts += 1;
+    if (checked.kind === "flow") includes.push((step as Record<string, unknown>).flow as string);
   });
   return { problems, includes, asserts };
 }
