@@ -60,7 +60,7 @@ jobs:
         working-directory: ../jgengine
       - name: Build the engine packages the games import
         run: |
-          for pkg in core ws assets react shell node editor; do
+          for pkg in core ws assets react shell node navbake editor; do
             bun --cwd=packages/$pkg run build
           done
         working-directory: ../jgengine
