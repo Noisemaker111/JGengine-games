@@ -142,4 +142,4 @@ not the full design, is what the numbers describe.
   level and a rarity. [DESIGN.md](DESIGN.md) describes six hand families and per-item trees; until some of
   that exists, the second delve has fewer new things to hold than the first.
 
-Loop proof: TODO to-extraction
+Loop proof: to-extraction

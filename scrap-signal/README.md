@@ -40,7 +40,7 @@ Numbers are what the build does now.
   branch. A sixth zone for the level 24–30 band, or a reason to rebuild a character, is what hour five
   needs.
 
-Loop proof: TODO to-front
+Loop proof: to-front (run with `--state boss`, the front's last wave with the Foreman on the field; the flow turns the crosshair off and back with `look` and asserts his health dropped)
 
 The whole-world save restores character, talents, quests, inventory and economy; `src/game/saveCompatibility.ts`
 handles the legacy identifiers. Run `bun run check-types` and `bun run test` here after changes.

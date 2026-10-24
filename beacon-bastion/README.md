@@ -49,7 +49,7 @@ Read from `src/game/{waves,entities,combat,build,world}`. Every number below is 
 - **Gap to target.** The run has a second act and a reason to start again. Still missing: a second
   approach path, and a relic that changes how a tower works rather than only the numbers.
 
-Loop proof: TODO to-first-defense
+Loop proof: to-first-defense
 
 The creep path and plot centres are read from `src/editor.scene.json`, so moving the route is an editor
 edit rather than a coordinate table. Run `bun run check-types` and `bun run test` here after changes.

@@ -109,6 +109,22 @@ describe("flow parsing", () => {
     expect(parseFlow(`{ "steps": [ { "clickAt": "800,450" } ] }`, "g/a.json").problems[0]).toContain("[x, y] pixel numbers");
     expect(parseFlow(`{ "steps": [ { "key": "KeyW", "ms": -1 } ] }`, "g/a.json").problems[0]).toContain("non-negative");
   });
+
+  test("the aim steps parse: look and moveMouse take pixels, aimAt takes a page expression", () => {
+    const aimed = parseFlow(
+      `{ "steps": [ { "moveMouse": [640, 360] }, { "look": [-90, 0] }, { "aimAt": "crosshair()", "tolerancePx": 4 } ] }`,
+      "g/a.json",
+    );
+    expect(aimed.problems).toEqual([]);
+    expect(parseFlow(`{ "steps": [ { "look": "-90,0" } ] }`, "g/a.json").problems[0]).toContain("[x, y] pixel numbers");
+    expect(parseFlow(`{ "steps": [ { "moveMouse": [0, 1] } ] }`, "g/a.json").problems).toEqual([]);
+    expect(parseFlow(`{ "steps": [ { "aimAt": "" } ] }`, "g/a.json").problems[0]).toContain("screen point");
+  });
+
+  test("an assert may carry the expected value beside its expression", () => {
+    expect(parseFlow(`{ "steps": [ { "assert": "units.length", "is": 5 } ] }`, "g/a.json").problems).toEqual([]);
+    expect(parseFlow(`{ "steps": [ { "click": "a", "is": 5 } ] }`, "g/a.json").problems[0]).toContain('unknown field "is"');
+  });
 });
 
 describe("game design gate", () => {

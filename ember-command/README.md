@@ -60,7 +60,7 @@ does now.
 - **Gap to target.** Five missions on one vale, one enemy composition, no second map and no
   mid-battle save: those are what hour five still needs.
 
-Loop proof: TODO to-skirmish (the flow is written on `agent/proof-flows`, which is not on `beta` yet)
+Loop proof: to-skirmish (from a live match: pause, return to title, free skirmish, and the five footmen on the field are the arrival)
 
 Placement lives in `src/editor.scene.json` (including the `campaign_muster` and
 `campaign_crossroads` waypoints); the roster, costs and wave cadence live in the files above.

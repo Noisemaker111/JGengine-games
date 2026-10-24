@@ -83,4 +83,4 @@ Read from `src/game/{needs,objects,sim,session}`. Numbers are what the build doe
 - **Gap to target.** No win or loss condition exists, so the household can only drift. Naming an end
   state — debt-free and bonded, or evicted — is what makes hour five different from hour one.
 
-Loop proof: TODO to-first-shift
+Loop proof: to-first-shift
