@@ -12,6 +12,10 @@
  * into `beta`, arms auto-merge and prints the URL and the one command that answers the
  * checks. The engine's `lane:close` closes an engine lane; this closes a games lane.
  *
+ * A lane that proved a pinned engine build writes that commit into the body as one
+ * `Engine pin: <sha>` line, read from the snapshot it installed: the PR is the only place
+ * that answers "which engine did this prove?", and `bun run check:engine-mode` judges it.
+ *
  * Exit: 0 closed, 1 verify or git/gh failed, 2 a guarded file was staged, 3 cannot answer.
  */
 import { spawnSync } from "node:child_process";
@@ -20,6 +24,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { checkPrBody } from "./seam-line-check";
+import { checkEngineMode, pinLine, readFacts, withPinLine, type EngineFacts } from "./engine-mode-check";
 
 const root = join(import.meta.dir, "..");
 /** The branch a games PR merges into, and the ref a lane's own change is measured against. */
@@ -34,6 +39,7 @@ export const EXIT_CANNOT_ANSWER = 3;
 export interface Args {
   message?: string;
   seam?: string;
+  pin?: string;
   allow: string[];
   dryRun: boolean;
 }
@@ -45,6 +51,7 @@ export function parseArgs(argv: readonly string[]): Args {
     if (arg === "--dry-run") args.dryRun = true;
     else if (arg === "-m" || arg === "--message") args.message = value(argv, (i += 1), arg);
     else if (arg === "--seam") args.seam = value(argv, (i += 1), arg);
+    else if (arg === "--pin") args.pin = value(argv, (i += 1), arg);
     else if (arg === "--allow") args.allow.push(posix(value(argv, (i += 1), arg)));
     else throw new Error(`unknown argument ${arg}`);
   }
@@ -88,7 +95,7 @@ export function guardStaged(staged: readonly string[], allow: readonly string[])
 }
 
 /** The PR body the template asks for, with the seam line the games CI checks. */
-export function prBody(message: string, seam: string, verified: string): string {
+export function prBody(message: string, seam: string, verified: string, pin?: string): string {
   return [
     "## What changed",
     "",
@@ -96,11 +103,36 @@ export function prBody(message: string, seam: string, verified: string): string 
     "",
     "## Engine seam",
     `Engine seam: ${seam}`,
+    ...(pin === undefined ? [] : ["", "## Engine pin", pinLine(pin)]),
     "",
     "## Checks",
     `- ${verified}`,
     "",
   ].join("\n");
+}
+
+/**
+ * The commit a lane has to name: the pinned build it installed, or a refusal. A pinned
+ * lane's evidence is the commit, and only the snapshot marker knows it, so it is read
+ * rather than remembered. Published leaves nothing to name; local proves no commit.
+ */
+export function pinEvidence(facts: EngineFacts, explicit?: string): { sha: string | null; refusal: string | null } {
+  if (explicit !== undefined) {
+    const named = explicit.trim();
+    if (!/^[0-9a-f]{7,40}$/i.test(named)) return { sha: null, refusal: `--pin ${JSON.stringify(explicit)} is not a commit sha` };
+    return { sha: named.toLowerCase(), refusal: null };
+  }
+  if (facts.installed === "local") {
+    return {
+      sha: null,
+      refusal: "local mode links a live checkout and proves no commit; pin what you proved with bun run engine:pin --ref <sha>, then close the lane",
+    };
+  }
+  if (facts.installed !== "pinned") return { sha: null, refusal: null };
+  if (facts.pinned === null) {
+    return { sha: null, refusal: "the pinned snapshot has no identity marker, so the commit cannot be named; run bun run engine:pin --ref <sha>" };
+  }
+  return { sha: facts.pinned.sha, refusal: null };
 }
 
 /**
@@ -160,6 +192,22 @@ function close(args: Args): number {
     return EXIT_CANNOT_ANSWER;
   }
 
+  // Which engine did this prove? A pinned release-less lane has to say, before anything runs.
+  let engine: EngineFacts;
+  try {
+    engine = readFacts();
+  } catch (error) {
+    console.error(`lane:close: cannot read the installed engine mode: ${(error as Error).message}`);
+    return EXIT_CANNOT_ANSWER;
+  }
+  const evidence = pinEvidence(engine, args.pin);
+  if (evidence.refusal !== null) {
+    console.error(`lane:close: ${evidence.refusal}`);
+    return EXIT_CANNOT_ANSWER;
+  }
+  const pin = evidence.sha;
+  if (pin !== null) console.log(`lane:close: ${branch} — engine pinned ${pin.slice(0, 12)}, named in the PR body`);
+
   console.log(`lane:close: ${branch} — verify:fast`);
   const verified = spawnSync("bun", ["run", "verify:fast"], { cwd: root, stdio: "inherit" });
   if (verified.status !== 0) {
@@ -174,6 +222,9 @@ function close(args: Args): number {
   if (args.dryRun) {
     console.log(`lane:close: dry run — ${changed.length} committed file(s) against ${DIFF}, ${lines(before).length} uncommitted`);
     for (const line of lines(before)) console.log(`  uncommitted  ${line}`);
+    console.log(
+      `lane:close: engine ${engine.installed}${pin === null ? " — published, so the body names no commit" : ` — the PR body will carry "Engine pin: ${pin.slice(0, 12)}"`}`,
+    );
     console.log(`lane:close: would commit ${lines(before).length} path(s), push ${branch}, ${pr === null ? "open the PR into " + TARGET : `update PR #${pr.number}`} and arm auto-merge`);
     return EXIT_CLOSED;
   }
@@ -227,7 +278,16 @@ function close(args: Args): number {
     const title = args.message ?? branch;
     const dir = mkdtempSync(join(tmpdir(), "lane-close-"));
     const bodyFile = join(dir, "body.md");
-    writeFileSync(bodyFile, prBody(title, args.seam!.trim(), `\`bun run verify:fast\` passed (${changed.length} committed file(s) against ${DIFF})`));
+    const body = prBody(title, args.seam!.trim(), `\`bun run verify:fast\` passed (${changed.length} committed file(s) against ${DIFF})`, pin ?? undefined);
+    // The body this command is about to write is the evidence `check:engine-mode` reads:
+    // judging it here means a lane cannot open a PR whose own gate rejects it.
+    const verdict = checkEngineMode(engine, body);
+    if (!verdict.ok) {
+      console.error(`lane:close: ${verdict.message}`);
+      rmSync(dir, { recursive: true, force: true });
+      return EXIT_CANNOT_ANSWER;
+    }
+    writeFileSync(bodyFile, body);
     const created = gh(["pr", "create", "--base", TARGET, "--head", branch, "--title", title, "--body-file", bodyFile]);
     rmSync(dir, { recursive: true, force: true });
     if (created.status !== 0) {
@@ -241,6 +301,27 @@ function close(args: Args): number {
     }
     number = opened.number;
     url = opened.url;
+  }
+
+  // A pinned lane updating an existing PR still owes the commit: an older body predates the pin.
+  if (pin !== null) {
+    const current = gh(["pr", "view", String(number), "--json", "body"]);
+    if (current.status === 0) {
+      try {
+        const body = (JSON.parse(current.stdout) as { body?: string }).body ?? "";
+        if (!checkEngineMode(engine, body).ok) {
+          const dir = mkdtempSync(join(tmpdir(), "lane-close-pin-"));
+          const file = join(dir, "body.md");
+          writeFileSync(file, withPinLine(body, pin));
+          const edited = gh(["pr", "edit", String(number), "--body-file", file]);
+          rmSync(dir, { recursive: true, force: true });
+          if (edited.status === 0) console.log(`lane:close: PR #${number} body now names pinned ${pin.slice(0, 12)}`);
+          else console.error(`lane:close: could not add the Engine pin line to PR #${number}: ${edited.stderr.trim()}`);
+        }
+      } catch {
+        // A body that is not JSON is left for the gate to name in CI.
+      }
+    }
   }
 
   const armed = gh(["pr", "merge", String(number), "--auto", "--merge"]);

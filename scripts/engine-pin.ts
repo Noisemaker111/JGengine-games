@@ -50,7 +50,7 @@ interface SnapshotPackage {
   version: string;
 }
 
-interface SnapshotMarker {
+export interface SnapshotMarker {
   schema: number;
   sha: string;
   short: string;
@@ -180,6 +180,11 @@ function readMarker(dir: string): SnapshotMarker | null {
   } catch {
     return null;
   }
+}
+
+/** The commit a finished snapshot was built from, for anything that must name it. */
+export function readSnapshotMarker(dir: string): SnapshotMarker | null {
+  return readMarker(dir);
 }
 
 /** A marker alone is not enough: every package it names has to be there with a built dist. */

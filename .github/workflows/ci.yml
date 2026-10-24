@@ -33,6 +33,7 @@ jobs:
       - run: bun run provision
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
+      - run: bun run check:engine-mode
       - run: bun run check:module-globals
       - run: bun run check:save-states
       - run: bun run check:game-design

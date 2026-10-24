@@ -417,6 +417,25 @@ function linkLocal(args: string[]): number {
   return 0;
 }
 
+/**
+ * The part of the root manifest an install can change: the catalog and every dependency
+ * field. A lane that adds a script or edits prose keeps the same surface, so `engine:published`
+ * does not mistake its own worktree for leftover link state.
+ */
+export function installSurface(manifest: Record<string, any>): string {
+  const workspaces = (manifest.workspaces ?? {}) as Record<string, any>;
+  const picked = {
+    catalog: workspaces.catalog ?? {},
+    dependencies: manifest.dependencies ?? {},
+    devDependencies: manifest.devDependencies ?? {},
+    peerDependencies: manifest.peerDependencies ?? {},
+    optionalDependencies: manifest.optionalDependencies ?? {},
+    overrides: manifest.overrides ?? {},
+    resolutions: manifest.resolutions ?? {},
+  };
+  return JSON.stringify(picked);
+}
+
 export function publish(): number {
   const state = readState();
   const started = Date.now();
@@ -459,10 +478,20 @@ export function publish(): number {
     return 1;
   }
 
-  const diff = spawnSync("git", ["diff", "--stat", "--", "package.json", "bun.lock"], { cwd: root, encoding: "utf8" });
-  const dirty = (diff.stdout ?? "").trim();
-  if (dirty !== "") {
-    console.error(`engine:published: package.json / bun.lock differ from the committed bytes:\n${dirty}`);
+  const lockDiff = spawnSync("git", ["diff", "--stat", "--", "bun.lock"], { cwd: root, encoding: "utf8" });
+  const dirtyLock = (lockDiff.stdout ?? "").trim();
+  const head = spawnSync("git", ["show", "HEAD:package.json"], { cwd: root, encoding: "utf8" });
+  let catalogDrift = "";
+  try {
+    const committed = JSON.parse((head.stdout ?? "").trim()) as Record<string, any>;
+    if (installSurface(committed) !== installSurface(readRootPackage())) catalogDrift = "package.json catalog or dependencies";
+  } catch {
+    // A root manifest git cannot answer for is not evidence of a leftover link.
+  }
+  if (dirtyLock !== "" || catalogDrift !== "") {
+    console.error(
+      `engine:published: ${[catalogDrift, dirtyLock === "" ? "" : "bun.lock"].filter((part) => part !== "").join(" and ")} differ from the committed bytes:\n${[catalogDrift === "" ? "" : "package.json", dirtyLock].filter((part) => part !== "").join("\n")}`,
+    );
     return 1;
   }
   writeState({ mode: "published", versions: catalogVersions, switchedAt: new Date().toISOString() });
