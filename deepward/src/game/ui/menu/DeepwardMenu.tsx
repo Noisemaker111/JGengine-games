@@ -22,7 +22,7 @@ const MENU_TOKENS = {
   "--jg-accent-soft": "rgba(215,183,116,0.24)",
   "--jg-accent-glow": "rgba(215,183,116,0.3)",
   "--jg-text": "#ede9d9",
-  "--jg-text-dim": "rgba(213,220,205,0.66)",
+  "--jg-text-dim": "rgba(232,236,226,0.94)",
   "--jg-font-display": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
   "--jg-font-body": "\"Segoe UI\", sans-serif",
   "--jg-menu-logo-size": "clamp(32px, 5vw, 68px)",
@@ -56,11 +56,11 @@ function NewDivePane({ slot, onBegin }: { slot: string | null; onBegin: () => vo
       <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800, letterSpacing: "0.02em" }}>
         New dive
       </div>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "rgba(213,220,205,0.72)", maxWidth: "46ch" }}>
+      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "var(--jg-text-dim)", maxWidth: "46ch" }}>
         A Life starts at the home with the issue sidearm. Walk to the garage, take the rail to Bellwether,
         and come back with the haul before the air runs out.
       </p>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: replacing ? "#e6b079" : "rgba(213,220,205,0.72)" }}>
+      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: replacing ? "#e6b079" : "var(--jg-text-dim)" }}>
         {slot === null
           ? "Every record is held."
           : replacing
