@@ -1,3 +1,4 @@
+import { createSessionLoop, type SessionLoopState } from "@jgengine/core/run/sessionLoop";
 import { PRINT_SPAWN, type Point } from "../world";
 import { FITTER_HEALTH, reserveOf } from "./combat";
 import { openScripBooks, settleEconomy } from "./counter";
@@ -25,6 +26,8 @@ export interface Home {
   ledger: ItemLedgerState;
   /** The counter's books: every scrip movement with its reason and the balance it produced. */
   books: LedgerState;
+  /** The dive session loop's own state, so a reload resumes the run that was outstanding. */
+  session?: SessionLoopState;
 }
 export interface Dive {
   id: number; elapsed: number; tankSeconds: number; oxygen: number; health: number; cache: PackedItem[];
@@ -43,6 +46,19 @@ export function newHome(): Home {
   };
 }
 export function ledgerOf(home: Home) { return createItemLedger(home.ledger); }
+/**
+ * A dive is a session on the shared loop: it opens at departure, carries the haul it packed, and its
+ * boundary is the game's own bank-or-lose rule. The loop is rebuilt from the home it is asked about,
+ * so a pure `Home` value stays the only storage and a reload resumes the outstanding run.
+ */
+function diveLoop(home: Home) {
+  const loop = createSessionLoop<never, { home: Home; dive: Pick<Dive, "id" | "cache">; kind: Result["kind"]; reason: string }, Home>({
+    kind: "run",
+    settle: ({ input }) => settleDive(input.home, input.dive, input.kind, input.reason),
+  });
+  if (home.session !== undefined) loop.restore(home.session);
+  return loop;
+}
 export function depart(home: Home, rifleUid: string | null = null): Home {
   if (home.reprintPending) throw new Error("Acknowledge the reprint before departing");
   if (home.activeDive !== null) throw new Error("A dive is already outstanding");
@@ -50,7 +66,9 @@ export function depart(home: Home, rifleUid: string | null = null): Home {
     if (!ledgerOf(home).canUse(rifleUid)) throw new Error("That rifle was broken down at the counter");
     if (!home.stash.some(item => item.id === rifleUid && kindOf(item) === "service-rifle")) throw new Error("That service rifle is no longer banked");
   }
-  return { ...home, stash: rifleUid === null ? home.stash : home.stash.filter(item => item.id !== rifleUid), revision: home.revision + 1, activeDive: home.nextDive, nextDive: home.nextDive + 1 };
+  const loop = diveLoop(home);
+  const offer = loop.start();
+  return { ...home, stash: rifleUid === null ? home.stash : home.stash.filter(item => item.id !== rifleUid), revision: home.revision + 1, session: loop.snapshot(), activeDive: offer.session, nextDive: offer.session + 1 };
 }
 export function newDive(id: number, home: Pick<Home, "refits"> = { refits: [] }, rifle: Item | null = null): Dive {
   if (rifle !== null && kindOf(rifle) !== "service-rifle") throw new Error("Only a service rifle can be prepared for departure");
@@ -98,11 +116,20 @@ export function takeLoot(dive: Dive, source: string, kind: ItemKind, depth = 1):
 }
 /** Resolve once against the durable departure id. Cache coordinates never enter home storage. */
 export function settle(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Result["kind"], reason: string): Home {
-  if (home.activeDive !== dive.id) throw new Error("Dive already settled or superseded");
+  const loop = diveLoop(home);
+  if (loop.phase() !== "open" || loop.snapshot().session !== dive.id) throw new Error("Dive already settled or superseded");
+  // The run carries the instances it packed; its boundary hands them to the shared haul rules.
+  loop.carry(dive.cache.length);
+  const settlement = loop.settle({ home, dive, kind, reason });
+  return { ...settlement.result, session: loop.snapshot() };
+}
+
+/** The boundary's own rule: the shared haul banks what the stash takes or loses it with the Life. */
+function settleDive(home: Home, dive: Pick<Dive, "id" | "cache">, kind: Result["kind"], reason: string): Home {
   const carried: Item[] = dive.cache.map(({ x: _x, y: _y, rotated: _rotated, ...item }) => item);
   const moved = kind === "extracted" ? bankHaul(carried, home.stash) : { banked: [], refused: loseHaul(carried) };
   const economy = settleEconomy(home, carried, kind, dive.id);
-  return { ...home, revision: home.revision + 1, activeDive: null, reprintPending: kind === "lost",
+  return { ...home, revision: home.revision + 1, activeDive: null, nextDive: dive.id + 1, reprintPending: kind === "lost",
     stash: [...home.stash, ...moved.banked], extractions: home.extractions + (kind === "extracted" ? 1 : 0),
     deaths: home.deaths + (kind === "lost" ? 1 : 0), life: home.life + (kind === "lost" ? 1 : 0),
     bank: economy.bank, standing: economy.standing, books: economy.books,
