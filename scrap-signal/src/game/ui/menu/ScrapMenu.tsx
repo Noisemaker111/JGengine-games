@@ -54,7 +54,8 @@ export function ScrapMenu(): ReactNode {
     void refreshScrapSlots(ctxRef.current);
   }, [phase]);
 
-  // The boot menu owns the menu phase; a restored reclaimer waits behind it until Continue.\n  if (phase !== "menu" || paused) return null;
+  // The boot menu owns the menu phase; a restored reclaimer waits behind it until Continue.
+  if (phase !== "menu" || paused) return null;
   if (settings.isOpen) return null;
 
   return (
@@ -223,6 +224,7 @@ function ScrapSettings(): ReactNode {
     </div>
   );
 }
+
 
 
 
