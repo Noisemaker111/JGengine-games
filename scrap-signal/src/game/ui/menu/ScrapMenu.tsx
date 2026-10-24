@@ -8,12 +8,12 @@ import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
 import { useStore } from "@jgengine/react/store";
 
-import { gamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 
 import { CHARACTERS } from "../../characters";
 import { scrapProfile } from "../../scrapProfile";
 import { SCRAP_SLOTS, refreshScrapSlots, scrapSlots } from "../../scrapSlots";
-import { characterIdStore } from "../../stores";
+import { characterIdStore, menuRunStartedStore } from "../../stores";
 import { CharacterCard } from "../components/Talents";
 
 const SCRAP_TOKENS = {
@@ -31,9 +31,26 @@ const SCRAP_TOKENS = {
 /** Capture-only focus request: a shot declares which verb it wants highlighted. */
 export const scrapFocus: { id: string | null } = { id: null };
 
+/**
+ * Holds the phase at `menu` until a run is started in this page. It reads the phase store, not the
+ * simulation clock, so a paused or restored world cannot let the front end slip away.
+ */
+export function MenuGuard(): null {
+  const ctx = useGameContext();
+  const phase = useSyncExternalStore(ctx.subscribe, () => gamePhase(ctx), () => gamePhase(ctx));
+  useEffect(() => {
+    if (menuRunStartedStore.read(ctx).started) return;
+    if (phase !== "playing") return;
+    setGamePhase(ctx, "menu");
+    ctx.time.pause();
+  }, [ctx, phase]);
+  return null;
+}
+
 /** Scrap Signal's front end: the carrier's roster over the wastes, the relay board in front. */
 export function ScrapMenu(): ReactNode {
   const ctx = useGameContext();
+
   const { commands } = useGame();
   const phase = useSyncExternalStore(ctx.subscribe, () => gamePhase(ctx), () => gamePhase(ctx));
   const settings = useSettings();
@@ -224,6 +241,9 @@ function ScrapSettings(): ReactNode {
     </div>
   );
 }
+
+
+
 
 
 

@@ -459,7 +459,7 @@ export function registerCommands(ctx: GameContext): void {
       if (activeCharacter() !== null) return;
       const def = characterById(input.characterId ?? "");
       if (def === undefined) return;
-      menuRunStartedStore.write(state, true);
+      menuRunStartedStore.write(state, { started: true });
       pickCharacter(def.id);
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
@@ -547,6 +547,7 @@ function applyPassiveEffects(ctx: GameContext, previousHealthMult = 1): void {
     movement: { walkSpeed: Math.round(player.walkSpeed * (1 + bonus("moveSpeed")) * 10) / 10 },
   });
 }
+
 
 
 

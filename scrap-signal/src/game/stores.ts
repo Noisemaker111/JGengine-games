@@ -33,10 +33,10 @@ export const skillsOpenStore = defineStore<boolean>("skillsOpen", false);
 export const characterIdStore = defineStore<string | null>("characterId", null);
 
 /** True once the player picked a reclaimer or continued a kept run in this page (menu state, not a save). */
-export const menuRunStartedStore = defineStore<boolean>("scrap.menu.started", () => false);
+// Session-only, held as an object: snapshots and saves skip runtime-only values, so "has this page
+// started a run?" cannot come back true after a reload.
+export const menuRunStartedStore = defineStore<{ started: boolean }>("scrap.menu.started", () => ({ started: false }));
 
-/** True once the boot pass has run, so the one-shot menu guard cannot repeat. */
-export const menuBootedStore = defineStore<boolean>("scrap.menu.booted", () => false);
 
 export const talentRanksStore = defineStore<Record<string, number>>("talentRanks", () => ({}));
 
@@ -52,4 +52,6 @@ export interface CurrentZoneView {
 }
 
 export const currentZoneStore = defineStore<CurrentZoneView | null>("currentZone", null);
+
+
 

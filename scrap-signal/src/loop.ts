@@ -340,7 +340,7 @@ function stageReserveForCapture(ctx: GameContext): void {
 function onTick(ctx: GameContext, dt: number): void {
   // A reload restores the run and the phase store with it. The front end still comes first: until
   // the player picks or continues, a restored reclaimer waits behind the menu.
-  if (typeof document !== "undefined" && !menuRunStartedStore.read(ctx) && activeCharacter() !== null && gamePhase(ctx) === "playing") {
+  if (typeof document !== "undefined" && !menuRunStartedStore.read(ctx).started && activeCharacter() !== null && gamePhase(ctx) === "playing") {
     characterIdStore.write(ctx, null);
     resetCharacterState();
     setGamePhase(ctx, "menu");
@@ -365,6 +365,7 @@ function onTick(ctx: GameContext, dt: number): void {
 }
 
 export const loop = { onInit, onNewPlayer, onTick };
+
 
 
 

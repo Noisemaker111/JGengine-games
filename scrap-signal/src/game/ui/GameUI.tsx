@@ -6,7 +6,7 @@ import { DamageVignette, HitMarker, LevelUpBurst } from "./components/Feedback";
 import { CashPlate, CreditBadge, MissionTracker } from "./components/Mission";
 import { ReserveOverlay, VendorPanel } from "./components/Overlays";
 import { CharacterSelect, TalentsPanel } from "./components/Talents";
-import { ScrapMenu } from "./menu/ScrapMenu";
+import { MenuGuard, ScrapMenu } from "./menu/ScrapMenu";
 import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
@@ -97,10 +97,12 @@ export function GameUI() {
     </HudCanvas>
     {/* The menu block is behind a flag until its overlay stops shifting under the pointer; the
         game keeps its long-standing roster screen while the flag is off. */}
+    <MenuGuard />
     {import.meta.env.VITE_SCRAP_MENU === "1" ? <ScrapMenu /> : <CharacterSelect />}
     </>
   );
 }
+
 
 
 
