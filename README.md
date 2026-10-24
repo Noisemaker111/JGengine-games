@@ -68,6 +68,17 @@ SDK update. The CLI `jgengine` keeps its separate version cadence.
 
 The current catalog installs SDK 0.36.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
+To test unpublished engine work, link a checkout instead of releasing:
+
+```sh
+bun run engine:local      # link ../jgengine (or --dir <path>)
+bun run engine:watch      # rebuild changed engine packages
+bun run engine:status     # mode, engine commit, stale-or-fresh dist
+bun run engine:published  # restore the catalog install
+```
+
+`.engine-mode` (ignored) records the link; never commit it.
+
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 
 ## Credits

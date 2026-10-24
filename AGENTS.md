@@ -8,8 +8,8 @@ Before changing a game, distinguish a broken or missing SDK contract, incorrect 
 
 The games use published `@jgengine/*` packages; [`README.md`](./README.md) owns the game list, dev commands and engine-version rules.
 
-- Games depend on published `@jgengine/*`, never on the engine monorepo's source.
-- A probe game is not a template; do not copy one game to start another.
+- Engine code arrives two ways: **published** (the catalog install PRs and CI verify) and **local** (`bun run engine:local` links a checkout, `bun run engine:published` restores it). `bun run engine:status` names the engine commit and whether its dist is stale.
+- Never commit link state: `package.json` and `bun.lock` stay clean after `engine:published`. A probe game is not a template; do not copy one game to start another.
 
 ## Framework-first development
 
@@ -48,7 +48,7 @@ Every reason is 20+ characters that name the domain or the gap; the old `Not ado
 ## Agent workflow
 
 - Code work happens in `.claude/worktrees/<name>` (`claude --worktree <name>`, or `git worktree add -b <name> .claude/worktrees/<name> origin/beta`); scratch and evidence go in `.scratch/`, which never holds a checkout. Both are ignored.
-- After opening a PR, always subscribe to its activity and drive it to green; never ask whether to watch it.
+- After opening a PR, ask `bun run ci:status` once for where its checks stand; never `--watch`, never wait on a queue.
 - Work lands on `beta`: branch from `origin/beta`, then push verified commits to `beta` directly or open the PR into `beta` and merge it yourself with `gh pr merge <n> --auto --merge` (if that errors for any reason but a failing check, `gh pr merge <n> --merge`), and confirm it shows MERGED; never ask me to merge. When a change needs unreleased engine work, cut the engine release yourself per the engine's AGENTS.md, then adopt it here and merge that too. `stable` is the stable branch: after an SDK adoption PR merges and the games CI is green on `beta`, fast-forward it yourself with `git push origin origin/beta:stable`, then run `bun run games:bump` in the engine and merge that pin PR.
 - For a reversible choice, pick the option you'd recommend, say which in the PR body, and keep going. Ask only for irreversible actions, money or production data; merges and releases are never questions.
 - Record demo clips and videos yourself with the repo's capture tooling; never ask me to record them.
