@@ -99,6 +99,33 @@ describe("harbor-heat save document", () => {
     expect(cashEntries(reboot, 5).some((entry) => entry.reason === "bounty")).toBe(true);
   });
 
+  test("the autosave touch writes the document, so a reload mid-pursuit finds the heat", async () => {
+    const backend = memorySaveBackend();
+    const host = boot(backend);
+    // Let the boot restore settle first: a boot that finds no document adopts the world snapshot's
+    // legacy heat once, and this test is about the play loop's own tick, not that upgrade.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(await harborSave(host).peek("default")).toBeNull();
+
+    watch(host);
+    handrollOf(host).addHeat(host, 130);
+    run(host, 0.3);
+    const heat = handrollOf(host).wanted().heat;
+    expect(heat).toBeGreaterThan(0);
+
+    expect(await harborSave(host).peek("default")).toBeNull();
+
+    // What the play loop does every few seconds; no menu save, no explicit save().
+    harborSave(host).touch();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const stored = (await harborSave(host).peek("default")) as {
+      systems: { wanted?: { police?: { heat?: { heat?: number } } }; convoy?: unknown };
+    } | null;
+    expect(stored).not.toBeNull();
+    expect(stored!.systems.wanted?.police?.heat?.heat).toBeCloseTo(heat, 6);
+  });
+
   test("the parcel and the mission flags survive a reload", async () => {
     const backend = memorySaveBackend();
     const host = boot(backend);

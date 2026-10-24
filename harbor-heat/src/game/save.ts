@@ -225,6 +225,10 @@ export function createHarborSave(ctx: GameContext, options: { backend?: SaveBack
     migrate: migrateHarborSave,
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
+    // Play touches the document every few seconds; with autosave off, a touch only marked the
+    // in-memory copy dirty and the file was never written, so a reload mid-pursuit lost heat and the
+    // convoy's wave while the world snapshot kept cash and quests. A zero debounce flushes each touch.
+    autosave: { debounceMs: 0 },
     systems: [wantedSystem(ctx), convoySystem(ctx), runSystem(ctx), vehiclesSystem(ctx), cashSystem(ctx), harborProfileSystem()],
     devtoolsName: "harbor.save",
   });
