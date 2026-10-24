@@ -189,7 +189,7 @@ describe("harbor-heat save document", () => {
 
     // Every key the policy calls the document's is actually carried by a section.
     const document = harborSave(boot(memorySaveBackend())).capture();
-    expect(Object.keys(document.systems).sort()).toEqual(["cash", "convoy", "run", "vehicles", "wanted"]);
+    expect(Object.keys(document.systems).sort()).toEqual(["cash", "convoy", "profile", "run", "vehicles", "wanted"]);
     const run = document.systems.run as Record<string, unknown>;
     expect(Object.keys(run).sort()).toEqual(["cargo", "courier", "courierMission", "courierObjective", "courierSession", "mission"]);
     for (const [key, policy] of Object.entries(STORE_POLICY)) {
@@ -198,3 +198,4 @@ describe("harbor-heat save document", () => {
     }
   });
 });
+
