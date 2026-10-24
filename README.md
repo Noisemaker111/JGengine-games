@@ -71,13 +71,13 @@ The current catalog installs SDK 0.33.0, including editor and its published navb
 To test unpublished engine work, link a checkout instead of releasing:
 
 ```sh
-bun run engine:local      # every @jgengine/* -> ../jgengine (or --dir <engine path>)
-bun run engine:watch      # rebuild engine packages as their sources change
-bun run engine:status     # mode, engine commit, stale-or-fresh linked dist
+bun run engine:local      # link ../jgengine (or --dir <path>)
+bun run engine:watch      # rebuild changed engine packages
+bun run engine:status     # mode, engine commit, stale-or-fresh dist
 bun run engine:published  # restore the catalog install
 ```
 
-`.engine-mode` (ignored) records the mode, engine commit and path. The catalog and `bun.lock` are never edited, so `git status` stays clean and both modes install with `--frozen-lockfile`.
+`.engine-mode` (ignored) records the link; never commit it.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 
