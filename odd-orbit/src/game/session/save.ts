@@ -14,7 +14,7 @@ import { createHouseholdEconomy, PANTRY_CAP } from "../sim/economy";
 import { householdStore } from "./store";
 import { resetAgents, resetBook } from "../agents";
 import { alignLegacyPosts, CAREER_NODE_IDS, STANDING_TRACKS } from "../careers";
-import { pairKey, type HouseholdState } from "./types";
+import { pairKey, BLOOM_CROPS, LIFESTYLES, type HouseholdState } from "./types";
 
 export const ORBIT_SAVE_KEY = "odd-orbit.household-save.v1";
 const SAVE_LIMIT = 256 * 1024;
@@ -70,8 +70,8 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   for (const id of h.order) {
     const m = h.members[id];
     if (!object(m) || m.id !== id || !text(m.name, 80) || !JOBS.includes(m.job) || !body(m.bodyPlan) || !object(m.needs) || !keys(m.needs, NEEDS) || !NEEDS.every(need => number(m.needs[need], 0, 100))) return false;
-    if (!["yield", "bloom"].includes(m.lifestyle) || !number(m.stress, 0, 100) || typeof m.recovering !== "boolean" || !number(m.workToday, 0, 20) || !number(m.harvestToday, 0, 5) || !number(m.shiftProgress, 0, 20) || !integer(m.shiftDay, -1, h.day) || !integer(m.completedShifts) || !integer(m.missedShifts) || (m.concern !== null && !text(m.concern, 240))) return false;
-    if (m.bloomCrop !== undefined && !["pantry", "export"].includes(m.bloomCrop)) return false;
+    if (!(LIFESTYLES as readonly string[]).includes(m.lifestyle) || !number(m.stress, 0, 100) || typeof m.recovering !== "boolean" || !number(m.workToday, 0, 20) || !number(m.harvestToday, 0, 5) || !number(m.shiftProgress, 0, 20) || !integer(m.shiftDay, -1, h.day) || !integer(m.completedShifts) || !integer(m.missedShifts) || (m.concern !== null && !text(m.concern, 240))) return false;
+    if (m.bloomCrop !== undefined && !(BLOOM_CROPS as readonly string[]).includes(m.bloomCrop)) return false;
     if (typeof m.assignedByPlayer !== "boolean" || !number(m.actionUntil, 0, clock.now + DAY_LENGTH) || !object(m.action)) return false;
     const a = m.action;
     if (a.kind === "idle") { if (!keys(a, ["kind"])) return false; }
