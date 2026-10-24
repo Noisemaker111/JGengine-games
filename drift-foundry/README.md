@@ -4,6 +4,11 @@ A physics racer down one industrial corridor: a welded buggy, twelve pieces of s
 that never stops. Runs on published `@jgengine/*` packages; start it with `bun run dev:drift-foundry`
 from the repository root.
 
+The front end is the shared game menu over the live yard: **Continue run** opens the parked buggy
+with the build, clock and salvage it had, **New run** starts the next shift, **Pit garage** buys a
+ladder rung, and records, settings and credits live in the same pane. Pause parks the stopped buggy
+and captures the frame the card shows; returning to the pit keeps it until the next run replaces it.
+
 ## Design checklist
 
 Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the build runs now.
