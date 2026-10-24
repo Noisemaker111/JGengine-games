@@ -22,6 +22,40 @@ jobs:
         with:
           bun-version: 1.3.8
       - run: bun install --frozen-lockfile
+      # The engine these checks compile against is the one the PR claims. A pinned lane's
+      # game code needs a seam the published catalog does not ship (issue #211: the catalog
+      # typecheck failed, the engine-beta job passed, same commit), so installing the claimed
+      # commit is what makes this job honest instead of a release gate. A body with no
+      # `Engine pin:` line keeps the published catalog, exactly as before.
+      - name: Which engine this PR claims
+        id: engine
+        run: |
+          pin="$(bun scripts/ci-engine.ts)"
+          echo "pin=$pin" >> "$GITHUB_OUTPUT"
+          if [ -z "$pin" ]; then
+            echo "no Engine pin line: these checks run against the published catalog"
+          else
+            echo "claims engine pin $pin: these checks run against that commit"
+          fi
+      - name: Fetch the claimed engine commit
+        if: steps.engine.outputs.pin != ''
+        env:
+          PIN: ${{ steps.engine.outputs.pin }}
+        run: |
+          git init ../jgengine
+          git -C ../jgengine remote add origin https://github.com/Noisemaker111/jgengine.git
+          git -C ../jgengine fetch --depth 1 origin "$PIN"
+          git -C ../jgengine checkout --detach FETCH_HEAD
+          git -C ../jgengine rev-parse HEAD
+      - name: Install the pinned engine build
+        if: steps.engine.outputs.pin != ''
+        env:
+          PIN: ${{ steps.engine.outputs.pin }}
+        run: bun run engine:pin --ref "$PIN" --dir ../jgengine
+      - name: Engine identity and the claim's evidence
+        run: |
+          bun run engine:status
+          bun run check:engine-mode
       - uses: actions/cache@v4
         with:
           path: |
@@ -33,7 +67,6 @@ jobs:
       - run: bun run provision
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
-      - run: bun run check:engine-mode
       - run: bun run check:module-globals
       - run: bun run check:save-states
       - run: bun run check:game-design

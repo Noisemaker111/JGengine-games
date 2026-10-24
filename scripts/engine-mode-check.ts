@@ -24,7 +24,7 @@ import { bodyFromEvent } from "./seam-line-check";
 export type Verdict = { ok: boolean; message: string };
 
 /** The one line a pinned lane writes in its PR body. */
-export const PIN_LINE = /^Engine pin: /;
+export const PIN_LINE = /^Engine pin:/;
 /** A commit prefix shorter than this is ambiguous in the engine's log. */
 export const MIN_SHA = 7;
 const SHA = /^[0-9a-f]{7,40}$/;
@@ -40,7 +40,7 @@ export function namedCommit(body: string | undefined): { sha: string | null; pro
   if (body === undefined) return { sha: null, problem: "there is no PR body to check" };
   const line = body.split(/\r?\n/).find((entry) => PIN_LINE.test(entry));
   if (line === undefined) return { sha: null, problem: `no "Engine pin: " line; add ${ACCEPTED_FORM}` };
-  const value = line.slice("Engine pin: ".length).trim();
+  const value = line.slice(line.indexOf(":") + 1).trim();
   if (value.length === 0) return { sha: null, problem: `the Engine pin line is empty; add ${ACCEPTED_FORM}` };
   const sha = value.split(/[\s(]/)[0]!.toLowerCase();
   if (!SHA.test(sha) || sha.length < MIN_SHA) {
