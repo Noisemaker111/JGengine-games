@@ -452,22 +452,26 @@ export function moduleApiNames(root: string, entry: CapabilityEntry): string[] {
   return [...(moduleIndex(root).get(entry.module)?.api ?? [])];
 }
 
-/** Seed a declaration from source evidence; every decline starts unclassified. */
-export function seedDeclaration(root: string, game: string, ledger: Ledger): Declaration {
-  const evidence = collectEvidence(root, game, ledger);
-  let hasAudioConfig = false;
-  for (const file of sourceFiles(root, game)) {
-    if (/audio\s*:\s*\{/.test(readFileSync(file, "utf8"))) hasAudioConfig = true;
-  }
-
+/**
+ * The declaration a game's own source supports.
+ *
+ * An import of a capability's module is adoption whether or not that capability ships a probe: a
+ * probe proves a claim, it is not a condition for making one (#2267). A capability the game does
+ * not import and the engine cannot probe needs no answer at all, so this leaves it out.
+ */
+export function seedFromEvidence(
+  ledger: Ledger,
+  evidence: ImportEvidence,
+  apiNames: (entry: CapabilityEntry) => string[],
+  hasAudioConfig: boolean,
+): Declaration {
   const adopts: string[] = [];
   const probeModules = new Map<string, Set<string>>();
   const declines: Record<string, Decline> = {};
 
   for (const entry of ledger.capabilities) {
-    if (!entry.gameFacing) continue;
     const byModule = evidence.specifiers.has(entry.module);
-    const byName = moduleApiNames(root, entry).some((name) => evidence.names.has(name));
+    const byName = apiNames(entry).some((name) => evidence.names.has(name));
     const byConfig = entry.id === "audio-probe" && hasAudioConfig;
     if (byModule || byName || byConfig) {
       adopts.push(entry.id);
@@ -478,6 +482,7 @@ export function seedDeclaration(root: string, game: string, ledger: Ledger): Dec
       if (found.size > 0) probeModules.set(entry.module, found);
       continue;
     }
+    if (!entry.gameFacing) continue;
     // A placeholder that fails the gate: only the game's owner knows whether this
     // game has no such domain or has not adopted it yet.
     declines[entry.id] = {
@@ -491,6 +496,16 @@ export function seedDeclaration(root: string, game: string, ledger: Ledger): Dec
     probes: Object.fromEntries([...probeModules].map(([module, names]) => [module, [...names].sort()])),
     declines,
   };
+}
+
+/** Seed a declaration from source evidence; every decline starts unclassified. */
+export function seedDeclaration(root: string, game: string, ledger: Ledger): Declaration {
+  const evidence = collectEvidence(root, game, ledger);
+  let hasAudioConfig = false;
+  for (const file of sourceFiles(root, game)) {
+    if (/audio\s*:\s*\{/.test(readFileSync(file, "utf8"))) hasAudioConfig = true;
+  }
+  return seedFromEvidence(ledger, evidence, (entry) => moduleApiNames(root, entry), hasAudioConfig);
 }
 
 export function renderDeclaration(declaration: Declaration): string {

@@ -11,6 +11,7 @@ import {
   namesDomain,
   probeMatches,
   renderSummary,
+  seedDeclaration,
   windowProbeVerdict,
   type Declaration,
   type IssueState,
@@ -244,6 +245,66 @@ describe("adoption without a probe", () => {
       { game: "ember", declaration: declaration({ adopts: ["mission-runtime", "no-such-system"] }) },
     ], OPEN);
     expect(report.problems.some((problem) => problem.message.includes("not a capability in capabilities.json"))).toBe(true);
+  });
+});
+
+describe("recording an adoption", () => {
+  const trees: string[] = [];
+  afterEach(() => {
+    for (const root of trees.splice(0)) rmSync(root, { recursive: true, force: true });
+  });
+
+  /** A checkout with one installed probe-less capability and one game that imports it. */
+  function checkout(): string {
+    const root = mkdtempSync(join(tmpdir(), "jg-capability-seed-"));
+    trees.push(root);
+    const pkg = join(root, "node_modules", "@jgengine", "core");
+    mkdirSync(join(pkg, "dist", "run"), { recursive: true });
+    writeFileSync(join(pkg, "package.json"), JSON.stringify({ name: "@jgengine/core", version: "1.0.0" }));
+    writeFileSync(
+      join(pkg, "dist", "run", "runLoop.d.ts"),
+      "/** @capability run-loop Bank or lose what a run carries */\nexport declare function createRunLoop(): void;\n",
+    );
+    const game = join(root, "demo");
+    mkdirSync(join(game, "src"), { recursive: true });
+    writeFileSync(join(game, "package.json"), JSON.stringify({ name: "@games/demo" }));
+    writeFileSync(join(game, "src", "game.config.ts"), "export const config = {};\n");
+    writeFileSync(join(game, "src", "loop.ts"), 'import { createRunLoop } from "@jgengine/core/run/runLoop";\ncreateRunLoop();\n');
+    return root;
+  }
+
+  test("a capability with no probe is seeded as adopted when the game imports it", () => {
+    const root = checkout();
+    const seeded = seedDeclaration(root, "demo", deriveLedger(root));
+    expect(seeded.adopts).toEqual(["run-loop"]);
+    expect(seeded.declines).toEqual({});
+  });
+
+  test("the seeded declaration then passes the gate as adopted (declared), not refused", () => {
+    const root = checkout();
+    const installed = deriveLedger(root);
+    const seeded = seedDeclaration(root, "demo", installed);
+    const report = checkDeclarations(installed, [{ game: "demo", declaration: seeded }]);
+    expect(report.problems).toEqual([]);
+    expect(report.declared).toBe(1);
+    expect(report.verified).toBe(0);
+  });
+
+  test("a game-facing capability the game does not import is still a TODO decline", () => {
+    const root = checkout();
+    const withProbe = deriveLedger(root);
+    withProbe.capabilities.push({
+      id: "audio-probe",
+      packages: ["@jgengine/shell"],
+      module: "@jgengine/shell/audio/audioProbe",
+      domain: "audio mix",
+      gameFacing: true,
+      probe: { kind: "window", global: "__jgengineAudio" },
+      intent: "read the mix",
+    });
+    const seeded = seedDeclaration(root, "demo", withProbe);
+    expect(seeded.adopts).toEqual(["run-loop"]);
+    expect(Object.keys(seeded.declines)).toEqual(["audio-probe"]);
   });
 });
 
