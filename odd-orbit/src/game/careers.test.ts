@@ -11,6 +11,7 @@ import {
   careerOf, careerView, coverageOf, promote, rungProgress, stationPay, yieldShiftValue,
 } from "./careers";
 import { householdStore } from "./session/store";
+import { shiftLoop } from "./session/shiftSessions";
 import { captureOrbitSave, ORBIT_SAVE_KEY, readOrbitSave, restoreOrbitSave, validOrbitSave, writeOrbitSave, type OrbitSave } from "./session/save";
 import { pairKey } from "./session/types";
 import { setupWorld } from "./sim/setup";
@@ -43,6 +44,8 @@ function workShift(ctx: GameContext, id: string): void {
   member.lifestyle = "yield";
   member.workToday = 0;
   member.shiftDay = -1;
+  // A shift is one session a day on the shared loop: reset it the way a new day would.
+  shiftLoop(ctx, id).restore({ session: 0, closed: 0, carried: 0, optionId: null });
   member.action = { kind: "use", goal: "work", objId: "starter:work_console" };
   member.assignedByPlayer = true;
   member.actionUntil = ctx.time.now() + 40;

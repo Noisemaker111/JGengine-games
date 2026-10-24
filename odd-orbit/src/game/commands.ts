@@ -12,6 +12,7 @@ import {
 import { FURNITURE, FURNITURE_BY_ID, type FurnitureRole } from "./objects/catalog";
 import { noteEvent } from "./session/types";
 import { householdStore } from "./session/store";
+import { shiftLoop, shiftRan } from "./session/shiftSessions";
 import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
 import { canChangeLifestyle, scheduleLabel, shiftIsOpen } from "./sim/schedule";
 import { stationShortfall } from "./sim/goal";
@@ -156,8 +157,8 @@ function isShiftStation(kind: ShiftKind, obj: SceneObject): boolean {
 }
 
 /** A being with nothing of its own to finish and a paid window still ahead. */
-function freeForShift(state: HouseholdState, member: MemberState): boolean {
-  if (member.recovering || member.shiftDay === state.day || member.workToday > 0 || member.harvestToday > 0) return false;
+function freeForShift(ctx: GameContext, state: HouseholdState, member: MemberState): boolean {
+  if (member.recovering || shiftRan(ctx, member.id, state.day) || member.workToday > 0 || member.harvestToday > 0) return false;
   return member.action.kind === "idle" || member.action.kind === "wander";
 }
 
@@ -207,7 +208,7 @@ function orderShift(ctx: GameContext, state: HouseholdState, member: MemberState
   const noun = SHIFT_STATION[kind];
   const partnerId = householdBook(state).bondedWith(member.id);
   const partner = partnerId === null ? undefined : state.members[partnerId];
-  if (partner !== undefined && freeForShift(state, partner)) {
+  if (partner !== undefined && freeForShift(ctx, state, partner)) {
     const blocker = joinBlocker(state, partner, kind, now);
     if (blocker !== null) {
       refuseSplit(ctx, state, member, `${member.name} and ${partner.name} are bonded and will not take separate shifts; ${blocker}. Match their rhythms or let both rest.`);
@@ -452,8 +453,8 @@ function registerHouseholdCommands(ctx: GameContext): void {
         if (!["hunger", "energy", "social", "fun", "work", "tend", "play"].includes(goal)) return;
         const role = goal === "tend" || goal === "play" ? "fun" : goal;
         if (goal === "tend" && member.lifestyle !== "bloom") return;
-        if ((goal === "work" || goal === "tend") && (!shiftIsOpen(member, gameCtx.time.now()) || member.recovering || member.shiftDay === state.day)) {
-          member.concern = member.recovering ? "Recover before taking a paid shift" : member.shiftDay === state.day ? "Today's paid shift is finished or its window closed" : "Paid shift window is closed; care and reconnect until it opens";
+        if ((goal === "work" || goal === "tend") && (!shiftIsOpen(member, gameCtx.time.now()) || member.recovering || shiftRan(ctx, member.id, state.day))) {
+          member.concern = member.recovering ? "Recover before taking a paid shift" : shiftRan(ctx, member.id, state.day) ? "Today's paid shift is finished or its window closed" : "Paid shift window is closed; care and reconnect until it opens";
           householdStore.write(gameCtx, { ...state, members: { ...state.members } });
           return;
         }

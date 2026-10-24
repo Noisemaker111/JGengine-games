@@ -7,6 +7,7 @@ import { WORLD_SEED } from "../../world";
 import { setupWorld } from "../sim/setup";
 import { resetAgents, resetBook } from "../agents";
 import { readOrbitSave, restoreOrbitSave, writeOrbitSave } from "./save";
+import { probeShift } from "./shiftSessions";
 import { householdStore } from "./store";
 import { createHousehold } from "./types";
 
@@ -50,6 +51,9 @@ export function startOrbit(ctx: GameContext): void {
   householdStore.write(ctx, createHousehold(WORLD_SEED));
   if (session.initialClock !== null) ctx.time.hydrate(session.initialClock);
   setupWorld(ctx);
+  // The household's shift session is mounted with the world, so its probe reports from boot.
+  const first = householdStore.read(ctx).order[0];
+  if (first !== undefined) probeShift(ctx, first);
   ctx.time.play();
   orbitSession.write(ctx, { ...session, screen: null, canContinue: true });
   setGamePhase(ctx, "playing");
