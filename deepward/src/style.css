@@ -123,7 +123,20 @@ html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .dw-hand-wheel span { font: 10px monospace; letter-spacing: 2px; margin-right: 8px; }
 
 /* Deepward's front-end: the Marrow platform behind it, the record read on Continue. */
-.dw-wordmark { display: block; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase; color: #eceddc; }
+/* The station is full of pale girders and bloomed lamps; the wordmark gets its own print plate so
+   the letters never sit on a bright beam. */
+.dw-wordmark {
+  display: inline-block;
+  font-weight: 650;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #eceddc;
+  padding: 8px 22px 10px 16px;
+  margin-left: -16px;
+  background: linear-gradient(90deg, rgba(9,13,15,0.94) 0%, rgba(9,13,15,0.84) 70%, rgba(9,13,15,0.38) 100%);
+  border-left: 3px solid #d5b879;
+  border-radius: 2px;
+}
 .dw-wordmark span { display: block; margin-top: 10px; font: 12px monospace; letter-spacing: 0.3em; color: #d5b879; }
 .dw-menu { position: absolute; inset: 0; z-index: 40; }
 .dw-menu-busy { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(9,14,16,0.66); backdrop-filter: blur(3px); }
