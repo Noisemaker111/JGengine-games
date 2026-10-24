@@ -13,11 +13,32 @@
 // Every vertex on the model's bounding box is locked, so origin, footprint, pivot and overall
 // height survive: the engine normalizes `targetHeight` from that box, so a drift there would
 // rescale the instance and move it.
-import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const gameRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+/**
+ * A source GLB's textures are fetched relative to the URL the GLB is served from. The far GLBs are
+ * served from `src/art/` (Vite's `?url` copy, hashed into `assets/` in a build), so a relative
+ * `Flowers.png` would be requested from `/art/` or `/assets/` and 404 - the model resolves, its
+ * textures do not, and the far level draws untextured. Each copied image is re-pointed at the URL
+ * the pack itself is served from, and a texture the pack does not ship fails the build here rather
+ * than at 60 m in a player's frame.
+ */
+function resolveImageUris(json, source) {
+  const publicRoot = join(gameRoot, "public");
+  const sourceDir = dirname(source);
+  for (const image of json.images ?? []) {
+    if (image.uri === undefined || image.uri.startsWith("data:")) continue;
+    const onDisk = resolve(sourceDir, image.uri);
+    if (!onDisk.startsWith(publicRoot) || !existsSync(onDisk)) {
+      throw new Error(`${source}: texture "${image.uri}" is not a file under public/, so the far mesh cannot serve it`);
+    }
+    image.uri = `/${relative(publicRoot, onDisk).replaceAll("\\", "/")}`;
+  }
+}
 
 /** Triangle ceilings: about 45% of each source mesh, chosen so the crown and trunk line hold. */
 const MODELS = [
@@ -446,6 +467,7 @@ function decimateSolid(welded, targetTriangles, bounds) {
 function build(model) {
   const source = join(gameRoot, model.src);
   const { json, bin } = parseGlb(source);
+  resolveImageUris(json, source);
   const meshes = json.meshes ?? [];
   const primitiveTriangles = (primitive) => {
     const count = primitive.indices !== undefined ? json.accessors[primitive.indices].count : json.accessors[primitive.attributes.POSITION].count;
