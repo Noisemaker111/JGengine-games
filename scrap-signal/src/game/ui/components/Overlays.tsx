@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useCurrency, useGame, useGameStore } from "@jgengine/react/hooks";
+import { useCurrency, useGame } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HudButton } from "@jgengine/react/hudButton";
 import { AMMO_LABELS, AMMO_POOLS } from "../../ammo";
@@ -9,10 +9,9 @@ import { ScrapPanel } from "./ScrapPanel";
 import { reserveStore, ruskDownStore, vendorOpenStore } from "../../stores";
 
 export function ReserveOverlay() {
-  const nowMs = useGameStore((ctx) => ctx.time.now() * 1000);
   const reserve = useStore(reserveStore);
   if (reserve.phase !== "downed") return null;
-  const secondsLeft = Math.max(0, (reserve.untilMs - nowMs) / 1000);
+  const secondsLeft = reserve.secondsLeft;
   return (
     <div className="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center">
       <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 180px 60px rgba(160, 20, 10, 0.75)" }} />

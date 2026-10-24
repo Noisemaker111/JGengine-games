@@ -10,6 +10,7 @@ import { assets } from "./game/assets";
 import { audio, objectSounds } from "./game/audio/catalog";
 import { audioProbe } from "./game/audio/drive";
 import { frontProbe } from "./game/encounters/front";
+import { reserveProbe } from "./game/handroll/reserve";
 import { content } from "./game/content";
 import { inventories } from "./game/inventories";
 import { keybinds } from "./game/keybinds";
@@ -174,8 +175,11 @@ export const game = defineGame({
       // The relay contract's first ambush, so a flow can prove the session opens in the real game
       // without a two-minute walk from the crash site.
       "dead-air": [{ name: "character.pick", input: { characterId: "gunk" } }, { name: "relay.capture", input: { mode: "upload" } }],
+      // The Emergency Reserve window itself: the chassis is dropped to its last point of health so
+      // the game's own downed tick opens the real 12 s window, banner, prompt and reconstruct fee.
+      downed: [{ name: "character.pick", input: { characterId: "gunk" } }, "reserve.capture"],
     },
-    probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx) }),
+    probe: (ctx) => ({ ...audioProbe(ctx), ...frontProbe(ctx), ...reserveProbe(ctx) }),
     // Ferralon's opening view carries the terrain shader, the scrub field, and a settlement's worth
     // of streamed GLB materials, and every one of those programs compiles on the first drawn frame.
     // On a software renderer that is seconds of work after readiness reports done, and the default

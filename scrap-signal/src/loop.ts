@@ -20,12 +20,14 @@ import { player } from "./game/entities/players/catalog";
 import {
   enterDowned,
   gunById,
-  reserveExpired,
   reservePhase,
   markRespawned,
+  respawnFee,
   rollGun,
   powerSurge,
+  syncReserve,
   tickDots,
+  tickDowned,
   tickReloads,
   tickShields,
 } from "./game/handroll";
@@ -160,7 +162,7 @@ function nearestDiscoveredStation(ctx: GameContext): { x: number; z: number } {
 function respawnAtNewU(ctx: GameContext): void {
   const userId = ctx.player.userId;
   const cash = ctx.game.economy.balance(userId, "cash");
-  const fee = Math.floor(cash * 0.07);
+  const fee = respawnFee(cash);
   if (fee > 0) spend(ctx, "cash", fee, "respawn-fee");
   const station = nearestDiscoveredStation(ctx);
   const y = ctx.world.groundHeightAt(station.x, station.z);
@@ -180,15 +182,19 @@ function respawnAtNewU(ctx: GameContext): void {
   });
 }
 
-function tickReserve(ctx: GameContext, nowMs: number): void {
+function tickReserve(ctx: GameContext, dt: number): void {
   const userId = ctx.player.userId;
   const health = ctx.scene.entity.stats.get(userId, "health");
   if (health === null) return;
-  if (reservePhase(ctx) === "up" && health.current <= (health.min ?? 1)) {
-    enterDowned(ctx, nowMs);
+  if (reservePhase(ctx) === "alive" && health.current <= (health.min ?? 1)) {
+    enterDowned(ctx);
     ctx.scene.entity.update(userId, { movement: { walkSpeed: DOWNED_WALK_SPEED } });
   }
-  if (reserveExpired(ctx, nowMs)) respawnAtNewU(ctx);
+  // The shared state owns the countdown; its `died` event is the game's cue to pay the fee.
+  for (const event of tickDowned(ctx, dt)) {
+    if (event.kind === "died") respawnAtNewU(ctx);
+  }
+  syncReserve(ctx);
 }
 
 function tickZoneAndStations(ctx: GameContext, nowMs: number): void {
@@ -321,7 +327,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickDots(ctx, dt);
   tickCombat(ctx, dt);
   tickReloads(ctx, dt);
-  tickReserve(ctx, nowMs);
+  tickReserve(ctx, dt);
   tickRelay(ctx, dt);
   tickMastWatch(ctx, dt);
   tickZoneAndStations(ctx, nowMs);

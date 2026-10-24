@@ -69,7 +69,7 @@ function runState(ctx: GameContext) {
   ctx.player.inventory.put("hotbar", picked.id, 1, { slot: 0 });
   for (let shot = 0; shot < 5; shot += 1) consumeRound(ctx, picked);
   session.selectSlot(ctx, 2);
-  enterDowned(ctx, 1000);
+  enterDowned(ctx);
   return picked;
 }
 
@@ -117,7 +117,7 @@ describe("scrap-signal save document", () => {
 
     expect(session.selectedSlot()).toBe(2);
     expect(selectedSlotStore.read(reboot)).toBe(2);
-    expect(reserveSave(reboot).phase).toBe("downed");
+    expect(reserveSave(reboot)["p1"]?.phase).toBe("downed");
     expect(reserveStore.read(reboot).phase).toBe("downed");
 
     // The rolled gun and its loaded rounds: the hotbar shows 7 of 12, not a refilled magazine.

@@ -132,7 +132,7 @@ export function tickRelay(ctx: GameContext, dt: number): void {
   if (dt <= 0 || gamePhase(ctx) !== "playing") return;
   const state = relayStore.read(ctx);
   if (state.phase !== "defend" && state.phase !== "upload") return;
-  if (reservePhase(ctx) !== "up") { finish(ctx, state, false, "Your chassis went down before the relay could lock."); return; }
+  if (reservePhase(ctx) !== "alive") { finish(ctx, state, false, "Your chassis went down before the relay could lock."); return; }
   const loop = relayLoop(ctx);
   const remaining = Math.max(0, state.remaining - dt);
   if (remaining === 0) { finish(ctx, state, false, "The carrier window closed. Clear the ambushes and stay inside the copper ring to upload."); return; }
@@ -168,7 +168,7 @@ export function registerRelay(ctx: GameContext, reconstruct: (ctx: GameContext) 
   } });
   ctx.game.commands.define("relay.start", { apply(state: GameContext) {
     const current = relayStore.read(state);
-    if (gamePhase(state) !== "playing" || activeCharacter() === null || reservePhase(state) !== "up" || relayDistance(state) > 3.8 || ["defend", "upload"].includes(current.phase)) return;
+    if (gamePhase(state) !== "playing" || activeCharacter() === null || reservePhase(state) !== "alive" || relayDistance(state) > 3.8 || ["defend", "upload"].includes(current.phase)) return;
     // Salvage cartridges supplied by the contract keep a failed attempt recoverable.
     const ammo = state.scene.entity.stats.get(state.player.userId, "ammo_pistol");
     if (ammo !== null && ammo.current < 60) state.scene.entity.stats.delta(state.player.userId, "ammo_pistol", 60 - ammo.current);
@@ -181,7 +181,7 @@ export function registerRelay(ctx: GameContext, reconstruct: (ctx: GameContext) 
   ctx.game.commands.define("relay.continue", { apply(state: GameContext) {
     const current = relayStore.read(state);
     if (current.phase !== "won" && current.phase !== "lost") return;
-    if (reservePhase(state) !== "up" || (state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 1) <= 1) reconstruct(state);
+    if (reservePhase(state) !== "alive" || (state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 1) <= 1) reconstruct(state);
     publishRelay(state, { ...current, outcome: undefined, reason: "" });
     setGamePhase(state, "playing");
     state.time.play();

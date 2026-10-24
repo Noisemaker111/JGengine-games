@@ -15,7 +15,8 @@ import {
   reserveSave,
   restoreMagazines,
   restoreReserve,
-  type ReserveState,
+  RESERVE_WINDOW_SECONDS,
+  type ReserveSnapshot,
 } from "./handroll";
 import { session } from "./session";
 import { characterIdStore, talentRanksStore } from "./stores";
@@ -35,7 +36,7 @@ export interface CharacterSave {
 
 export interface RunSave {
   slot: number;
-  reserve: ReserveState;
+  reserve: ReserveSnapshot;
   magazines: { gunId: string; loaded: number }[];
 }
 
@@ -50,10 +51,35 @@ function isCharacterSave(value: unknown): value is CharacterSave {
   return typeof value.points === "number" && Number.isFinite(value.points);
 }
 
+/**
+ * A save section: the shared downed state's own snapshot, one entry per downed instance. A save
+ * written before the adoption holds one hand-rolled `{ phase, downedUntilMs }`; it is read forward
+ * as a full window rather than lost.
+ */
+function readReserve(value: unknown, userId: string): ReserveSnapshot {
+  if (!isRecord(value)) return {};
+  if (typeof value.phase === "string" && typeof value.downedUntilMs === "number") {
+    return value.phase === "downed"
+      ? { [userId]: { phase: "downed", bleedoutRemaining: RESERVE_WINDOW_SECONDS, reviveProgress: 0, bannerRemaining: null } }
+      : {};
+  }
+  const snapshot: ReserveSnapshot = {};
+  for (const [instanceId, entry] of Object.entries(value)) {
+    if (!isRecord(entry) || typeof entry.phase !== "string") continue;
+    if (typeof entry.bleedoutRemaining !== "number" || !Number.isFinite(entry.bleedoutRemaining)) continue;
+    snapshot[instanceId] = {
+      phase: entry.phase === "downed" || entry.phase === "dead" ? entry.phase : "alive",
+      bleedoutRemaining: Math.max(0, entry.bleedoutRemaining),
+      reviveProgress: typeof entry.reviveProgress === "number" ? entry.reviveProgress : 0,
+      bannerRemaining: typeof entry.bannerRemaining === "number" ? entry.bannerRemaining : null,
+    };
+  }
+  return snapshot;
+}
+
 function isRunSave(value: unknown): value is RunSave {
   if (!isRecord(value) || typeof value.slot !== "number") return false;
-  if (!isRecord(value.reserve) || typeof value.reserve.phase !== "string") return false;
-  if (typeof value.reserve.downedUntilMs !== "number") return false;
+  if (!isRecord(value.reserve)) return false;
   if (!Array.isArray(value.magazines)) return false;
   return value.magazines.every(
     (entry) =>
@@ -101,12 +127,12 @@ function runSystem(ctx: GameContext): GameSaveSystem<RunSave> {
     restore(section) {
       if (!isRunSave(section)) return;
       session.selectSlot(ctx, section.slot);
-      restoreReserve(ctx, section.reserve);
+      restoreReserve(ctx, readReserve(section.reserve, ctx.player.userId));
       restoreMagazines(ctx, section.magazines);
     },
     reset() {
       session.reset(ctx);
-      restoreReserve(ctx, { phase: "up", downedUntilMs: 0 });
+      restoreReserve(ctx, {});
       restoreMagazines(ctx, []);
     },
   };

@@ -217,7 +217,7 @@ export function tickMastWatch(ctx: GameContext, dt: number): void {
     actors: {
       player: { position: { x: position[0], y: position[1], z: position[2] }, alive: reservePhase(ctx) !== "dead" },
     },
-    facts: { chassis: reservePhase(ctx) === "up" ? "up" : "down" },
+    facts: { chassis: reservePhase(ctx) === "alive" ? "up" : "down" },
     events,
   });
   handleEvents(ctx, fired);
