@@ -1,6 +1,4 @@
 { "steps": [
-  { "click": "Enter Marrow", "note": "leave the title so the Marrow platform and its rail prompt are live" },
-
   { "assert": "__jgProbe().inDive === 0 && /rail departure/i.test(document.body.innerText)",
     "note": "arrival: the diver is standing at Marrow's departure rail, not the title card" },
 
@@ -13,7 +11,8 @@
     "note": "take the rail: the world swaps to Bellwether and the air tank starts" },
 
   { "key": "KeyW", "ms": 760,
-    "after": { "is": "__jgProbe().z < -4.2", "timeoutMs": 10000 } },
+    "after": { "is": "__jgProbe().z < -3.5", "timeoutMs": 10000 },
+    "note": "walk into Bellwether's receiving floor; the rail is behind at z 1.9, so any z below -3.5 is the corridor crossed" },
 
   { "key": "KeyA", "ms": 620,
     "after": { "is": "__jgProbe().x < -3.8 && __jgProbe().x > -6", "timeoutMs": 10000 },

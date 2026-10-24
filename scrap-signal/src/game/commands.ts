@@ -441,9 +441,9 @@ export function registerCommands(ctx: GameContext): void {
     });
     // Dev-only: stand at the copper ring and take the contract, so a flow can prove the session
     // opens in the real game without a two-minute walk from the crash site.
-    ctx.game.commands.define("relay.capture", {
-      apply(state: GameContext) {
-        stageRelay(state);
+    ctx.game.commands.define<{ mode?: "ambush" | "upload" }>("relay.capture", {
+      apply(state: GameContext, input) {
+        stageRelay(state, input.mode ?? "ambush");
       },
     });
   }

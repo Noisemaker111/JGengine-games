@@ -11,6 +11,10 @@ import { NODE_ORDER_RADIUS, ORDER_TARGET_RADIUS } from "./tuning";
 import { matchRunning, reservedSupply, livingUnits, session, usedSupply, type NodeInfo, type UnitRuntime } from "./session";
 import { pendingRanks, RESEARCH_CONFIG, UPGRADES, upgradeRank } from "./upgrades";
 import { castHeroAct, chooseHeroPick, heroActViews, pendingHeroOffer } from "./heroActs";
+import { MUSTER_MARKER, noteCampaignBuild, noteCampaignTrain, startCampaignMission, tickCampaign } from "./campaign";
+import { HERO_ID } from "./hero";
+import { missionMarkers } from "@jgengine/core/mission/triggers";
+import { editorLayers } from "../editorLayers";
 
 export interface OrderInput {
   /** Absent when the shell routes a right-click with nothing selected (`pointer.secondaryCommand`). */
@@ -345,4 +349,27 @@ export function registerCommands(ctx: GameContext): void {
       return state;
     },
   });
+  // Dev-only: play the first muster's world reports and walk Bram to the ground, so a flow can reach
+  // the mission's own boundary instead of a counter. The machine still decides the outcome.
+  if (import.meta.env.DEV) {
+    ctx.game.commands.define("campaign.capture", {
+      apply: (state) => {
+        if (!startCampaignMission(state)) return state;
+        // Each report lands on the objective that is open at that tick, exactly as the build and
+        // training events do in play: the machine drops a report no open objective counts.
+        noteCampaignBuild(state, "barracks");
+        tickCampaign(state, 0.2);
+        for (let footmen = 0; footmen < 4; footmen += 1) {
+          noteCampaignTrain(state, "footman");
+          tickCampaign(state, 0.2);
+        }
+        const muster = missionMarkers(editorLayers)[MUSTER_MARKER];
+        if (muster !== undefined && state.scene.entity.get(HERO_ID) !== null) {
+          state.scene.entity.setPose(HERO_ID, { position: [muster.x, muster.y, muster.z] });
+        }
+        tickCampaign(state, 0.2);
+        return state;
+      },
+    });
+  }
 }

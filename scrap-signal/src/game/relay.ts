@@ -70,10 +70,19 @@ export function relayDistance(ctx: GameContext): number {
   return p === undefined ? Infinity : Math.hypot(p[0] - RELAY.x, p[2] - RELAY.z);
 }
 
-/** Dev-only: stand at the copper ring and open the contract's first ambush for a capture or a flow. */
-export function stageRelay(ctx: GameContext): void {
+/**
+ * Dev-only: stand at the copper ring and open the contract's first ambush for a capture or a flow.
+ * `mode: "upload"` clears the ambush it just spawned, so the wave's own upload boundary is reachable
+ * without a firefight the script cannot aim.
+ */
+export function stageRelay(ctx: GameContext, mode: "ambush" | "upload" = "ambush"): void {
   relayLoop(ctx).restore({ session: 0, closed: 0, carried: 0, optionId: null });
   spawnWave(ctx, relayStore.read(ctx), 1);
+  if (mode === "upload") {
+    const state = relayStore.read(ctx);
+    for (const id of state.enemies) ctx.scene.entity.despawn(id);
+    publishRelay(ctx, { ...state, enemies: [] });
+  }
   // The player may not be spawned yet when a capture state runs, so the pose is best-effort.
   if (ctx.scene.entity.get(ctx.player.userId) !== null) {
     ctx.scene.entity.setPose(ctx.player.userId, { position: [RELAY.x, ctx.world.groundHeightAt(RELAY.x, RELAY.z), RELAY.z] });
