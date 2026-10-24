@@ -20,6 +20,7 @@
     "perception-service",
     "police-response",
     "police-roads",
+    "session-loop",
     "traffic",
     "transaction-ledger",
     "vehicle-damage"
@@ -104,15 +105,11 @@
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Harbor Heat runs are chase missions with per-run timers in runState.ts; no haul is banked or lost across them, so there is no run boundary for the loop to own."
+      "reason": "The roguelike run composition - bank or lose a haul plus one authored change per run - is not a Harbor Heat contract; its missions run on the genre-free session loop."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of harbor-heat: residents keep to authored routes without reciprocal avoidance."
-    },
-    "session-loop": {
-      "kind": "not-applicable",
-      "reason": "Harbor Heat runs are chase missions with per-run timers in runState.ts; no haul is banked or lost across them, so there is no run boundary for the loop to own."
     },
     "skill-tree": {
       "kind": "not-applicable",

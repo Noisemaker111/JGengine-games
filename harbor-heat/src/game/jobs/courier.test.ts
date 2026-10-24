@@ -37,7 +37,7 @@ describe("Mainsail courier contract", () => {
     const ctx = boot();
     ctx.game.commands.run("courier.accept", { service: "rush" });
     expect(courierStore.read(ctx).phase).toBe("idle");
-    courierStore.write(ctx, { ...courierStore.read(ctx), completed: 1 });
+    courierStore.write(ctx, { ...courierStore.read(ctx), delivered: 1 });
     ctx.game.commands.run("courier.accept", { service: "rush" });
     expect(courierStore.read(ctx).phase).toBe("idle");
     ctx.game.economy.grant(ctx.player.userId, "cash", 100);
@@ -87,7 +87,7 @@ describe("Mainsail courier contract", () => {
     const paid = ctx.game.economy.balance(ctx.player.userId, "cash") - cash;
     expect(paid).toBe(route.payout + Math.floor(courierStore.read(ctx).remaining * 2));
     // The receipt must show the whole payout, not just the bonus granted on top of the contract.
-    expect(courierStore.read(ctx).reward).toBe(paid);
+    expect(courierStore.read(ctx).receipt?.reward).toBe(paid);
 
     tickCourier(ctx, 1);
     ctx.game.commands.run("courier.deliver", {});

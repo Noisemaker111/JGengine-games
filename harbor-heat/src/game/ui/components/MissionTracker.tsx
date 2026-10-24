@@ -26,7 +26,7 @@ function BountyCard() {
 export function MissionTracker() {
   const journal = useQuestJournal();
   const courier = useStore(courierStore);
-  if (courier.completed === 0 || courier.phase === "running") return null;
+  if (courier.delivered === 0 || courier.phase === "running") return null;
   const active = journal.find((q) => q.status === "active");
   if (active === undefined) {
     const allDone = journal.filter((q) => q.status === "completed").length >= QUESTS.length;
