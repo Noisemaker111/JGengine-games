@@ -4690,6 +4690,17 @@
       "intent": "author a baked irradiance volume on the scene document"
     },
     {
+      "id": "lighting-mood",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/render/lookMood",
+      "domain": "render",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "one field that lights a 3D game: sun, fill, sky, haze and grade that agree"
+    },
+    {
       "id": "limb-health",
       "packages": [
         "@jgengine/core"
@@ -7042,7 +7053,7 @@
       "domain": "render",
       "gameFacing": false,
       "probe": null,
-      "intent": "expand a look preset into concrete lighting/backdrop/post knobs"
+      "intent": "expand a look preset and lighting mood into concrete lighting/backdrop/post knobs"
     },
     {
       "id": "resolve-rng",
@@ -7717,6 +7728,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "downscale a captured frame to a save-card thumbnail data URL"
+    },
+    {
+      "id": "sight-line",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/sensor/sightLine",
+      "domain": "sensor",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "block a sight test behind the world's own collision boxes"
     },
     {
       "id": "sim-loop",

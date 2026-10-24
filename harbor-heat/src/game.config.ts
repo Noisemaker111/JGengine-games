@@ -136,47 +136,11 @@ export const game = defineGame({
   prompts,
   entityModels,
   objectModels,
-  // Mid-afternoon Gulf sun, not noon. The old key was almost overhead at a low intensity with a
-  // very bright ambient, so nothing cast a shadow long enough to describe its own shape and every
-  // building read as a flat sticker. Sun down and up in strength, ambient way down, plus a cool
-  // bounce off the water so the shaded side of a pastel block goes blue rather than muddy.
-  lighting: {
-    ambient: { color: "#ffe4c0", intensity: 0.18 },
-    hemisphere: { skyColor: "#a9d8ef", groundColor: "#b09a6f", intensity: 0.34 },
-    directional: [
-      {
-        color: "#fff0cf",
-        intensity: 2.05,
-        position: [170, 74, 44],
-        castShadow: true,
-        // Cascades follow the camera, so the spawn at (-190, 40) gets the same shadow
-        // density as the origin — a single origin-anchored box cannot cover this isle.
-        cascades: 3,
-        shadowMaxFar: 220,
-        shadowMapSize: 2048,
-      },
-      { color: "#8fbcdc", intensity: 0.26, position: [-170, 44, -70] },
-    ],
-  },
+  // Mid-afternoon Gulf sun under a clear tropical sky. The scene document places the sun low in
+  // the east-southeast so palms and blocks throw long shadows; the mood owns the rig, haze and grade.
+  look: "cinematic",
+  mood: "day",
   shadows: true,
-  // Tropical film look: ACES so the sky and the white stucco stop clipping, bloom low enough that
-  // chrome, water glints and neon actually catch, and a grade that lifts the shadows warm and pulls
-  // the highlights golden. Saturation is the tropical read; the vignette and a touch of grain keep
-  // the frame from looking like a flat render. AO is deliberately off — it re-renders the scene for
-  // depth/normals and this open, hazy city barely shows the contact gain.
-  postProcessing: {
-    toneMapping: "aces",
-    exposure: 0.96,
-    bloom: { strength: 0.24, radius: 0.7, threshold: 0.9 },
-    grade: {
-      lift: [0.018, 0.011, 0.004],
-      gain: [1.06, 1.02, 0.94],
-      gamma: 0.96,
-      saturation: 1.24,
-      vignette: 0.26,
-      grain: 0.012,
-    },
-  },
   worldHealthBars: { roles: ["enemy", "hostile"] },
   // Direct-fire weapons want the muzzle→impact tracer; ballistic/exploding shots skip it
   // automatically so a lobbed round never draws a straight fake beam.
@@ -209,14 +173,8 @@ export const game = defineGame({
     shake: { maxOffset: 0.24, maxRoll: 0.045, decayPerSecond: 2.8, exponent: 2, frequency: 21 },
     frustum: { far: 900 },
   },
-  // Warm sea haze rather than the old near-white wash, and it starts far closer so the city
-  // separates into near, mid, and horizon bands instead of one evenly-lit slab.
-  backdrop: {
-    background: "#79bde2",
-    fog: { color: "#b9cfd8", near: 90, far: 620 },
-  },
-  // Starts at the day curve's noon keyframe, which is the only point where `world.ts`'s authored
-  // sky colours reach the dome unblended with the engine's dawn and dusk presets.
+  // Starts at the day curve's noon keyframe, where the mood's sky colours reach the dome unblended
+  // with the engine's dawn and dusk presets.
   time: { dayLength: 720, start: 360 },
   orientation: "landscape",
 });

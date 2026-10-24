@@ -129,24 +129,16 @@ export const world: EnvironmentWorldFeature = environment({
       material: { maps: GROUND_MAPS, repeat: 2.4, strength: 0.5, tint: 0.18 },
     },
   }),
-  // The authored environment block owns the day/night cycle: `zenithColor`/`horizonColor` are its
-  // NOON keyframe, and the cycle cross-fades them through the engine's dawn/dusk/night presets — which
-  // is why an authored tropical blue used to render as a pink haze when the clock started elsewhere.
-  // `game.config.ts` starts the clock at exactly midday so these are the colours that reach the dome,
-  // and `sunAzimuth`/`sunElevation` put the dome's sun where the authored key light already stands.
-  // Fog stays on the game's `backdrop` (its colour is the cycle's noon fog, its range the sky's).
+  // The dome's shape lives here; its colours, haze and the light come from the game's `mood`, and
+  // the authored environment block runs the day/night cycle and places the sun
+  // (`sunAzimuth`/`sunElevation`), so the key light and the dome's sun stay one sun.
   sky: sky({
     hazeStrength: 0.18,
     sunGlowStrength: 0.9,
     gradientExponent: 0.34,
     cloudiness: 0.3,
     radius: 620,
-    ...(authoredSky ?? {
-      preset: "day",
-      timeOfDay: true,
-      zenithColor: "#1f6fc4",
-      horizonColor: "#eadcc4",
-    }),
+    ...(authoredSky ?? { preset: "day", timeOfDay: true }),
   }),
   // A squall far out over the Gulf: atmosphere on the horizon the boulevard looks into, well clear
   // of the sun-drenched city itself.

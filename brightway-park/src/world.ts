@@ -22,13 +22,8 @@ export const world: WorldFeature = environment({
       detailScale: 3,
     },
   }),
-  sky: sky({
-    preset: "day",
-    horizonColor: "#cfe8f2",
-    zenithColor: "#4ea6dd",
-    sunIntensity: 1.35,
-    ambientIntensity: 0.7,
-  }),
+  // Colours, sun and haze come from the game's `mood: "bright"`.
+  sky: sky({ preset: "day" }),
   structures: [
     building({
       count: 6,
