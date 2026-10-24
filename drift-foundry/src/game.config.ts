@@ -16,6 +16,9 @@ export const game = defineGame({
   world,
   editorLayers,
   physics,
+  // The kart, rivals, compactor and run clock all integrate `dt` per tick; a fixed 60 Hz step keeps a
+  // corridor run the same distance at 30 and 144 fps.
+  simulation: { hz: 60 },
   input: keybinds,
   assets,
   content,

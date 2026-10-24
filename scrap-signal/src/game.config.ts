@@ -203,6 +203,9 @@ export const game = defineGame({
   scenePlacement: false,
   scenePathKinds: [],
   physics,
+  // Fixed 60 Hz: enemy AI, recoil, reloads and shots are per-tick math, so the same input has to
+  // produce the same run on a slow and a fast machine.
+  simulation: { hz: 60 },
   inventories,
   input: keybinds,
   // The context-specific relay button lives beside its stakes and progress.
