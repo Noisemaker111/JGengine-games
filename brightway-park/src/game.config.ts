@@ -36,12 +36,7 @@ export const game = defineGame({
   notices: { cap: 6, ttlMs: 7000 },
   hudTheme: parkTheme,
   look: "cinematic",
-  postProcessing: {
-    toneMapping: "aces",
-    bloom: { strength: 0.22, radius: 0.5, threshold: 0.95 },
-    ao: { intensity: 1.1, radius: 1.6 },
-    grade: { saturation: 1.18, gamma: 0.98, vignette: 0.12, grain: 0 },
-  },
+  mood: "bright",
   capture: {
     play: ["park.start"],
     // `full-park` stages the day a reviewer asks about: gates open, the authored starter park at

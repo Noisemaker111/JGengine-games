@@ -7962,15 +7962,7 @@
   "environment": {
     "preset": "day",
     "timeOfDay": true,
-    "zenithColor": "#1f6fc4",
-    "horizonColor": "#eadcc4",
     "sunAzimuth": 104.5,
-    "sunElevation": 22.6,
-    "grading": {
-      "autoExposure": {
-        "min": 0.85,
-        "max": 2.1
-      }
-    }
+    "sunElevation": 22.6
   }
 }
