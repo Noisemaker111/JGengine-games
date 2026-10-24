@@ -27,6 +27,10 @@
     }
   },
   "scripts": {
+    "engine:local": "bun scripts/engine-mode.ts local",
+    "engine:published": "bun scripts/engine-mode.ts published",
+    "engine:status": "bun scripts/engine-mode.ts status",
+    "engine:watch": "bun scripts/engine-watch.ts",
     "provision": "bun scripts/provision-assets.ts",
     "test": "bun test",
     "test:games": "bun test",

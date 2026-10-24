@@ -9,6 +9,10 @@ shots/
 !**/public/materials/imported/
 *.tsbuildinfo
 
+# Local engine link state and the manifest bytes it restores (see scripts/engine-mode.ts)
+.engine-mode
+.engine-mode.baseline/
+
 # One checkout home and one scratch folder (JonsOCsetup docs/worktrees.md)
 .claude/worktrees/
 .scratch/

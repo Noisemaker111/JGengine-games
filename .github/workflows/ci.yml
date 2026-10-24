@@ -40,3 +40,34 @@ jobs:
       - run: bun run check-types
       - run: bun run test
       - run: bun run capabilities:probe
+
+  # The same checks against engine `beta` source, so a PR can go green on an engine
+  # module that has never been published. The `games` job above keeps the published
+  # catalog honest; this one catches the link, the build and the checks together.
+  games-local-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+      - name: Engine checkout (beta, unpublished work included)
+        run: git clone --depth 1 --branch beta https://github.com/Noisemaker111/jgengine.git ../jgengine
+      - run: bun install --frozen-lockfile
+        working-directory: ../jgengine
+      - name: Build the engine packages the games import
+        run: |
+          for pkg in core assets node react shell ws editor; do
+            bun --cwd=packages/$pkg run build
+          done
+        working-directory: ../jgengine
+      - run: bun run engine:local --dir ../jgengine
+      - run: bun run engine:status
+      - run: bun run check:framework --base origin/beta
+      - run: bun run check:seam-line
+      - run: bun run check:module-globals
+      - run: bun run check-types
+      - run: bun run test
