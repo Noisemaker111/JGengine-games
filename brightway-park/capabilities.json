@@ -122,6 +122,10 @@
       "kind": "not-applicable",
       "reason": "Police heat is not part of brightway-park: a park has no police response, witnesses or heat."
     },
+    "run-loop": {
+      "kind": "not-applicable",
+      "reason": "Brightway Park runs a continuous park day loop; no session ends with a haul banked or lost, so there is no run boundary for the loop to own."
+    },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of brightway-park: guests use the shared agent loop's movement and never crowd-steer."

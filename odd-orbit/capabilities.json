@@ -140,6 +140,10 @@
       "kind": "not-applicable",
       "reason": "Ride simulation is not part of odd-orbit: no ride or queue exists in a habitat."
     },
+    "run-loop": {
+      "kind": "not-applicable",
+      "reason": "Odd Orbit persists one career across shifts; a shift banks no haul and loses none, so there is no run boundary for the loop to own."
+    },
     "rvo-avoidance": {
       "kind": "not-applicable",
       "reason": "Crowd steering is not part of odd-orbit: room-mates walk around furniture without reciprocal avoidance."
