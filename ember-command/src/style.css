@@ -104,3 +104,9 @@ body,
   .ec-objectives { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .ec-front { animation: none; } }
+
+/* The field desk: the shared game menu over the live vale. */
+.ec-wordmark { display: block; font-family: "Arial Black", "Arial Narrow", Impact, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #ffe4a9; line-height: 0.95; }
+.ec-menu { position: absolute; inset: 0; z-index: 40; }
+.ec-menu-busy { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(7,16,20,0.7); backdrop-filter: blur(3px); }
+.ec-menu-busy span { font: 11px "Arial Narrow", sans-serif; letter-spacing: 2.4px; text-transform: uppercase; color: #ffe4a9; background: #122228e8; border: 1px solid #c8a263; padding: 12px 18px; }

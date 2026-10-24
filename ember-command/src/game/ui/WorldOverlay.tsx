@@ -1,4 +1,6 @@
 import { WorldNameplates, type NameplateSample } from "@jgengine/shell/world/WorldHud";
+import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { registerSceneCapture } from "@jgengine/shell/render/sceneCaptureRequest";
 
 import { session } from "../session";
 
@@ -35,5 +37,8 @@ function renderBar(sample: NameplateSample) {
  * instanced forest ring) is auto-mounted by `defineGame({ editorLayers })`; units/keeps/props are
  * spawned as entities elsewhere, so `scenePlacement` stays off — no double render. */
 export function EmberCommandWorldOverlay() {
-  return <WorldNameplates statId="health" maxDistance={999} tickMs={100} renderNameplate={renderBar} />;
+  return <>
+    <SceneCaptureBinding bind={registerSceneCapture} />
+    <WorldNameplates statId="health" maxDistance={999} tickMs={100} renderNameplate={renderBar} />
+  </>;
 }

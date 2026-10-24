@@ -30,6 +30,12 @@ does now.
 - **Save.** `persist: { mode: "manual" }`: the campaign track, the stores and the whole world are
   checkpointed at mission start, win and loss, and restored on boot behind the field desk. The
   battlefield is restaged fresh on load, so a save carries progress, not a half-played board.
+- **Field desk.** The front end is the shared game menu over the live vale, in the campaign's own
+  words: Continue campaign, New campaign, Campaigns & orders (three records in the game's own save
+  slots), Settings and Credits, with the same system scaled down for pause (Resume the mission, Save
+  to the record, Settings, Credits). A record remembers the commander's name, the mission it reached
+  and the gold and lumber it carries; Continue restores the stores exactly rather than opening on
+  the starting purse again.
 - **Core loop.** 250 gold, 120 lumber and 30 supply open the match. Peasants walk to a gold seam or
   logging camp, work 2.2 seconds, and haul 12 gold or 8 lumber back to the keep. That pays for
   Peasants (55 gold, 8 s), Footmen (80 gold + 10 lumber, 14 s, barracks) and Riflemen (70 + 20, 16 s),

@@ -49,6 +49,9 @@ export const game = defineGame({
     // next mission from the campaign track, so the objective card, the mission notice and the live
     // wave are already on screen. Nothing is staged, and nothing needs to be played first.
     states: {
+      "menu": ["menu.record"],
+      "menu-missions": ["menu.record", { name: "menu.focus", input: { verb: "missions" } }],
+      "menu-new": [],
       "mission-live": ["match.start"],
       // Dev-only: the first muster played through its world reports, so a flow can reach the
       // mission's own cleared boundary instead of the counter's next tick.
