@@ -34,6 +34,7 @@ jobs:
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
+      - run: bun run check:save-states
       - run: bun run check:game-design
       - run: bun run check:capabilities --summary
         env:
@@ -79,6 +80,7 @@ jobs:
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
+      - run: bun run check:save-states
       - run: bun run check:game-design
       - run: bun run check-types
       - run: bun run test

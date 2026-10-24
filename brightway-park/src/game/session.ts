@@ -57,7 +57,13 @@ export interface PlacedObject {
   occupants: number;
 }
 
-export type GuestPhase = "seeking" | "busy" | "queued" | "riding" | "leaving";
+/**
+ * Every phase a guest can be in, and the one list the type and the save decoder both read: a guest
+ * saved while queued or riding is a legal state, so a decoder that knew only three of these refused
+ * the save it had just written.
+ */
+export const GUEST_PHASES = ["seeking", "busy", "queued", "riding", "leaving"] as const;
+export type GuestPhase = (typeof GUEST_PHASES)[number];
 
 export interface GuestState {
   id: string;

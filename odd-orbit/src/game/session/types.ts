@@ -16,9 +16,13 @@ export type MemberAction =
   | { kind: "use"; goal: NeedId | "work"; objId: string }
   | { kind: "social"; withId: string };
 
-export type BloomCrop = "pantry" | "export";
+/** The crops a bloom-lifestyle being can plant, and their one list. */
+export const BLOOM_CROPS = ["pantry", "export"] as const;
+export type BloomCrop = (typeof BLOOM_CROPS)[number];
 
-export type Lifestyle = "yield" | "bloom";
+/** The two lifestyles, and their one list: the save decoder reads this, never a copy. */
+export const LIFESTYLES = ["yield", "bloom"] as const;
+export type Lifestyle = (typeof LIFESTYLES)[number];
 
 export interface MemberState {
   id: string;

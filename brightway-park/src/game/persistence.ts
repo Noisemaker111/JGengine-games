@@ -13,7 +13,7 @@ import { MILESTONES, parkStanding } from "./milestones";
 import { restoreRides, rideSnapshot, syncRidePark } from "./rides";
 import { restoreScenario, scenarioSnapshot, type ScenarioState } from "./scenarios";
 import type { LoanState } from "./loan";
-import { createParkLedger, session, type GuestState, type PlacedObject, type StaffState } from "./session";
+import { createParkLedger, GUEST_PHASES, session, type GuestPhase, type GuestState, type PlacedObject, type StaffState } from "./session";
 import { restoreStaff } from "./staff";
 
 export const SAVE_KEY = "brightway-park.save.v1";
@@ -79,7 +79,7 @@ function migrateGuest(entry: Record<string, unknown>): GuestState | null {
     kind: legacy.kind as string,
     money: finite(legacy.money) ? legacy.money : 40,
     visits: finite(legacy.visits) ? legacy.visits : 0,
-    phase: legacy.phase === "busy" || legacy.phase === "leaving" ? legacy.phase : "seeking",
+    phase: GUEST_PHASES.includes(legacy.phase as GuestPhase) ? legacy.phase as GuestPhase : "seeking",
     targetId: typeof legacy.targetId === "string" ? legacy.targetId : null,
     target: Array.isArray(legacy.target) && legacy.target.length === 3 && legacy.target.every(finite)
       ? (legacy.target as [number, number, number])
@@ -133,7 +133,7 @@ export function decodeSave(raw: string): ParkSave | null {
       if (state === null) return null;
       if (typeof state.id !== "string" || guestIds.has(state.id) || !GUEST_KINDS.includes(state.kind)) return null;
       if (![state.money,state.visits,state.busy,state.litterTimer].every(finite)) return null;
-      if (!["seeking","busy","leaving"].includes(state.phase) || (state.targetId !== null && !ids.has(state.targetId))) return null;
+      if (!GUEST_PHASES.includes(state.phase as GuestPhase) || (state.targetId !== null && !ids.has(state.targetId))) return null;
       if (!validAgent(state.agent)) return null;
       if (!Array.isArray(position) || position.length !== 3 || !position.every(finite)) return null;
       if (state.target !== null && (!Array.isArray(state.target) || state.target.length !== 3 || !state.target.every(finite))) return null;
