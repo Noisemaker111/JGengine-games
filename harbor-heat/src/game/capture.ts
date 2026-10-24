@@ -1,6 +1,11 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { vehicleById } from "./entities/vehicles/catalog";
+import { harborProfile } from "./menuProfile";
+import { focusHarborVerb } from "./ui/menu/menuFocus";
+import { harborSave, saveHarborState } from "./save";
+import { startedStore } from "./commands";
+import { sessionStore } from "./session";
 import { handrollOf } from "./handroll";
 
 /** What a staged chase should look like when the capture takes it. */
@@ -81,4 +86,50 @@ export function registerCaptureCommands(ctx: GameContext): void {
       return state;
     },
   });
+  // The menu states a capture host reaches: name a courier, keep the bay, stand on the board.
+  ctx.game.commands.define("menu.bays", {
+    apply(state) {
+      focusHarborVerb("keeps");
+      startedStore.write(state, false);
+      sessionStore.write(state, { ...sessionStore.read(state), paused: false });
+      return state;
+    },
+  });
+  ctx.game.commands.define<{ driver?: string }>("menu.driver", {
+    apply(state, input) {
+      harborProfile.driver = typeof input?.driver === "string" && input.driver.length > 0 ? input.driver : null;
+      return state;
+    },
+  });
+  ctx.game.commands.define("menu.saveDoc", {
+    apply(state) {
+      void (async () => {
+        const save = harborSave(state);
+        const bays = ["coast", "docks", "uptown"];
+        const driver = harborProfile.driver;
+        const thumb = harborProfile.thumbnail;
+        if (!bays.includes(save.slot())) await save.switchSlot("coast", { flush: false });
+        // Loading the bay restores its profile section; put the capture's courier back before writing.
+        harborProfile.driver = driver;
+        harborProfile.thumbnail = thumb;
+        await saveHarborState(state);
+        await save.save();
+      })();
+      return state;
+    },
+  });
+  ctx.game.commands.define("menu.title", {
+    apply(state) {
+      focusHarborVerb(null);
+      startedStore.write(state, false);
+      sessionStore.write(state, { ...sessionStore.read(state), paused: false });
+      return state;
+    },
+  });
 }
+
+
+
+
+
+
