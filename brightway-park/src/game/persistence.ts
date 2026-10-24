@@ -15,6 +15,7 @@ import { restoreScenario, scenarioSnapshot, type ScenarioState } from "./scenari
 import type { LoanState } from "./loan";
 import { createParkLedger, GUEST_PHASES, session, type GuestPhase, type GuestState, type PlacedObject, type StaffState } from "./session";
 import { restoreStaff } from "./staff";
+import { parkProfile } from "./parkProfile";
 
 export const SAVE_KEY = "brightway-park.save.v1";
 const numbers = ["cash", "rating", "happinessAvg", "litter", "ticketPrice", "day", "guestsToday", "revenueToday", "revenueYesterday", "upkeepYesterday", "spawnAcc", "guestSeq", "objectSeq", "bankruptDays", "scenarioVisitors", "scenarioRevenue"] as const;
@@ -41,6 +42,12 @@ export interface ParkSave {
   rides: RideSystemSnapshot | null;
   scenario: ScenarioState | null;
   mission: MissionRuntimeSnapshot | null;
+  /** The park name the menu card shows. */
+  parkName?: string;
+  /** A captured frame of the park, for the menu card. */
+  thumbnail?: string;
+  /** Seconds of play when the park was saved. */
+  playtime?: number;
 }
 const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
 const record = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -217,6 +224,9 @@ export function snapshotPark(ctx: GameContext): ParkSave {
     rides: rideSnapshot(),
     scenario: session.scenario,
     mission: scenarioSnapshot(),
+    ...(parkProfile.name === null ? {} : { parkName: parkProfile.name }),
+    ...(parkProfile.thumbnail === null ? {} : { thumbnail: parkProfile.thumbnail }),
+    playtime: Math.round(ctx.time.now()),
   };
 }
 
@@ -237,6 +247,10 @@ export function restorePark(ctx: GameContext): boolean {
   try { raw = localStorage.getItem(SAVE_KEY); } catch { return false; }
   if (!raw) return false;
   const s = decodeSave(raw);
+  if (s) {
+    parkProfile.name = s.parkName ?? null;
+    parkProfile.thumbnail = s.thumbnail ?? null;
+  }
   if (!s) { session.saveStatus = "Existing save could not be read; it has been preserved"; return false; }
   Object.assign(session,s.stats,{gameOver:s.gameOver,won:s.won,winDismissed:s.winDismissed,hasSave:true,loan:s.loan,ridePrices:s.ridePrices,scenario:s.scenario});
   session.ledger = createParkLedger(s.stats.day, s.stats.cash, s.loan !== null);
@@ -269,3 +283,4 @@ export function archiveSave(): void {
   if(previous) localStorage.setItem(`${SAVE_KEY}.backup.${Date.now()}`,previous);
   localStorage.removeItem(SAVE_KEY);
 }
+
