@@ -47,3 +47,21 @@ Harbor Heat's street furniture comes from the engine's realistic model library a
 | streets | Sidewalk and driveway concrete (Concrete006) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Concrete006 |
 
 The building block itself (`harbor-heat/src/art/city-block.glb`) is original geometry with no textures. Cars, people, aircraft, signs, neon, signals and cargo are still KayKit (CC0): no CC0 realistic glTF cars or rigged humans exist on Poly Haven or ambientCG, and the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
+
+## Bundled fonts
+
+Each game ships one display font and one body font from [Google Fonts](https://github.com/google/fonts). The files are unmodified and licensed under the SIL Open Font License 1.1. Several fonts carry Reserved Font Names, so the files must stay unmodified. Each game's `src/art/fonts/` folder holds:
+- the font files
+- `OFL.txt`, with each font's copyright line and the license
+- `SOURCE.md`, with the exact source URL and version of each file
+
+| Game | Display | Body |
+| --- | --- | --- |
+| Harbor Heat | Bangers | Barlow |
+| Beacon Bastion | Cinzel | Alegreya Sans |
+| Ember Command | IM Fell English SC | Alegreya |
+| Brightway Park | Lilita One | Nunito |
+| Deepward | Share Tech Mono | Rajdhani |
+| Drift Foundry | Saira Stencil One | Barlow Condensed |
+| Odd Orbit | Comfortaa | Quicksand |
+| Scrap Signal | Russo One | Chakra Petch |
