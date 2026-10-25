@@ -4,6 +4,7 @@ import { useStore } from "@jgengine/react/store";
 import { RARITY_COLORS } from "../../palette";
 import { fieldGearStore } from "../../items/fieldGear";
 import { Crt, Plate, Stamp } from "../fiction/kit";
+import { PerkList } from "./Perks";
 
 const STAT_LABEL: Record<string, string> = {
   damage: "damage",
@@ -46,6 +47,7 @@ export function FieldGearPanel() {
           {view.better === "candidate" ? "▲ Upgrade" : view.better === "equipped" ? "▼ Worn gun is better" : "◆ Sidegrade"}
         </span>
       </Crt>
+      <PerkList perks={view.perks} />
       <span className="ss-stash-keys">
         <Plate as="button" material="steel" cut="notch" depth={6} rim="#1b1f25" padding="0" className="ss-hwkey primary" disabled={!view.carried} onClick={() => commands.run("loot.equip", { dropId: view.dropId })}>Equip</Plate>
         <Plate as="button" material="steel" cut="notch" depth={6} rim="#1b1f25" padding="0" className="ss-hwkey" onClick={() => commands.run("loot.salvage", { dropId: view.dropId })}>Salvage</Plate>

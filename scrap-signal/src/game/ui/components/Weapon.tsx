@@ -5,10 +5,12 @@ import { useEntityStat, useGameStore, useInventory, usePlayer } from "@jgengine/
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { AMMO_LABELS, AMMO_STAT_IDS } from "../../ammo";
-import { gunById, isReloading, magLoaded, type GunDef } from "../../handroll";
+import { activePerkBuffs } from "../../combat/gunPerks";
+import { gunById, isReloading, magLoaded, perkLines, type GunDef } from "../../handroll";
 import { ELEMENT_COLORS, RARITY_COLORS } from "../../palette";
 import { lastPickupStore, selectedSlotStore } from "../../stores";
 import { Crt, Pips, Plate, SIGNAL, Stamp } from "../fiction/kit";
+import { PerkBuffs, PerkList } from "./Perks";
 
 export function useSelectedSlot(): number {
   return useStore(selectedSlotStore);
@@ -39,6 +41,7 @@ export function AmmoPlate({ combat = false }: { combat?: boolean }) {
   const rarity = RARITY_COLORS[gun.rarity];
   const reserveCount = Math.round(reserve?.current ?? 0);
   const grenadeCount = Math.round(grenades?.current ?? 0);
+  const buffs = activePerkBuffs(ctx, gun);
   return (
     <HudFade watch={[gun.id, loaded, reloading, reserveCount, grenadeCount]} hold={combat || reloading || loaded === 0} dimTo={0.5} idleMs={5000}>
       <Plate material="hull" tint="#283135" cut="notch" depth={12} rim="#34444a" padding="0" className="ss-ammo" style={{ "--ss-rarity": rarity } as CSSProperties}>
@@ -60,6 +63,7 @@ export function AmmoPlate({ combat = false }: { combat?: boolean }) {
           </span>
         </span>
         <Pips value={reloading ? 0 : loaded} max={gun.magSize} count={Math.min(gun.magSize, 24)} color={SIGNAL.amber} className="ss-mag" />
+        <PerkBuffs buffs={buffs} />
         <span className="ss-ammo-foot">{reloading ? "Reloading…" : loaded === 0 ? "Empty · R to reload" : "R reload · G grenade"}</span>
       </Plate>
     </HudFade>
@@ -110,6 +114,7 @@ export function ItemCard() {
         <span>Crit</span><b>{Math.round(gun.weapon.critChance * 100)}% ×{gun.weapon.critMult}</b>
         {gun.element !== "none" ? <><span style={{ color: ELEMENT_COLORS[gun.element] }}>Element</span><b style={{ color: ELEMENT_COLORS[gun.element] }}>{gun.element}</b></> : null}
       </Crt>
+      <PerkList perks={perkLines(gun)} />
     </Plate>
   );
 }

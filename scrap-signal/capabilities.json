@@ -32,7 +32,8 @@
     "session-loop",
     "status-runtime",
     "status-unknown",
-    "transaction-ledger"
+    "transaction-ledger",
+    "triggered-rules"
   ],
   "probes": {
     "@jgengine/core/combat/damageRuntime": [

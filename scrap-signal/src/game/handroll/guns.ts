@@ -35,6 +35,8 @@ export interface GunDef {
   elementDps: number;
   use: "fireGun";
   weapon: GunWeaponStats;
+  /** Perk ids (see `perks.ts`); absent on guns saved before perks, which derive the same list. */
+  perks?: readonly string[];
 }
 
 export interface FamilyBase {

@@ -11,6 +11,7 @@ import { activeCharacter, talentTree } from "./game/characters";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
+import { registerPerks } from "./game/combat/gunPerks";
 import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
@@ -237,6 +238,7 @@ function onInit(ctx: GameContext): void {
   registerCommands(ctx);
   registerRelay(ctx, respawnAtNewU);
   registerMastWatch(ctx);
+  registerPerks(ctx);
 
   ctx.game.feed.bind("entity.died");
   ctx.game.feed.bind("loot.granted");

@@ -21,6 +21,14 @@ Numbers are what the build does now.
   - [x] Gear. Five rarities multiply damage ×1 / 1.15 / 1.35 / 1.6 / 2 at weights 100 / 45 / 18 / 6 / 1.4,
     and item level scales damage ×1.13 per level. Elites drop at 55–65%, bosses at 100%, and the Foundry
     Heart drops three guaranteed legendaries.
+  - [x] Perks. Rare guns roll 1 of 12 behaviour perks (Rampage, Kill Clip, Subsistence, Triple Tap, Outlaw,
+    Firefly, Leech, Shield Siphon, Overcharge, Contagion, Opening Shot, Last Word), epics 1–2. Each of the
+    18 named legendaries carries a red-text signature (Sixgun: every 6th shot crits) plus a 50% rolled
+    perk. Perks run on the engine's triggered-rules seam and show on the pickup scan, the field stash
+    and as live buff stamps under the magazine.
+  - [x] Boss farming. Each of the four bosses has two named legendaries at 22% on top of its normal drop:
+    Captain Rusk (Sixgun, Vandal), Wreck-Maw (Sledgehammer, Chatterbox), The Foreman (Piledriver,
+    Flakcannon), Foundry Heart (Starfall, Ashfall). The card names the boss under the signature.
 - **Failure states.** Health hitting zero starts a 12-second Emergency Reserve at walking speed; a kill
   during that window power-surges you back with 40% health and half shield, which makes fighting the way
   out. Expiry reconstructs you at the last discovered travel station for 7% of your cash. Going down
