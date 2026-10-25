@@ -1,7 +1,7 @@
 import { cameraShake } from "@jgengine/shell/camera";
 import type { ItemUseHandler } from "@jgengine/core/item/use";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
-import { handrollOf } from "../handroll";
+import { cityEvent } from "../cityRuntime";
 import { landExplosion, landWeaponHit } from "../combat/hitModel";
 import { AMMO_STAT_IDS, gearById, weaponById } from "./weapons/catalog";
 
@@ -45,6 +45,8 @@ const fireGun: ItemUseHandler<GameContext> = {
       aim,
       effect: "damage",
     });
+    const shooter = ctx.scene.entity.get(input.from);
+    if (shooter !== null) cityEvent(ctx, { kind: "gunfire", at: shooter.position, by: input.from });
     const settled = ctx.scene.entity.settleProjectile(shotId);
     if (settled.status === "settled" && settled.hits.length > 0) {
       const hit = settled.hits[0];
@@ -52,7 +54,7 @@ const fireGun: ItemUseHandler<GameContext> = {
         const target = ctx.scene.entity.get(hit.instanceId);
         landWeaponHit(ctx, { from: input.from, to: hit.instanceId, weaponId: def.id });
         if (target !== null && (target.name.startsWith("ped_") || target.name.startsWith("cop_"))) {
-          handrollOf(ctx).addHeat(ctx, target.name.startsWith("cop_") ? 90 : 55);
+          cityEvent(ctx, { kind: target.name.startsWith("cop_") ? "cop_shot" : "assault", at: target.position });
         }
       }
     }
@@ -86,7 +88,7 @@ const throwGrenade: ItemUseHandler<GameContext> = {
       if (settled.status !== "settled") return;
       landExplosion(ctx, { from: input.from, at: settled.at, radius: explosion.radius, weaponId: def.id });
       cameraShake(0.55);
-      handrollOf(ctx).addHeat(ctx, 70);
+      cityEvent(ctx, { kind: "explosion", at: settled.at });
     });
     return { state: ctx };
   },

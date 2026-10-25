@@ -18,16 +18,17 @@ export function resolveCredProgress(level: number, xp: number): LevelProgress {
   return track.resolve(level, xp);
 }
 
-/** Cred paid per story mission on `quest.completed` — the story is the progression spine. */
-export const CRED_BY_QUEST: Record<string, number> = {
-  m1_welcome: 100,
-  m2_dock_sweep: 220,
-  m3_the_ledger: 300,
-  m4_shake_the_heat: 340,
-  m5_ocean_loop: 380,
-  m6_hot_wheels: 420,
-  m7_carmine_convoy: 520,
-  m8_kingpin: 800,
+/** Cred paid per finished job in the city's world model — the story is the progression spine. */
+export const CRED_BY_JOB: Record<string, number> = {
+  welcome: 100,
+  dock_sweep: 220,
+  ledger: 300,
+  shake_heat: 340,
+  ocean_loop: 380,
+  hot_wheels: 420,
+  convoy: 520,
+  kingpin: 800,
+  clean_hands: 60,
 };
 
 export const BOUNTY_CRED = 140;

@@ -1,10 +1,11 @@
-import { useQuestJournal } from "@jgengine/react/hooks";
+import { useGameStore } from "@jgengine/react/hooks";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { useStore } from "@jgengine/react/store";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
-import { MISSION_HINTS, QUESTS } from "../../quests/catalog";
 import { BOUNTY_SPOTS } from "../../world/districts";
 import { courierStore } from "../../jobs/courier";
+import { cityOf } from "../../cityRuntime";
 
 function BountyCard() {
   const bounty = useStore(bountyStore, (v) => v);
@@ -23,43 +24,51 @@ function BountyCard() {
   );
 }
 
-export function MissionTracker() {
-  const journal = useQuestJournal();
-  const courier = useStore(courierStore);
-  if (courier.delivered === 0 || courier.phase === "running") return null;
-  const active = journal.find((q) => q.status === "active");
-  if (active === undefined) {
-    const allDone = journal.filter((q) => q.status === "completed").length >= QUESTS.length;
-    return (
-      <div className="flex flex-col gap-2">
-        {allDone ? (
-          <div className="-skew-x-3 border-2 border-black bg-[#ffb020] px-3 py-2 text-sm font-black uppercase text-black shadow-[4px_4px_0_#000]">
-            The Isle is yours — bounties pay, the Ocean Loop runs
-          </div>
-        ) : null}
-        <BountyCard />
-      </div>
-    );
+interface TrackerView {
+  title: string | null;
+  text: string;
+  counted: number;
+  count: number;
+  step: number;
+  steps: number;
+  remaining: number | null;
+}
+
+/** What to do next, always: the live job's stage, else the next open story or side job. */
+function readTracker(ctx: GameContext): TrackerView | null {
+  const world = cityOf(ctx);
+  const live = world.missionView();
+  if (live !== null) {
+    return { title: live.title, text: live.label, counted: live.counted, count: live.count, step: live.step, steps: live.steps, remaining: live.remaining };
   }
-  const def = QUESTS.find((q) => q.id === active.questId);
+  const next = world.next();
+  return next === null ? null : { title: null, text: next.text, counted: 0, count: 0, step: 0, steps: 0, remaining: null };
+}
+
+const sameTracker = (a: TrackerView | null, b: TrackerView | null) =>
+  a === b ||
+  (a !== null && b !== null && a.title === b.title && a.text === b.text && a.counted === b.counted && a.step === b.step && Math.floor(a.remaining ?? -1) === Math.floor(b.remaining ?? -1));
+
+export function MissionTracker() {
+  const tracker = useGameStore(readTracker, sameTracker);
+  const courier = useStore(courierStore);
+  if (courier.phase === "running") return null;
   return (
     <div className="flex flex-col gap-2">
-      <HudSurface className="hh-card w-64" padding="8px 12px" interactive={false}>
-        <div className="-mx-3 -mt-2 mb-1 border-b-2 border-black bg-[#c23b3b] px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
-          {def?.title ?? active.questId}
-        </div>
-        <div className="text-xs italic text-[#f4e8c8]/80">{MISSION_HINTS[active.questId]}</div>
-        <div className="mt-1 flex flex-col gap-0.5">
-          {active.objectives.map((objective) => (
-            <div key={objective.id} className="flex items-center justify-between text-xs font-bold">
-              <span className={objective.complete ? "text-[#3fbf5a] line-through" : ""}>{objective.id.replaceAll("_", " ")}</span>
-              <span className="tabular-nums text-[#ffb020]">
-                {objective.progress}/{objective.count}
-              </span>
-            </div>
-          ))}
-        </div>
-      </HudSurface>
+      {tracker !== null ? (
+        <HudSurface className="hh-card w-64" padding="8px 12px" interactive={false}>
+          <div className="-mx-3 -mt-2 mb-1 flex justify-between border-b-2 border-black bg-[#c23b3b] px-3 py-1 text-xs font-black uppercase tracking-widest text-white">
+            <span>{tracker.title ?? "Next"}</span>
+            {tracker.steps > 1 ? <span className="tabular-nums">{tracker.step}/{tracker.steps}</span> : null}
+          </div>
+          <div className="flex items-center justify-between gap-2 text-xs font-bold">
+            <span>{tracker.text}</span>
+            {tracker.count > 1 ? <span className="tabular-nums text-[#ffb020]">{tracker.counted}/{tracker.count}</span> : null}
+            {tracker.remaining !== null ? <span className="tabular-nums text-[#ffb020]">{Math.ceil(tracker.remaining)}s</span> : null}
+          </div>
+          {tracker.title === null ? <div className="mt-1 text-[10px] uppercase text-[#f4e8c8]/70">[T] phone</div> : null}
+        </HudSurface>
+      ) : null}
       <BountyCard />
     </div>
   );

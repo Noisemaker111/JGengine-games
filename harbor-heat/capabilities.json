@@ -23,7 +23,8 @@
     "session-loop",
     "traffic",
     "transaction-ledger",
-    "vehicle-damage"
+    "vehicle-damage",
+    "world-model"
   ],
   "probes": {
     "@jgengine/core/economy/transactionLedger": [

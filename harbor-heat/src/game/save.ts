@@ -41,7 +41,11 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
   },
   "harbor.mission": {
     kind: "document",
-    reason: "Mission flags (kingpin staged, busted hold, race settlement) ride the run section.",
+    reason: "Run clocks (busted hold, race settlement) ride the run section.",
+  },
+  "harbor.world": {
+    kind: "world-snapshot",
+    reason: "The city's world model: every person, place and faction fact, job status and the live job mission.",
   },
   "harbor.courier": {
     kind: "document",
@@ -68,6 +72,7 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
     reason: "Each resident's needs, mood and held action are durable profile progress the world snapshot keeps.",
   },
   "harbor.residentBoard": { kind: "transient", reason: "The resident card is a HUD mirror rebuilt from the agents each tick." },
+  "harbor.phone": { kind: "transient", reason: "Whether the phone is out is a menu, not run state." },
   "harbor.shop": { kind: "transient", reason: "Which shop panel is open is a menu, not run state." },
   "harbor.garage": { kind: "transient", reason: "Which garage panel is open is a menu, not run state." },
   "harbor.market": { kind: "transient", reason: "The night market's stock re-rolls from a daily seed each boot." },
@@ -92,7 +97,7 @@ function isPursuitSave(value: unknown): value is PursuitSave {
 }
 
 function isMissionSave(value: unknown): value is MissionState {
-  return isRecord(value) && typeof value.kingpinSpawned === "boolean" && typeof value.bustedHold === "number";
+  return isRecord(value) && typeof value.bustedHold === "number";
 }
 
 function isCourierSave(value: unknown): value is CourierState {
@@ -153,7 +158,7 @@ function runSystem(ctx: GameContext): GameSaveSystem {
       restoreNullable(cargoStore, ctx, section.cargo);
     },
     reset() {
-      patchMission(ctx, { kingpinSpawned: false, bustedHold: 0, raceSettled: false, raceClearAt: 0 });
+      patchMission(ctx, { bustedHold: 0, raceSettled: false, raceClearAt: 0 });
       restoreCourierLoop(ctx, { session: 0, closed: 0, carried: 0, optionId: null });
       courierStore.clear(ctx);
       courierMissionStore.clear(ctx);
