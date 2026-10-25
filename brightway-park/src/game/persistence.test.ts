@@ -146,5 +146,6 @@ describe("park saves and real command boundaries", () => {
     live.ui.invoke("pickCarousel");
     // The janitor was placed once, so placement ended; the refused pick did not start a new one.
     expect(session.selectedTool).toBeNull();
-  });
+  // Several simulated days of a full park: about 4 s locally, more on a CI runner.
+  }, 30_000);
 });
