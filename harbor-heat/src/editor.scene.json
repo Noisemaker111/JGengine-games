@@ -4512,6 +4512,240 @@
         "z": 113
       },
       "label": "Warehouse gate"
+    },
+    {
+      "id": "fare_busstop",
+      "kind": "gig_stop",
+      "position": {
+        "x": -189,
+        "y": 0,
+        "z": 22
+      },
+      "label": "Boulevard bus stop",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_gull_row",
+      "kind": "gig_stop",
+      "position": {
+        "x": -171,
+        "y": 0,
+        "z": -180
+      },
+      "label": "Gull Row",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_tide_st",
+      "kind": "gig_stop",
+      "position": {
+        "x": -171,
+        "y": 0,
+        "z": -60
+      },
+      "label": "Tide Street",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_salt_row",
+      "kind": "gig_stop",
+      "position": {
+        "x": -171,
+        "y": 0,
+        "z": 180
+      },
+      "label": "Salt Row",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_midtown_n",
+      "kind": "gig_stop",
+      "position": {
+        "x": -51,
+        "y": 0,
+        "z": -200
+      },
+      "label": "Midtown north",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_midtown",
+      "kind": "gig_stop",
+      "position": {
+        "x": -69,
+        "y": 0,
+        "z": 60
+      },
+      "label": "Midtown strip",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_midtown_s",
+      "kind": "gig_stop",
+      "position": {
+        "x": -51,
+        "y": 0,
+        "z": 200
+      },
+      "label": "Midtown south",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_plaza",
+      "kind": "gig_stop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -9
+      },
+      "label": "Mainsail plaza",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_canal",
+      "kind": "gig_stop",
+      "position": {
+        "x": 69,
+        "y": 0,
+        "z": -180
+      },
+      "label": "Canal Row",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_avenue_e",
+      "kind": "gig_stop",
+      "position": {
+        "x": 69,
+        "y": 0,
+        "z": 60
+      },
+      "label": "Avenue East",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_harbor_view",
+      "kind": "gig_stop",
+      "position": {
+        "x": 51,
+        "y": 0,
+        "z": 180
+      },
+      "label": "Harbor View",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_heights",
+      "kind": "gig_stop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": -249
+      },
+      "label": "Palm Heights",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_cross_nc",
+      "kind": "gig_stop",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -129
+      },
+      "label": "Crosstown",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_docks",
+      "kind": "gig_stop",
+      "position": {
+        "x": 120,
+        "y": 0,
+        "z": 129
+      },
+      "label": "Dock office",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_wharf",
+      "kind": "gig_stop",
+      "position": {
+        "x": 171,
+        "y": 0,
+        "z": 200
+      },
+      "label": "Carmine wharf",
+      "meta": {
+        "tags": "fare"
+      }
+    },
+    {
+      "id": "fare_east_heights",
+      "kind": "gig_stop",
+      "position": {
+        "x": 189,
+        "y": 0,
+        "z": -120
+      },
+      "label": "East Heights",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "fare_south_st",
+      "kind": "gig_stop",
+      "position": {
+        "x": -120,
+        "y": 0,
+        "z": 249
+      },
+      "label": "South Street",
+      "meta": {
+        "tags": "fare,flowers"
+      }
+    },
+    {
+      "id": "florist_boardwalk",
+      "kind": "gig_stop",
+      "position": {
+        "x": -192,
+        "y": 0,
+        "z": -12
+      },
+      "label": "Boardwalk Blooms",
+      "meta": {
+        "tags": "florist"
+      }
     }
   ],
   "volumes": [

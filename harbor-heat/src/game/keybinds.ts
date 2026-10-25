@@ -19,6 +19,7 @@ export const keybinds: ActionCodesMap = {
   useMedkit: ["KeyQ"],
   exitVehicle: ["KeyF"],
   phone: ["KeyT"],
+  taxiDuty: ["KeyY"],
   selectSlot1: ["Digit1"],
   selectSlot2: ["Digit2"],
   selectSlot3: ["Digit3"],

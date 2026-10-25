@@ -16,6 +16,7 @@ describe("harbor-heat placeable marker kinds", () => {
     expect(menuMarkers.map((d) => d.kind).sort()).toEqual([
       "bounty",
       "front",
+      "gig_stop",
       "hideout",
       "resident_place",
       "stash",

@@ -97,3 +97,16 @@ export const HIDEOUT_KIND = definePlaceableMarkerKind({
     { type: "text", key: "needs", label: "Needs owned", default: "" },
   ],
 });
+
+/**
+ * A kerb or counter a side job starts or ends at. `meta.tags` lists which gigs use it, comma
+ * separated: `fare` (taxi pickups and drops), `flowers` (flower-run addresses), `florist` (the shop
+ * flower runs load at). `game/jobs/gigs.ts` reads them as the side-job board's spots.
+ */
+export const GIG_STOP_KIND = definePlaceableMarkerKind({
+  kind: "gig_stop",
+  label: "Gig stop",
+  category: "Harbor Heat",
+  accent: "#f2c14e",
+  fields: [{ type: "text", key: "tags", label: "Tags", default: "fare" }],
+});

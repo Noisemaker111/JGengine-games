@@ -17,6 +17,7 @@ import { drivingStore, raceStore } from "../../handroll";
 import { cargoStore } from "../../items/cargoHaul";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { courierDeadline, courierObjectiveStore, courierStore, DELIVERY_ROUTES, DISPATCH, RUSH_BOND, THIEF } from "../../jobs/courier";
+import { GIG_RACE_STAKE, gigStore, spotLabel } from "../../jobs/gigs";
 import { prompts, systemPromptLabel } from "../../prompts";
 import { BOUNTY_SPOTS, RACE_ROUTES } from "../../world/districts";
 import { KeyCap, Lcd } from "../fiction/kit";
@@ -35,6 +36,37 @@ interface Goal {
   deadline?: { remaining: number; total: number };
   hint?: string;
   rush?: string;
+  /** An open gig offer the pager can take with one tap. */
+  offer?: { id: string; label: string };
+}
+
+/** The gig in hand (fare, flower run, street race), else a waiting fare or a paged race. */
+function gigGoal(ctx: GameContext): Goal | null {
+  const gigs = gigStore.read(ctx);
+  const view = gigs.view;
+  if (view !== null && view.target !== null) {
+    const target: XZ = [view.target.x, view.target.z];
+    const deadline = view.timeLeft === null ? undefined : { remaining: view.timeLeft, total: Math.max(timerTotals.get(view.jobId + view.phase) ?? 0, view.timeLeft) };
+    if (deadline !== undefined) timerTotals.set(view.jobId + view.phase, deadline.total);
+    const key = `gig:job:${view.jobId}:${view.phase}:${view.leg}`;
+    if (view.kindId === "street") {
+      if (view.phase === "pickup") return { key, eyebrow: `${view.label} · ${view.stake} staked`, title: "Get to the start line", target, deadline, hint: "Stop on the line and the race goes." };
+      return { key, eyebrow: `${view.label} · ${view.place === 1 ? "leading" : view.place === null ? "racing" : `P${view.place} of 3`}`, title: view.targetRole === "finish" ? "Finish line" : `Gate ${view.leg} of ${view.legs}`, target, deadline, hint: "Drive through each gate in order. First pays triple the stake." };
+    }
+    if (view.kindId === "flowers") {
+      if (view.phase === "pickup") return { key, eyebrow: "Boardwalk Blooms", title: "Load the bouquets", target, deadline };
+      return { key, eyebrow: `Flowers · ${view.comfort}% fresh · ${view.fareSoFar}`, title: `Drop ${view.leg} of ${view.legs} · ${spotLabel(view.target.id)}`, target, deadline, hint: "Stay under 60 km/h and miss the kerbs: knocks crush the bouquets." };
+    }
+    if (view.phase === "pickup") return { key, eyebrow: `Fare · ${view.fare}`, title: `Pick up at ${spotLabel(view.target.id)}`, target, deadline, hint: "Pull up beside them and stop." };
+    const streak = view.streak > 0 ? ` · streak ${view.streak}` : "";
+    return { key, eyebrow: `Fare · ${view.fareSoFar} · tip ${view.comfort}%${streak}`, title: `Drop at ${spotLabel(view.target.id)}`, target, deadline, hint: "Crashes and cop chases cut the tip. Stop at the kerb to let them out." };
+  }
+  const race = gigs.offers.find((offer) => offer.kindId === "street");
+  if (race !== undefined) return { key: `gig:offer:${race.id}`, eyebrow: `Street race page · ${GIG_RACE_STAKE} stake`, title: `${race.label} — winner takes ${GIG_RACE_STAKE * 3}`, target: [race.pickup.x, race.pickup.z], offer: { id: race.id, label: `Race ${race.label} · ${race.stake}` } };
+  const hail = gigs.duty ? gigs.offers.find((offer) => offer.kindId === "taxi") : undefined;
+  if (hail !== undefined) return { key: `gig:offer:${hail.id}`, eyebrow: `On duty · fare hailing · ${hail.fare}`, title: `Pick up at ${spotLabel(hail.pickup.id)}`, target: [hail.pickup.x, hail.pickup.z], hint: "Pull up beside the waving fare and stop." };
+  if (gigs.duty) return { key: "gig:duty", eyebrow: gigs.streak > 0 ? `On duty · streak ${gigs.streak}` : "On duty", title: "Cruise for a fare", hint: "Fares hail from the kerbs. Press Y to switch the taxi light off." };
+  return null;
 }
 
 /** The one thing to do now, most urgent first: a race, a parcel in hand, the live job, a bounty, the next job, then the booth. */
@@ -44,6 +76,8 @@ function goalOf(ctx: GameContext, at: XZ): Goal {
   if (race !== undefined && circuit !== undefined) {
     return { key: `race:${circuit.id}`, eyebrow: `${race.label} · ${race.position === 1 ? "leading" : "second"}`, title: `Gate ${Math.min(race.checkpoint + 1, race.total)} of ${race.total}`, target: circuit.checkpoints[Math.min(race.checkpoint, circuit.checkpoints.length - 1)], hint: "Drive through each gate in order." };
   }
+  const gig = gigGoal(ctx);
+  if (gig !== null && gig.key.startsWith("gig:job")) return gig;
   const courier = courierStore.read(ctx);
   if (courier.phase === "running") {
     const route = DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!;
@@ -57,6 +91,7 @@ function goalOf(ctx: GameContext, at: XZ): Goal {
     const load = rush ? `Fragile parcel · ${Math.round(courier.condition ?? 100)}% intact` : crates > 0 ? `Parcel + ${crates} crates` : "Parcel aboard";
     return { key: `parcel:${courier.route}`, eyebrow: load, title: `Deliver to ${route.recipient}`, target: route.position, deadline: { remaining: courier.remaining, total: courierDeadline(route.seconds, rush) }, hint: rush ? "Stay under 35 km/h and avoid hits: damage spoils the cargo." : `${route.hint} Stop beside it to hand over.` };
   }
+  if (gig !== null) return gig;
   const raid = frontViews(ctx).find((front) => front.status === "raid");
   if (raid !== undefined) {
     return { key: `raid:${raid.slot}`, eyebrow: "Carmine raid", title: `Defend ${raid.label}`, target: raid.position, deadline: { remaining: raid.raidSeconds, total: 60 }, hint: "Drop every raider before the clock runs out, or they wreck it and empty the safe." };
@@ -198,6 +233,12 @@ export function Objective() {
         <button type="button" className="hh-act" onClick={() => commands.run(prompt.name, prompt.input)}>
           <KeyCap wide={glyph.length > 2}>{glyph}</KeyCap>
           <span>{prompt.label ?? promptLabel(prompt.id)}</span>
+        </button>
+      )}
+      {view.offer === undefined ? null : (
+        <button type="button" className="hh-act rush" onClick={() => commands.run("gigs.accept", { id: view.offer!.id })}>
+          <GameIcon name="flag" size={16} />
+          <span>{view.offer.label}</span>
         </button>
       )}
       {view.rush === undefined ? null : (

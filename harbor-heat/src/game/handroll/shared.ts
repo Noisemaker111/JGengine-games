@@ -59,6 +59,8 @@ export interface Handroll {
   restorePursuit(ctx: GameContext, state: import("./pursuit").PursuitSave): void;
   enterVehicle(ctx: GameContext, vehicleId: string): void;
   exitVehicle(ctx: GameContext, force?: boolean): void;
+  /** Put a ground car somewhere else, at rest (dev staging and warps). */
+  placeVehicle(ctx: GameContext, vehicleId: string, position: readonly [number, number, number], heading: number): void;
   drivingVehicleId(): string | null;
   carSpeedKmh(): number;
   telemetry(): VehicleTelemetry;

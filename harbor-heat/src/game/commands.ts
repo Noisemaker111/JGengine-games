@@ -6,6 +6,7 @@ import { CRED_GATES, credLevel } from "./progression/cred";
 import { GARAGE_POS } from "./world/districts";
 import { sessionStore, startedThisBoot, syncSession } from "./session";
 import { registerCourier } from "./jobs/courier";
+import { registerGigs } from "./jobs/gigs";
 import { buyNightMarket } from "./items/nightMarket";
 import { buyFromShop, earn, spend } from "./cash";
 import { stealCar } from "./city/garage";
@@ -57,6 +58,7 @@ function selectedHotbarItem(ctx: GameContext): string | null {
 
 export function registerCommands(ctx: GameContext): void {
   registerCourier(ctx);
+  registerGigs(ctx);
   ctx.game.commands.define("session.pause", { apply(state, input) {
     sessionStore.write(state, { ...sessionStore.read(state), paused: (input as { paused: boolean }).paused });
     syncSession(state, startedStore.read(state) === true);

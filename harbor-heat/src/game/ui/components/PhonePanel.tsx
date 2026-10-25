@@ -8,6 +8,7 @@ import { cityOf, phoneStore } from "../../cityRuntime";
 import { frontViews } from "../../city/fronts";
 import { payoffCost, turfViews } from "../../city/street";
 import { handrollOf } from "../../handroll";
+import { GIG_RACE_STAKE, gigStore } from "../../jobs/gigs";
 import { BurnerPhone } from "../fiction/BurnerPhone";
 
 function readPhone(ctx: GameContext) {
@@ -23,6 +24,7 @@ function readPhone(ctx: GameContext) {
     fronts: frontViews(ctx).filter((front) => front.owned),
     takings: Math.floor(world.num("fronts.takings")),
     payoff: dee && stars > 0 ? payoffCost(stars) : null,
+    gigs: { duty: gigStore.read(ctx).duty, busy: gigStore.read(ctx).view !== null, streak: gigStore.read(ctx).streak, driving: handrollOf(ctx).drivingVehicleId() !== null },
   };
 }
 
@@ -73,6 +75,10 @@ export function PhonePanel() {
             ))}
           </div>
         ))}
+        <h3 className="hh-city-head">Side work</h3>
+        <span className="hh-city-row"><span>Taxi light{phone.gigs.streak > 0 ? ` · streak ${phone.gigs.streak}` : ""}</span><em data-tone={phone.gigs.duty ? "good" : "bad"}>{phone.gigs.duty ? "on" : "off"}</em></span>
+        <button type="button" className="hh-city-btn" disabled={!phone.gigs.driving && !phone.gigs.duty} onClick={() => commands.run("taxiDuty", {})}>{phone.gigs.duty ? "Switch the taxi light off" : phone.gigs.driving ? "Work fares in this car" : "Get in a car to work fares"}</button>
+        <button type="button" className="hh-city-btn" disabled={!phone.gigs.driving || phone.gigs.busy} onClick={() => commands.run("gigs.race", {})}>{`Find a street race · ${GIG_RACE_STAKE} stake`}</button>
         <h3 className="hh-city-head">Street</h3>
         {phone.factions.map((faction) => (
           <span key={faction.id} className="hh-city-row"><span>{faction.label}</span><em data-tone={faction.mood <= -10 ? "bad" : "good"}>{moodWord(faction.mood)} ({faction.mood})</em></span>
