@@ -71,6 +71,12 @@ describe("the fields the runner silently ignores", () => {
     expect(problems({ waitFor: "x", ms: 500 })[0]).toContain(RULES.holdOutsideKey);
   });
 
+  test("until holds a key until its condition, and nothing else takes it", () => {
+    expect(problems({ key: "KeyW", until: { is: "__jgProbe().z < 9.5", timeoutMs: 6000 } })).toEqual([]);
+    expect(problems({ click: "a", until: { is: "x" } })[0]).toContain(RULES.untilOutsideKey);
+    expect(problems({ key: "KeyW", until: { wait: 5 } })[0]).toContain(RULES.unknownConditionField);
+  });
+
   test("is outside an assert is refused", () => {
     expect(problems({ click: "a", is: 5 })[0]).toContain('"is" is the expected value of an assert');
   });
