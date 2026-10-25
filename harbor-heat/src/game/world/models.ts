@@ -1,3 +1,4 @@
+import { librarySurfaceParameters, librarySurfaceScan } from "@jgengine/assets/catalogs/materialLibrary";
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 import { resolveModelPlan, type ModelPick } from "@jgengine/shell/render/resolveModel";
 
@@ -10,6 +11,11 @@ const SPACE = "kaykit-space-base";
 const NATURE = "quaternius-stylized-nature";
 const DUNGEON = "kaykit-dungeon";
 const FURN = "kaykit-furniture";
+
+/** Lacquered body paint: the clearcoat is what separates a car from a clay toy. */
+const GLOSS = librarySurfaceParameters("paint/gloss");
+/** Facades keep their pastel tint and take real plaster grain, relief and roughness. */
+const STUCCO = librarySurfaceScan("plaster/interior", { tint: 0 });
 
 /**
  * Casting note (asset-catalog gap): every rigged human this repository can pull is a fantasy
@@ -83,28 +89,28 @@ export const entityModels: Record<string, ModelConfig> = resolveModelPlan(assets
   car_compact: {
     model: `${CITY}/car_hatchback`,
     fallbackModel: `${CITY}/car_sedan`,
-    style: { targetHeight: 1.35, material: { color: "#f2c14e" } },
+    style: { targetHeight: 1.35, material: { ...GLOSS, color: "#f2c14e" } },
   },
   // Sedan + red tint: station-wagon mesh read as a green estate and ignored the catalog body color (#1519).
   car_muscle: {
     model: `${CITY}/car_sedan`,
     fallbackModel: `${CITY}/car_hatchback`,
-    style: { targetHeight: 1.38, material: { color: "#d64545" } },
+    style: { targetHeight: 1.38, material: { ...GLOSS, color: "#d64545" } },
   },
   car_sport: {
     model: `${CITY}/car_sedan`,
     fallbackModel: `${CITY}/car_hatchback`,
-    style: { targetHeight: 1.3, material: { color: "#33c1b1" } },
+    style: { targetHeight: 1.3, material: { ...GLOSS, color: "#33c1b1" } },
   },
   car_cop: {
     model: `${CITY}/car_police`,
     fallbackModel: `${CITY}/car_taxi`,
-    style: { targetHeight: 1.4 },
+    style: { targetHeight: 1.4, material: GLOSS },
   },
   car_suv: {
     model: `${CITY}/car_stationwagon`,
     fallbackModel: `${CITY}/car_sedan`,
-    style: { targetHeight: 1.75, material: { color: "#6b7d52" } },
+    style: { targetHeight: 1.75, material: { ...GLOSS, color: "#6b7d52" } },
   },
   car_bus: {
     // Large boxy truck body as an island shuttle bus; scaled up to bus height. Never Kenney.
@@ -283,7 +289,7 @@ for (const b of BUILDING_SPECS) {
   objectPlan[b.id] = {
     model: b.model,
     fallbackModel: b.fallbackModel,
-    style: { targetHeight: b.targetHeight, material: { color: b.tint } },
+    style: { targetHeight: b.targetHeight, material: { color: b.tint, scan: STUCCO } },
   };
 }
 

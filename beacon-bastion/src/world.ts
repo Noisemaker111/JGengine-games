@@ -12,17 +12,8 @@ export const world: WorldFeature = environment({
   clearings: CLEARINGS,
   // Golden-hour sky with a hazy warm horizon and blue zenith; fog melts the far terrain edge into the
   // haze so the arena reads as open country instead of a floating slab with a hard silhouette.
-  sky: sky({
-    preset: "day",
-    horizonColor: "#cfdcc2",
-    zenithColor: "#5b93c9",
-    sunIntensity: 1.1,
-    ambientIntensity: 0.55,
-    hazeStrength: 0.4,
-    sunGlowStrength: 1.2,
-    radius: 240,
-    fog: { color: "#c2d3cb", near: 110, far: 230 },
-  }),
+  // Colours, sun and haze come from the game's `mood`.
+  sky: sky({ preset: "day", hazeStrength: 0.4, sunGlowStrength: 1.2, radius: 240 }),
 });
 
 export const physics: PhysicsConfig = { gravity: -20 };

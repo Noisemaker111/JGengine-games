@@ -1,3 +1,4 @@
+import { libraryTerrainMaterial } from "@jgengine/assets/catalogs/materialLibrary";
 import { editorLayers } from "./editorLayers";
 import type { PhysicsConfig } from "@jgengine/core/game/defineGame";
 import {
@@ -20,9 +21,10 @@ export const world: WorldFeature = environment({
       strength: 1,
       macroScale: 22,
       detailScale: 3,
+      material: libraryTerrainMaterial("foliage/grass-macro"),
     },
   }),
-  // Colours, sun and haze come from the game's `mood: "bright"`.
+  // Colours, sun and haze come from the game's `mood: "day"`.
   sky: sky({ preset: "day" }),
   structures: [
     building({

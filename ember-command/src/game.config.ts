@@ -105,20 +105,8 @@ export const game = defineGame({
       grain: 0.01,
     },
   },
-  lighting: {
-    ambient: { color: "#b3c0bc", intensity: 0.6 },
-    hemisphere: { skyColor: "#bfd9d5", groundColor: "#686747", intensity: 0.65 },
-    directional: [
-      {
-        color: "#ffe1ad",
-        intensity: 1.65,
-        position: [-36, 48, 26],
-        castShadow: true,
-        shadowMapSize: 1024,
-        shadowCameraSize: 60,
-      },
-    ],
-  },
+  // Clear afternoon over the keeps; the sun stands where the hand-built key did (south-west, 47 degrees).
+  mood: { preset: "day", sun: { azimuth: 234, elevation: 47, color: "#ffe1ad" }, fog: { near: 70, far: 190 } },
   camera: {
     rig: "rts",
     followEntityId: null,

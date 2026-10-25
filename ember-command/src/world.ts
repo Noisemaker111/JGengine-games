@@ -28,16 +28,8 @@ export const world: EnvironmentWorldFeature = environment({
       strength: 0.45,
     },
   }),
-  sky: sky({
-    preset: "day",
-    horizonColor: "#d3e2f0",
-    zenithColor: "#7fb0e0",
-    sunIntensity: 1.15,
-    ambientIntensity: 0.55,
-    hazeStrength: 0.4,
-    sunGlowStrength: 0.5,
-    fog: { color: "#b7c3ae", near: 70, far: 190 },
-  }),
+  // Colours, sun and haze come from the game's `mood`.
+  sky: sky({ preset: "day", hazeStrength: 0.4, sunGlowStrength: 0.5 }),
 });
 
 export const physics: PhysicsConfig = { gravity: -24 };

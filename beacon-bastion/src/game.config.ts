@@ -104,23 +104,7 @@ export const game = defineGame({
   },
   // Warm low sun rakes the relief so mounds, towers, and the keep cast long readable shadows; a cool
   // hemisphere fill keeps the shadow sides from going muddy black.
-  lighting: {
-    ambient: { color: "#9fb4cc", intensity: 0.4 },
-    hemisphere: { skyColor: "#cfe0f2", groundColor: "#4a5a2e", intensity: 0.55 },
-    directional: [
-      {
-        color: "#ffeccb",
-        intensity: 1.35,
-        position: [-34, 46, 22],
-        castShadow: true,
-        // Cascaded shadows — outdoor arena keeps contact shadows past a single ortho frustum (#1545).
-        cascades: 3,
-        shadowMapSize: 1024,
-        shadowCameraSize: 58,
-        shadowMaxFar: 120,
-      },
-    ],
-  },
+  mood: { preset: "day", sun: { azimuth: 237, elevation: 49, color: "#ffeccb", intensity: 1.45 }, fog: { near: 110, far: 230 } },
   camera: {
     rig: "topDown",
     followEntityId: null,
