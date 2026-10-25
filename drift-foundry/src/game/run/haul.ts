@@ -40,6 +40,10 @@ export interface LineInput {
   damageStage: number;
   /** Crusher hits an armor plate absorbed. */
   armorSaves: number;
+  /** Barricades on the track's main line; Row Six's eight by default. */
+  gates?: number;
+  /** The track's par, seconds; Row Six's {@link PAR_SECONDS} by default. */
+  par?: number;
 }
 
 /** The payout multiplier and the lines a results screen shows to explain it. */
@@ -53,13 +57,16 @@ const round2 = (value: number): number => Math.round(value * 100) / 100;
 /** How much of an escaped run's salvage reaches the bank, and why. */
 export function lineReading(run: LineInput): LineReading {
   const notes: string[] = [];
-  const bars = Math.max(0, Math.min(ROUTE_GATES.length, Math.floor(Number.isFinite(run.barriers) ? run.barriers : 0)));
+  const gates = run.gates ?? ROUTE_GATES.length;
+  const par = run.par ?? PAR_SECONDS;
+  const flying = par * (FLYING_SECONDS / PAR_SECONDS);
+  const bars = Math.max(0, Math.min(gates, Math.floor(Number.isFinite(run.barriers) ? run.barriers : 0)));
   let multiplier = 1;
 
   if (bars > 0) {
     const bonus = round2(LINE_RULES.barrier * bars);
     multiplier += bonus;
-    notes.push(`${bars}/${ROUTE_GATES.length} barriers +${bonus.toFixed(2)}`);
+    notes.push(`${bars}/${gates} barriers +${bonus.toFixed(2)}`);
   }
   const place = Math.floor(run.place);
   const placeBonus = place >= 1 && place <= LINE_RULES.place.length ? LINE_RULES.place[place - 1]! : 0;
@@ -67,8 +74,8 @@ export function lineReading(run: LineInput): LineReading {
     multiplier += placeBonus;
     notes.push(`P${place} +${placeBonus.toFixed(2)}`);
   }
-  if (Number.isFinite(run.time) && run.time > 0 && run.time < PAR_SECONDS) {
-    const share = Math.min(1, (PAR_SECONDS - run.time) / (PAR_SECONDS - FLYING_SECONDS));
+  if (Number.isFinite(run.time) && run.time > 0 && run.time < par) {
+    const share = Math.min(1, (par - run.time) / (par - flying));
     const bonus = round2(LINE_RULES.time * share);
     if (bonus > 0) {
       multiplier += bonus;

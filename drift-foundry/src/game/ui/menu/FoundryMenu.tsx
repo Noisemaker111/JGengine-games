@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { parkedRunMetres } from "../../run/progress";
 import { ContinuePane, CreditsPane } from "@jgengine/react/gameMenuSaves";
 import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
 import { useGameContext } from "@jgengine/react/provider";
@@ -61,13 +62,14 @@ function NewRunPane({ shift, best, event }: { shift: SessionSnapshot["shift"]; b
   return (
     <div data-new-run-pane="" className="fd-sheet">
       <SheetHead tag={<span className="fd-sheet-medals">{event.label}<MedalRow held={event.medal} size={20} /></span>}>New run</SheetHead>
+      <p className="fd-sheet-stamp" data-track={event.track}>{event.trackLabel.toUpperCase()} - {event.trackBlurb}</p>
       <p className="fd-sheet-line">{event.blurb}{event.garage ? " Bolt on what you drive over; hold E to swap an engine or frame." : " The garage is shut: only route salvage bolts on."}</p>
       <p className="fd-sheet-note">{event.next === null ? "Every medal on this event is yours. Chase the clock." : `Next medal - ${event.next.medal}: ${event.next.text}.`}</p>
       <p data-new-run-shift="" className="fd-sheet-stamp">
         {shift === null ? "CLEAN SHIFT - nobody has changed the yard. Escape pays what the line earns." : `THIS RUN - ${shift.label}. ${shift.hint}`}
       </p>
       <p className="fd-sheet-note">
-        {best === null ? "No escape on record yet. The 470 m gate is the only income worth planning around." : `Best escape ${best.toFixed(1)} s.`}
+        {best === null ? `No escape on record yet. The gate at ${event.trackLength} m is the only income worth planning around.` : `Best escape ${best.toFixed(1)} s.`}
       </p>
     </div>
   );
@@ -111,7 +113,7 @@ function CalendarPane({ calendar, onPick }: { calendar: SessionSnapshot["calenda
           {tier.events.map((entry) => (
             <div key={entry.event.id} className="fd-sheet-row fd-cal-row" data-selected={entry.selected ? "" : undefined}>
               <div className="fd-sheet-row-text">
-                <strong>{entry.event.label}</strong>
+                <strong>{entry.event.label} <small className="fd-cal-track">{entry.trackLabel}</small></strong>
                 <small>{!entry.open ? entry.event.blurb : entry.next === null ? `best ${entry.best} - all medals held` : `${entry.best === null ? "no result yet" : `best ${entry.best}`} - ${entry.next.medal}: ${entry.next.text}`}</small>
               </div>
               <MedalRow held={entry.medal} size={24} />
@@ -154,7 +156,7 @@ function PitBoard({ snapshot, hint }: { snapshot: SessionSnapshot; hint: string 
       <SheetHead tag={snapshot.zone.label}>Run held</SheetHead>
       <dl className="fd-sheet-stats">
         <div><dt>Place</dt><dd>P{snapshot.race.place}<small>/{snapshot.race.total}</small></dd></div>
-        <div><dt>Distance</dt><dd>{Math.max(0, Math.floor(snapshot.pose.position[2]))}<small>m</small></dd></div>
+        <div><dt>Distance</dt><dd>{Math.max(0, Math.floor(snapshot.run))}<small>/{snapshot.track.exitAt} m</small></dd></div>
         <div><dt>Clock</dt><dd>{snapshot.runTime.toFixed(1)}<small>s</small></dd></div>
         <div data-warn={snapshot.compactorGap < 22 ? "" : undefined}><dt>Compactor</dt><dd>{Math.max(0, Math.round(snapshot.compactorGap))}<small>m back</small></dd></div>
       </dl>
@@ -230,7 +232,7 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
     whileLoading("Parking the run", async () => {
       const parkedNow = await saveParkedRunHere(ctx);
       publish();
-      setNotice(parkedNow ? `Parked at ${metres(parked?.position[2] ?? 0)}` : "Stop on the ground first: a moving buggy cannot be parked");
+      setNotice(parkedNow ? `Parked at ${metres(parked === null ? 0 : parkedRunMetres(parked))}` : "Stop on the ground first: a moving buggy cannot be parked");
     });
 
   const backToPit = () =>
@@ -255,7 +257,7 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
 
   const continueLine = parked === null
     ? "No run is parked at the pit. The next engine start is a fresh corridor."
-    : `${metres(parked.position[2])} in with ${parked.partIds.length} of 4 parts bolted on and ${parked.runTime.toFixed(1)} s on the clock. The bank holds ${snapshot.career.credits} cr.`;
+    : `${metres(parkedRunMetres(parked))} in with ${parked.partIds.length} of 4 parts bolted on and ${parked.runTime.toFixed(1)} s on the clock. The bank holds ${snapshot.career.credits} cr.`;
 
   const titleMenu = (
     <GameMenu
@@ -266,8 +268,8 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       logo={{ text: <GateLogo lines={["DRIFT", "FOUNDRY"]} sub="Row Six · salvage special" />, title: "Drift Foundry" }}
       tagline="One welded buggy. Three yard karts ahead of you. A compactor that never stops."
       items={[
-        { id: "continue", label: "Continue run", hint: parked === null ? "No parked run at the pit" : `${metres(parked.position[2])} / ${parked.runTime.toFixed(1)} s / ${parked.partIds.length} parts`, disabled: parked === null },
-        { id: "new", label: "New run", hint: `${snapshot.event.label.toUpperCase()} - ${snapshot.shift === null ? "clean shift" : snapshot.shift.label}` },
+        { id: "continue", label: "Continue run", hint: parked === null ? "No parked run at the pit" : `${metres(parkedRunMetres(parked))} / ${parked.runTime.toFixed(1)} s / ${parked.partIds.length} parts`, disabled: parked === null },
+        { id: "new", label: "New run", hint: `${snapshot.event.label.toUpperCase()} @ ${snapshot.event.trackLabel.toUpperCase()} - ${snapshot.shift === null ? "clean shift" : snapshot.shift.label}` },
         { id: "calendar", label: "Yard calendar", hint: `${snapshot.calendar.points}/${snapshot.calendar.maxPoints} medal points` },
         { id: "garage", label: "Pit garage", hint: `${snapshot.career.credits} cr / standing ${snapshot.career.standing}` },
         { id: "records", label: "Corridor records", hint: snapshot.records.bestTime === null ? "No escape on record" : `Best ${snapshot.records.bestTime.toFixed(1)} s` },
@@ -314,7 +316,7 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       logo={{ text: <GateLogo small lines={["PIT STOP"]} sub={`${snapshot.zone.label} / ${metres(snapshot.pose.position[2])} / ${snapshot.runTime.toFixed(1)} s`} />, title: "The run is held" }}
       tagline="The buggy and the crusher stop with the clock while the board is out."
       items={[
-        { id: "resume", label: "Back to the run", hint: snapshot.parkedRun === null ? "The buggy is still moving: stop on the ground to park it" : `Parked at ${metres(snapshot.parkedRun.position[2])}` },
+        { id: "resume", label: "Back to the run", hint: snapshot.parkedRun === null ? "The buggy is still moving: stop on the ground to park it" : `Parked at ${metres(parkedRunMetres(snapshot.parkedRun))}` },
         { id: "save", label: "Park the run", hint: "Writes the build, the clock and the salvage it carries" },
         { id: "garage", label: "Pit garage", hint: `${snapshot.career.credits} cr banked` },
         { id: "settings", label: "Settings" },

@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 import { createGhostRecorder, readGhosts, replayGhost, saveGhost, GHOST_KEY } from "./ghost";
 import { createRunSession } from "./session";
-import { ROUTE_GATES } from "../route/gates";
+import { driveCourse } from "../testing/courseDriver";
+import { ghostKey } from "./session";
+import { eventById } from "../events/catalog";
 
 const DT = 1 / 60;
 
@@ -11,15 +13,9 @@ function memory() {
   return { map, getItem: (key: string) => map.get(key) ?? null, setItem: (key: string, value: string) => void map.set(key, value) };
 }
 
+/** The event's track driven clean, braking `stall` seconds from 8 s. */
 function driveLine(session: ReturnType<typeof createRunSession>, stall = 0): void {
-  for (let t = 0; t < 150; t += DT) {
-    const snap = session.snapshot();
-    if (snap.phase !== "running") return;
-    const braking = t > 8 && t < 8 + stall;
-    const next = ROUTE_GATES.find((gate) => gate.atZ >= snap.pose.position[2]);
-    const jump = next?.requirement === "jump" && !snap.pose.airborne && next.atZ - snap.pose.position[2] < Math.max(5, snap.pose.speedKmh / 3.6 * 0.5);
-    session.tick(DT, { throttle: braking ? 0 : 1, brake: braking ? 1 : 0, steer: 0 }, { jumpPressed: !braking && jump, plowBracing: true });
-  }
+  driveCourse(session, { stall, stallAt: 8 });
 }
 
 describe("best-run ghost", () => {
@@ -62,6 +58,16 @@ describe("best-run ghost", () => {
     const live = session.snapshot().ghost!;
     expect(live.pose).not.toBeNull();
     expect(live.aheadMetres!).toBeLessThan(-40);
+  });
+
+  test("ghosts are kept per track: the Time Sheet's slag-river ghost is not its old Row Six one", () => {
+    const storage = memory();
+    saveGhost("time-sheet", { time: 20, frames: [[0, 0, -56, 0, 0], [20, 0, 414, 0, 0]] }, storage);
+    const session = createRunSession(() => 0, storage);
+    session.selectEvent("time-sheet");
+    expect(ghostKey(eventById("time-sheet")!)).toBe("slag-river:time-sheet");
+    expect(ghostKey(eventById("crusher-rush")!)).toBe("crusher-rush");
+    expect(session.snapshot().ghost).toBeNull();
   });
 
   test("untimed events race without a ghost", () => {

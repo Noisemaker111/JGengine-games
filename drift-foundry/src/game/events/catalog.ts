@@ -4,7 +4,7 @@ import { COMPACTOR_BASE_SPEED, type CompactorPlan } from "../compactor/schedule"
 import type { RivalDef } from "../race/opponents";
 
 /**
- * The yard calendar: every event is the same corridor run under different rules - who is on the
+ * The yard calendar: every event is one of the yard's tracks under its own rules - who is on the
  * grid, how hard the crusher comes, whether the pit garage's build is allowed - and one number the
  * medals are judged on. Medals add up to points and points open the next tier, the way Trials and
  * Trackmania hand out their next set of tracks.
@@ -16,6 +16,8 @@ export interface YardEvent {
   id: string;
   label: string;
   tier: TierId;
+  /** The track this event runs on (see tracks/catalog.ts). */
+  track: string;
   /** One line on the calendar card. */
   blurb: string;
   metric: EventMetric;
@@ -54,6 +56,7 @@ export type MedalId = (typeof MEDALS)[number]["id"];
 export const YARD_EVENTS: readonly YardEvent[] = [
   {
     id: "salvage-run",
+    track: "row-six",
     label: "Salvage Run",
     tier: "row-six",
     blurb: "The shift as it always runs: three yard karts ahead, the crusher behind. Medals go on where you finish.",
@@ -65,17 +68,19 @@ export const YARD_EVENTS: readonly YardEvent[] = [
   },
   {
     id: "time-sheet",
+    track: "slag-river",
     label: "Time Sheet",
     tier: "row-six",
     blurb: "Nobody on the grid. The foreman holds a stopwatch at the gate and the crusher still rolls.",
     metric: "time",
-    targets: { bronze: 44, silver: 37, gold: 31.5 },
+    targets: { bronze: 66, silver: 54, gold: 43.5 },
     rivals: [],
     garage: true,
     rewards: { bronze: 60, silver: 120, gold: 220 },
   },
   {
     id: "scrap-sweep",
+    track: "flooded-quarry",
     label: "Scrap Sweep",
     tier: "row-six",
     blurb: "The yard pays by the piece. Weave for every drop on the route and still make the gate.",
@@ -87,11 +92,12 @@ export const YARD_EVENTS: readonly YardEvent[] = [
   },
   {
     id: "night-shift",
+    track: "conveyor-maze",
     label: "Night Shift",
     tier: "night-crew",
     blurb: "The night crew starts the crusher 15 m closer, runs it faster between surges and hits the surges harder.",
     metric: "time",
-    targets: { bronze: 44, silver: 37, gold: 32 },
+    targets: { bronze: 73, silver: 63, gold: 55 },
     rivals: "all",
     garage: true,
     compactor: { startZ: 15, baseSpeed: 3.4, surgeSpeed: 1.5, surgeEarlier: 8 },
@@ -99,11 +105,12 @@ export const YARD_EVENTS: readonly YardEvent[] = [
   },
   {
     id: "grudge-hobbs",
+    track: "rail-yard",
     label: "Grudge: HOBBS",
     tier: "night-crew",
     blurb: "Just you and the yard champion on a clean line, 6% hotter than usual. Medals on your margin at the gate.",
     metric: "grudge",
-    targets: { bronze: -3, silver: 0, gold: 3.5 },
+    targets: { bronze: -6, silver: -2, gold: 1.5 },
     rivals: ["rival_hobbs"],
     rivalPace: 1.06,
     rivalLine: 0.4,
@@ -112,17 +119,19 @@ export const YARD_EVENTS: readonly YardEvent[] = [
   },
   {
     id: "bare-metal",
+    track: "smelter-climb",
     label: "Bare Metal",
     tier: "bare-metal",
     blurb: "The garage stays shut: a bare chassis and whatever the route drops. Beat the clock on salvage alone.",
     metric: "time",
-    targets: { bronze: 45, silver: 38, gold: 32 },
+    targets: { bronze: 68, silver: 61, gold: 54.5 },
     rivals: "all",
     garage: false,
     rewards: { bronze: 120, silver: 240, gold: 400 },
   },
   {
     id: "crusher-rush",
+    track: "row-six",
     label: "Crusher Rush",
     tier: "bare-metal",
     blurb: "The compactor never idles: it rolls at surge speed from the horn, 20 m behind. One stop and it has you.",
@@ -135,6 +144,7 @@ export const YARD_EVENTS: readonly YardEvent[] = [
   },
   {
     id: "foundry-gauntlet",
+    track: "rail-yard",
     label: "Foundry Gauntlet",
     tier: "legend",
     blurb: "Everything at once: shut garage, the night crusher and the whole field on tight lines. Finish where you can.",

@@ -19,10 +19,12 @@ import { surfaceAt, type SurfaceSample } from "../vehicle/surface";
 import { createOpponentField, RIVAL_DEFS, type OpponentField, type RivalBody } from "../race/opponents";
 import { createStandings, PLAYER_RACER_ID, type RaceSnapshot, type Standings } from "../race/standings";
 import { grantPickup, nearestUncollected, PICKUPS, type PickupDef } from "./pickups";
-import { gateSatisfied, inLane, ROUTE_GATES } from "../route/gates";
+import { gateSatisfied, gateStanding, inLane } from "../route/gates";
 import { createVehicleController, type DriveAxis, type VehicleController, type VehiclePose } from "../vehicle/controller";
-import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, RUN_SEED, SPAWN_Z } from "./constants";
-import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
+import { NEAR_MISS_ENTER, NEAR_MISS_EXIT, RUN_SEED } from "./constants";
+import { zoneProgress, type TrackZone } from "../zones/catalog";
+import { ROW_SIX_TRACK, trackById, type ActiveHazard, type Track } from "../tracks/catalog";
+import { FLAT_YARD_GROUND } from "../tracks/ground";
 import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
 import { ESCAPE_BONUS, bankOf, buyPart as buyGaragePart, garageRows, medalsOf, ownedParts, readCareer, SALVAGE_CREDITS, saveCareer, settleRun, standingOf, DRIVER, type CareerSave } from "../career";
@@ -88,6 +90,8 @@ export interface EventResult {
 /** One event on the calendar, as the pit's board reads it. */
 export interface CalendarEvent {
   event: YardEvent;
+  /** The track the event runs on. */
+  trackLabel: string;
   open: boolean;
   selected: boolean;
   medal: MedalId | null;
@@ -114,7 +118,16 @@ export interface SessionSnapshot {
   phase: RunPhase;
   runTime: number;
   pose: VehiclePose;
-  zone: ZoneDef;
+  /** The track this run is on, and where the kart sits on it. */
+  track: { id: string; label: string; exitAt: number; gates: number };
+  /** Run metres from the start line, and metres left of the centreline. */
+  run: number;
+  lateral: number;
+  /** Route under the kart: the main line or a shortcut's id. */
+  route: string;
+  /** Hazards under the kart this tick. */
+  hazards: readonly ActiveHazard[];
+  zone: TrackZone;
   progress: number;
   compactorZ: number;
   compactorGap: number;
@@ -146,7 +159,7 @@ export interface SessionSnapshot {
   /** Career money, standing and the garage's next rung per slot, as the pit screen reads them. */
   career: { credits: number; standing: number; tier: string; garage: ReturnType<typeof garageRows>; saved: boolean };
   /** The event this run races, and the medal it asks for next. */
-  event: { id: string; label: string; blurb: string; garage: boolean; medal: MedalId | null; next: { medal: MedalId; text: string } | null };
+  event: { id: string; label: string; blurb: string; garage: boolean; track: string; trackLabel: string; trackBlurb: string; trackLength: number; medal: MedalId | null; next: { medal: MedalId; text: string } | null };
   /** Your best run on this timed event, replayed on the run clock; `null` on untimed events or before a first escape. */
   ghost: { pose: GhostPose | null; best: number; aheadMetres: number | null } | null;
   /** The yard calendar: tiers, events, medals held and medal points. */
@@ -171,13 +184,27 @@ export interface RunSession {
 
 export const runSessionStore = defineStore<RunSession>("runSession", () => createRunSession());
 
-const SPAWN_POSITION: readonly [number, number, number] = [0, 0, SPAWN_Z];
-const SPAWN_HEADING = 0;
 const TICKER_LIMIT = 6;
+/** A train on a crossing throws a kart this far back up the road. */
+const TRAIN_KNOCKBACK = 4;
+
+/** The track an event runs on; an unknown id falls back to Row Six. */
+export function trackOfEvent(event: YardEvent): Track {
+  return trackById(event.track) ?? ROW_SIX_TRACK;
+}
+
+/** Ghosts are kept per track and event; Row Six keeps the bare event id its ghosts were first saved under. */
+export function ghostKey(event: YardEvent): string {
+  const track = trackOfEvent(event);
+  return track.id === ROW_SIX_TRACK.id ? event.id : `${track.id}:${event.id}`;
+}
+
+const runOf = (pose: VehiclePose): number => pose.run ?? pose.position[2];
+const lateralOf = (pose: VehiclePose): number => pose.lateral ?? pose.position[0];
 
 /** `notices` is the game's shared feed (`ctx.game.notices`); pickups, saves and armor saves surface there. */
 export function createRunSession(
-  groundHeightAt: (x: number, z: number) => number = () => 0,
+  groundHeightAt: (x: number, z: number) => number = FLAT_YARD_GROUND,
   storage: RecordStorage | undefined = browserRecordStorage(),
   notices?: Pick<NoticeFeed, "push">,
 ): RunSession {
@@ -209,6 +236,9 @@ export function createRunSession(
     return chosen !== null && medalsOf(career).isOpen(chosen.id) ? chosen : eventById(DEFAULT_EVENT_ID)!;
   }
   let event: YardEvent = currentEvent();
+  let track: Track = trackOfEvent(event);
+  // A parked run belongs to the track it was parked on.
+  if (parkedRun !== null && (parkedRun.track ?? ROW_SIX_TRACK.id) !== track.id) parkedRun = null;
   const startingParts = (): readonly DriftFoundryPartDef[] => (event.garage ? ownedParts(career) : []);
   const ghostRecorder = createGhostRecorder();
   let ghosts = readGhosts(storage);
@@ -216,7 +246,7 @@ export function createRunSession(
   /** A run resumed from a parked checkpoint has no frames before the park, so it never becomes the ghost. */
   let ghostRecording = true;
   function loadGhost(): void {
-    const saved = event.metric === "time" ? ghosts[event.id] : undefined;
+    const saved = event.metric === "time" ? ghosts[ghostKey(event)] : undefined;
     ghostReplay = saved === undefined ? null : replayGhost(saved);
   }
   let runSaved = true;
@@ -250,11 +280,12 @@ export function createRunSession(
     tuning = tuningFrom(installed, damage.total() > 0 ? damageEffect : undefined);
   }
 
-  const vehicle: VehicleController = createVehicleController({ position: SPAWN_POSITION, heading: SPAWN_HEADING });
+  let vehicle: VehicleController = createVehicleController(track.spawn, track);
 
   function createField(): OpponentField {
     return createOpponentField({
       groundHeightAt,
+      track,
       defs: eventRivals(event, rivalsForShift(loop.offer().changeId)),
       // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
       // momentum their driver had built up.
@@ -274,14 +305,18 @@ export function createRunSession(
       ...Object.fromEntries(eventRivals(event, RIVAL_DEFS).map((def) => [def.id, def.name])),
       // Added last so the player starts bottom of the grid, behind every rival.
       [PLAYER_RACER_ID]: "YOU",
-    });
+    }, track);
   }
   let standings: Standings = createGrid();
   let FIELD_SIZE = eventRivals(event, RIVAL_DEFS).length + 1;
   let announcedPlace = standings.placeOf(PLAYER_RACER_ID);
+  const restPose = (position: readonly [number, number, number], heading: number): VehiclePose => {
+    const fix = track.locate(position[0], position[2]);
+    return { position, heading, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false, run: track.run(fix), lateral: fix.offset, route: fix.route, roadY: fix.elevation, hazards: [] };
+  };
+  let announcedHazards = new Set<string>();
   let pose: VehiclePose = {
-    position: SPAWN_POSITION,
-    heading: SPAWN_HEADING,
+    ...restPose(track.spawn.position, track.spawn.heading),
     speedKmh: 0,
     slip: 0,
     surface: 1,
@@ -320,7 +355,7 @@ export function createRunSession(
   }
 
   function applyPickup(consent: boolean): void {
-    const found: PickupDef | null = nearestUncollected(pose.position, collected);
+    const found: PickupDef | null = nearestUncollected(pose.position, collected, track.pickups);
     if (found === null) return;
     const incoming = partById(found.partId);
     // Preserve safe route-capability lessons; engine/frame swaps are commitments.
@@ -342,13 +377,47 @@ export function createRunSession(
   }
 
   function announceGates(): void {
-    for (const gate of ROUTE_GATES) {
+    for (const gate of track.gates) {
       if (gateAnnounced.has(gate.id)) continue;
-      if (!inLane(pose.position[0], gate.laneX)) continue;
-      if (pose.position[2] <= gate.atZ) continue;
+      if ((pose.route ?? "main") !== gate.route) continue;
+      if (!inLane(lateralOf(pose), gate.laneX)) continue;
+      if (runOf(pose) <= gate.atZ) continue;
       if (!gateSatisfied(gate, tuning)) continue;
+      if (!gateStanding(gate, runTime)) {
+        // Past a set-piece barricade before it dropped: it falls in behind the kart, uncleared.
+        if (!gateAnnounced.has(`${gate.id}:beaten`)) pushRadio(`BEAT THE ${gate.label} — IT'S DOWN BEHIND YOU`);
+        gateAnnounced.add(`${gate.id}:beaten`);
+        continue;
+      }
       gateAnnounced.add(gate.id);
       pushRadio(gate.radioLine);
+    }
+  }
+
+  /**
+   * The track's hazards, as the run meets them: the radio calls each one the first time the kart is in
+   * it, and a train on a crossing the kart is standing in throws it back up the road and bends the nose.
+   */
+  function meetHazards(approachKmh: number): void {
+    for (const hazard of pose.hazards ?? []) {
+      if (!announcedHazards.has(hazard.id)) {
+        announcedHazards.add(hazard.id);
+        pushRadio(hazard.label);
+      }
+      if (hazard.kind !== "train") continue;
+      const span = track.hazardSpans.find((entry) => entry.id === hazard.id);
+      if (span === undefined) continue;
+      const back = track.course.progressOf(span.route, span.from) - track.origin - TRAIN_KNOCKBACK;
+      const to = track.point(span.route, back, lateralOf(pose));
+      vehicle.resetTo([to.x, pose.position[1], to.z], pose.heading);
+      pose = { ...pose, position: [to.x, pose.position[1], to.z], run: back, speedKmh: 0 };
+      const transitions = damage.hit(noseHitPoint(0), impactImpulse(Math.max(30, approachKmh)));
+      if (transitions.length > 0) {
+        damageEffect = damage.effect();
+        rebuildTuning();
+      }
+      notify("FREIGHT CLIPPED YOU — WAIT FOR THE GAP", "warn");
+      pushRadio("CLIPPED BY THE FREIGHT — WATCH THE LIGHTS");
     }
   }
 
@@ -358,6 +427,12 @@ export function createRunSession(
     paused = false;
     runTime = 0;
     event = currentEvent();
+    const nextTrack = trackOfEvent(event);
+    if (nextTrack !== track) {
+      track = nextTrack;
+      vehicle = createVehicleController(track.spawn, track);
+    }
+    announcedHazards = new Set<string>();
     installed = startingParts();
     ghostRecorder.reset();
     ghostRecording = !keepRun;
@@ -384,8 +459,8 @@ export function createRunSession(
     damageEffect = damage.effect();
     rebuildTuning();
     gateImpactArmed = true;
-    vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
-    pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
+    vehicle.resetTo(track.spawn.position, track.spawn.heading);
+    pose = restPose(track.spawn.position, track.spawn.heading);
     opponents = createField();
     standings = createGrid();
     FIELD_SIZE = eventRivals(event, RIVAL_DEFS).length + 1;
@@ -396,7 +471,7 @@ export function createRunSession(
 
   /** The live run as the pit would restore it: parts, route, clocks, haul-side details. */
   function checkpointNow(): ParkedRun {
-    return { version: 1, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
+    return { version: 1, track: track.id, position: pose.position, heading: pose.heading, runTime, partIds: installed.map(entry => entry.id), collectedIds: [...collected], gateIds: [...gateAnnounced], armorSaveArmed, armorSavesUsed, nearMissCount, closestGap: Number.isFinite(closestGap) ? closestGap : 0, wasNear, announcedSurge };
   }
 
   /**
@@ -437,7 +512,7 @@ export function createRunSession(
     if (hobbs?.finishTime != null) return Math.round((hobbs.finishTime - runTime) * 100) / 100;
     const body = opponents.bodies().find((entry) => entry.id === "rival_hobbs");
     if (body === undefined) return 0;
-    const metresLeft = Math.max(0, EXIT_Z - body.position[2]);
+    const metresLeft = Math.max(0, track.exitAt - body.run);
     return Math.round((metresLeft / Math.max(6, body.speedKmh / 3.6)) * 100) / 100;
   }
 
@@ -475,7 +550,7 @@ export function createRunSession(
     return {
       pose: ghostPose,
       best: ghostReplay.time,
-      aheadMetres: ghostPose === null ? null : Math.round(pose.position[2] - ghostPose.position[2]),
+      aheadMetres: ghostPose === null ? null : Math.round(runOf(pose) - track.run(track.locate(ghostPose.position[0], ghostPose.position[2]))),
     };
   }
 
@@ -497,6 +572,7 @@ export function createRunSession(
             const best = board.best(entry.id);
             return {
               event: entry,
+              trackLabel: trackOfEvent(entry).label,
               open: board.isOpen(entry.id),
               selected: entry.id === event.id,
               medal: board.medalOf(entry.id) as MedalId | null,
@@ -510,7 +586,7 @@ export function createRunSession(
   }
 
   function recordOutcome(settlement: RunSettlement<ShiftEffect>): void {
-    const completed = completeRun(records, { kind: outcome?.kind === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
+    const completed = completeRun(records, { kind: outcome?.kind === "won" ? "won" : "crushed", time: runTime, distance: Math.max(0, Math.min(track.exitAt, runOf(pose))) });
     records = completed.records;
     personalBest = completed.personalBest;
     recordsSaved = saveRecords(records, storage);
@@ -541,14 +617,19 @@ export function createRunSession(
         phase: phaseNow(),
         runTime,
         pose,
-        zone: zoneAt(pose.position[2]),
-        progress: zoneProgress(pose.position[2]),
+        track: { id: track.id, label: track.label, exitAt: track.exitAt, gates: track.gates.length },
+        run: runOf(pose),
+        lateral: lateralOf(pose),
+        route: pose.route ?? "main",
+        hazards: pose.hazards ?? [],
+        zone: track.zoneAt(runOf(pose)),
+        progress: zoneProgress(runOf(pose), track.exitAt),
         compactorZ: compactorZAt(runTime, compactor),
-        compactorGap: compactorGap(pose.position[2], compactorZAt(runTime, compactor)),
+        compactorGap: compactorGap(runOf(pose), compactorZAt(runTime, compactor)),
         compactorSurge: activeSurge(runTime, compactor),
         installed: installedBySlot(),
         tuning,
-        surface: surfaceAt(pose.position[0], pose.position[2]),
+        surface: surfaceAt(lateralOf(pose), runOf(pose), track, pose.hazards ?? []),
         damage: damage.zones(),
         ticker: radioFeed.recent("radio").map((entry) => entry.data as RadioLine),
         nearMissCount,
@@ -575,6 +656,10 @@ export function createRunSession(
           label: event.label,
           blurb: event.blurb,
           garage: event.garage,
+          track: track.id,
+          trackLabel: track.label,
+          trackBlurb: track.def.blurb,
+          trackLength: track.exitAt,
           medal: medalsOf(career).medalOf(event.id) as MedalId | null,
           next: nextOf(medalsOf(career), event.id),
         },
@@ -597,7 +682,7 @@ export function createRunSession(
           wasNear = checkpoint.wasNear;
           announcedSurge = checkpoint.announcedSurge;
           vehicle.resetTo(checkpoint.position, checkpoint.heading);
-          pose = { position: checkpoint.position, heading: checkpoint.heading, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
+          pose = restPose(checkpoint.position, checkpoint.heading);
           // A parked build is restored undamaged: the checkpoint stores parts, not dents.
           damage.reset();
           damageEffect = damage.effect();
@@ -654,7 +739,7 @@ export function createRunSession(
 
       // A bent frame pulls the wheel on its own; the last stage of a nose zone adds that bias here.
       const approachKmh = pose.speedKmh;
-      pose = vehicle.tick(dt, damagedAxis({ ...axis, handbrake: axis.handbrake ?? 0 }, damageEffect), tuning, input, groundHeightAt);
+      pose = vehicle.tick(dt, damagedAxis({ ...axis, handbrake: axis.handbrake ?? 0 }, damageEffect), tuning, { ...input, time: runTime }, groundHeightAt);
       if (ghostRecording) ghostRecorder.record(runTime, { position: pose.position, rotationY: pose.heading });
 
       // A barricade the build cannot clear stops the kart on the nose. One impulse per approach at the
@@ -673,13 +758,18 @@ export function createRunSession(
 
       applyPickup(input.salvageSwap === true);
       announceGates();
+      meetHazards(approachKmh);
 
       // The field races the same corridor every tick, then the shared race state machine re-orders
       // the four karts from their positions and tells us if the player's place changed. Its lap timer
       // is the shared wall clock, so the HUD's lap time and the results screen's splits are one source.
-      opponents.tick(dt, pose.position);
+      opponents.tick(dt, pose.position, runOf(pose), runTime);
       standings.tick(dt);
-      standings.update(runTime, { [PLAYER_RACER_ID]: pose.position, ...opponents.positions() });
+      // The ring is placed on the road: every kart is measured at the road height under it, so a
+      // checkpoint 26 m up the smelter still sees a kart that hopped.
+      const placed: Record<string, readonly [number, number, number]> = { [PLAYER_RACER_ID]: [pose.position[0], pose.roadY ?? 0, pose.position[2]] };
+      for (const body of opponents.bodies()) placed[body.id] = [body.position[0], body.roadY, body.position[2]];
+      standings.update(runTime, placed);
       const place = standings.placeOf(PLAYER_RACER_ID);
       if (place !== announcedPlace) {
         pushRadio(place < announcedPlace ? `P${place} OF ${FIELD_SIZE} — TOOK HIM` : `P${place} OF ${FIELD_SIZE} — PASSED`);
@@ -693,7 +783,7 @@ export function createRunSession(
         pushRadio(surge.label);
       }
 
-      const gap = compactorGap(pose.position[2], compactorZ);
+      const gap = compactorGap(runOf(pose), compactorZ);
       if (gap < closestGap) closestGap = gap;
       if (!wasNear && gap < NEAR_MISS_ENTER) {
         wasNear = true;
@@ -703,12 +793,13 @@ export function createRunSession(
         wasNear = false;
       }
 
-      const contact = resolveCrusherContact(pose.position[2], compactorZ, armorSaveArmed);
+      const contact = resolveCrusherContact(runOf(pose), compactorZ, armorSaveArmed);
       if (contact.outcome === "saved") {
         armorSaveArmed = false;
         armorSavesUsed += 1;
-        vehicle.resetTo([pose.position[0], pose.position[1], contact.reboundZ], pose.heading);
-        pose = { ...pose, position: [pose.position[0], pose.position[1], contact.reboundZ] };
+        const rebound = track.point(pose.route ?? "main", contact.reboundZ, lateralOf(pose));
+        vehicle.resetTo([rebound.x, pose.position[1], rebound.z], pose.heading);
+        pose = { ...pose, position: [rebound.x, pose.position[1], rebound.z], run: contact.reboundZ };
         notify("ARMOR PLATE SAVED YOUR HIDE", "warn");
         pushRadio("ARMOR PLATE TOOK THE HIT — KEEP MOVING");
       } else if (contact.outcome === "crushed") {
@@ -720,7 +811,7 @@ export function createRunSession(
           nearMisses: nearMissCount,
           closestGap: Number.isFinite(closestGap) ? closestGap : 0,
           armorSaves: armorSavesUsed,
-          zoneLabel: zoneAt(pose.position[2]).label,
+          zoneLabel: track.zoneAt(runOf(pose)).label,
           place: standings.placeOf(PLAYER_RACER_ID),
           fieldSize: FIELD_SIZE,
           carried: settlement.haul,
@@ -735,24 +826,27 @@ export function createRunSession(
         return;
       }
 
-      if (pose.position[2] >= EXIT_Z) {
+      if (runOf(pose) >= track.exitAt) {
         // The gate bonus is part of what the run carried, so the line is paid on the whole haul.
         loop.carry(ESCAPE_BONUS);
         const place = standings.placeOf(PLAYER_RACER_ID);
         const line = lineReading({
-          barriers: gateAnnounced.size,
+          barriers: [...gateAnnounced].filter((id) => !id.endsWith(":beaten")).length,
           // Winning a race of one is not a finish worth paying for.
           place: FIELD_SIZE > 1 ? place : 0,
           time: runTime,
           damageStage: Math.max(0, ...damage.zones().map((zone) => zone.stage)),
           armorSaves: armorSavesUsed,
+          gates: track.gates.length,
+          par: track.def.par,
         });
         const settlement = loop.settle("banked", line.multiplier);
-        const previousGhost = ghosts[event.id];
+        const key = ghostKey(event);
+        const previousGhost = ghosts[key];
         if (event.metric === "time" && ghostRecording && (previousGhost === undefined || runTime < previousGhost.time)) {
           const ghost = ghostRecorder.take(runTime);
-          if (saveGhost(event.id, ghost, storage)) ghosts = readGhosts(storage);
-          else ghosts = { ...ghosts, [event.id]: ghost };
+          if (saveGhost(key, ghost, storage)) ghosts = readGhosts(storage);
+          else ghosts = { ...ghosts, [key]: ghost };
         }
         outcome = {
           kind: "won",
@@ -761,7 +855,7 @@ export function createRunSession(
           nearMisses: nearMissCount,
           closestGap: Number.isFinite(closestGap) ? closestGap : 0,
           armorSaves: armorSavesUsed,
-          zoneLabel: zoneAt(pose.position[2]).label,
+          zoneLabel: track.zoneAt(runOf(pose)).label,
           place,
           fieldSize: FIELD_SIZE,
           carried: settlement.haul,

@@ -14,13 +14,22 @@ export interface ZoneSurface {
   grip: number;
 }
 
-export interface ZoneDef {
-  id: ZoneId;
+/** One stretch of a track as the run reads it: what the radio calls it and the grip under the tires. */
+export interface TrackZone {
+  id: string;
   label: string;
   radioName: string;
+  /** Run metres. */
   start: number;
   end: number;
   wallColor: string;
+  /** Yard surface under the tires - oil, concrete or gravel decide how much grip the kart gets. */
+  surface: ZoneSurface;
+}
+
+/** A Row Six zone: a track zone that also owns the corridor's generated building rows and terrain band. */
+export interface ZoneDef extends TrackZone {
+  id: ZoneId;
   propIds: readonly string[];
   buildingStyle: BuildingStyle;
   /** Shared-library material painting this zone's generated corridor facades and roofs. */
@@ -29,8 +38,6 @@ export interface ZoneDef {
   palette: BuildingPaletteOverrides;
   /** Ground palette for the zone's terrain band. */
   ground: TerrainColors;
-  /** Yard surface under the tires - oil, concrete or gravel decide how much grip the kart gets. */
-  surface: ZoneSurface;
   fog: BiomeFog;
   sky: BiomeSky;
 }
@@ -133,11 +140,13 @@ export const ZONES: readonly ZoneDef[] = [
   },
 ];
 
-export function zoneAt(z: number): ZoneDef {
-  for (const zone of ZONES) if (z < zone.end) return zone;
-  return ZONES[ZONES.length - 1]!;
+/** The zone a run-metre mark falls in; Row Six's zones unless a track's are given. */
+export function zoneAt<Zone extends TrackZone = ZoneDef>(z: number, zones: readonly Zone[] = ZONES as unknown as readonly Zone[]): Zone {
+  for (const zone of zones) if (z < zone.end) return zone;
+  return zones[zones.length - 1]!;
 }
 
-export function zoneProgress(z: number): number {
-  return Math.min(1, Math.max(0, z / EXIT_Z));
+/** Fraction of the run covered at run metres `z`, against the track's exit (Row Six's by default). */
+export function zoneProgress(z: number, exitAt: number = EXIT_Z): number {
+  return Math.min(1, Math.max(0, z / exitAt));
 }

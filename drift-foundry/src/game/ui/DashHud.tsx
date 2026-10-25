@@ -5,7 +5,7 @@ import { HudFade } from "@jgengine/react/hudFade";
 import type { RaceSnapshot } from "../race/standings";
 import type { DriftFoundryPartDef, PartSlotId } from "../parts/catalog";
 import { PART_SLOTS } from "../parts/catalog";
-import { ROUTE_GATES } from "../route/gates";
+import { ROUTE_GATES, type RouteGate } from "../route/gates";
 import { PartIcon } from "./components/PartIcon";
 
 /*
@@ -156,15 +156,15 @@ export function CrusherBar({ gap, surge }: { gap: number; surge: boolean }): Rea
 }
 
 /** The corridor as a steel rule: barriers punched in, the buggy riding along it, the haul at stake. */
-export function RouteRule({ z, cleared, next, atRisk }: { z: number; cleared: ReadonlySet<string>; next: string; atRisk: number }): ReactNode {
-  const along = Math.round((Math.min(ROUTE_LENGTH, Math.max(0, z)) / ROUTE_LENGTH) * 1000) / 10;
+export function RouteRule({ z, cleared, next, atRisk, length = ROUTE_LENGTH, gates = ROUTE_GATES }: { z: number; cleared: ReadonlySet<string>; next: string; atRisk: number; length?: number; gates?: readonly RouteGate[] }): ReactNode {
+  const along = Math.round((Math.min(length, Math.max(0, z)) / length) * 1000) / 10;
   return (
     <HudFade watch={[cleared.size, next.replace(/\d+m/, ""), atRisk]} idleMs={5000} dimTo={0.55} className="fd-route-wrap">
       <section className="fd-route" aria-label="Corridor">
-        <header className="fd-route-head"><span><b>{cleared.size}</b>/{ROUTE_GATES.length} barriers</span><span>{Math.floor(along)}%</span></header>
+        <header className="fd-route-head"><span><b>{gates.filter((gate) => cleared.has(gate.id)).length}</b>/{gates.length} barriers</span><span>{Math.floor(along)}%</span></header>
         <div className="fd-route-rule" aria-hidden="true">
-          {ROUTE_GATES.map((gate) => (
-            <i key={gate.id} className="fd-route-gate" data-cleared={cleared.has(gate.id) ? "" : undefined} data-kind={gate.requirement} style={{ left: `${(gate.atZ / ROUTE_LENGTH) * 100}%` }} />
+          {gates.map((gate) => (
+            <i key={gate.id} className="fd-route-gate" data-cleared={cleared.has(gate.id) ? "" : undefined} data-kind={gate.requirement} data-shortcut={gate.route === "main" ? undefined : ""} style={{ left: `${(gate.atZ / length) * 100}%` }} />
           ))}
           <span className="fd-route-ride" style={{ transform: `translateX(${along}%)` }}><span className="fd-route-car" /></span>
           <span className="fd-route-flag"><GameIcon name="flag" size={14} color={YELLOW} /></span>

@@ -1,8 +1,8 @@
 import type { EmitterConfig } from "@jgengine/core/vfx/particles";
-import { ROUTE_GATES } from "./route/gates";
+import { ROW_SIX_TRACK, trackById } from "./tracks/catalog";
 import type { SessionSnapshot } from "./run/session";
 
-type ImpactSnapshot = Pick<SessionSnapshot, "phase" | "paused" | "runTime" | "pose" | "clearedGateIds" | "armorSavesUsed">;
+type ImpactSnapshot = Pick<SessionSnapshot, "phase" | "paused" | "runTime" | "pose" | "clearedGateIds" | "armorSavesUsed"> & Partial<Pick<SessionSnapshot, "track" | "lateral">>;
 export interface ImpactBurst {
   kind: "plow" | "landing" | "blocked" | "armor";
   config: EmitterConfig;
@@ -28,9 +28,12 @@ export function impactBursts(before: ImpactSnapshot, after: ImpactSnapshot): Imp
       alpha: { start: .9, end: 0 }, seed: `${kind}:${after.runTime}`,
     },
   });
-  for (const gate of ROUTE_GATES) {
+  const track = (after.track === undefined ? null : trackById(after.track.id)) ?? ROW_SIX_TRACK;
+  for (const gate of track.gates) {
     if (gate.requirement === "plow" && after.clearedGateIds.has(gate.id) && !before.clearedGateIds.has(gate.id)) {
-      bursts.push(dust("plow", [x, y + .45, gate.atZ]));
+      // The debris bursts where the wall stood, in line with the kart.
+      const at = track.point(gate.route, gate.atZ, after.lateral ?? x);
+      bursts.push(dust("plow", [at.x, y + .45, at.z]));
     }
   }
   if (before.pose.airborne && !after.pose.airborne) bursts.push(dust("landing", [x, y + .08, z]));

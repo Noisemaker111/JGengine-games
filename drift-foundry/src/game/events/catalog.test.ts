@@ -1,14 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
-import { steerToward } from "@jgengine/core/movement/steering";
 import { createMedalBoard } from "@jgengine/core/progression/medalBoard";
 
 import { CAREER_KEY, newCareer, readCareer, type CareerStorage } from "../career";
-import { ROUTE_GATES } from "../route/gates";
-import { PICKUPS } from "../run/pickups";
 import { createRunSession, type RunSession } from "../run/session";
+import { trackById } from "../tracks/catalog";
 import { eventById, eventCompactor, MEDAL_BOARD, YARD_EVENTS, YARD_TIERS } from "./catalog";
 import { COMPACTOR_PLAN, compactorZAt } from "../compactor/schedule";
+import { driveCourse, type CourseDriveOptions } from "../testing/courseDriver";
 
 const DT = 1 / 60;
 
@@ -22,33 +21,16 @@ function memory(seed?: (career: ReturnType<typeof newCareer>) => void): CareerSt
   return { map, getItem: (key) => map.get(key) ?? null, setItem: (key, value) => void map.set(key, value) };
 }
 
-function shouldJump(session: RunSession): boolean {
-  const snap = session.snapshot();
-  const next = ROUTE_GATES.find((gate) => gate.atZ >= snap.pose.position[2]);
-  return next?.requirement === "jump" && !snap.pose.airborne && next.atZ - snap.pose.position[2] < Math.max(5, snap.pose.speedKmh / 3.6 * 0.5);
-}
-
-/** The corridor driven by a script: sweep steers onto every drop and takes the swaps; `stall` brakes for that many seconds from 12 s. */
-function drive(session: RunSession, { sweep = false, stall = 0 } = {}): void {
-  for (let t = 0; t < 150; t += DT) {
-    const snap = session.snapshot();
-    if (snap.phase !== "running") return;
-    if (t > 12 && t < 12 + stall) {
-      session.tick(DT, { throttle: 0, brake: 1, steer: 0 }, { jumpPressed: false, plowBracing: false });
-      continue;
-    }
-    const target = sweep ? PICKUPS.find((p) => !snap.collectedIds.has(p.id) && p.position[2] > snap.pose.position[2] - 6) : undefined;
-    const desired = Math.max(-0.5, Math.min(0.5, ((target?.position[0] ?? 0) - snap.pose.position[0]) * 0.03));
-    const steer = Math.max(-0.5, Math.min(0.5, steerToward(snap.pose.heading, desired) * 2));
-    session.tick(DT, { throttle: 1, brake: 0, steer }, { jumpPressed: shouldJump(session), plowBracing: true, salvageSwap: sweep });
-  }
+/** A scripted run on the event's own track: `sweep` takes every drop, `take` the named shortcuts, `stall` brakes from 12 s. */
+function drive(session: RunSession, options: CourseDriveOptions = {}): void {
+  driveCourse(session, options);
 }
 
 const everyTierOpen = (career: ReturnType<typeof newCareer>) => {
   career.medals = { best: { "salvage-run": 1, "scrap-sweep": 12, "night-shift": 20, "grudge-hobbs": 9 } };
 };
 
-function race(eventId: string, options: { sweep?: boolean; stall?: number } = {}) {
+function race(eventId: string, options: CourseDriveOptions = {}) {
   const session = createRunSession(() => 0, memory(everyTierOpen));
   expect(session.selectEvent(eventId)).toEqual({ ok: true });
   session.start();
@@ -97,12 +79,13 @@ describe("yard calendar", () => {
     expect(race("crusher-rush", { stall: 4 }).phase).toBe("crushed");
   });
 
-  test("a straight line earns bronze on the Time Sheet; gold needs the sweep and the truck engine", () => {
+  test("a clean line earns bronze on the Time Sheet's slag river; gold needs the sweep and the ladle bridge", () => {
     const line = race("time-sheet");
     expect(line.outcome?.event.medal).toBe("bronze");
     expect(line.outcome?.event.next?.medal).toBe("silver");
     expect(line.outcome?.lineNotes.some((note) => note.startsWith("P1"))).toBe(false);
-    const sweep = race("time-sheet", { sweep: true });
+    expect(race("time-sheet", { take: ["ladle-bridge"] }).outcome?.event.medal).toBe("bronze");
+    const sweep = race("time-sheet", { sweep: true, take: ["ladle-bridge"] });
     expect(sweep.outcome?.event.medal).toBe("gold");
   });
 
@@ -111,7 +94,7 @@ describe("yard calendar", () => {
     const session = createRunSession(() => 0, storage);
     session.selectEvent("time-sheet");
     session.start();
-    drive(session, { sweep: true });
+    drive(session, { sweep: true, take: ["ladle-bridge"] });
     const gold = session.snapshot();
     expect(gold.outcome?.event.firstTime.map((entry) => entry.medal)).toEqual(["bronze", "silver", "gold"]);
     expect(gold.outcome?.event.reward).toBe(60 + 120 + 220);
@@ -119,7 +102,7 @@ describe("yard calendar", () => {
     expect(gold.calendar.points).toBe(3);
 
     session.restart();
-    drive(session, { sweep: true });
+    drive(session, { sweep: true, take: ["ladle-bridge"] });
     expect(session.snapshot().outcome?.event.reward).toBe(0);
 
     session.selectEvent("scrap-sweep");
@@ -140,5 +123,24 @@ describe("yard calendar", () => {
     const career = readCareer(storage);
     expect(career.medals).toEqual({ best: {} });
     expect(career.event).toBe("salvage-run");
+  });
+
+  test("an event moved onto a new track drops the best it set on Row Six; events still there keep theirs", () => {
+    const storage = memory();
+    const legacy = newCareer() as Partial<ReturnType<typeof newCareer>>;
+    delete legacy.courses;
+    legacy.medals = { best: { "salvage-run": 1, "time-sheet": 30, "crusher-rush": 31 } };
+    storage.setItem(CAREER_KEY, JSON.stringify(legacy));
+    expect(readCareer(storage).medals.best).toEqual({ "salvage-run": 1, "crusher-rush": 31 });
+    const current = newCareer();
+    current.medals = { best: { "time-sheet": 50 } };
+    storage.setItem(CAREER_KEY, JSON.stringify(current));
+    expect(readCareer(storage).medals.best).toEqual({ "time-sheet": 50 });
+  });
+
+  test("every event names a real track, and the calendar runs at least five of them", () => {
+    const tracks = new Set(YARD_EVENTS.map((event) => event.track));
+    for (const id of tracks) expect(trackById(id)).not.toBeNull();
+    expect(tracks.size).toBeGreaterThanOrEqual(5);
   });
 });
