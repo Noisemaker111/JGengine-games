@@ -316,13 +316,13 @@
     },
   },
   "catalog": {
-    "@jgengine/assets": "0.39.0",
-    "@jgengine/core": "0.39.0",
-    "@jgengine/editor": "0.39.0",
-    "@jgengine/node": "0.39.0",
-    "@jgengine/react": "0.39.0",
-    "@jgengine/shell": "0.39.0",
-    "@jgengine/ws": "0.39.0",
+    "@jgengine/assets": "0.40.0",
+    "@jgengine/core": "0.40.0",
+    "@jgengine/editor": "0.40.0",
+    "@jgengine/node": "0.40.0",
+    "@jgengine/react": "0.40.0",
+    "@jgengine/shell": "0.40.0",
+    "@jgengine/ws": "0.40.0",
     "@react-three/drei": "^10.7.7",
     "@tailwindcss/vite": "^4.0.15",
     "@types/react": "^19",
@@ -516,21 +516,21 @@
 
     "@jgengine-examples/studios": ["@jgengine-examples/studios@workspace:studios"],
 
-    "@jgengine/assets": ["@jgengine/assets@0.39.0", "", { "dependencies": { "@gltf-transform/core": "4.2.1", "@gltf-transform/extensions": "4.2.1", "@gltf-transform/functions": "4.2.1", "@jgengine/core": "^0.39.0", "fflate": "^0.8.2" }, "bin": { "assets": "dist/cli/pull.js" } }, "sha512-DcMBdmItpgU3J+7gubc8mpX5TZNnQZcEZ1IOMV9Pjb5RHXW8Bruu6ptdVwJ32h4CgTbr0lSKrCfIf+Gmd+i4sA=="],
+    "@jgengine/assets": ["@jgengine/assets@0.40.0", "", { "dependencies": { "@gltf-transform/core": "4.2.1", "@gltf-transform/extensions": "4.2.1", "@gltf-transform/functions": "4.2.1", "@jgengine/core": "^0.40.0", "fflate": "^0.8.2", "jpeg-js": "0.4.4", "meshoptimizer": "0.22.0", "three": "^0.182.0" }, "bin": { "assets": "dist/cli/pull.js" } }, "sha512-GhlAs+1AwTyFYUU3/PRbsSJVFY2n15H2x+Xo9DRDYHb2eQCX8pe7XNY9wKXz6TvgC8bodXPPKQRlcPjWSOzfjA=="],
 
-    "@jgengine/core": ["@jgengine/core@0.39.0", "", {}, "sha512-T+vOmI8Kqk7/a89xWHnFpBCpIv2n9arGFWU6W/49mJoBeyhtolQn1YG/ov3e5zZGlA8AMoU8uaNQ5Uqmnx4Rxg=="],
+    "@jgengine/core": ["@jgengine/core@0.40.0", "", {}, "sha512-jiJfYwqtZvyaHBsV0LXl0+ijQNHc3RnVquGnAatCIcr6pngKbcefEmEmpnn3n7TCLrdhlSLcq4kMObvMYfUruA=="],
 
-    "@jgengine/editor": ["@jgengine/editor@0.39.0", "", { "dependencies": { "@jgengine/assets": "^0.39.0", "@jgengine/core": "^0.39.0", "@jgengine/navbake": "^0.39.0", "@jgengine/react": "^0.39.0", "@jgengine/shell": "^0.39.0" }, "peerDependencies": { "@react-three/drei": "^10.0.0", "@react-three/fiber": "^9.0.0", "react": "^19.0.0", "react-dom": "^19.0.0", "three": ">=0.170.0" } }, "sha512-JjUZ8ImTEUH0gdpql5ym7bM64nBJ6pB1V6PO5dcB8MQbmhSPYSBPGxKBx65wTfxOIBYd5J0I3yfCZJ3ZsC0iZA=="],
+    "@jgengine/editor": ["@jgengine/editor@0.40.0", "", { "dependencies": { "@jgengine/assets": "^0.40.0", "@jgengine/core": "^0.40.0", "@jgengine/navbake": "^0.40.0", "@jgengine/react": "^0.40.0", "@jgengine/shell": "^0.40.0" }, "peerDependencies": { "@react-three/drei": "^10.0.0", "@react-three/fiber": "^9.0.0", "react": "^19.0.0", "react-dom": "^19.0.0", "three": ">=0.170.0" } }, "sha512-83r8RKafBXaDA0zpIzjQFXJwGf7andjT/ZkI8H1q+8a500ZU3b2OLega2BZjhsixPVxx6EqYZDQrNN/x0bAm6g=="],
 
-    "@jgengine/navbake": ["@jgengine/navbake@0.39.0", "", { "dependencies": { "@jgengine/core": "^0.39.0", "recast-navigation": "^0.34.0" } }, "sha512-b19rSDkV1a3uF/c4vewCtql8+6g7qmNFAroqmt7typkh5E3a9b8/XXpw8xLS53SXfIxpP00amGATTHBySDEYCw=="],
+    "@jgengine/navbake": ["@jgengine/navbake@0.40.0", "", { "dependencies": { "@jgengine/core": "^0.40.0", "recast-navigation": "^0.34.0" } }, "sha512-n+bXUNsOb+qN9YDHYCtLmh9x1qL5Cb1qLKYgIGiGdHoY9k8N2VMu3MxwZPyxKzyItT1ZalLCtW4dDrMLPHaNVw=="],
 
-    "@jgengine/node": ["@jgengine/node@0.39.0", "", { "dependencies": { "@jgengine/core": "^0.39.0", "@jgengine/ws": "^0.39.0", "ws": "^8.18.0" } }, "sha512-ShYj7Hm3gKEL7w9EWyk+wmn4VOUJvtZYDQ4WVmHYnqHw1pNXwwbmWUY7pvRJxhG1ySSvclYNgvrq0+ycPxGhLw=="],
+    "@jgengine/node": ["@jgengine/node@0.40.0", "", { "dependencies": { "@jgengine/core": "^0.40.0", "@jgengine/ws": "^0.40.0", "ws": "^8.18.0" } }, "sha512-SPV8vFXiajAW6lm8+j8UGWIeXTY/ih4zKSKy8yDebe2K2CaGUOtaZc0ORg80wEoG9MQcECBtm0n6djJWade8Bw=="],
 
-    "@jgengine/react": ["@jgengine/react@0.39.0", "", { "dependencies": { "@jgengine/core": "^0.39.0" }, "peerDependencies": { "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-Jg2skibhPpa/9qnIwUGEAPvD4Ddb1+0h7iYNJZVGW7jk868SDJ3R8SZLMIuddTh0rjgso5OGiJ/EOWxlv4kmNA=="],
+    "@jgengine/react": ["@jgengine/react@0.40.0", "", { "dependencies": { "@jgengine/core": "^0.40.0" }, "peerDependencies": { "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-kouUHgAqsHOc7YQQfcsN786jLQk8mUc1h2Wz4X/zaHJLxb57aUROKKAk6YDQ7wpGt1K8xI7YGg+sHykWd26cJw=="],
 
-    "@jgengine/shell": ["@jgengine/shell@0.39.0", "", { "dependencies": { "@jgengine/core": "^0.39.0", "@jgengine/react": "^0.39.0", "@jgengine/ws": "^0.39.0" }, "peerDependencies": { "@react-three/drei": "^10.0.0", "@react-three/fiber": "^9.0.0", "react": "^19.0.0", "three": ">=0.170.0", "three-stdlib": "^2.0.0" } }, "sha512-lItyTHL7Bst1aaVixvEtUGB2XDy4oqbEN6UEvpkf4jFIOHzWa7usm6/cZU53+e1JMXPaEWo6Pm1uFDCNgcKEsw=="],
+    "@jgengine/shell": ["@jgengine/shell@0.40.0", "", { "dependencies": { "@jgengine/core": "^0.40.0", "@jgengine/react": "^0.40.0", "@jgengine/ws": "^0.40.0" }, "peerDependencies": { "@react-three/drei": "^10.0.0", "@react-three/fiber": "^9.0.0", "react": "^19.0.0", "three": ">=0.170.0", "three-stdlib": "^2.0.0" } }, "sha512-34pIqmXGCtkZX60m+D7QZGUlxm6lqMf+mYRvZSLexRAO/2gQDawfHSCGflPXNuu1BhrjGbnGO38fNHPTpTcdMQ=="],
 
-    "@jgengine/ws": ["@jgengine/ws@0.39.0", "", { "dependencies": { "@jgengine/core": "^0.39.0" } }, "sha512-1BVplMX0dY7O3DWM5xDnOMDVgi1c/wimk93z49skF+b6ZwmVjYBqrmeQvMs8JolL/Nw7qocTIdLeSL8+LCMSjg=="],
+    "@jgengine/ws": ["@jgengine/ws@0.40.0", "", { "dependencies": { "@jgengine/core": "^0.40.0" } }, "sha512-1Fq+S2GmkMJROU/11Z4ZmLntJryDCglNkGLS771XsGBrW69u/NeTRIdzDgZEuVvnrD4fBFYx3zY0GPu+5AJLXA=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
@@ -765,6 +765,8 @@
     "its-fine": ["its-fine@2.0.0", "", { "dependencies": { "@types/react-reconciler": "^0.28.9" }, "peerDependencies": { "react": "^19.0.0" } }, "sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng=="],
 
     "jiti": ["jiti@2.7.0", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ=="],
+
+    "jpeg-js": ["jpeg-js@0.4.4", "", {}, "sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg=="],
 
     "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
 
