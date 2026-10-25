@@ -61,6 +61,7 @@ export const game = defineGame({
         buttons: [
           { action: "jump", label: "Handbrake", shape: "lever" },
           { action: "taxiDuty", label: "Taxi", kind: "utility" },
+          { action: "radio", label: "Radio", kind: "utility" },
           { action: "exitVehicle", label: "Exit", kind: "utility" },
         ],
       },

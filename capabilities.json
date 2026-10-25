@@ -7353,6 +7353,17 @@
       "intent": "map a pointer/stick vector to a radial-menu slice index, with a neutral dead zone and optional arc bounds"
     },
     {
+      "id": "radio-stations",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/audio/radio",
+      "domain": "audio",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "in-vehicle radio: stations that keep broadcasting while untuned, a dial with next/previous/off, a now-playing readout, and news/DJ bulletins fed by game events with priority, cooldown and break-in"
+    },
+    {
       "id": "raf-loop",
       "packages": [
         "@jgengine/react"

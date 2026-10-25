@@ -57,6 +57,7 @@ import { harborSave, holdSavesUntil, loadHarborSave, saveHarborState } from "./g
 import { createWaveRunner } from "@jgengine/core/ai/waveRunner";
 import { attachWaveFeedback } from "@jgengine/shell/audio/eventFeedback";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { registerRadio, tickRadio } from "./game/radio/runtime";
 
 const AGGRO_RADIUS = 18;
 const GANGER_SHOT_RANGE = 14;
@@ -289,6 +290,7 @@ function onInit(ctx: GameContext): void {
 
   registerCommands(ctx);
   registerCity(ctx);
+  registerRadio(ctx);
   // The cash journal is live before the first movement, opened at the wallet's balance.
   openBooks(ctx);
   registerCaptureCommands(ctx);
@@ -323,6 +325,7 @@ const DOCUMENT_AUTOSAVE_SEC = 3;
 const lastDocumentSave = perContext(() => ({ at: 0 }));
 
 function onTick(ctx: GameContext, dt: number): void {
+  tickRadio(ctx, dt);
   if (startedStore.read(ctx) !== true || gamePhase(ctx) !== "playing" || dt <= 0) return;
   const docClock = lastDocumentSave(ctx);
   if (ctx.time.now() - docClock.at >= DOCUMENT_AUTOSAVE_SEC) {
