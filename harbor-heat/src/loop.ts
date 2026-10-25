@@ -45,6 +45,7 @@ import { disposeWorld, setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierLoop, courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
+import { failGigs, tickGigs } from "./game/jobs/gigs";
 import { sessionStore, startedThisBoot, syncSession } from "./game/session";
 import {
   convoyRunners,
@@ -191,6 +192,7 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   finishCourier(ctx, false);
+  failGigs(ctx, "busted");
   failActiveJob(ctx);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
   syncPhase(ctx);
@@ -210,6 +212,7 @@ function tickWasted(ctx: GameContext): void {
   handrollOf(ctx).clearWanted(ctx);
   failActiveJob(ctx);
   finishCourier(ctx, false);
+  failGigs(ctx, "wasted");
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
   syncPhase(ctx);
 }
@@ -339,6 +342,7 @@ function onTick(ctx: GameContext, dt: number): void {
   ensureNightMarket(ctx);
   tickWasted(ctx);
   tickCourier(ctx, dt);
+  tickGigs(ctx, dt);
 }
 
 function onDispose(ctx: GameContext): void {

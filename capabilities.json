@@ -1,6 +1,6 @@
 {
   "generatedBy": "bun run capabilities:sync",
-  "engineVersion": "0.41.0",
+  "engineVersion": "0.42.0",
   "gameFacingRule": "Game-facing means the installed package ships a live probe with the capability: a devtools probe name or a window.__jgengine* readout. Every game declares each one: adopt it, or decline it as not-applicable (its domain does not exist here) or debt (this game has the domain and has not adopted the shared system, so an open issue tracks it).",
   "capabilities": [
     {
@@ -8212,6 +8212,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "downscale a captured frame to a save-card thumbnail data URL"
+    },
+    {
+      "id": "side-jobs",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/sideJobs",
+      "domain": "mission",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "offer and run repeatable side jobs (fares, deliveries, races) with fare math, deadlines, tips, streaks and wagers"
     },
     {
       "id": "sight-line",

@@ -83,6 +83,8 @@ export interface Driving {
   /** Re-apply saved bodywork to the cars a reload still has, handling included. */
   restoreVehicleDamage(ctx: GameContext, sections: Record<string, VehicleDamageState>): void;
   playerWorldPos(ctx: GameContext): readonly [number, number, number] | null;
+  /** Put a ground car somewhere else, at rest: the sim is rebuilt from the new pose on its next tick. */
+  placeVehicle(ctx: GameContext, vehicleId: string, position: readonly [number, number, number], heading: number): void;
   makeCarSim(
     vehicleId: string,
     tuning: KinematicVehicleTuning,
@@ -455,6 +457,10 @@ export function createDriving(): Driving {
     carSpeedKmh: () => lastTelemetry.speedMs * 3.6,
     telemetry: () => lastTelemetry,
     playerWorldPos,
+    placeVehicle(ctx, vehicleId, position, heading) {
+      dropCarSim(vehicleId);
+      ctx.scene.entity.setPose(vehicleId, { position, rotationY: heading });
+    },
     makeCarSim,
     refreshClamp,
     dropCarSim,
