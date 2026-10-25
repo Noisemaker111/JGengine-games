@@ -5,7 +5,8 @@ import { game } from "../../game.config";
 import { content } from "../content";
 import { captureOrbitSave, restoreOrbitSave, validOrbitSave } from "../session/save";
 import { householdStore } from "../session/store";
-import { dailyUpkeep, settleHouseholdDay } from "./economy";
+import { dailyUpkeep, settleHouseholdDay, TERM_RENT } from "./economy";
+import { GRANT_PER_GOAL } from "./charter";
 import { setupWorld } from "./setup";
 import { simulateHousehold } from "./simulate";
 
@@ -70,7 +71,12 @@ test("a large unattended gap charges all ten bills without replaying paid work",
   const { ctx, objects } = boot(10000, 0);
   simulateHousehold(ctx, ctx.time.advance(DAY_LENGTH * 10 - ctx.time.now()));
   expect(householdStore.read(ctx).economy.cursors.upkeep!.fired).toBe(10);
-  expect(householdStore.read(ctx).credits).toBe(10000 - dailyUpkeep(objects) * 10);
+  // The first settlement catches up seven bills at term one's rent and closes that term; the last
+  // three carry term two's rent and close it too. Each review pays its grant.
+  const charter = householdStore.read(ctx).charter!;
+  expect(charter.term).toBe(2);
+  const grants = GRANT_PER_GOAL * (charter.stars[0]! + charter.stars[1]!);
+  expect(householdStore.read(ctx).credits).toBe(10000 - dailyUpkeep(objects) * 7 - dailyUpkeep(objects, TERM_RENT[1]) * 3 + grants);
   expect(householdStore.read(ctx).dayIncome).toBe(0);
   ctx.game.save?.dispose();
 });

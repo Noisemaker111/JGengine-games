@@ -5,7 +5,7 @@ import { householdStore } from "./session/store";
 import { DAY_LENGTH } from "../world";
 
 /** What a staged household should look like when the capture takes it. */
-export type StageMode = "shift" | "week";
+export type StageMode = "shift" | "week" | "transmission" | "review";
 
 /** The half-second step the household sim is written for; `simulateHousehold` clamps longer frames. */
 const STEP = 0.25;
@@ -27,12 +27,21 @@ function advanceToShift(ctx: GameContext, maxSeconds: number): void {
 /**
  * Dev-only staging for the played household. `shift` stops at the moment somebody is at a station
  * on paid work; `week` runs the same simulation four days on, which is where mastery tiers and
- * promotion rungs move and where the roster stops looking like a fresh household. Play reaches
+ * promotion rungs move and where the roster stops looking like a fresh household; `transmission`
+ * stops when the first transmission waits on an answer; `review` runs to the first term's review. Play reaches
  * both by starting a household and waiting; `shoot --state mid-shift|mid-week` jumps here instead.
  */
 export function stageHousehold(ctx: GameContext, mode: StageMode = "shift"): void {
   if (mode === "week") {
     advanceFor(ctx, DAY_LENGTH * 3);
+    return;
+  }
+  if (mode === "transmission") {
+    for (let elapsed = 0; elapsed < DAY_LENGTH * 3 && householdStore.read(ctx).incident == null; elapsed += STEP) advanceFor(ctx, STEP);
+    return;
+  }
+  if (mode === "review") {
+    for (let elapsed = 0; elapsed < DAY_LENGTH * 6 && householdStore.read(ctx).charter?.review == null; elapsed += STEP) advanceFor(ctx, STEP);
     return;
   }
   advanceToShift(ctx, 180);

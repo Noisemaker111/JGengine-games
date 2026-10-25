@@ -16,6 +16,8 @@ import { LIFESTYLES, scheduleLabel, SHIFT_SECONDS, canChangeLifestyle, yieldShif
 import { FURNITURE_BY_ID } from "../../objects/catalog";
 import { shiftIsOpen } from "../../sim/schedule";
 import { AlienSwatch, MoodBadge, NeedBar } from "./bits";
+import { traitsOf } from "../../traits";
+import { Enamel } from "../fiction/kit";
 export function Inspector() {
   const household = useStore(householdStore);
   const { commands } = useGame();
@@ -45,6 +47,9 @@ export function Inspector() {
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><HudButton className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</HudButton></header>
     <div className="orbit-inspector-body">
     <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{activeGoalLabel(member, company)}</span></div>
+    <div className="orbit-traits" role="list" aria-label="Traits">{traitsOf(member).map(trait => <Enamel key={trait.id} role="listitem" tone="lilac" radius={99} padding="2px 10px" className="orbit-trait" title={trait.blurb}>{trait.label}</Enamel>)}</div>
+    <p className="orbit-fine">{traitsOf(member).map(trait => trait.blurb).join(" ")}</p>
+    {(member.illUntil ?? 0) > clock.now && <p className="orbit-warning">Fever: no paid work and rest drains faster for another {Math.ceil(((member.illUntil ?? 0) - clock.now) / 210 * 24)} hours.</p>}
     <div className="orbit-stress"><span>{member.recovering ? "Burnout recovery" : "Stress"}</span><span className="orbit-bar" role="meter" aria-label="Stress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(member.stress)}><i style={{ width: `${Math.round(Math.max(0, Math.min(100, member.stress)))}%`, background: "#ff9e8c" }}/></span><b>{Math.round(member.stress)}</b></div>
     {member.recovering && <p className="orbit-warning">Paid work stops during recovery. Reach 50 Nourish and Rest, then reduce stress below 35.</p>}
     <div className="orbit-full-needs">{NEEDS.map(need => <NeedBar key={need} need={need} value={member.needs[need]}/>)}</div>

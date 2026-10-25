@@ -14,6 +14,7 @@ import type { NeedDefinition } from "@jgengine/core/sim/needs";
 import { DAY_LENGTH } from "../world";
 import { NEEDS, NEED_DEFS, emptyNeeds, type NeedId } from "./needs/needs";
 import type { AlienBodyPlan } from "./creatures/bodyPlan";
+import { decayFactor } from "./traits";
 import { pairKey, type HouseholdState, type MemberState } from "./session/types";
 
 /** The household's tone on the shared mood scale; the face is the game's own art. */
@@ -67,13 +68,13 @@ export const MEMBER_OPTIONS = [
 ];
 
 /** Needs as the shared meter wants them: a per-day figure over the household's own day length. */
-export function memberNeeds(plan: AlienBodyPlan): NeedDefinition[] {
+export function memberNeeds(plan: AlienBodyPlan, traits: Pick<MemberState, "traits"> = {}): NeedDefinition[] {
   const start = emptyNeeds();
   return NEEDS.map((need) => ({
     id: need,
     max: 100,
     min: 0,
-    rate: (NEED_DEFS[need].decayPerDay / DAY_LENGTH) * plan.metabolism,
+    rate: (NEED_DEFS[need].decayPerDay / DAY_LENGTH) * plan.metabolism * decayFactor(traits, need),
     start: start[need],
   }));
 }
@@ -93,7 +94,7 @@ export function memberAgent(member: MemberState, rng: () => number): Agent {
   if (existing !== undefined) return existing;
   const agent = createAgent({
     id: member.id,
-    needs: memberNeeds(member.bodyPlan),
+    needs: memberNeeds(member.bodyPlan, member),
     options: MEMBER_OPTIONS,
     interrupts: [
       { need: "hunger", at: 0.15, when: "below", option: "hunger" },

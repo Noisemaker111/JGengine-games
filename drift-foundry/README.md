@@ -5,8 +5,9 @@ that never stops. Runs on published `@jgengine/*` packages; start it with `bun r
 from the repository root.
 
 The front end is the shared game menu over the live yard: **Continue run** opens the parked buggy
-with the build, clock and salvage it had, **New run** starts the next shift, **Pit garage** buys a
-ladder rung, and records, settings and credits live in the same pane. Pause parks the stopped buggy
+with the build, clock and salvage it had, **New run** starts the next shift on the event picked in
+the **Yard calendar**, **Pit garage** buys a ladder rung, and records, settings and credits live in
+the same pane. Pause parks the stopped buggy
 and captures the frame the card shows; returning to the pit keeps it until the next run replaces it.
 
 ## Design checklist
@@ -38,6 +39,21 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
     runs): HOBBS's line tightens 45% and his pace rises 4%, TALLY loses his tow, the crusher starts
     12 m closer, or the night crew brings both surges 6 s earlier and 0.6 m/s harder. Same seed and
     same run count, same sequence.
+  - [x] Calendar. Eight events in `src/game/events/catalog.ts`, each the corridor under other rules,
+    graded bronze/silver/gold on one number by the engine's medal board
+    (`@jgengine/core/progression/medalBoard`). Medals are worth 1/2/3 points; tiers open at
+    0 / 4 / 10 / 16 points of 24. Row Six: Salvage Run (finish place), Time Sheet (solo, clock),
+    Scrap Sweep (drops swept). Night Crew: Night Shift (crusher 15 m closer, +3.4 m/s between surges,
+    surges 8 s early and +1.5 m/s), Grudge: HOBBS (him alone at 106% pace on a tight line; margin at
+    the gate). Bare Metal: Bare Metal (garage shut, route salvage only), Crusher Rush (crusher from
+    -15 m at 11.2 m/s, solo). Yard Legend: Foundry Gauntlet (garage shut, night crusher, field at
+    107%). Each medal pays once, the first time it is earned: 60/120/220 cr in Row Six up to
+    200/400/700 cr in the Gauntlet. A scripted straight line takes bronze on the Time Sheet (40.1 s);
+    gold (31.5 s) needs the drops swept and the truck engine swapped in (28.7 s). A 4 s stall is
+    survivable on the Salvage Run and fatal on Night Shift and Crusher Rush.
+  - [x] Ghost. Timed events record the kart ten times a second on the engine recording buffer; the
+    fastest escape on each is saved to `drift-foundry.ghost.v1` and replays as a see-through teal
+    kart on the next run, with the tower reading metres ahead of or behind it.
   - [x] Field. Three rivals start ahead of you in the same corridor: TALLY (easy, EV build, wanders
     gate to gate), MOSS (standard, Salvage V6, weaves for the free side) and HOBBS (expert, Truck
     Engine, one clean outside line). Each drives with the shared `ai/driver` brain on its own line from
@@ -54,7 +70,7 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
   crossed the gate ahead of you. A clean escape is the only income worth planning around: every barrier,
   a high finish and a fast clock push the line toward x1.8, and that pays for the next ladder rung. By
   hour five the corridor, the twelve drops and both surges are memorised; what is left to chase is the
-  clock, the place, and the shift each new run opens with - HOBBS on a tighter line, TALLY honest, the
+  24 calendar medal points, your own ghost on each timed event, the place, and the shift each new run opens with - HOBBS on a tighter line, TALLY honest, the
   crusher already rolling, or the night crew running the surges early.
 - **References it is chasing.**
   - *Trackmania* — feel: restart is instant and the clock is the only opponent; density: one clean line
@@ -63,9 +79,9 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
     obstacle every few seconds; UI: barrier silhouettes read before you reach them.
   - *Mad Max (2015)* — feel: a car getting visibly uglier and faster; density: three distinct yards in
     one run; UI: pit-radio lines that name what you just bolted on.
-- **Gap to target.** One authored route and one lap. A second corridor, a lap circuit that returns
-  through a different yard, or a ghost of your best run would give the records board something to
-  chase after the first escape.
+- **Gap to target.** One authored route and one lap: all eight events race the same corridor, so
+  the calendar varies rules, not road. A second corridor or a lap circuit that returns through a
+  different yard is the next content step. Ghosts are local only; there is no shared leaderboard.
 
 Loop proof: to-corridor
 
