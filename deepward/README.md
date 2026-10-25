@@ -126,6 +126,27 @@ not the full design, is what the numbers describe.
   - [x] Lives. Death advances the Life once, keeps the stash, and stops at Halloway's reprint screen.
     A service rifle can be prepared for one departure (its rolled damage against the sidearm's 20), leaves
     the stash on departure, and is gone if that dive ends in death.
+  - [x] Below receiving. Four strata under Marrow, each its own light, cold, pressure and fauna:
+    Bellwether receiving (pressure 1), the Cold Stores (2, food drains three times as fast), the Ink Wells
+    (3, ink slows you and leaves a scent trail) and the Choir Deep (4). Lifts link them; a seal rated
+    below a floor's pressure takes 7 health a second per step over. The lift under the Cold Stores needs
+    the mast's cage code, and the last lift needs the Ink Wells relay's.
+  - [x] Fabricator. Scanning wrecks, suits, rigs and trays (C on a creature, E on a fragment) teaches seven
+    blueprints over one to three fragments each: plasma cutter (cable runs), Seal Mk II and III, seam drill
+    (ink seams), blood lure, spare cylinder (+40 s air) and rail crawler (land at your deepest lift, ride
+    home from any lift). Each prints from banked salvage.
+  - [x] Marrow's bays. Six bays take a cell generator (+3 power), water still (one water a 80 s), growbed
+    (one ration a 110 s), air scrubber (+25 s air) and radio mast (the story's ears), each costing power,
+    each built over 6-10 s while Marrow runs, all saved with the record.
+  - [x] Body. Food and water drain on every dive (faster in the cold); rations and water ride a belt (Q eats)
+    and anything left on the belt at extraction fills the galley, which feeds you between dives. Starving
+    costs health; a full galley and running bays turn survival into a background chore.
+  - [x] Creatures. Hands (passive, flee noise and light), couriers (territorial, hunt light, sound and blood,
+    wind up before a 16-damage strike) and the Overrun in the Choir. A lit lamp (F) is seen from further;
+    a thrown blood lure (G) pulls any hunter off you until it is eaten.
+  - [x] Story. Halloway's lines follow Marrow's state: build a generator, raise the mast, hear Printer Zero,
+    find the relay, seal for the Choir, take Pattern 406, bring it home. Logs scanned below fill the codex,
+    and the fabricator lists the job with what is done and what is next.
 - **Failure states.** Air at zero suffocates at 12 health a second; steam costs 18 a second; the Fitter
   print has 80 health, sees through a 12 m cone, hears a search at 15 m and winds up before it swings.
   Death banks nothing carried and requires acknowledging the reprint
@@ -141,8 +162,15 @@ not the full design, is what the numbers describe.
     re-cross; UI: air and depth readable without opening a map.
   - *Prey (2017)* — feel: a station that reads as somewhere people worked; density: rooms with a job, not
     corridors with props; UI: a hand wheel instead of a spellbook.
+- **Depth proof.** `depth-run` seeds a few-dives-in record, then plays two dives through the real verbs:
+  build a generator, still and mast and print the cutter, Seal Mk II and two lures; hear the mast's signal;
+  scan the cold stores' seed tray, cut a cable (its noise draws the courier), take rations, lure the
+  courier off a dark diver, extract; wait for the still to fill the galley, build the growbed the scan
+  taught; dive to the Ink Wells, scan the relay, step into the Choir past the seal's rating, ride home and
+  watch the growbed add a ration. The camera keeps its own heading, so its stills face the way the diver
+  walked in, not each target.
 - **Gap to target.** Five item kinds are the entire loot table even though every instance now rolls a
   level and a rarity. [DESIGN.md](DESIGN.md) describes six hand families and per-item trees; until some of
   that exists, the second delve has fewer new things to hold than the first.
 
-Loop proof: to-extraction
+Loop proof: to-extraction, depth-run

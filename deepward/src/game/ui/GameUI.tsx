@@ -21,6 +21,10 @@ import { DeepwardMenu } from "./menu/DeepwardMenu";
 import { RECORD_KEY, SAVE_KEY } from "../save";
 import { placement } from "./hudPanels";
 import { ActionPlate, DepthStrip, DiveComputer, Docket, HoldTab, KitCounter, RadioLine, Reticle, SearchBar, Visor } from "./VisorHud";
+import { FabricatorSheet } from "./FabricatorSheet";
+import { marrowOf } from "../marrow";
+import { nextGoal, sealMark } from "../deep";
+import { crushDamage, STRATA } from "../strata";
 import { useGameFonts } from "@jgengine/react/gameFonts";
 import { GAME_FONTS } from "../../art/fonts/fonts";
 
@@ -117,6 +121,15 @@ export function GameUI() {
   const journal = scripJournal(view.home, 4);
   const prepared = view.home.stash.find(item => item.id === view.rifleUid) ?? null;
   const close = () => { command("close"); grab(); };
+  // Marrow's base and story world, and what the body and the suit read on this floor.
+  const base = marrowOf(ctx);
+  const goal = nextGoal(view.deep, base);
+  const said = base.says("halloway");
+  const body = { food: view.deep.body.values.food ?? 0, water: view.deep.body.values.water ?? 0 };
+  const stratum = dive?.stratum ?? "vault";
+  const room = roomAt(at, stratum);
+  const depthRoom = stratum === "vault" ? room : room.replace(/^(\d+)\s*\/\s*/, (_, n: string) => `${n} / ${STRATA[stratum].name} · `);
+  const channelLabel = { search: "Searching", harvest: "Working", scan: "Scanning", supply: "Taking", creature: "Scanning", zero: "Copying" } as const;
   return <div className={`dw-ui dw-hud ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
     if (event.code === "Tab") event.stopPropagation();
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
@@ -130,10 +143,12 @@ export function GameUI() {
       </HudPanel>
       {dive !== null && <>
         <HudPanel {...placement("depth", portrait)} compact="keep" interactive={false} locked>
-          <DepthStrip room={roomAt(at, "vault")} />
+          <DepthStrip room={depthRoom} />
         </HudPanel>
         <HudPanel {...placement("air", portrait)} compact="keep" interactive={false} locked>
-          <DiveComputer oxygen={dive.oxygen} tank={dive.tankSeconds} health={dive.health} rail={distance(at, EXIT)} sealed={dive.tankSeconds > 110} low={low} hurt={dive.hurt > 0} />
+          <DiveComputer oxygen={dive.oxygen} tank={dive.tankSeconds} health={dive.health} rail={distance(at, EXIT)} sealed={dive.tankSeconds > 110} low={low} hurt={dive.hurt > 0}
+            body={body} seal={{ mark: sealMark(view.deep), pressure: STRATA[stratum].pressure, crushing: crushDamage(stratum, sealMark(view.deep)) > 0 }}
+            belt={{ ...dive.belt, lamp: dive.lamp }} />
         </HudPanel>
         <HudPanel {...placement("haul", portrait)} compact="keep" locked>
           <KitCounter weapon={weapon.label} loaded={view.ammo?.loaded ?? null} capacity={view.ammo?.capacity ?? null} reserve={view.ammo?.reserve ?? 0}
@@ -144,14 +159,16 @@ export function GameUI() {
       {view.mode === "home" && view.panel === null && <HudPanel {...placement("home", portrait)} compact="keep" interactive={false} locked>
         <Docket life={view.home.life} scrip={view.home.bank.banked} stash={view.home.stash.length} returns={view.home.extractions} lost={view.home.deaths}
           standing={`${marrowTier.id} / ${marrowScore}`}
-          next={view.rifleUid === null ? "issue sidearm · 12 squares free" : `${prepared?.name ?? "service rifle"} · rifle at risk`}
+          next={`${goal?.text ?? "Pattern 406 is home."} · ${view.rifleUid === null ? "issue sidearm" : `${prepared?.name ?? "service rifle"} at risk`}`}
+          brief={said.length > 0 ? `Halloway: ${said[said.length - 1]}` : undefined}
+          base={{ food: body.food, water: body.water, power: base.num("marrow.power"), meals: base.num("marrow.food"), flasks: base.num("marrow.water") }}
           last={view.home.last === null ? null : { kind: view.home.last.kind, reason: view.home.last.reason }} />
       </HudPanel>}
       <HudPanel {...placement("radio", portrait)} compact="keep" interactive={false} locked>
         <RadioLine hint={view.hint} error={view.error && view.mode !== "saving" && view.mode !== "blocked" ? view.error : null} />
       </HudPanel>
       <HudPanel {...placement("prompt", portrait)} compact="keep" locked>
-        {dive?.channel !== null && dive?.channel !== undefined ? <SearchBar remaining={dive.channel.remaining} total={1.4} />
+        {dive?.channel !== null && dive?.channel !== undefined ? <SearchBar remaining={dive.channel.remaining} total={dive.channel.total ?? 1.4} label={channelLabel[dive.channel.kind ?? "search"]} />
           : target !== null && view.panel === null && !view.paused ? <ActionPlate label={target.label} onAct={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }} />
           : null}
       </HudPanel>
@@ -193,6 +210,7 @@ export function GameUI() {
       <p role="status">{view.hint}</p>{view.error && <p role="alert">{view.error}</p>}
       <div className="dw-actions"><HudButton onClick={close}>Back to Marrow</HudButton><HudButton onClick={() => window.location.reload()}>Reload saved stash</HudButton></div>
     </HudSurface></div>}
+    {view.panel === "fabricator" && <FabricatorSheet dialogRef={shiftDialogRef} home={view.home} deep={view.deep} world={base} departTo={view.departTo} hint={view.hint} error={view.error} command={command} close={close} />}
     {view.panel === "cache" && dive !== null && <div className="dw-modal dw-cache-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet" aria-label="Carried cache" role="dialog" aria-modal="true" tabIndex={-1}>
       <HudButton className="dw-sheet-close" onClick={close}>Close cache ×</HudButton>
       <span className="dw-eyebrow">Carried cache / 4 × 3 / equipment capacity</span><h2>What fits comes home.</h2><p className="dw-error">The tank and prints keep moving while you pack.</p>

@@ -1,8 +1,11 @@
 {
   "adopts": [
     "audio-probe",
+    "codex",
+    "creature-temperament",
     "damage-runtime",
     "damage-target-unknown",
+    "decay-meter",
     "game-cursor",
     "game-font-stacks",
     "game-fonts",
@@ -11,12 +14,14 @@
     "game-save",
     "game-save-digest",
     "game-slider",
+    "game-spec",
     "hud-fade",
     "mount-game",
     "perception-service",
     "session-loop",
     "transaction-ledger",
-    "weapon-system"
+    "weapon-system",
+    "world-model"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [

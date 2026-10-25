@@ -125,6 +125,11 @@ export function stepValueProblem(kind: string, value: unknown): string | null {
       return typeof value === "string" && value.trim().length > 0 ? null : 'key takes a key chord such as "KeyW" or "KeyW+ShiftLeft"';
     case "reload":
       return null;
+    case "rpc":
+      // The engine's drive reads a bridge request object, e.g. {"method":"run_command","name":"x.y"}.
+      return value !== null && typeof value === "object" && !Array.isArray(value) && typeof (value as { method?: unknown }).method === "string"
+        ? null
+        : 'rpc takes a bridge request object such as {"method":"run_command","name":"game.command"}';
     default:
       return typeof value === "string" && value.trim().length > 0 ? null : `${kind} takes a non-empty string`;
   }

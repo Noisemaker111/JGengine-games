@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { CONDITION_TIMEOUT_MS, FLOW_STEP_KINDS, MAX_FLOW_DEPTH, RULES, STEP_EXTRAS, STEP_VALUE_FIELDS, conditionProblems, stepProblems } from "./flow-schema";
+import { CONDITION_TIMEOUT_MS, FLOW_STEP_KINDS, MAX_FLOW_DEPTH, RULES, STEP_EXTRAS, STEP_VALUE_FIELDS, conditionProblems, stepProblems, stepValueProblem } from "./flow-schema";
 
 const steps = (...list: unknown[]) => list.map((step, index) => stepProblems(step, `steps[${index}]`));
 const problems = (...list: unknown[]) => steps(...list).flatMap((checked) => checked.problems);
@@ -139,5 +139,13 @@ describe("parity with the runner", () => {
     expect(source).toContain(`DRIVE_FLOW_MAX_DEPTH = ${MAX_FLOW_DEPTH}`);
     const timeout = /DRIVE_CONDITION_TIMEOUT_MS = ([\d_]+)/.exec(source)?.[1];
     expect(Number((timeout ?? "").replaceAll("_", ""))).toBe(CONDITION_TIMEOUT_MS);
+  });
+});
+
+describe("rpc steps", () => {
+  test("take the bridge request object the engine's drive reads, not a string", () => {
+    expect(stepValueProblem("rpc", { method: "run_command", name: "game.go" })).toBeNull();
+    expect(stepValueProblem("rpc", '{"method":"run_command"}')).not.toBeNull();
+    expect(stepValueProblem("rpc", { name: "game.go" })).not.toBeNull();
   });
 });

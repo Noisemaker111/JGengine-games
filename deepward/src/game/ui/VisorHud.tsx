@@ -68,15 +68,20 @@ export interface DiveComputerProps {
   sealed: boolean;
   low: boolean;
   hurt: boolean;
+  /** The body and the suit below receiving: food, water, the seal against this floor's pressure, the belt. */
+  body?: { food: number; water: number };
+  seal?: { mark: number; pressure: number; crushing: boolean };
+  belt?: { ration: number; water: number; lure: number; lamp: boolean };
 }
 
 /** The wrist dive computer: air dial, suit cells and the bearing back to the rail. */
-export function DiveComputer({ oxygen, tank, health, rail, sealed, low, hurt }: DiveComputerProps): ReactNode {
+export function DiveComputer({ oxygen, tank, health, rail, sealed, low, hurt, body, seal, belt }: DiveComputerProps): ReactNode {
+  const meter = (value: number) => value <= 15 ? RED : value <= 35 ? AMBER : TEAL;
   const fraction = oxygen / tank;
   const color = low ? RED : fraction < 0.5 ? AMBER : TEAL;
   const suit = health <= 35 ? RED : health <= 60 ? AMBER : TEAL;
   return (
-    <HudFade watch={[Math.floor(oxygen / 15), Math.ceil(health / 10), Math.round(rail / 8)]} hold={low || hurt || health <= 35} idleMs={4000} dimTo={0.6}>
+    <HudFade watch={[Math.floor(oxygen / 15), Math.ceil(health / 10), Math.round(rail / 8), Math.ceil((body?.food ?? 0) / 10), Math.ceil((body?.water ?? 0) / 10), seal?.crushing, belt?.ration, belt?.water, belt?.lure, belt?.lamp]} hold={low || hurt || health <= 35 || seal?.crushing === true || (body !== undefined && Math.min(body.food, body.water) <= 15)} idleMs={4000} dimTo={0.6}>
       <section className="dw-computer" aria-label="Dive computer" data-low={low ? "" : undefined}>
         <GameFrame material="hull" cut="chamfer" depth={14} tint="#1b2c33" {...plate(low ? RED : "#04090b")} className="dw-rimmed" padding="10px 14px 10px 10px">
           <div className="dw-computer-face">
@@ -88,6 +93,12 @@ export function DiveComputer({ oxygen, tank, health, rail, sealed, low, hurt }: 
               <span className="dw-tag">{sealed ? "Sealed tank" : "Issue tank"}</span>
               <span className="dw-computer-alarm" role={low ? "alert" : undefined}>{oxygen === 0 ? "Suit bleeding" : low ? "Turn back" : " "}</span>
               <div className="dw-computer-row"><span className="dw-tag">Suit</span><Cells value={health} max={100} color={suit} /><b style={{ color: suit }}>{Math.ceil(health)}</b></div>
+              {body !== undefined && <>
+                <div className="dw-computer-row"><span className="dw-tag">Food</span><Cells value={body.food} max={100} color={meter(body.food)} /><b style={{ color: meter(body.food) }}>{Math.ceil(body.food)}</b></div>
+                <div className="dw-computer-row"><span className="dw-tag">Water</span><Cells value={body.water} max={100} color={meter(body.water)} /><b style={{ color: meter(body.water) }}>{Math.ceil(body.water)}</b></div>
+              </>}
+              {seal !== undefined && <div className="dw-computer-row"><span className="dw-tag">Seal Mk {seal.mark}</span><b style={{ color: seal.crushing ? RED : TEAL }}>P{seal.pressure}{seal.crushing ? "!" : ""}</b></div>}
+              {belt !== undefined && belt.ration + belt.water + belt.lure > 0 && <div className="dw-computer-row"><span className="dw-tag">Belt</span><b>{belt.ration}<small>F</small> {belt.water}<small>W</small> {belt.lure}<small>L</small></b></div>}
               <div className="dw-computer-row dw-computer-rail"><GameIcon name="flag" size={15} color={low ? RED : AMBER} /><span className="dw-tag">Rail</span><b>{Math.round(rail)}<small>m</small></b></div>
             </div>
           </div>
@@ -200,26 +211,36 @@ export interface DocketProps {
   standing: string;
   next: string;
   last: { kind: "extracted" | "lost"; reason: string } | null;
+  /** Halloway's current line from Marrow's world, in place of the stock brief. */
+  brief?: string;
+  /** Marrow's base at a glance: the galley, the power balance and the body. */
+  base?: { food: number; water: number; power: number; meals: number; flasks: number };
 }
 
 /** At Marrow the visor is up: the departure docket torn off the rail printer, and the keys to walk to it. */
-export function Docket({ life, scrip, stash, returns, lost, standing, next, last }: DocketProps): ReactNode {
+export function Docket({ life, scrip, stash, returns, lost, standing, next, last, brief, base }: DocketProps): ReactNode {
   return (
     <aside className="dw-docket" aria-label="Marrow departure">
         <GameFrame material="paper" cut="torn" depth={9} {...plate("rgba(0,0,0,0.4)")} className="dw-rimmed" padding="14px 18px 22px">
           <span className="dw-docket-line"><span>Marrow · line 06</span><span>Life {String(life).padStart(2, "0")}</span></span>
           <h2>Rail departure / 06</h2>
-          <p className="dw-docket-brief">Ride to Bellwether. Fill the cache. Ride back before the air runs out.</p>
+          <p className="dw-docket-brief">{brief ?? "Ride to Bellwether. Fill the cache. Ride back before the air runs out."}</p>
           <dl>
             <div><dt>Scrip</dt><dd>{scrip}</dd></div>
             <div><dt>Stash</dt><dd>{stash}</dd></div>
             <div><dt>Returns</dt><dd>{returns}</dd></div>
             <div><dt>Lost</dt><dd>{lost}</dd></div>
+            {base !== undefined && <>
+              <div><dt>Food</dt><dd>{Math.ceil(base.food)}</dd></div>
+              <div><dt>Water</dt><dd>{Math.ceil(base.water)}</dd></div>
+              <div><dt>Galley</dt><dd>{Math.floor(base.meals)}/{Math.floor(base.flasks)}</dd></div>
+              <div><dt>Power</dt><dd>{base.power}</dd></div>
+            </>}
           </dl>
           <p className="dw-docket-next"><b>Next</b> {next}</p>
           <p className="dw-docket-standing"><b>Standing</b> {standing}</p>
           {last !== null && <p className="dw-docket-last" data-kind={last.kind}><span className="dw-stamp">{last.kind === "extracted" ? "Returned" : "Reprinted"}</span>{last.reason}</p>}
-          <p className="dw-docket-keys" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk <kbd>E</kbd> use <kbd>Esc</kbd> hold</p>
+          <p className="dw-docket-keys" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk <kbd>E</kbd> use <kbd>F</kbd> lamp <kbd>Q</kbd> eat <kbd>G</kbd> lure <kbd>C</kbd> scan <kbd>Esc</kbd> hold</p>
       </GameFrame>
     </aside>
   );
@@ -234,10 +255,10 @@ export function ActionPlate({ label, onAct }: { label: string; onAct: () => void
   );
 }
 
-export function SearchBar({ remaining, total }: { remaining: number; total: number }): ReactNode {
+export function SearchBar({ remaining, total, label = "Searching" }: { remaining: number; total: number; label?: string }): ReactNode {
   return (
     <div className="dw-search" role="status">
-      <span className="dw-tag">Searching · hold still</span>
+      <span className="dw-tag">{label} · hold still</span>
       <span className="dw-search-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, ((total - remaining) / total) * 100)}%` }} /></span>
       <small><kbd>E</kbd> cancel</small>
     </div>
