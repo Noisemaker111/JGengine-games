@@ -1,4 +1,5 @@
 import type { AgentSnapshot } from "@jgengine/core/agents/agent";
+import type { Thought, ThoughtTally } from "./sim/thoughts";
 
 /**
  * What the park keeps outside its world: the walking guests and janitors (agents with bodies), what
@@ -27,6 +28,10 @@ export interface GuestState {
   busy: number;
   /** Everything the shared agent loop owns: needs, mood, held action and the far flag. */
   agent: AgentSnapshot;
+  /** What it has been thinking, newest first. */
+  thoughts?: Thought[];
+  /** Game-second it next checks how it feels. */
+  nextThink?: number;
 }
 
 /** One staffed post's janitor: an agent walking the beat its post authored. */
@@ -38,11 +43,15 @@ export interface StaffState {
 
 export interface Session {
   selectedTool: string | null;
+  /** Quarter turns the next build faces (Z turns it). */
+  rotation: number;
   selectedObject: string | null;
   guests: Map<string, GuestState>;
   staff: Map<string, StaffState>;
   /** Guests heading for or at each stall this tick - a crowd the next guest prices in. Rebuilt every tick. */
   occupants: Map<string, number>;
+  /** The crowd's fresh thoughts, counted every tick. */
+  thoughts: ThoughtTally;
   spawnAcc: number;
   guestSeq: number;
   started: boolean;
@@ -53,10 +62,12 @@ export interface Session {
 function freshSession(): Session {
   return {
     selectedTool: null,
+    rotation: 0,
     selectedObject: null,
     guests: new Map(),
     staff: new Map(),
     occupants: new Map(),
+    thoughts: { top: [], complaintShare: 0 },
     spawnAcc: 0,
     guestSeq: 0,
     started: false,

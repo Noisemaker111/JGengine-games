@@ -7,6 +7,7 @@ import { DAY_LENGTH } from "./catalog";
 import { BUILDABLES } from "./objects/catalog";
 import { cellFor, LOAN, park, parkMetrics, QUICK_REPAIR } from "./park";
 import { forceBreakdown } from "./capture";
+import { connectPark } from "./build/links";
 import { rideView } from "./rides";
 import { closeDay } from "./sim/economy";
 import { ratingTarget } from "./sim/rating";
@@ -48,6 +49,9 @@ describe("Brightway Park as one declaration", () => {
     expect(w.num("park.cash")).toBe(before - carousel.cost);
     expect(w.num("n.ride_carousel")).toBe(2);
     const ride = w.instances("ride_carousel").at(-1)!.id;
+    // A ride opens once an entrance and an exit join it to the paths (laid free here).
+    connectPark(runner.ctx, { only: ride, free: true });
+    expect(w.fact(`${ride}.closed`)).toBe(false);
 
     // Income: guests come through the gate and pay; the day's takings are a world fact.
     step(runner, 40);
@@ -97,7 +101,9 @@ describe("Brightway Park as one declaration", () => {
 
   test("a mechanic bay sends the quicker crew order", () => {
     const { runner, w } = openPark();
-    w.set("park.peak", 400);
+    // The bay is a lab topic: locked until its research lands.
+    expect(runner.ctx.game.commands.run("brightway.place", { kind: "staff_mechanic", cell: cellFor("staff_mechanic", 40, 40) }).status).toBe("rejected");
+    w.set("research.staff_mechanic", true);
     expect(runner.ctx.game.commands.run("brightway.place", { kind: "staff_mechanic", cell: cellFor("staff_mechanic", 40, 40) }).status).toBe("applied");
     const ride = w.instances("ride_carousel")[0]!.id;
     forceBreakdown(runner.ctx, ride);
@@ -106,14 +112,18 @@ describe("Brightway Park as one declaration", () => {
     expect(order.remaining).toBeCloseTo(Math.round(BUILDABLES.ride_carousel!.ride!.breakdown.repairSeconds * QUICK_REPAIR), 0);
   });
 
-  test("the loan is an action with its instalment as a nightly ripple; midnight restocks the stalls", () => {
+  test("the park opens in debt; borrowing is an action, interest is a nightly ripple; midnight restocks the stalls", () => {
     const { runner, w } = openPark();
+    expect(w.num("park.loan_owed")).toBe(LOAN.start);
     const cash = w.num("park.cash");
     expect(runner.ctx.game.commands.run("brightway.act", { action: "take_loan" }).status).toBe("applied");
-    expect(w.num("park.cash")).toBe(cash + LOAN.principal);
-    expect(w.num("park.loan_owed")).toBe(LOAN.payment * LOAN.nights);
-    // One loan at a time.
+    expect(w.num("park.cash")).toBe(cash + LOAN.step);
+    expect(w.num("park.loan_owed")).toBe(LOAN.start + LOAN.step);
+    // The bank stops at its ceiling.
+    while (w.num("park.loan_owed") < LOAN.max) runner.ctx.game.commands.run("brightway.act", { action: "take_loan" });
     expect(runner.ctx.game.commands.run("brightway.act", { action: "take_loan" }).status).toBe("rejected");
+    const owed = w.num("park.loan_owed");
+    const interest = Math.round(owed * LOAN.dailyRate);
 
     const stall = w.instances("stall_food")[0]!.id;
     w.change({ [`${stall}.sold`]: 10 });
@@ -121,14 +131,14 @@ describe("Brightway Park as one declaration", () => {
     const tillBefore = w.num("park.cash");
     closeDay(runner.ctx);
     expect(w.num(`${stall}.sold`)).toBe(0);
-    expect(w.num("park.loan_owed")).toBe(LOAN.payment * (LOAN.nights - 1));
-    expect(w.num("park.cash")).toBe(tillBefore - restock - LOAN.payment);
-    expect(w.num("park.upkeep_yesterday")).toBeGreaterThanOrEqual(restock + LOAN.payment);
+    expect(w.num("park.loan_owed")).toBe(owed);
+    expect(w.num("park.cash")).toBe(tillBefore - restock - interest);
+    expect(w.num("park.upkeep_yesterday")).toBeGreaterThanOrEqual(restock + interest);
     expect(w.num("park.day")).toBe(2);
 
     // Paying early is the same instalment, from the till, on demand.
     expect(runner.ctx.game.commands.run("brightway.act", { action: "repay_loan" }).status).toBe("applied");
-    expect(w.num("park.loan_owed")).toBe(LOAN.payment * (LOAN.nights - 2));
+    expect(w.num("park.loan_owed")).toBe(owed - LOAN.step);
   });
 
   test("ride and entry prices are world facts the actions move inside their bounds", () => {
@@ -137,6 +147,6 @@ describe("Brightway Park as one declaration", () => {
     runner.ui.invoke("brightway.act", { action: "price_up_ride_carousel" });
     expect(w.num("price.ride_carousel")).toBe(price + 1);
     for (let i = 0; i < 80; i += 1) runner.ui.invoke("brightway.act", { action: "ticket_down" });
-    expect(w.num("park.ticket")).toBe(4);
+    expect(w.num("park.ticket")).toBe(0);
   });
 });

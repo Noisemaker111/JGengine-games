@@ -1,5 +1,5 @@
 // Coasters and coaster-builder track pieces.
-import { T, P, V, Y, box, cyl, ball, ring, beam, group, mesh, segBox, deckRect, bulbLine, pennant, bunting, railing, signBoard, stairs, tube, frames, pathLengths, onPath, buildTrack, Turtle, lampPost, shrub, tree } from './core.mjs';
+import { T, P, V, Y, loopShift, box, cyl, ball, ring, beam, group, mesh, segBox, deckRect, bulbLine, pennant, bunting, railing, signBoard, stairs, tube, frames, pathLengths, onPath, buildTrack, Turtle, lampPost, shrub, tree } from './core.mjs';
 
 const PI = Math.PI;
 function steelCar(c, color, front) {
@@ -139,7 +139,7 @@ export function trackLoop() {
   const g = new T.Group(), pts = [], ups = [], R = 3, c = 4 / (PI * 2), a = 1.6, n = 64;
   for (let i = 0; i <= n; i++) {
     const th = i / n * PI * 2;
-    pts.push(V(1.0 * Math.sin(th), 1.1 + R * (1 - Math.cos(th)), -2 + c * th + a * Math.sin(th)));
+    pts.push(V(4.4 * loopShift(th), 1.1 + R * (1 - Math.cos(th)), -2 + c * th + a * Math.sin(th)));
     ups.push(V(0, c + a * Math.cos(th), -R * Math.sin(th)).normalize());
   }
   const F = piece(g, pts, ups, [1, n - 1]);

@@ -66,7 +66,7 @@ export function pirate(motion) {
   const g = new T.Group();
   deckRect(g, 8.6, 11.2, .25, 0, 0, P.cream);
   // boarding decks either side of the ship
-  for (const x of [-3.2, 3.2]) { deckRect(g, 2.0, 6.6, .9, x, 0, P.wood); railing(g, [[x + Math.sign(x) * .95, -3.2], [x + Math.sign(x) * .95, 3.2]], .9, P.cream, .9); }
+  for (const x of [-3.2, 3.2]) { deckRect(g, 2.0, 6.6, .9, x, 0, P.cream); railing(g, [[x + Math.sign(x) * .95, -3.2], [x + Math.sign(x) * .95, 3.2]], .9, P.cream, .9); }
   for (const x of [-3.2, 3.2]) stairs(g, x, 3.3, 1.4, .9, 0);
   // A-frames
   const PY = 7.4;
@@ -81,27 +81,27 @@ export function pirate(motion) {
   const s = new T.Group(); s.name = 'PirateShip';
   const hullShape = new T.Shape(); const prof = [[-4.1, 1.35], [-3.5, .5], [-2.4, -.55], [-1, -.95], [1, -.95], [2.4, -.55], [3.5, .5], [4.1, 1.35], [3.4, 1.05], [2.9, .5], [-2.9, .5], [-3.4, 1.05]];
   hullShape.moveTo(...prof[0]); for (const p of prof.slice(1)) hullShape.lineTo(...p); hullShape.closePath();
-  const hg = new T.ExtrudeGeometry(hullShape, { depth: 2.3, bevelEnabled: true, bevelSize: .08, bevelThickness: .08, bevelSegments: 1 }); hg.translate(0, 0, -1.15);
+  const hg = new T.ExtrudeGeometry(hullShape, { depth: 2.5, bevelEnabled: true, bevelSize: .08, bevelThickness: .08, bevelSegments: 1 }); hg.translate(0, 0, -1.25);
   const deckY = -5.0;
-  mesh(s, hg, P.coral, [0, deckY - .5, 0], [0, Math.PI / 2, 0]);
-  for (const x of [-1.24, 1.24]) { box(s, [.05, .14, 6.6], P.gold, [x, deckY - .35, 0]); box(s, [.05, .1, 5.4], P.cream, [x, deckY - .85, 0]); for (let k = -2; k <= 2; k++) ball(s, .11, P.gold, [x * 1.02, deckY - .6, k * 1.2], 0); }
-  box(s, [2.2, .06, 5.8], P.wood, [0, deckY + .02, 0]);
-  for (let k = -2; k <= 2; k++) { const z = k * 1.05; box(s, [2.1, .35, .4], P.darkwood, [0, deckY + .2, z]); box(s, [2.1, .5, .1], P.cream, [0, deckY + .45, z - .22]); box(s, [2.1, .06, .08], P.gold, [0, deckY + .7, z + .25]); }
+  mesh(s, hg, P.coral, [0, deckY - .5, 0], [0, Math.PI / 2, 0]).scale.x = .86;
+  for (const x of [-1.34, 1.34]) { box(s, [.05, .14, 5.7], P.gold, [x, deckY - .35, 0]); box(s, [.05, .1, 4.6], P.cream, [x, deckY - .85, 0]); for (let k = -2; k <= 2; k++) ball(s, .11, P.gold, [x * 1.02, deckY - .6, k * 1.0], 0); }
+  box(s, [2.4, .06, 5.0], P.wood, [0, deckY + .02, 0]);
+  for (let k = -2; k <= 2; k++) { const z = k * .92; box(s, [2.1, .35, .4], P.darkwood, [0, deckY + .2, z]); box(s, [2.1, .5, .1], P.cream, [0, deckY + .45, z - .22]); box(s, [2.1, .06, .08], P.gold, [0, deckY + .7, z + .25]); }
   // bow figurehead and stern lantern
-  ball(s, .28, P.gold, [0, deckY + .7, 4.25], 1); box(s, [.3, .3, .5], P.gold, [0, deckY + .4, 4.0]); ball(s, .2, P.glow, [0, deckY + 1.0, -4.15], 1);
+  ball(s, .28, P.gold, [0, deckY + .7, 3.62], 1); box(s, [.3, .3, .5], P.gold, [0, deckY + .4, 3.4]); ball(s, .2, P.glow, [0, deckY + 1.0, -3.55], 1);
   // mast, sail, flag
   beam(s, [0, deckY, 0], [0, -1.15, 0], .1, P.darkwood, 6); beam(s, [0, -2.4, -1.4], [0, -2.4, 1.4], .06, P.darkwood, 4);
   const sail = new T.Shape(); sail.moveTo(-1.3, 0); sail.lineTo(1.3, 0); sail.quadraticCurveTo(1.6, -1.3, 1.35, -2.2); sail.lineTo(-1.35, -2.2); sail.quadraticCurveTo(-1.6, -1.3, -1.3, 0);
-  mesh(s, new T.ShapeGeometry(sail), P.cream, [.15, -2.45, 0], [0, Math.PI / 2, 0], { double: true });
+  mesh(s, new T.ShapeGeometry(sail), P.cream, [.15, -2.45, 0], [0, Math.PI / 2, 0], { double: true }).scale.set(1.3, 1, 1);
   box(s, [.04, .5, 1.6], P.coral, [.17, -3.5, 0]);
   cyl(s, .35, .3, P.darkwood, [0, -1.9, 0], .4, 8);
   const flag = new T.Shape(); flag.moveTo(0, 0); flag.lineTo(.9, -.1); flag.lineTo(.8, -.55); flag.lineTo(0, -.5); flag.closePath();
   mesh(s, new T.ShapeGeometry(flag), P.ink, [0, -1.25, .1], [0, -Math.PI / 2, 0], { double: true });
   // arms from axle to the hull
-  for (const x of [-1.32, 1.32]) for (const z of [-2.5, 2.5]) beam(s, [x * .98, 0, 0], [x, deckY + .35, z], .12, P.teal, 6);
-  for (const x of [-1.32, 1.32]) beam(s, [x, deckY + .35, -2.5], [x, deckY + .35, 2.5], .08, P.teal, 6);
+  for (const x of [-1.42, 1.42]) for (const z of [-2.2, 2.2]) beam(s, [x * .98, 0, 0], [x, deckY + .35, z], .12, P.teal, 6);
+  for (const x of [-1.42, 1.42]) beam(s, [x, deckY + .35, -2.2], [x, deckY + .35, 2.2], .08, P.teal, 6);
   cyl(s, .32, 2.8, P.gold, [0, 0, 0], .32, 10).rotation.z = Math.PI / 2;
-  motion('ride_pirate_motion', s, { ride: 'ride_pirate', kind: 'swing', pivot: [0, PY, 0], speed: .12, amplitude: .7 });
+  motion('ride_pirate_motion', s, { ride: 'ride_pirate', kind: 'swing', pivot: [0, PY, 0], speed: .12, amplitude: .75 });
   return g;
 }
 

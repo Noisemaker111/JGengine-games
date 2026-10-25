@@ -11,7 +11,8 @@ import { Inspector } from "./components/Inspector";
 import { ParkBooks, ParkGoal, ParkStatus } from "./components/ParkDashboard";
 import { ParkFlow, resultOpen } from "./components/ParkFlow";
 import { ParkMenu } from "./menu/ParkMenu";
-import { PARK_PANELS } from "./panels";
+import { BUILD_PANEL, PARK_PANELS, RESEARCH_PANEL } from "./panels";
+import { ResearchPanel } from "./components/ResearchPanel";
 import { session } from "../session";
 import { usePark } from "./usePark";
 
@@ -44,10 +45,11 @@ export function GameUI() {
           <KitButton size="sm" pressed={clock.paused} aria-label="Pause park" onClick={() => commands.run("pauseToggle", {})}>Ⅱ</KitButton>
           {clock.speeds.map((s) => <KitButton key={s} size="sm" pressed={!clock.paused && clock.speed === s} onClick={() => commands.run("park.speed", { speed: s })}>{s}×</KitButton>)}
           <KitButton size="sm" variant="ghost" pressed={panels.isOpen("build")} icon="🏗" onClick={() => panels.toggle("build")}><span className="bw-wide">Build</span></KitButton>
+          <KitButton size="sm" variant="ghost" pressed={panels.isOpen(RESEARCH_PANEL)} icon="🔬" onClick={() => panels.toggle(RESEARCH_PANEL)}><span className="bw-wide">Lab</span></KitButton>
           <KitButton size="sm" variant="ghost" pressed={panels.isOpen("books")} icon="📒" onClick={() => panels.toggle("books")}><span className="bw-wide">Books</span></KitButton>
         </nav>
-        <div className="bw-side">{inspecting ? <Inspector /> : panels.isOpen("books") ? <ParkBooks onClose={() => panels.close("books")} /> : null}</div>
-        <div className="bw-bottom">{!clock.paused && <CameraPad />}{panels.isOpen("build") && <BuildBar onClose={() => panels.close("build")} />}</div>
+        <div className="bw-side">{inspecting ? <Inspector /> : panels.isOpen("books") ? <ParkBooks onClose={() => panels.close("books")} /> : panels.isOpen(RESEARCH_PANEL) ? <ResearchPanel onClose={() => panels.close(RESEARCH_PANEL)} /> : null}</div>
+        <div className="bw-bottom">{!clock.paused && <CameraPad />}{panels.isOpen(BUILD_PANEL) && <BuildBar onClose={() => panels.close(BUILD_PANEL)} onResearch={() => { panels.close("books"); panels.open(RESEARCH_PANEL); }} />}</div>
       </>}
       <ParkMenu reducedMotion={reducedMotion} onReducedMotion={onReducedMotion} />
       <ParkFlow />

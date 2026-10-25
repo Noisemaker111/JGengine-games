@@ -12,6 +12,7 @@ import { syncAmbience } from "./audio";
 import { tickRating } from "./sim/economy";
 import { spawnGuests, tickGuests, tickRidePark } from "./sim/guests";
 import { tickStaff } from "./staff";
+import { BLUE_RIBBON } from "./milestones";
 import { park, parkMetrics } from "./park";
 import { breakRide, syncRidePark } from "./rides";
 
@@ -47,8 +48,8 @@ export function stepPark(ctx: GameContext, dt: number): void {
   tickGuests(ctx, dt, metrics.tracks);
   tickRating(ctx, dt, metrics);
   // The blue ribbon is free play's own goal; a scenario is a world job with its own win and fail.
-  if (w.fact("scenario.id") === "" && w.fact("park.won") !== true && metrics.rides >= 3 && w.num("park.rating") >= 220 &&
-      w.num("park.mood") >= 50 && w.num("park.litter") <= 40 &&
+  if (w.fact("scenario.id") === "" && w.fact("park.won") !== true && metrics.rides >= BLUE_RIBBON.rides && w.num("park.rating") >= BLUE_RIBBON.rating &&
+      w.num("park.mood") >= BLUE_RIBBON.mood && w.num("park.litter") <= BLUE_RIBBON.litter &&
       w.num("park.day") > 1 && w.num("park.revenue_yesterday") >= w.num("park.upkeep_yesterday")) {
     w.set("park.won", true);
     ctx.time.pause();
@@ -115,6 +116,10 @@ export function parkReadout(ctx: GameContext): Record<string, unknown> {
     crew: w.orders("crew").map((order) => ({ target: order.target, progress: Math.round(order.progress * 100) / 100, active: order.active })),
     selected: session.selectedObject,
     structures: w.instances().length,
+    // What the crowd is doing and which rides are shut: the drive reads it to check guests reach rides.
+    phases: [...session.guests.values()].reduce<Record<string, number>>((acc, guest) => ({ ...acc, [guest.phase]: (acc[guest.phase] ?? 0) + 1 }), {}),
+    heading: [...session.guests.values()].reduce<Record<string, number>>((acc, guest) => (guest.targetId === null ? acc : { ...acc, [guest.targetId]: (acc[guest.targetId] ?? 0) + 1 }), {}),
+    shut: rides.filter((entry) => w.fact(`${entry.id}.closed`) === true).map((entry) => entry.id),
   };
 }
 
@@ -127,6 +132,14 @@ export function registerCaptureCommands(ctx: GameContext): void {
       const w = park.of(state);
       const id = input.id ?? w.instances().find((entry) => entry.kind.startsWith("ride_") && w.fact(`${entry.id}.broken`) !== true)?.id;
       if (id !== undefined) forceBreakdown(state, id);
+      return state;
+    },
+  });
+  // The drive inspects the newest structure of a kind, the way a click on it would.
+  ctx.game.commands.define<{ kind: string }>("park.dev.select", {
+    apply(state, input) {
+      session.selectedTool = null;
+      session.selectedObject = park.of(state).instances(input.kind).at(-1)?.id ?? null;
       return state;
     },
   });

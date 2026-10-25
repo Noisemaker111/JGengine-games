@@ -18,7 +18,7 @@ function activity(name: string | null, phase: string): string {
   return "Looking for something to do";
 }
 
-/** The guest window: the mood the shared agent loop holds, its needs, and what it is doing. */
+/** The guest window: the mood the shared agent loop holds, what it is thinking, its needs, and what it is doing. */
 export function GuestPanel({ id }: { id: string }) {
   const ctx = useGameContext();
   const view = useGameStore(() => {
@@ -27,16 +27,21 @@ export function GuestPanel({ id }: { id: string }) {
     const agent = liveAgent(id);
     const mood = agent?.mood();
     const fullness = (need: string) => Math.round((agent?.needs.fraction(need) ?? 0) * 100);
-    return [guest.kind, mood?.label ?? "", Math.round(mood?.score ?? 0), Math.round(guest.money), fullness("hunger"), fullness("thirst"), guest.visits, guest.phase, guest.targetId ?? ""].join("|");
+    return [guest.kind, mood?.label ?? "", Math.round(mood?.score ?? 0), Math.round(guest.money), fullness("hunger"), fullness("thirst"), guest.visits, guest.phase, guest.targetId ?? "",
+      fullness("toilet"), fullness("nausea"), fullness("energy"), fullness("info"), (guest.thoughts ?? []).map((thought) => thought.text).join("~")].join("|");
   });
   if (view === null) return null;
-  const [kind, moodLabel, moodScore, money, fullness, thirst, visits, phase, targetId] = view.split("|");
+  const [kind, moodLabel, moodScore, money, fullness, thirst, visits, phase, targetId, toilet, stomach, energy, bearings, thoughts] = view.split("|");
   const score = Number(moodScore);
   return (
     <KitPanel variant="card" aria-label="Guest details" eyebrow="🎟️ Guest" title={guestRidePreference(kind!).label} aside={<CloseButton label="Close guest window" />}>
       <p className="bw-blurb">{activity(parkObject(ctx, targetId === "" ? null : targetId!)?.def.label ?? null, phase!)}</p>
       <KitMeter size="sm" label={`Mood · ${moodLabel}`} value={score} max={100} readout={`${score}%`} tone={score >= 50 ? "good" : score >= 35 ? "warn" : "bad"} />
-      <Rows rows={[["Money", `$${money}`], ["Hungry", `${100 - Number(fullness)}%`], ["Thirsty", `${100 - Number(thirst)}%`], ["Stops made", visits]]} />
+      {thoughts ? <ul className="bw-thoughts" aria-label="Guest thoughts">
+        {thoughts.split("~").map((text, i) => <li key={i} data-latest={i === 0 ? "" : undefined}>“{text}”</li>)}
+      </ul> : null}
+      <Rows rows={[["Money", `$${money}`], ["Hungry", `${100 - Number(fullness)}%`], ["Thirsty", `${100 - Number(thirst)}%`],
+        ["Needs the toilet", `${100 - Number(toilet)}%`], ["Queasy", `${100 - Number(stomach)}%`], ["Tired", `${100 - Number(energy)}%`], ["Lost", `${100 - Number(bearings)}%`], ["Stops made", visits]]} />
     </KitPanel>
   );
 }

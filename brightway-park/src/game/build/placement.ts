@@ -2,11 +2,14 @@ import type { WorldModel } from "@jgengine/core/worldModel/worldModel";
 
 import { BUILDABLES } from "../objects/catalog";
 import { cellFor, sizeOf } from "../park";
+import { ENTRANCE, EXIT, touchesRide } from "./network";
+import { levelUnder } from "./terrain";
 
 /**
- * The one placement rule the world cannot declare: coaster track has to touch the station or track
- * already laid. Everything else - the lot's edge, a taken cell, a locked blueprint, the cash - is the
- * world's own `canPlace`.
+ * The placement rules the world cannot declare: coaster track has to touch the station or track
+ * already laid, anything but a path needs level ground, and a ride entrance or exit has to stand
+ * against a ride. Everything else - the lot's edge, a taken cell, a locked blueprint, the cash - is
+ * the world's own `canPlace`.
  */
 
 const RAIL = new Set(["track_piece", "ride_coaster"]);
@@ -38,6 +41,13 @@ export function placementAt(w: WorldModel, kind: string, x: number, z: number): 
   if (refused !== null) return { ok: false, reason: refused.reason === "blocked" ? "Outside the fence" : refused.message, code: refused.reason };
   if (BUILDABLES[kind]!.category === "track" && !touchesRail(w, cell)) {
     return { ok: false, reason: "Track must touch the station or existing track", code: "rail" };
+  }
+  // Paths climb from level to level; everything else needs flat ground under its whole footprint.
+  if (BUILDABLES[kind]!.category !== "path" && !levelUnder(w, kind, cell)) {
+    return { ok: false, reason: "The ground isn’t level here", code: "slope" };
+  }
+  if ((kind === ENTRANCE || kind === EXIT) && !touchesRide(w, cell)) {
+    return { ok: false, reason: "Put it right against a ride", code: "door" };
   }
   return { ok: true, cell };
 }

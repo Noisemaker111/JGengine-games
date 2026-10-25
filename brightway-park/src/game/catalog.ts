@@ -1,4 +1,4 @@
-export const STARTING_CASH = 6000;
+export const STARTING_CASH = 10000;
 
 export const GRID = 4;
 
@@ -8,9 +8,9 @@ export const DAY_LENGTH = 150;
 
 export const ENTRANCE: readonly [number, number, number] = [0, 0, PARK_HALF - 2];
 
-export const GUEST_CAP_BASE = 34;
+export const GUEST_CAP_BASE = 40;
 
-export const GUEST_CAP_PER_RATING = 0.14;
+export const GUEST_CAP_PER_RATING = 0.4;
 
 export const OPEN_FRACTION = 0.24;
 

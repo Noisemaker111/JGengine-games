@@ -12,7 +12,12 @@ function world(kinds: readonly [string, number, number][]) {
   const w = freshWorld(ctx);
   // Every milestone reached, so the locked blueprints (the drinks kiosk) can stand too.
   w.set("park.peak", 1000);
-  for (const [kind, x, z] of kinds) expect(placeFree(w, kind, cellFor(kind, x, z))).not.toBeNull();
+  for (const [kind, x, z] of kinds) {
+    const id = placeFree(w, kind, cellFor(kind, x, z));
+    expect(id).not.toBeNull();
+    // Joined to the paths: the rating math is about what is open, not how it is reached.
+    if (w.fact(`${id}.closed`) === true) w.set(`${id}.closed`, false);
+  }
   return w;
 }
 

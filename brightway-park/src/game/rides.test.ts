@@ -25,6 +25,8 @@ type Ctx = ReturnType<typeof context>;
 function put(ctx: Ctx, kind: string, x: number, z: number): string {
   const id = placeFree(park.of(ctx), kind, cellFor(kind, x, z));
   if (id === null) throw new Error(`could not place ${kind} at ${x},${z}`);
+  // Joined to the paths: these tests are about the ride and the guests, not the network.
+  if (park.of(ctx).fact(`${id}.closed`) === true) park.of(ctx).set(`${id}.closed`, false);
   return id;
 }
 
@@ -44,15 +46,15 @@ describe("brightway-park rides on the shared ride sim", () => {
     const { ctx, ride } = open();
     // A deterministic rng of 0 breaks the ride on its first completed cycle.
     syncRidePark(ctx, () => 0);
-    for (let i = 0; i < 12; i += 1) joinRide(ride, `guest#${i}`);
+    for (let i = 0; i < 18; i += 1) joinRide(ride, `guest#${i}`);
 
-    // Board, ride, unload: the carousel's own 13-second cycle.
-    for (let i = 0; i < 200; i += 1) tickRidePark(ctx, 0.1);
+    // Board, ride, unload: the carousel's own 21-second cycle.
+    for (let i = 0; i < 300; i += 1) tickRidePark(ctx, 0.1);
 
     const view = rideView(ride)!;
     expect(view.phase).toBe("broken");
     expect(view.breakdowns).toBe(1);
-    // Six boarded and are unloaded, six are still waiting, and nothing boards while it is down.
+    // Twelve boarded and are unloaded, six are still waiting, and nothing boards while it is down.
     expect(view.queue.size).toBe(6);
     expect(view.queue.wait.seconds).toBeGreaterThan(0);
     expect(rideBoard()).toMatchObject({ rides: 1, online: 0, broken: 1, queued: 6 });
@@ -61,8 +63,8 @@ describe("brightway-park rides on the shared ride sim", () => {
   test("the sim holds a broken ride down until the crew's order lands, then it takes its line", () => {
     const { ctx, ride } = open();
     syncRidePark(ctx, () => 0);
-    for (let i = 0; i < 8; i += 1) joinRide(ride, `guest#${i}`);
-    for (let i = 0; i < 200; i += 1) tickRidePark(ctx, 0.1);
+    for (let i = 0; i < 16; i += 1) joinRide(ride, `guest#${i}`);
+    for (let i = 0; i < 300; i += 1) tickRidePark(ctx, 0.1);
     const broken = rideView(ride)!;
     expect(broken.phase).toBe("broken");
 
@@ -104,7 +106,7 @@ describe("brightway-park rides on the shared ride sim", () => {
     // An rng of 1 never breaks, so the ride just accumulates cycles.
     syncRidePark(ctx, () => 1);
     for (let i = 0; i < 4; i += 1) joinRide(ride, `guest#${i}`);
-    for (let i = 0; i < 100; i += 1) tickRidePark(ctx, 0.2);
+    for (let i = 0; i < 200; i += 1) tickRidePark(ctx, 0.2);
     const worn = rideView(ride)!;
     expect(worn.wear).toBeGreaterThan(0);
 
