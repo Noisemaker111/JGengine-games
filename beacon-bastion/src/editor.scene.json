@@ -143,6 +143,36 @@
       "meta": {
         "clearance": 3
       }
+    },
+    {
+      "id": "flank-spawn",
+      "kind": "flank_spawn",
+      "position": {
+        "x": 40,
+        "y": 0,
+        "z": -4
+      },
+      "label": "Flank gate"
+    },
+    {
+      "id": "plot-10",
+      "kind": "prop",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Flank plot"
+    },
+    {
+      "id": "plot-11",
+      "kind": "prop",
+      "position": {
+        "x": 32,
+        "y": 0,
+        "z": 2
+      },
+      "label": "Flank plot"
     }
   ],
   "volumes": [
@@ -495,7 +525,6 @@
     {
       "id": "d03-muster-cairn",
       "kind": "scatter",
-      "label": "Muster Cairn",
       "points": [
         {
           "x": -48,
@@ -518,6 +547,7 @@
           "z": -6
         }
       ],
+      "label": "Muster Cairn",
       "meta": {
         "density": 0.22,
         "minSpacing": 2.2,
@@ -546,7 +576,6 @@
     {
       "id": "d03-approach-pines",
       "kind": "scatter",
-      "label": "Approach pines",
       "points": [
         {
           "x": -52,
@@ -569,6 +598,7 @@
           "z": -26
         }
       ],
+      "label": "Approach pines",
       "meta": {
         "density": 0.2,
         "minSpacing": 2.6,
@@ -597,7 +627,6 @@
     {
       "id": "d03-broken-watch",
       "kind": "scatter",
-      "label": "The Broken Watch",
       "points": [
         {
           "x": -22,
@@ -620,6 +649,7 @@
           "z": 18
         }
       ],
+      "label": "The Broken Watch",
       "meta": {
         "density": 0.22,
         "minSpacing": 2.2,
@@ -648,7 +678,6 @@
     {
       "id": "d03-inside-bend-scrub",
       "kind": "scatter",
-      "label": "Inside-bend scrub",
       "points": [
         {
           "x": 2,
@@ -671,6 +700,7 @@
           "z": -13
         }
       ],
+      "label": "Inside-bend scrub",
       "meta": {
         "density": 0.16,
         "minSpacing": 2.8,
@@ -699,7 +729,6 @@
     {
       "id": "d03-keep-gate-pines",
       "kind": "scatter",
-      "label": "Keep Gate pines",
       "points": [
         {
           "x": 33,
@@ -722,6 +751,7 @@
           "z": 41
         }
       ],
+      "label": "Keep Gate pines",
       "meta": {
         "density": 0.22,
         "minSpacing": 2.6,
@@ -750,7 +780,6 @@
     {
       "id": "d03-north-meadow-rocks",
       "kind": "scatter",
-      "label": "North meadow rocks",
       "points": [
         {
           "x": 2,
@@ -773,6 +802,7 @@
           "z": 34
         }
       ],
+      "label": "North meadow rocks",
       "meta": {
         "density": 0.12,
         "minSpacing": 3.2,
@@ -801,7 +831,6 @@
     {
       "id": "d03-horizon-pines-north",
       "kind": "scatter",
-      "label": "Horizon pines (north)",
       "points": [
         {
           "x": -78,
@@ -824,6 +853,7 @@
           "z": -42
         }
       ],
+      "label": "Horizon pines (north)",
       "meta": {
         "density": 0.05,
         "minSpacing": 5,
@@ -852,7 +882,6 @@
     {
       "id": "d03-horizon-pines-south",
       "kind": "scatter",
-      "label": "Horizon pines (south)",
       "points": [
         {
           "x": -78,
@@ -875,6 +904,7 @@
           "z": 78
         }
       ],
+      "label": "Horizon pines (south)",
       "meta": {
         "density": 0.05,
         "minSpacing": 5,
@@ -903,7 +933,6 @@
     {
       "id": "d03-horizon-pines-west",
       "kind": "scatter",
-      "label": "Horizon pines (west)",
       "points": [
         {
           "x": -78,
@@ -926,6 +955,7 @@
           "z": 42
         }
       ],
+      "label": "Horizon pines (west)",
       "meta": {
         "density": 0.05,
         "minSpacing": 5,
@@ -954,7 +984,6 @@
     {
       "id": "d03-horizon-pines-east",
       "kind": "scatter",
-      "label": "Horizon pines (east)",
       "points": [
         {
           "x": 42,
@@ -977,6 +1006,7 @@
           "z": 42
         }
       ],
+      "label": "Horizon pines (east)",
       "meta": {
         "density": 0.05,
         "minSpacing": 5,
@@ -1001,6 +1031,34 @@
           }
         ]
       }
+    },
+    {
+      "id": "creep-path-flank",
+      "kind": "route",
+      "points": [
+        {
+          "x": 40,
+          "y": 0,
+          "z": -4
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "z": -4
+        },
+        {
+          "x": 26,
+          "y": 0,
+          "z": 8
+        },
+        {
+          "x": 18,
+          "y": 0,
+          "z": 8
+        }
+      ],
+      "width": 4,
+      "label": "East flank"
     }
   ],
   "annotations": [],
@@ -1011,12 +1069,23 @@
       "id": "towers",
       "entries": [
         {
+          "id": "tower_arcane",
+          "label": "Arcane Sanctum",
+          "meta": {
+            "cost": 110,
+            "range": 7,
+            "damage": 28,
+            "fireRateHz": 0.6,
+            "splashRadius": 0
+          }
+        },
+        {
           "id": "tower_archer",
           "label": "Archer Post",
           "meta": {
             "cost": 50,
             "range": 8,
-            "damage": 8,
+            "damage": 10,
             "fireRateHz": 2,
             "splashRadius": 0
           }
@@ -1027,7 +1096,7 @@
           "meta": {
             "cost": 90,
             "range": 7.5,
-            "damage": 26,
+            "damage": 30,
             "fireRateHz": 0.7,
             "splashRadius": 2.2
           }
@@ -1038,7 +1107,7 @@
           "meta": {
             "cost": 70,
             "range": 7,
-            "damage": 4,
+            "damage": 5,
             "fireRateHz": 1.2,
             "splashRadius": 0
           }

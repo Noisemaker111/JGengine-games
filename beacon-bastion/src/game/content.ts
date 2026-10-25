@@ -8,7 +8,8 @@ function creepEntry(id: string): GameContextEntityEntry {
   return {
     role: "enemy",
     scale: def.scale,
-    stats: { health: { max: def.health } },
+    // A ward lives in its own stat, so the HUD can draw it and a boss can raise one mid-fight.
+    stats: { health: { max: def.health }, shield: { max: def.shield?.max ?? 0 } },
     receive: { damage: { order: ["health"] } },
   };
 }

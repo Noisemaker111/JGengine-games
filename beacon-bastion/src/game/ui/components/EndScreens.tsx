@@ -4,6 +4,7 @@ import { GameFrame } from "@jgengine/react/gameFrame";
 import { GameIcon } from "@jgengine/react/gameIcons";
 import { useMenuNav } from "@jgengine/react/menuNav";
 
+import { campaign, COUNCIL_NODES, councilPoints, councilTree, DIFFICULTIES, DIFFICULTY_IDS } from "../../campaign";
 import { keep } from "../../keep";
 import { currentWaveNumber } from "../../session";
 import { bountyReadout } from "../../waves/bounty";
@@ -35,6 +36,8 @@ function Memorial({ victory }: { victory: boolean }) {
   const ids = [...offers.map((offer) => offer.id), "restart"];
   const choose = (id: string) => commands.run("legacy.choose", { boon: id.startsWith("boon:") ? id.slice("boon:".length) : null });
   const nav = useMenuNav({ ids, onConfirm: choose });
+  const stars = useGameStore((ctx) => keep.of(ctx).num("keep.stars"));
+  const difficulty = useGameStore((ctx) => campaign.read(ctx).difficulty);
 
   const lines: [string, string][] = [
     ["Waves reached", `${wave} / ${TOTAL_WAVES}`],
@@ -51,6 +54,12 @@ function Memorial({ victory }: { victory: boolean }) {
       <GameFrame material="stone" tint="#5a554d" cut="chamfer" depth={22} padding="18px 30px 24px" className="bb-memorial-stone">
         <Brazier size={48} strength={victory ? 1 : 0} className="bb-memorial-fire" />
         <h2 className="bb-memorial-title">{victory ? "The Keep Holds" : "The Keep Has Fallen"}</h2>
+        <span className="bb-stars" data-jg="result-stars" aria-label={`${stars} stars on ${DIFFICULTIES[difficulty].label}`}>
+          {Array.from({ length: 3 + DIFFICULTIES[difficulty].bonusStar }, (_, index) => (
+            <GameIcon key={index} name="star" size={26} color={index < stars ? "#ffcf5a" : "#3a2f24"} />
+          ))}
+          <small>{DIFFICULTIES[difficulty].label}</small>
+        </span>
         <dl className="bb-ledger">
           {lines.map(([label, value]) => (
             <div key={label}>
@@ -59,6 +68,7 @@ function Memorial({ victory }: { victory: boolean }) {
             </div>
           ))}
         </dl>
+        <WarCouncil />
         <p className="bb-memorial-ask">Carry one relic into the next keep</p>
         <nav className="bb-writs" {...nav.containerProps} data-jg-cursor-scope="">
           {offers.map((offer) => (
@@ -95,6 +105,93 @@ function Memorial({ victory }: { victory: boolean }) {
           <GameCursor variant="diamond" color={FIRE} arm={16} gap={8} />
         </nav>
       </GameFrame>
+    </div>
+  );
+}
+
+/**
+ * The war council between defenses: the best stars on each difficulty are its points, spent on seats
+ * that strengthen a tower line, the purse or the beacon's rites. The next defense's difficulty is
+ * chosen here too, so a player who keeps losing can step down and one who keeps holding can step up.
+ */
+function WarCouncil() {
+  const { commands } = useGame();
+  const view = useGameStore((ctx) => {
+    const state = campaign.read(ctx);
+    const tree = councilTree(ctx);
+    return {
+      difficulty: state.difficulty,
+      points: councilPoints(state),
+      free: tree.pointsAvailable(),
+      seats: COUNCIL_NODES.map((node) => ({ node, rank: tree.rank(node.id), open: tree.canSpend(node.id) })),
+    };
+  });
+  const branches = [
+    { id: "arsenal", label: "Arsenal" },
+    { id: "treasury", label: "Treasury" },
+    { id: "rites", label: "Rites" },
+  ];
+  return (
+    <div className="bb-council" data-jg="war-council">
+      <div className="bb-council-head">
+        <span className="bb-council-title">
+          <GameIcon name="star" size={14} color="#ffcf5a" /> {`War Council · ${view.free} of ${view.points} free`}
+        </span>
+        <span className="bb-difficulty" role="radiogroup" aria-label="Next defense difficulty">
+          {DIFFICULTY_IDS.map((id) => (
+            <GameFrame
+              key={id}
+              as="button"
+              material={view.difficulty === id ? "enamel" : "wood"}
+              tint={view.difficulty === id ? "#8a2414" : undefined}
+              cut="notch"
+              depth={6}
+              padding="3px 9px"
+              className="bb-small-plank"
+              role="radio"
+              aria-checked={view.difficulty === id}
+              title={DIFFICULTIES[id].detail}
+              data-jg={`difficulty-${id}`}
+              onClick={() => commands.run("campaign.difficulty", { difficulty: id })}
+            >
+              {DIFFICULTIES[id].label}
+            </GameFrame>
+          ))}
+        </span>
+      </div>
+      <div className="bb-council-seats">
+        {branches.map((branch) => (
+          <div key={branch.id} className="bb-council-branch">
+            <span className="bb-council-branch-name">{branch.label}</span>
+            {view.seats
+              .filter((seat) => seat.node.branch === branch.id)
+              .map(({ node, rank, open }) => (
+                <GameFrame
+                  key={node.id}
+                  as="button"
+                  material="stone"
+                  tint={rank > 0 ? "#6b5a2e" : "#3f3b35"}
+                  cut="chamfer"
+                  depth={4}
+                  padding="3px 7px"
+                  className="bb-seat"
+                  data-dim={open.ok || rank > 0 ? undefined : ""}
+                  data-jg={`council-${node.id}`}
+                  title={`${node.detail}${open.ok ? "" : ` — ${open.reason}`}`}
+                  onClick={() => commands.run("council.rank", { node: node.id })}
+                >
+                  <span>{node.label}</span>
+                  <b>{`${rank}/${node.maxRank ?? 1}`}</b>
+                </GameFrame>
+              ))}
+          </div>
+        ))}
+      </div>
+      {view.points > view.free ? (
+        <GameFrame as="button" material="wood" cut="notch" depth={5} padding="3px 10px" className="bb-small-plank bb-council-reset" onClick={() => commands.run("council.reset", {})}>
+          Return every seat
+        </GameFrame>
+      ) : null}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import type { HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 import { createBossState } from "@jgengine/core/ai/director/boss";
 
 import { STARTING_LIVES } from "./entities/base/catalog";
-import { keep, upgradeAction } from "./keep";
+import { keep, towerLevel } from "./keep";
 import { resetSession, session } from "./session";
 import { advanceKeep, beaconRunner } from "./testing";
 import { captureDefense, defenseSystem, legacySystem, validDefenseSave, worldSystem } from "./save";
@@ -33,7 +33,7 @@ function playedIntoWave(): void {
   }
   runner.ui.invoke("beacon.place", { kind: "tower_archer", slot: "plot-1" });
   world().set("keep.gold", 200);
-  runner.ui.invoke("beacon.act", { action: upgradeAction("tower_archer"), target: "tower_archer-1" });
+  runner.ui.invoke("beacon.act", { action: "tower_archer:trunk:1", target: "tower_archer-1" });
   runner.ui.invoke("beacon.place", { kind: "tower_cannon", slot: "plot-4" });
   advanceKeep(runner, 1);
   world().set("keep.lives", 11);
@@ -60,7 +60,7 @@ describe("the keep's save document", () => {
     await save.load();
 
     expect(world().facts()).toEqual(facts);
-    expect(world().num("tower_archer-1.level")).toBe(2);
+    expect(towerLevel(world(), "tower_archer-1")).toBe(2);
     expect(runner.ctx.scene.entity.get("tower_archer-1")).not.toBeNull();
     expect(world().orders("build")[0]?.progress).toBeCloseTo(0.25);
     expect(session.encounter.view().wave).toBe(7);
@@ -120,7 +120,7 @@ describe("the keep's save document", () => {
     playedIntoWave();
     const snapshot = JSON.parse(JSON.stringify(captureDefense(runner.ctx)));
     expect(validDefenseSave(snapshot)).toBe(true);
-    expect(Object.keys(snapshot).sort()).toEqual(["boss", "clock", "creepSeq", "creeps", "encounter", "openingComposition", "pressure"]);
+    expect(Object.keys(snapshot).sort()).toEqual(["abilities", "boss", "clock", "countdown", "creepSeq", "creeps", "encounter", "openingComposition", "pressure"]);
   });
 
   test("the bank is its own section, so a new run does not clear it", async () => {

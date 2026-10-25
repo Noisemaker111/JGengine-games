@@ -6,7 +6,7 @@ import { GAME_FONTS } from "../../art/fonts/fonts";
 import { pauseRun } from "../menu";
 import { BuildBar } from "./components/BuildBar";
 import { EndScreens } from "./components/EndScreens";
-import { KeepSigns, ReleaseHorn, WaveBoard } from "./components/Hud";
+import { AbilityStones, KeepSigns, ReleaseHorn, WaveBoard } from "./components/Hud";
 import { TowerPanel } from "./components/TowerPanel";
 import { BeaconMenu, PauseSigil } from "./menu/BeaconMenu";
 
@@ -37,6 +37,9 @@ export function GameUI() {
         </HudPanel>
         <HudPanel id="build-bar" anchor="bottom" inset={{ x: 0, y: 14 }}>
           <BuildBar />
+        </HudPanel>
+        <HudPanel id="rites" anchor="bottom-right" inset={{ x: 16, y: 14 }}>
+          <AbilityStones />
         </HudPanel>
         <HudPanel id="tower" anchor="right" inset={{ x: 16, y: 0 }}>
           <TowerPanel />

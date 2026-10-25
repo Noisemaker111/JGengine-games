@@ -124,6 +124,21 @@ export function reset(): void {
 });
 
 describe("adoption is not an offence", () => {
+  test("an inline type import of a shared damage table is adoption, not a definition", () => {
+    const lines = [
+      `import { resolveTableDamage, type DamageTableDef } from "@jgengine/core/combat/damageTable";`,
+      `export const RAIDER_DAMAGE: DamageTableDef = { types: [{ id: "pierce", vs: { bone: 0.6 } }] };`,
+      `export function hit(base: number): number {`,
+      `  return resolveTableDamage(RAIDER_DAMAGE, { type: "pierce", resistance: "bone", armor: 0, base }).damage ?? 0;`,
+      `}`,
+    ];
+    for (let index = 0; index < MIN_SYSTEM_LINES; index += 1) lines.push(`export const pad${index} = ${index};`);
+    expect(engineSeams("beacon-bastion/src/game/combat/damage.ts", lines.join("\n"))).toEqual([]);
+    // The same type declared in the game is still a definition.
+    lines[0] = `export type DamageTableDef = { types: unknown[] };`;
+    expect(engineSeams("beacon-bastion/src/game/combat/damage.ts", lines.join("\n")).map((seam) => seam.name)).toEqual(["damage or status table"]);
+  });
+
   test("a module that imports a shared system and calls it passes", () => {
     const adoption = `import { useRunSession } from "@jgengine/react";
 import { spawnWave } from "@jgengine/shell";

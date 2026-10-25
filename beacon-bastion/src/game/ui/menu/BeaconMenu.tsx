@@ -9,6 +9,7 @@ import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 
+import { DIFFICULTIES, DIFFICULTY_IDS, setDifficulty, type DifficultyId } from "../../campaign";
 import { BEACON_CREDITS } from "../../credits";
 import { keepProfile } from "../../thumbs";
 import { beginRun, enterRun, pauseRun, resumeRun, withdrawToTitle } from "../../menu";
@@ -104,11 +105,15 @@ function Commission({
   slot,
   commander,
   onCommanderChange,
+  difficulty,
+  onDifficultyChange,
   onBegin,
 }: {
   slot: string | null;
   commander: string;
   onCommanderChange: (name: string) => void;
+  difficulty: DifficultyId;
+  onDifficultyChange: (difficulty: DifficultyId) => void;
   onBegin: () => void;
 }): ReactNode {
   const label = slot === null ? "No keep available" : (KEEP_LABEL[slot] ?? slot);
@@ -131,6 +136,27 @@ function Commission({
           }}
         />
       </label>
+      <div className="bb-oath" role="radiogroup" aria-label="Difficulty">
+        {DIFFICULTY_IDS.map((id) => (
+          <GameFrame
+            key={id}
+            as="button"
+            material={difficulty === id ? "enamel" : "wood"}
+            tint={difficulty === id ? "#8a2414" : undefined}
+            cut="notch"
+            depth={6}
+            padding="5px 12px"
+            className="bb-small-plank"
+            role="radio"
+            aria-checked={difficulty === id}
+            data-difficulty={id}
+            onClick={() => onDifficultyChange(id)}
+          >
+            {DIFFICULTIES[id].label}
+          </GameFrame>
+        ))}
+      </div>
+      <p className="bb-oath-detail">{DIFFICULTIES[difficulty].detail}</p>
       <div className="bb-seals">
         {beaconSlots.list().map((entry) => (
           <span key={entry.id} className="bb-seal" data-keep-choice={entry.id} data-chosen={entry.id === slot ? "" : undefined} data-empty={entry.empty ? "" : undefined}>
@@ -176,6 +202,7 @@ export function BeaconMenu() {
   const settings = useSettings();
   const keeps = useSaveSlots(beaconSlots);
   const [commander, setCommander] = useState("");
+  const [difficulty, setDifficultyChoice] = useState<DifficultyId>("knight");
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -232,6 +259,8 @@ export function BeaconMenu() {
     whileLoading("Raising the keep", async () => {
       keepProfile.commander = commander.trim() === "" ? null : commander.trim();
       await prepareKeep(ctx, slot);
+      // A fresh keep's campaign starts at Knight; the oath taken here sets it before the walls rise.
+      setDifficulty(ctx, difficulty);
       beginRun(ctx);
     });
 
@@ -268,6 +297,8 @@ export function BeaconMenu() {
             slot={newKeep}
             commander={commander}
             onCommanderChange={setCommander}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficultyChoice}
             onBegin={() => {
               if (newKeep !== null) void raise(newKeep);
             }}

@@ -44,6 +44,15 @@ const TOWER_PLAN: Record<string, ModelPick> = {
       material: { emissive: "#3fb9d1", emissiveIntensity: 0.5 },
     },
   },
+  // The sanctum: a carved pillar lit violet from inside, so it never reads as a frost spire.
+  tower_arcane: {
+    model: `${DUNGEON}/pillar_decorated`,
+    fallbackModel: `${DUNGEON}/column`,
+    style: {
+      targetHeight: 2.4,
+      material: { color: "#8a6cc4", emissive: "#a35cff", emissiveIntensity: 0.65 },
+    },
+  },
 };
 
 const KEEP_PLAN: ModelPick = {

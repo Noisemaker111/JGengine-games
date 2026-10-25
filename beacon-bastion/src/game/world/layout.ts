@@ -1,10 +1,10 @@
-import { BUILD_PLOT_XZ, PATH_WAYPOINTS_XZ } from "../../editorLayers";
+import { BUILD_PLOT_XZ, FLANK_WAYPOINTS_XZ, PATH_WAYPOINTS_XZ } from "../../editorLayers";
 
 export type Vec2 = readonly [number, number];
 
 // The creep path and build-plot centers are authored in editor.scene.json and read from the document
 // (editorLayers) — this module just re-exports them so the gameplay code has one import surface.
-export { PATH_WAYPOINTS_XZ, BUILD_PLOT_XZ };
+export { PATH_WAYPOINTS_XZ, FLANK_WAYPOINTS_XZ, BUILD_PLOT_XZ };
 
 export function perpendicularPoint(a: Vec2, b: Vec2, t: number, side: 1 | -1, distance: number): Vec2 {
   const dx = b[0] - a[0];

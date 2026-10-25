@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { editorLayers } from "../../editorLayers";
 import { TOWER_CATALOG, TOWER_IDS, towerDef } from "../entities/towers/catalog";
-import { BUILD_PLOT_XZ, PATH_WAYPOINTS_XZ, type Vec2 } from "./layout";
+import { BUILD_PLOT_XZ, FLANK_WAYPOINTS_XZ, PATH_WAYPOINTS_XZ, type Vec2 } from "./layout";
 
 /** Creeps walk the centerline; a tower needs at least this much slack past it so one waypoint corner does not drop the target. */
 const RANGE_MARGIN = 1;
@@ -19,10 +19,13 @@ function distanceToSegment(point: Vec2, a: Vec2, b: Vec2): number {
   return Math.hypot(point[0] - (a[0] + dx * t), point[1] - (a[1] + dz * t));
 }
 
+/** Nearest road centerline: the main approach or the east flank, whichever a plot was set to cover. */
 function distanceToPath(point: Vec2): number {
   let best = Number.POSITIVE_INFINITY;
-  for (let i = 1; i < PATH_WAYPOINTS_XZ.length; i += 1) {
-    best = Math.min(best, distanceToSegment(point, PATH_WAYPOINTS_XZ[i - 1]!, PATH_WAYPOINTS_XZ[i]!));
+  for (const road of [PATH_WAYPOINTS_XZ, FLANK_WAYPOINTS_XZ]) {
+    for (let i = 1; i < road.length; i += 1) {
+      best = Math.min(best, distanceToSegment(point, road[i - 1]!, road[i]!));
+    }
   }
   return best;
 }

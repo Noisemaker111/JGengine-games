@@ -33,7 +33,7 @@ export const game = defineGame({
   hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
   // Every action already has a control on the HUD itself (the rack's plaques, the mason's tablet), so
   // the derived touch buttons would only repeat them over the field.
-  touch: { hidden: ["buildTower1", "buildTower2", "buildTower3", "upgradeTower", "sellTower"] },
+  touch: { hidden: ["buildTower1", "buildTower2", "buildTower3", "buildTower4", "upgradeTower", "sellTower", "cycleAim", "abilityFire", "abilityBell"] },
   systems,
   loop,
   GameUI,
