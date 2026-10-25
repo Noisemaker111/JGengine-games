@@ -4,7 +4,7 @@ import { createGameContext } from "@jgengine/core/runtime/gameContext";
 import { game } from "../game.config";
 import { content } from "./content";
 import { closeParkDay, dayLoop, openParkDay } from "./daySession";
-import { session } from "./session";
+import { park } from "./park";
 
 function boot() {
   return createGameContext({ definition: game.game, content, player: { userId: "park-session", isNew: true } });
@@ -17,7 +17,6 @@ function boot() {
 describe("Brightway Park day session", () => {
   test("the day opens with the gates, carries nothing, and midnight closes it", () => {
     const ctx = boot();
-    session.day = 1;
     const loop = dayLoop(ctx);
     expect(loop.kind()).toBe("day");
     expect(loop.phase()).toBe("idle");
@@ -29,14 +28,13 @@ describe("Brightway Park day session", () => {
     expect(loop.carry(50)).toBe(0);
 
     closeParkDay(ctx);
-    expect(session.day).toBe(2);
+    expect(park.of(ctx).num("park.day")).toBe(2);
     expect(loop.snapshot()).toMatchObject({ session: 2, closed: 1, carried: 0 });
     expect(loop.phase()).toBe("open");
   });
 
   test("the probe reports the park day as a session with no carried quantity", () => {
     const ctx = boot();
-    session.day = 1;
     openParkDay(ctx);
     const probe = (globalThis as { __jgengineRun?: { read(): { kind: string | null; phase: string; carried: number } } }).__jgengineRun;
     expect(probe?.read()).toMatchObject({ kind: "day", phase: "open", carried: 0 });

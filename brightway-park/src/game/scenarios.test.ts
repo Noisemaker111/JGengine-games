@@ -9,8 +9,10 @@ function runtime() {
   return createMissionRuntime({ missions: SCENARIOS.map((scenario) => scenario.mission) });
 }
 
-function facts(patch: Partial<Record<"cash" | "rating" | "mood" | "visitors" | "revenue" | "day", number>> = {}) {
-  return { cash: 5000, rating: 0, mood: 60, visitors: 0, revenue: 0, day: 1, ...patch };
+/** The world facts a scenario's mission reads, named as the park world holds them. */
+function facts(patch: Partial<Record<"cash" | "rating" | "mood" | "visitors" | "revenue", number>> = {}) {
+  const at = { cash: 5000, rating: 0, mood: 60, visitors: 0, revenue: 0, ...patch };
+  return { "park.cash": at.cash, "park.rating": at.rating, "park.mood": at.mood, "park.scenario_visitors": at.visitors, "park.scenario_revenue": at.revenue };
 }
 
 const kinds = (events: readonly MissionEvent[]) => events.map((event) => event.kind);

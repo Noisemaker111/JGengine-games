@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
+import { useGameContext } from "@jgengine/react/provider";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { usePanels } from "@jgengine/react/panels";
 import { applyBindingOverrides, loadBindingOverrides } from "@jgengine/core/input/bindingOverrides";
@@ -14,13 +15,16 @@ import { ParkMenu } from "./menu/ParkMenu";
 import { CameraPad } from "./components/CameraPad";
 import { BUILD_PANEL, PARK_PANELS } from "./panels";
 import { session } from "../session";
+import { park } from "../park";
+import { parkFlags, usePark } from "./usePark";
 
 function preference(key: string): boolean { try { return localStorage.getItem(`brightway-park.${key}`)==="true"; } catch { return false; } }
 
 export function GameUI() {
   const {commands}=useGame(); const clock=useGameClock();
   const started=useGameStore(()=>session.started);
-  const flow=useGameStore(()=>[session.gameOver,session.won,session.winDismissed].join("|"));
+  const flags=parkFlags(usePark());
+  const ctx=useGameContext();
   const [settings,setSettings]=useState(false);
   const [reducedMotion,setReducedMotion]=useState(()=>preference("reduced-motion"));
   const [contrast,setContrast]=useState(()=>preference("contrast"));
@@ -28,7 +32,7 @@ export function GameUI() {
     // Published shell 0.18 captures an empty action map during the initial menu.
     // Route our discrete keys before that tracker, including resume while paused.
     const onKey=(event:KeyboardEvent)=>{
-      if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||!session.started||session.gameOver||settings) return;
+      if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||!session.started||park.of(ctx).fact("park.game_over")===true||settings) return;
       const target=event.target instanceof Element?event.target:null;
       if(target?.closest('input,textarea,select,[contenteditable="true"]')) return;
       const dialog=target?.closest('[role="dialog"]');
@@ -44,12 +48,11 @@ export function GameUI() {
     };
     window.addEventListener("keydown",onKey,true);
     return ()=>window.removeEventListener("keydown",onKey,true);
-  },[commands,settings]);
+  },[commands,settings,ctx]);
   const savePreference=(key:string,value:boolean)=>{try{localStorage.setItem(`brightway-park.${key}`,String(value));}catch{/* Preferences remain usable for this session. */}};
   // ParkFlow owns these dialogs; while one is up it owns the keys, so the palette's own
   // hotkey/ESC listener stands down and the dialog's Escape keeps working.
-  const [gameOver,won,winDismissed]=flow.split("|").map(v=>v==="true");
-  const modalOpen=!started||gameOver||(won&&!winDismissed)||clock.paused||settings;
+  const modalOpen=!started||flags.gameOver||flags.ribbon||clock.paused||settings;
   const panels=usePanels(PARK_PANELS,{hotkeys:!modalOpen});
   const buildOpen=panels.isOpen(BUILD_PANEL);
   return (

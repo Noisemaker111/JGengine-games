@@ -1,7 +1,6 @@
 import { createHeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { game } from "../game.config";
-import { loop } from "../loop";
 import { GUEST_KINDS } from "./entities/guests/catalog";
 import { guestAgentState } from "./agents";
 import { MILESTONES } from "./milestones";
@@ -22,7 +21,7 @@ const FAR_FUTURE = 1_000_000_000;
 
 /** The base save: a park this build started and saved, with no guests or scenario in it. */
 function base(): string {
-  const runner = createHeadlessRunner({ definition: game.game, content, loop, maxStepSeconds: 1 });
+  const runner = createHeadlessRunner({ definition: game.game, content, loop: game.game.loop, maxStepSeconds: 1 });
   runner.ui.invoke("park.start");
   return JSON.stringify(snapshotPark(runner.ctx));
 }
@@ -30,6 +29,17 @@ function base(): string {
 function parse(raw: string): ParkSave {
   return JSON.parse(raw) as ParkSave;
 }
+
+/** One world fact set to the axis value. */
+function withFact(key: string): (value: unknown, raw: string) => string {
+  return (value, raw) => {
+    const save = parse(raw);
+    save.world.facts[key] = value as number | string;
+    return JSON.stringify(save);
+  };
+}
+
+const fact = (key: string) => (save: unknown) => (save as ParkSave).world.facts[key];
 
 /** One guest in the save, in the state the axis asks for. */
 function withGuest(edit: (state: GuestState) => void): (base: string) => string {
@@ -45,7 +55,6 @@ function withGuest(edit: (state: GuestState) => void): (base: string) => string 
       target: null,
       targetUntil: 0,
       busy: 0,
-      litterTimer: 5,
       agent: guestAgentState("guest#1", GUEST_KINDS[0]!, { fun: 50, hunger: 50, thirst: 50, energy: 90, souvenir: 100 }),
     };
     edit(state);
@@ -69,39 +78,28 @@ const axes: SaveStateAxis[] = [
     decode: decodeSave,
     read: (save) => (save as ParkSave).guests[0]?.state.kind,
   },
+  // A milestone is open when the park's best rating reached it: every milestone's rating must load.
   {
-    field: "unlocks[]",
-    values: MILESTONES.map((milestone) => milestone.unlock),
-    encode: (value, raw) => {
-      const save = parse(raw);
-      save.unlocks = [value as string];
-      return JSON.stringify(save);
-    },
+    field: "world.facts.park.peak",
+    values: MILESTONES.map((milestone) => milestone.rating),
+    encode: withFact("park.peak"),
     decode: decodeSave,
-    read: (save) => (save as ParkSave).unlocks[0],
+    read: fact("park.peak"),
   },
   {
-    field: "scenario.result",
+    field: "world.facts.scenario.result",
     values: ["won", "failed"],
-    encode: (value, raw) => {
-      const save = parse(raw);
-      save.scenario = { id: "starter", result: value as "won" | "failed", outcome: "done", reason: null };
-      return JSON.stringify(save);
-    },
+    encode: withFact("scenario.result"),
     decode: decodeSave,
-    read: (save) => (save as ParkSave).scenario?.result,
+    read: fact("scenario.result"),
   },
   // Extreme but legal numbers: the decoder's own bounds, at the edge, must load unchanged.
   {
-    field: "stats.ticketPrice",
+    field: "world.facts.park.ticket",
     values: [TICKET_MIN, TICKET_MAX],
-    encode: (value, raw) => {
-      const save = parse(raw);
-      save.stats.ticketPrice = value as number;
-      return JSON.stringify(save);
-    },
+    encode: withFact("park.ticket"),
     decode: decodeSave,
-    read: (save) => (save as ParkSave).stats.ticketPrice,
+    read: fact("park.ticket"),
   },
   {
     field: "clock.now",
@@ -115,15 +113,11 @@ const axes: SaveStateAxis[] = [
     read: (save) => (save as ParkSave).clock.now,
   },
   {
-    field: "stats.cash",
+    field: "world.facts.park.cash",
     values: [0, -1_000_000, 1_000_000_000],
-    encode: (value, raw) => {
-      const save = parse(raw);
-      save.stats.cash = value as number;
-      return JSON.stringify(save);
-    },
+    encode: withFact("park.cash"),
     decode: decodeSave,
-    read: (save) => (save as ParkSave).stats.cash,
+    read: fact("park.cash"),
   },
 ];
 

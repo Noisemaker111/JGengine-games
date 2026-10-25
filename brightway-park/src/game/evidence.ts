@@ -1,5 +1,6 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { session } from "./session";
+import { park } from "./park";
 
 export function traceNative(kind: string, details: unknown = null): void {
   if (!import.meta.env.DEV || import.meta.env.VITE_PARK_EVIDENCE !== "1") return;
@@ -7,7 +8,8 @@ export function traceNative(kind: string, details: unknown = null): void {
 }
 
 export function tracePark(ctx: GameContext, kind: string, details: unknown = null): void {
-  traceNative(kind, { details, clock: ctx.time.snapshot(), cash: session.cash, ticket: session.ticketPrice,
-    guests: session.guests.size, builds: [...session.placed.values()], selected: session.selectedObject,
-    tool: session.selectedTool, day: session.day, won: session.won, gameOver: session.gameOver });
+  if (!import.meta.env.DEV || import.meta.env.VITE_PARK_EVIDENCE !== "1") return;
+  const w = park.of(ctx);
+  traceNative(kind, { details, clock: ctx.time.snapshot(), facts: w.facts(), guests: session.guests.size,
+    builds: w.instances(), selected: session.selectedObject, tool: session.selectedTool });
 }

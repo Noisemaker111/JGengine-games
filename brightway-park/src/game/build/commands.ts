@@ -1,18 +1,17 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { PointerHit } from "@jgengine/core/input/pointer";
-
-import { buildableDef } from "../objects/catalog";
-import { session } from "../session";
-import { canPlace, placeObject, removeObject } from "./placement";
-import { BUILDABLES } from "../objects/catalog";
-import { archiveSave, savePark } from "../persistence";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
+
+import { BUILDABLES } from "../objects/catalog";
+import { session } from "../session";
+import { placementAt } from "./placement";
+import { archiveSave, savePark } from "../persistence";
 import { tracePark } from "../evidence";
 import { syncAmbience } from "../audio";
-import { payOffLoan, takeLoan } from "../sim/economy";
 import { openParkDay } from "../daySession";
-import { ridePrice, serviceRide, setRidePrice, coasterCircuit } from "../rides";
-import { beginScenario, endScenario, replayScenario } from "../scenarios";
+import { coasterCircuit } from "../rides";
+import { park } from "../park";
+import { beginScenario, endScenario, replayScenario } from "../parkReset";
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -21,56 +20,56 @@ let revision = 0;
 export function bump(ctx: GameContext): void {
   revision += 1;
   ctx.game.store.set("__rev", revision);
-  tracePark(ctx,"command");
+  tracePark(ctx, "command");
 }
 
+const over = (ctx: GameContext): boolean => park.of(ctx).fact("park.game_over") === true;
+const ribbonUp = (ctx: GameContext): boolean => {
+  const w = park.of(ctx);
+  return w.fact("park.won") === true && w.fact("park.win_dismissed") !== true;
+};
+
+/** A blueprint the palette offers: the world refuses a locked one; cost and room are checked at the spot. */
 export function canBuild(ctx: GameContext, id: string): boolean {
-  const def = BUILDABLES[id];
-  return Object.hasOwn(BUILDABLES,id) && def !== undefined && (def.requires === undefined || ctx.game.unlocks?.has(ctx.player.userId,def.requires) === true);
+  return Object.hasOwn(BUILDABLES, id) && park.of(ctx).canPlace(id)?.reason !== "locked";
 }
 
 function selectTool(ctx: GameContext, id: string): void {
-  if (!session.started || session.gameOver || !canBuild(ctx,id)) return;
+  if (!session.started || over(ctx) || !canBuild(ctx, id)) return;
   clearSelection(ctx);
   session.selectedTool = session.selectedTool === id ? null : id;
   bump(ctx);
 }
 
-function affordable(catalogId: string): boolean {
-  return session.cash >= buildableDef(catalogId).cost;
-}
-
 /** Read the circuit back to the player whenever its shape changes: the same numbers the ride runs on. */
 function announceCircuit(ctx: GameContext): void {
-  const circuit = coasterCircuit();
+  const circuit = coasterCircuit(ctx);
   ctx.game.notices.push(circuit.closed
     ? { text: `Circuit closed · ${Math.round(circuit.length)} m · ${circuit.lapSeconds.toFixed(1)} s lap · excitement ${circuit.excitement.toFixed(1)}`, tone: "success" }
     : { text: `Coaster track at ${Math.round(circuit.length)} m — the loop is still open`, tone: "info" });
 }
 
+/** Build at the pointer: the park's track rule, then the world's own `brightway.place`. */
 function tryBuild(ctx: GameContext, input: PointerInput): void {
-  const toolId = session.selectedTool;
-  if (toolId === null) return;
-  if (!canBuild(ctx,toolId)) return;
-  const def = buildableDef(toolId);
-  if (!affordable(toolId)) {
-    // The deny notice plays the park's own "denied" cue (audio.uiCues.deny).
-    ctx.game.notices.push({ text: `Not enough cash for ${def.label}`, tone: "deny" });
-    return;
-  }
+  const kind = session.selectedTool;
+  if (kind === null || !canBuild(ctx, kind)) return;
   if (!Array.isArray(input.point) || input.point.length !== 3 || !input.point.every(Number.isFinite)) return;
-  const [x,,z] = input.point;
-  const check = canPlace(toolId, x, z);
+  const [x, , z] = input.point;
+  const w = park.of(ctx);
+  const check = placementAt(w, kind, x, z);
   if (!check.ok) {
-    ctx.game.notices.push({ text: check.reason ?? "Can't build here", tone: "deny" });
+    // The deny notice plays the park's own "denied" cue (audio.uiCues.deny).
+    ctx.game.notices.push({ text: check.reason, tone: "deny" });
     return;
   }
-  const placed = placeObject(ctx, toolId, x, z);
-  if (placed === null) return;
-  session.cash -= def.cost;
+  const before = new Set(w.instances().map((instance) => instance.id));
+  if (ctx.game.commands.run("brightway.place", { kind, cell: check.cell }).status !== "applied") return;
+  const placed = w.instances().find((instance) => !before.has(instance.id));
+  const def = BUILDABLES[kind]!;
   ctx.game.notices.push({ text: `${def.label} built · -$${def.cost}`, tone: "success" });
-  if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") announceCircuit(ctx);
-  ctx.game.audio.play("place", [placed.x, 0, placed.z]);
+  if (kind === "track_piece" || kind === "ride_coaster") announceCircuit(ctx);
+  const at = placed?.position;
+  ctx.game.audio.play("place", at === null || at === undefined ? undefined : [at[0], 0, at[1]]);
   savePark(ctx);
 }
 
@@ -89,14 +88,14 @@ function clearSelection(ctx: GameContext): void {
  */
 function selectGuestOrObject(ctx: GameContext, input: PointerInput): void {
   const guest = input.entity !== null && session.guests.has(input.entity) ? input.entity : null;
-  session.selectedObject = guest === null ? input.object : null;
+  session.selectedObject = guest === null && input.object !== null && park.of(ctx).instance(input.object) !== null ? input.object : null;
   ctx.scene.entity.selection.clear();
   if (guest !== null) ctx.scene.entity.selection.replace([guest]);
 }
 
 function pointerAction(ctx: GameContext, input: PointerInput): void {
-  tracePark(ctx,"pointer",input);
-  if (!session.started || session.gameOver) return;
+  tracePark(ctx, "pointer", input);
+  if (!session.started || over(ctx)) return;
   if (session.selectedTool !== null) {
     tryBuild(ctx, input);
     return;
@@ -105,32 +104,32 @@ function pointerAction(ctx: GameContext, input: PointerInput): void {
 }
 
 export function registerBuildCommands(ctx: GameContext): void {
-  ctx.game.commands.define<{reduced:boolean}>("park.motion", {apply(state,input){state.game.store.set("park.reduced-motion",input.reduced);}});
+  ctx.game.commands.define<{ reduced: boolean }>("park.motion", { apply(state, input) { state.game.store.set("park.reduced-motion", input.reduced); } });
   ctx.game.commands.define("park.start", { apply(state) {
     session.started = true;
     openParkDay(state);
-    if (session.gameOver) { setGamePhase(state,"ended"); state.time.pause(); }
-    else if (session.won && !session.winDismissed) { setGamePhase(state,"paused"); state.time.pause(); }
-    else { setGamePhase(state,"playing"); state.time.play(); }
+    if (over(state)) { setGamePhase(state, "ended"); state.time.pause(); }
+    else if (ribbonUp(state)) { setGamePhase(state, "paused"); state.time.pause(); }
+    else { setGamePhase(state, "playing"); state.time.play(); }
     syncAmbience(state);
     savePark(state); bump(state);
-  }});
-  ctx.game.commands.define("park.save", { apply(state) { savePark(state); bump(state); }});
+  } });
+  ctx.game.commands.define("park.save", { apply(state) { savePark(state); bump(state); } });
   ctx.game.commands.define("park.new", { apply(state) {
     try {
       // Stop pagehide from saving the old live park over the fresh slot.
       archiveSave(); session.started = false;
       if (typeof window !== "undefined") window.location.reload();
     } catch { session.saveStatus = "Could not archive the old save. Free browser storage before starting a new park."; bump(state); }
-  }});
+  } });
   ctx.game.commands.define("park.continue", { apply(state) {
-    if (!session.started || session.gameOver) return;
-    session.winDismissed = true; state.time.play(); setGamePhase(state,"playing"); savePark(state); bump(state);
-  }});
-  ctx.game.commands.define<{ speed: number }>("park.speed", { apply(state,input) {
-    if (!session.started || session.gameOver || (session.won && !session.winDismissed) || ![1,2,4].includes(input.speed)) return;
-    state.time.setSpeed(input.speed); setGamePhase(state,"playing"); bump(state);
-  }});
+    if (!session.started || over(state)) return;
+    park.of(state).set("park.win_dismissed", true); state.time.play(); setGamePhase(state, "playing"); savePark(state); bump(state);
+  } });
+  ctx.game.commands.define<{ speed: number }>("park.speed", { apply(state, input) {
+    if (!session.started || over(state) || ribbonUp(state) || ![1, 2, 4].includes(input.speed)) return;
+    state.time.setSpeed(input.speed); setGamePhase(state, "playing"); bump(state);
+  } });
   ctx.game.commands.define<PointerInput>("park.pointer", {
     apply(state, input) {
       pointerAction(state, input);
@@ -140,7 +139,7 @@ export function registerBuildCommands(ctx: GameContext): void {
 
   ctx.game.commands.define<{ id: string }>("build.select", {
     apply(state, input) {
-      selectTool(state,input.id);
+      selectTool(state, input.id);
     },
   });
 
@@ -148,96 +147,6 @@ export function registerBuildCommands(ctx: GameContext): void {
     apply(state) {
       session.selectedTool = null;
       clearSelection(state);
-      bump(state);
-    },
-  });
-
-  ctx.game.commands.define<{ id: string }>("build.demolish", {
-    apply(state, input) {
-      if (!session.started || session.gameOver) return;
-      const placed = session.placed.get(input.id);
-      if (placed === undefined) return;
-      const refund = Math.round(buildableDef(placed.catalogId).cost * 0.5);
-      if (removeObject(state, input.id)) {
-        session.cash += refund;
-        if (session.selectedObject === input.id) session.selectedObject = null;
-        state.game.notices.push({ text: `Demolished — refunded ${refund}`, tone: "info" });
-        if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") announceCircuit(state);
-        state.game.audio.play("sell", [placed.x, 0, placed.z]);
-        savePark(state);
-        bump(state);
-      }
-    },
-  });
-
-  ctx.game.commands.define<{ delta: number }>("park.ticket", {
-    apply(state, input) {
-      if (!session.started || session.gameOver || !Number.isFinite(input.delta)) return;
-      const before = session.ticketPrice;
-      session.ticketPrice = Math.max(4, Math.min(60, session.ticketPrice + input.delta));
-      if (session.ticketPrice !== before) state.game.audio.play("ticket");
-      savePark(state);
-      bump(state);
-    },
-  });
-
-  // A ride's own ticket: the guests weigh it against the walk and the line they can see.
-  ctx.game.commands.define<{ id: string; delta: number }>("ride.price", {
-    apply(state, input) {
-      if (!session.started || session.gameOver || !Number.isFinite(input.delta)) return;
-      const def = buildableDef(input.id);
-      if (def.ride === undefined) return;
-      const before = ridePrice(input.id);
-      setRidePrice(input.id, before + input.delta);
-      if (ridePrice(input.id) !== before) state.game.audio.play("ticket");
-      savePark(state);
-      bump(state);
-    },
-  });
-
-  // Pay a ride's maintenance before it breaks: the shared sim clears the wear, the till pays.
-  ctx.game.commands.define<{ id: string }>("ride.service", {
-    apply(state, input) {
-      if (!session.started || session.gameOver) return;
-      const placed = session.placed.get(input.id);
-      if (placed === undefined) return;
-      const result = serviceRide(input.id);
-      if (result === null) return;
-      if (result.cost > 0) session.cash -= result.cost;
-      state.game.notices.push({
-        text: result.cost > 0
-          ? `Serviced ${buildableDef(placed.catalogId).label} · -$${result.cost} · ${result.wear} cycles cleared`
-          : `${buildableDef(placed.catalogId).label} has no wear to clear`,
-        tone: result.cost > 0 ? "success" : "info",
-      });
-      if (result.cost > 0) state.game.audio.play("place", [placed.x, 0, placed.z]);
-      savePark(state);
-      bump(state);
-    },
-  });
-
-  ctx.game.commands.define("park.loan", {
-    apply(state) {
-      if (!session.started || session.gameOver) return;
-      const amount = takeLoan();
-      if (amount <= 0) {
-        state.game.notices.push({ text: "The park is already carrying a loan", tone: "deny" });
-        return;
-      }
-      state.game.notices.push({ text: `Loan taken · +$${amount} · repaid nightly with 3% interest`, tone: "info" });
-      state.game.audio.play("ticket");
-      savePark(state);
-      bump(state);
-    },
-  });
-
-  ctx.game.commands.define("park.repay", {
-    apply(state) {
-      if (!session.started || session.gameOver || session.loan === null) return;
-      const paid = payOffLoan();
-      state.game.notices.push({ text: paid > 0 ? `Paid $${paid} off the loan` : "Not enough cash to pay the loan down", tone: paid > 0 ? "success" : "deny" });
-      if (paid > 0) state.game.audio.play("sell");
-      savePark(state);
       bump(state);
     },
   });
@@ -265,9 +174,9 @@ export function registerBuildCommands(ctx: GameContext): void {
 
   ctx.game.commands.define("pauseToggle", {
     apply(state) {
-      if (!session.started || session.gameOver || (session.won && !session.winDismissed)) return;
+      if (!session.started || over(state) || ribbonUp(state)) return;
       state.time.toggle();
-      setGamePhase(state,state.time.isPaused() ? "paused" : "playing");
+      setGamePhase(state, state.time.isPaused() ? "paused" : "playing");
       syncAmbience(state);
       savePark(state); bump(state);
     },
@@ -292,7 +201,7 @@ export function registerBuildCommands(ctx: GameContext): void {
   for (const [command, buildId] of Object.entries(quick)) {
     ctx.game.commands.define(command, {
       apply(state) {
-        selectTool(state,buildId);
+        selectTool(state, buildId);
       },
     });
   }

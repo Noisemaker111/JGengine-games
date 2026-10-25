@@ -1,40 +1,56 @@
 import { describe, expect, test } from "bun:test";
+import { defineGameDefinition } from "@jgengine/core/game/defineGame";
+import { createGameContext } from "@jgengine/core/runtime/gameContext";
 
-import type { PlacedObject } from "../session";
-import { computeMetrics, demand, objectAppeal, ratingTarget } from "./rating";
+import { content } from "../content";
 import { buildableDef } from "../objects/catalog";
+import { cellFor, freshWorld, parkMetrics, placeFree } from "../park";
+import { demand, ratingTarget } from "./rating";
 
-function placed(catalogId: string, x = 0, z = 0): PlacedObject {
-  return { id: `${catalogId}#${x}${z}`, catalogId, x, z, stock: 0, soldTotal: 0, occupants: 0 };
+function world(kinds: readonly [string, number, number][]) {
+  const ctx = createGameContext({ definition: defineGameDefinition({ name: "Brightway rating test", multiplayer: "off" }), content, player: { userId: "p1", isNew: true } });
+  const w = freshWorld(ctx);
+  // Every milestone reached, so the locked blueprints (the drinks kiosk) can stand too.
+  w.set("park.peak", 1000);
+  for (const [kind, x, z] of kinds) expect(placeFree(w, kind, cellFor(kind, x, z))).not.toBeNull();
+  return w;
 }
 
 describe("brightway-park rating math", () => {
-  test("a structure's appeal is its own; a coaster's draw lives in its measured circuit", () => {
-    const def = buildableDef("ride_coaster");
-    expect(objectAppeal(def)).toBe(def.appeal);
-    expect(objectAppeal(buildableDef("track_piece"))).toBe(buildableDef("track_piece").appeal);
-  });
-
-  test("metrics count categories and variety", () => {
-    const m = computeMetrics([
-      placed("ride_carousel"),
-      placed("ride_coaster"),
-      placed("track_piece"),
-      placed("track_piece"),
-      placed("stall_food"),
-      placed("stall_drink"),
-      placed("deco_tree"),
+  test("the world's totals count categories, variety, appeal and upkeep", () => {
+    const w = world([
+      ["ride_carousel", -40, -40],
+      ["ride_coaster", 0, -40],
+      ["track_piece", 8, -40],
+      ["track_piece", 12, -40],
+      ["stall_food", -40, 0],
+      ["stall_drink", -32, 0],
+      ["deco_tree", 40, 40],
     ]);
+    const m = parkMetrics(w);
     expect(m.rides).toBe(2);
+    expect(m.ridesOpen).toBe(2);
     expect(m.stalls).toBe(2);
     expect(m.tracks).toBe(2);
-    expect(m.scenery).toBe(1);
     expect(m.variety).toBe(4);
+    expect(m.totalAppeal).toBeCloseTo(
+      ["ride_carousel", "ride_coaster", "track_piece", "track_piece", "stall_food", "stall_drink", "deco_tree"].reduce((sum, kind) => sum + buildableDef(kind).appeal, 0),
+    );
     expect(m.dailyUpkeep).toBeGreaterThan(0);
   });
 
+  test("a broken ride's appeal drops out of the park's until it is fixed", () => {
+    const w = world([["ride_carousel", -40, -40]]);
+    const [ride] = w.instances();
+    const up = parkMetrics(w);
+    w.set(`${ride!.id}.broken`, true);
+    const down = parkMetrics(w);
+    expect(down.ridesOpen).toBe(0);
+    expect(down.totalAppeal).toBeCloseTo(up.totalAppeal - buildableDef("ride_carousel").appeal);
+  });
+
   test("rating rewards happiness and punishes litter", () => {
-    const m = computeMetrics([placed("ride_carousel"), placed("stall_food")]);
+    const m = parkMetrics(world([["ride_carousel", -40, -40], ["stall_food", 0, 0]]));
     const clean = ratingTarget(m, 80, 100, 0);
     const dirty = ratingTarget(m, 80, 100, 90);
     expect(clean).toBeGreaterThan(dirty);
