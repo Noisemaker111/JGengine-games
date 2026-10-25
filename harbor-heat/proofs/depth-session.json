@@ -66,7 +66,7 @@
   { "shot": "depth-08-phone" },
   { "assert": "(__hd('phone'), __hd('city.dev.warp', { x: -140, z: 40 }), window.__logBefore = window.__harborCity.read().log.length, window.__jgengineAgent.handle({ method: 'time_scale', scale: 20 }), true)",
     "note": "walk off and let the city run: the Carmines are furious, so they come for what you took" },
-  { "waitFor": "window.__harborCity.read().log.slice(-6).some((line) => /pushing back|wrecked|took .* back/.test(line))", "timeoutMs": 60000,
+  { "waitFor": "window.__harborCity.read().log.slice(-6).some((line) => /pushing back|wrecked|took .* (back|from you)/.test(line))", "timeoutMs": 60000,
     "note": "gangs + money: a raid or a turf push lands on its own schedule" },
   { "assert": "(window.__jgengineAgent.handle({ method: 'time_scale', scale: 1 }), true)" },
   { "shot": "depth-09-city-hits-back" },

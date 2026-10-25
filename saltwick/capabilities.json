@@ -229,6 +229,10 @@
       "kind": "not-applicable",
       "reason": "Saltwick has no transaction ledger yet: it is a cozy farming and fishing starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of saltwick: the farm plots belong to the cottage, and no side contests any field."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Saltwick has no agent loop yet: it is a cozy farming and fishing starter, and nothing in its loop uses utility-brain."

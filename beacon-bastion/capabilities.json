@@ -178,6 +178,10 @@
       "reason": "Gold for kills, builds, upgrades, refunds and the trickle is added and subtracted in session state; adopt the shared transaction ledger.",
       "issue": 125
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of beacon-bastion: the bastion is defended in place, and no ground changes hands between sides."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of beacon-bastion: raiders are wave state on a lane, not beings with needs, thoughts or mood."

@@ -1,5 +1,6 @@
 import type { MissionDef } from "@jgengine/core/mission/mission";
-import { calm, defineWorldModel, type WorldFactSpec, type WorldScheduleDecl, type WorldTriggerDecl } from "@jgengine/core/worldModel/worldModel";
+import { defineTurfWar } from "@jgengine/core/worldModel/turfWar";
+import { calm, defineWorldModel, type WorldFactSpec } from "@jgengine/core/worldModel/worldModel";
 
 /**
  * Mainsail as one world: who lives here, who holds which block, what each job is and what it leaves
@@ -30,32 +31,29 @@ export type TurfId = (typeof TURF)[number];
 /** A block's hold drifts back toward 60 when nobody is fighting over it, whoever owns it. */
 const grip = (value: number): WorldFactSpec => calm(value, 0.08, { rest: 60, min: 0, max: 100 });
 
-/** Seconds between Carmine pushes into each block the player holds; staggered so they never land together. */
-const PUSH_EVERY: Record<TurfId, number> = { port: 83, heights: 101, canal: 89, marina: 97 };
-
-const turfTriggers: Record<string, WorldTriggerDecl> = {};
-const turfPushes: Record<string, WorldScheduleDecl> = {};
-for (const id of TURF) {
-  turfTriggers[`take_${id}`] = {
-    when: { [`${id}.owner`]: "carmine", [`${id}.grip`]: { atMost: 0 } },
-    then: { [`${id}.owner`]: "player", [`${id}.grip`]: 40, "carmine.mood": -10, "locals.mood": 5 },
-    place: id,
-    note: "You took {place} from the Carmines.",
-  };
-  turfTriggers[`lose_${id}`] = {
-    when: { [`${id}.owner`]: "player", [`${id}.grip`]: { atMost: 0 } },
-    then: { [`${id}.owner`]: "carmine", [`${id}.grip`]: 50 },
-    place: id,
-    note: "The Carmines took {place} back.",
-  };
-  turfPushes[`push_${id}`] = {
-    every: PUSH_EVERY[id],
-    ripple: "turf_push",
-    place: id,
-    chance: 0.7,
-    when: { [`${id}.owner`]: "player", "carmine.mood": { atMost: -20 } },
-  };
-}
+/**
+ * The war over those blocks. Once the Carmines are angry enough they push back into any block the
+ * player took (from anywhere: it was theirs), each block on its own staggered clock.
+ */
+export const turfWar = defineTurfWar({
+  blocks: Object.fromEntries(TURF.map((id) => [id, {}])),
+  sides: ["player", "carmine"],
+  labels: { player: "you", carmine: "the Carmines" },
+  onTake: { player: { "locals.mood": 5 } },
+  onLose: { carmine: { "carmine.mood": -10 } },
+  fronts: {
+    carmine_pushback: {
+      by: "carmine",
+      into: ["player"],
+      fromBorders: false,
+      every: 83,
+      chance: 0.7,
+      when: { "carmine.mood": { atMost: -20 } },
+      note: "Carmine crews are pushing back into {place}.",
+      hook: "crewPush",
+    },
+  },
+});
 
 /** A front's facts: what it earns by day and on top at night, and whether a raid is on or has wrecked it. */
 const front = (label: string, income: number, night: number) => ({
@@ -339,7 +337,7 @@ export const city = defineWorldModel({
     ganger_down: [
       { place: { fear: 20 }, faction: { mood: -6 }, note: "A Carmine soldier went down in {place}." },
       // On their own corner somebody calls it in; on yours, nobody saw a thing.
-      { whenPlace: { owner: "carmine" }, place: { grip: -25 }, out: { heat: 30 } },
+      { whenPlace: { owner: "carmine" }, place: { grip: -25, attacker: "player" }, out: { heat: 30 } },
       { whenPlace: { owner: "locals" }, out: { heat: 30 } },
       { whenPlace: { owner: "player" }, place: { grip: 6 } },
     ],
@@ -347,7 +345,7 @@ export const city = defineWorldModel({
     wreck: { place: { fear: 15 }, out: { heat: 45 } },
     reckless: { place: { fear: 6 }, owner: { mood: -0.5 }, out: { heat: 6 } },
     carjack: { place: { fear: 10 }, owner: { mood: -1 }, out: { heat: 35 } },
-    turf_push: { whenPlace: { owner: "player" }, place: { grip: -15 }, note: "Carmine crews are pushing back into {place}.", hook: "crewPush" },
+    ...turfWar.ripples,
     raid: { whenTarget: { hit: false, raid: false }, target: { raid: true, raid_clock: 60 }, note: "Carmines are hitting {target}!", hook: "raidStarted" },
     raid_repelled: {
       target: { raid: false, raid_clock: -999 },
@@ -355,7 +353,7 @@ export const city = defineWorldModel({
       world: { "carmine.mood": -4, "fronts.repelled": 1, "locals.mood": 3 },
       note: "You ran the Carmines off {target}.",
     },
-    raid_lost: { target: { raid: false, hit: true }, place: { grip: -10 }, world: { "locals.mood": -3 }, note: "The Carmines wrecked {target}.", hook: "raidLost" },
+    raid_lost: { target: { raid: false, hit: true }, place: { grip: -10, attacker: "carmine" }, world: { "locals.mood": -3 }, note: "The Carmines wrecked {target}.", hook: "raidLost" },
     repaired: { target: { hit: false }, note: "{target} is open again." },
   },
   schedule: {
@@ -367,10 +365,10 @@ export const city = defineWorldModel({
       whenTarget: { hit: false, raid: false },
       when: { "carmine.mood": { atMost: -20 }, "jobs.protection": { is: "active", not: true } },
     },
-    ...turfPushes,
+    ...turfWar.schedule,
   },
-  triggers: turfTriggers,
-  facts: { "story.act": 0, "fronts.takings": { value: 0, min: 0 }, "fronts.repelled": 0 },
+  triggers: turfWar.triggers,
+  facts: { ...turfWar.facts, "story.act": 0, "fronts.takings": { value: 0, min: 0 }, "fronts.repelled": 0 },
 });
 
 /** Mission actor id for the player, whichever body it is in. */

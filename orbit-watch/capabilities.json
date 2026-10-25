@@ -232,6 +232,10 @@
       "kind": "not-applicable",
       "reason": "Orbit Watch has no transaction ledger yet: it is a tower defense (towers on pads, waves down lanes) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of orbit-watch: aliens march down fixed lanes at the relay, and towers hold pads rather than blocks."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Orbit Watch has no agent loop yet: it is a tower defense (towers on pads, waves down lanes) starter, and nothing in its loop uses utility-brain."

@@ -228,6 +228,10 @@
       "kind": "not-applicable",
       "reason": "Briarcrown has no transaction ledger yet: it is a settlement builder (house, feed and grow a realm) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of briarcrown: the lord's hall grows on its own grid, and no rival side pushes to take a block."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Briarcrown has no agent loop yet: it is a settlement builder (house, feed and grow a realm) starter, and nothing in its loop uses utility-brain."

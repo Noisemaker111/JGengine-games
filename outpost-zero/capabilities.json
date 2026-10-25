@@ -236,6 +236,10 @@
       "kind": "not-applicable",
       "reason": "Outpost Zero has no transaction ledger yet: it is a third-person shooter (clear the outposts) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of outpost-zero: an outpost the Hive holds is cleared and taken once, and no front pushes it back."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Outpost Zero has no agent loop yet: it is a third-person shooter (clear the outposts) starter, and nothing in its loop uses utility-brain."

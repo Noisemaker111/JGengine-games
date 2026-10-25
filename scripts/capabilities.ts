@@ -85,6 +85,7 @@ export const CAPABILITY_DOMAINS: Record<string, string> = {
   "vehicle-damage": "vehicle damage",
   "audio-probe": "audio mix",
   "mount-game": "game host",
+  "turf-war": "turf war",
 };
 
 /** A capability whose id is new still needs a domain; its module path supplies one. */

@@ -1,5 +1,6 @@
 import type { RadioBulletin } from "@jgengine/core/audio/radio";
 import type { WorldLogEntry } from "@jgengine/core/worldModel/worldModel";
+import { turfWar } from "../city";
 
 /** The three stations' wording for one story: the news desk reads it straight, Sully rants, Luna keeps it light. */
 function story(topic: string, priority: number, news: string[], talk: string[], dj: string[], cooldown = 75): RadioBulletin {
@@ -36,19 +37,20 @@ export function bulletinForLog(entry: Pick<WorldLogEntry, "kind" | "text">, plac
       [`Something blew up in ${where}.`, "In my day we blew things up on the Fourth of July, like Americans."],
       [`Heard a big bang over ${where}? Yeah. That wasn't thunder.`]);
   }
-  if (entry.kind.startsWith("take_")) {
-    return story(`turf.${entry.kind}`, 2,
+  const handover = turfWar.handover(entry.kind);
+  if (handover?.to === "player") {
+    return story(`turf.${handover.block}`, 2,
       [`Sources say the Carmine crew has lost control of ${where}.`, "Residents report new faces on the corners."],
       [`The Carmines just lost ${where}!`, "Somebody new runs that block now, and honestly, they can't be worse. Can they? Don't answer that."],
       [`Word is ${where} changed hands tonight. New management, same sunset.`], 120);
   }
-  if (entry.kind.startsWith("lose_")) {
-    return story(`turf.${entry.kind}`, 2,
+  if (handover !== null) {
+    return story(`turf.${handover.block}`, 2,
       [`The Carmine crew appears to be back in control of ${where}.`],
       [`The Carmines took ${where} back. Of course they did. Nothing changes in this town but the paint.`],
       [`Looks like the Carmines are back on ${where}. Lock your doors, lovers.`], 120);
   }
-  if (entry.kind === "turf_push") {
+  if (entry.kind === turfWar.pushRipple("carmine_pushback")) {
     return story("turf_push", 1,
       [`Residents of ${where} report Carmine crews moving back into the neighbourhood.`],
       [`Carmine boys pushing back into ${where}. It's like a tide, folks, a tide of guys in tracksuits.`],

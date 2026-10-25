@@ -7,10 +7,10 @@
  * inherits the defect. This runs the same rule against these games in this repo's CI, on the
  * PR that causes the failure.
  *
- * Same definition as the engine, no stricter additions: a line starting with `let <name>` or
- * `export let <name>` in a non-test `.ts`/`.tsx` under a game's `src`, where a game is a folder
- * with the `src/index.tsx` barrel the dev harness builds. `const`, function-local `let` and
- * test files are not offenders.
+ * The rule is the engine's own, imported from `jgengine/gameShape`: `moduleGlobalName` says which
+ * line declares module state (`let <name>` / `export let <name>` at the start of a line) and
+ * `isGameSourceFile` which files are read (non-test `.ts`/`.tsx`). A game is a folder with the
+ * `src/index.tsx` barrel the dev harness builds.
  *
  * The baseline is shrink-only: a new offender fails, an entry that no longer applies fails, and
  * `--write` may only drop entries — it never baselines a new one.
@@ -23,16 +23,16 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const BASELINE_REL = "scripts/module-globals-baseline.json";
+import { isGameSourceFile, moduleGlobalName } from "jgengine/gameShape";
 
-const MODULE_GLOBAL = /^(?:export )?let (\w+)/;
+export const BASELINE_REL = "scripts/module-globals-baseline.json";
 
 const GUIDANCE =
   "Module scope is shared by every GameContext in the process, so a server host running two\n" +
   "sessions, split-screen, and a test suite all read the same value. Put per-run or per-player\n" +
   "state in `defineStore(key, initial)` (or `perContext`) and read it through `ctx`; see\n" +
-  "`harbor-heat/src/game/session.ts`. The engine rule this mirrors: jgengine\n" +
-  "scripts/check-module-globals.ts.";
+  "`harbor-heat/src/game/session.ts`. The rule is the engine's:\n" +
+  "jgengine/gameShape moduleGlobalName, which engine scripts/check-module-globals.ts runs too.";
 
 export interface ModuleGlobal {
   /** Stable identity across runs — what the baseline stores. */
@@ -51,7 +51,7 @@ export function gameSources(root: string): { rel: string; source: string }[] {
       if (statSync(path).isDirectory()) {
         if (entry === "node_modules" || entry === "dist") continue;
         walk(path);
-      } else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
+      } else if (isGameSourceFile(entry)) {
         files.push({ rel: relative(root, path).replace(/\\/g, "/"), source: readFileSync(path, "utf8") });
       }
     }
@@ -73,9 +73,8 @@ export function findModuleGlobals(root: string): ModuleGlobal[] {
   const found: ModuleGlobal[] = [];
   for (const { rel, source } of gameSources(root)) {
     for (const [index, line] of source.split("\n").entries()) {
-      const match = MODULE_GLOBAL.exec(line);
-      if (match === null) continue;
-      const name = match[1]!;
+      const name = moduleGlobalName(line);
+      if (name === null) continue;
       found.push({ key: `${rel}#${name}`, where: `${rel}:${index + 1}` });
     }
   }

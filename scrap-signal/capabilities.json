@@ -130,6 +130,10 @@
       "kind": "not-applicable",
       "reason": "Traffic is not part of scrap-signal: nobody drives on the relay."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of scrap-signal: the six zones are travelled by level, and none is owned or pushed on by a side."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of scrap-signal: enemy behaviour is a combat state machine, not an agent loop with needs."
