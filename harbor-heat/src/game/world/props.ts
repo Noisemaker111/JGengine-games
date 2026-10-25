@@ -1,10 +1,12 @@
 import { libraryModel, libraryModelCredits } from "@jgengine/assets/catalogs/modelLibrary";
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
+import { CAR_MODEL_NAME, CAST_MODEL_NAMES } from "./cast";
+
 /**
  * Street furniture from the engine's realistic model library: real-world-size CC0 scans, each with a
  * near and a far detail level. Names (not files) are the contract; `bun run provision harbor-heat`
- * pulls every name below from Poly Haven, and the credits list follows from the same names.
+ * pulls every name below (and the cast and traffic in `cast.ts`) from its source, and the credits list follows from the same names.
  */
 const PROP_MODELS: Record<string, string> = {
   obj_streetlight: "city/street-lamp",
@@ -18,9 +20,15 @@ const PROP_MODELS: Record<string, string> = {
   obj_planter: "park/potted-plant",
   obj_hedge: "park/planter-box",
   obj_cactus: "nature/quiver-tree",
+  obj_shade_tree: "nature/jacaranda",
+  obj_patio: "park/patio-set",
+  obj_picnic: "park/picnic-table",
+  obj_dog: "creature/dog-beagle",
+  obj_dog_shepherd: "creature/dog-shepherd",
+  obj_duck: "creature/duck",
 };
 
-export const LIBRARY_MODEL_NAMES: readonly string[] = [...new Set(Object.values(PROP_MODELS))];
+export const LIBRARY_MODEL_NAMES: readonly string[] = [...new Set([...Object.values(PROP_MODELS), ...CAST_MODEL_NAMES, CAR_MODEL_NAME])];
 
 /** The lamp head glows after dark; only its glass takes the warm self-lit finish. */
 const LAMP_GLASS = { emissive: "#ffcf94", emissiveIntensity: 0.9, materials: ["street_lamp_01_glass"] };

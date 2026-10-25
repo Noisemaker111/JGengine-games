@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { createTraffic, type LaneGraph, type Traffic } from "@jgengine/core/world";
 
-import { fleetAtHour, laneGraph } from "./traffic";
+import { editorLayers } from "../../editorLayers";
+import { cityLayout } from "./cityLayout";
+import { fleetAtHour, laneGraph, layoutLanes } from "./traffic";
 
 const graph: LaneGraph = laneGraph();
 
@@ -150,5 +152,34 @@ describe("Mainsail traffic", () => {
     } finally {
       traffic.dispose();
     }
+  });
+});
+
+describe("lanes follow the city layout", () => {
+  const base = cityLayout.get();
+  const lane = (doc: ReturnType<typeof layoutLanes>, id: string) => doc.paths.find((path) => path.id === id);
+
+  test("a lane sits at its slot's centre for the layout's lane width", () => {
+    const narrow = layoutLanes(editorLayers, { ...base, laneWidth: 3 });
+    const wide = layoutLanes(editorLayers, { ...base, laneWidth: 4 });
+    // Avenue W runs north-south at x = -180; its inside northbound lane is half a lane off the line.
+    expect(Math.abs(lane(narrow, "tl_av_w_nb_in_0")!.points[0]!.x + 180)).toBeCloseTo(1.5, 5);
+    expect(Math.abs(lane(wide, "tl_av_w_nb_in_0")!.points[0]!.x + 180)).toBeCloseTo(2, 5);
+    expect(Math.abs(lane(wide, "tl_av_w_nb_out_0")!.points[0]!.x + 180)).toBeCloseTo(6, 5);
+  });
+
+  test("a two-lane avenue drops its outside lanes and the links to them", () => {
+    const doc = layoutLanes(editorLayers, { ...base, avenueLanes: 2 });
+    expect(lane(doc, "tl_av_w_nb_out_0")).toBeUndefined();
+    expect(lane(doc, "tl_av_w_nb_in_0")!.meta?.right).toBeUndefined();
+    expect(laneGraph({ ...base, avenueLanes: 2 }).laneIds().length).toBeLessThan(graph.laneIds().length);
+  });
+
+  test("kerb spots move out with a wider street", () => {
+    const spot = (doc: ReturnType<typeof layoutLanes>) => doc.markers.find((marker) => marker.id === "park_av_w_nb_1")!;
+    const before = Math.abs(spot(layoutLanes(editorLayers, base)).position.x + 180);
+    const after = Math.abs(spot(layoutLanes(editorLayers, { ...base, laneWidth: 4.5 })).position.x + 180);
+    // Four lanes a metre wider push each kerb out two metres.
+    expect(after - before).toBeCloseTo(2, 5);
   });
 });
