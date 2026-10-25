@@ -47,7 +47,7 @@ export const STEP_EXTRAS = ["before", "after", "note", "tolerancePx"] as const;
 export const CONDITION_FIELDS = ["is", "value", "timeoutMs", "note"] as const;
 
 /** A step's own value fields, which belong to exactly one kind. */
-export const STEP_VALUE_FIELDS = ["ms", "timeoutMs", "is"] as const;
+export const STEP_VALUE_FIELDS = ["ms", "timeoutMs", "is", "until"] as const;
 
 /** How deep a flow may include another before the run refuses the script (engine DRIVE_FLOW_MAX_DEPTH). */
 export const MAX_FLOW_DEPTH = 4;
@@ -64,6 +64,7 @@ export const RULES = {
   capOutsideCondition:
     'a poll cap proves nothing without a condition: timeoutMs is waitFor\'s own cap, and any other step takes its cap inside before { "timeoutMs": n } / after { "timeoutMs": n }',
   holdOutsideKey: 'ms is the hold length of a key step; a step that waits states a condition (waitFor) or caps one in before / after',
+  untilOutsideKey: "until releases a held key once its condition holds, so it belongs on a key step",
   unknownField: "a drive step is one kind plus before, after, note and tolerancePx",
   unknownConditionField: "a condition is is, value, timeoutMs and note, and nothing else",
 } as const;
@@ -164,6 +165,11 @@ export function stepProblems(step: unknown, at: string): StepCheck {
     }
     if (key === "ms") {
       if (kind !== "key") problems.push(`${at} carries ms on a ${kind} step; ${RULES.holdOutsideKey}`);
+      continue;
+    }
+    if (key === "until") {
+      if (kind !== "key") problems.push(`${at} carries until on a ${kind} step; ${RULES.untilOutsideKey}`);
+      else problems.push(...conditionProblems(record.until, `${at} until`));
       continue;
     }
     if (key === "is") {
