@@ -696,12 +696,12 @@
       "shape": "box",
       "center": {
         "x": -51,
-        "y": -1.6,
+        "y": -2.6,
         "z": 67
       },
       "halfExtents": {
         "x": 18,
-        "y": 1,
+        "y": 2,
         "z": 20
       },
       "label": "Lake",
@@ -710,7 +710,7 @@
         "shallowColor": "#5b8b8c",
         "waveHeight": 0.08,
         "foam": 1.6,
-        "opacity": 0.86
+        "opacity": 0.92
       }
     },
     {

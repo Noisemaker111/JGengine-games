@@ -1358,12 +1358,12 @@
       "shape": "box",
       "center": {
         "x": -105.4,
-        "y": -2.2,
+        "y": -3.2,
         "z": 100.8
       },
       "halfExtents": {
         "x": 20,
-        "y": 1,
+        "y": 2,
         "z": 20
       },
       "label": "Still lake",
@@ -1372,7 +1372,7 @@
         "shallowColor": "#6aa6a8",
         "waveHeight": 0.08,
         "foam": 1.6,
-        "opacity": 0.86
+        "opacity": 0.92
       }
     },
     {

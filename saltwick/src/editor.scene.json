@@ -818,12 +818,12 @@
       "shape": "box",
       "center": {
         "x": 10,
-        "y": -1.6,
+        "y": -2.6,
         "z": 72
       },
       "halfExtents": {
         "x": 36,
-        "y": 1,
+        "y": 2,
         "z": 37
       },
       "label": "Bay",
@@ -832,7 +832,7 @@
         "shallowColor": "#5aa8a8",
         "waveHeight": 0.08,
         "foam": 1.6,
-        "opacity": 0.86
+        "opacity": 0.92
       }
     },
     {

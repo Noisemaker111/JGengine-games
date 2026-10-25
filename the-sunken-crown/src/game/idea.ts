@@ -300,7 +300,7 @@ export const idea: Idea = {
       "id": "beat4",
       "title": "Wake the altar",
       "pitch": "Three relics, one altar. Its golem has waited a long time for you.",
-      "goal": "Wake the Sky Altar at The Sky Altar",
+      "goal": "Wake the Sky Altar",
       "fact": "journey.won",
       "atLeast": 1
     }

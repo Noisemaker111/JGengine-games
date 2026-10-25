@@ -11,8 +11,8 @@ Every word, stat and model below lives in `src/game/idea.ts`; places live in `sr
 - **Progression.**
   - [x] 6 landmarks, 3 with relics: Wing of Aurel (glide) at The Broken Gate, Ember Heart (stamina) at Warden's Watch, Stormstep Boots (doubleJump) at Thornspire.
   - [x] Glide runs the engine glide model while you hold Space in the air; the double jump and deeper stamina change how far you get.
-  - [x] Guardians: 2 bone warden at Warden's Watch, 3 thorn brute at Thornspire, 1 altar golem at The Sky Altar.
-  - [x] A 4-beat story from Ysolde ends when you wake the Sky Altar at The Sky Altar.
+  - [x] Guardians: 2 bone wardens at Warden's Watch, 3 thorn brutes at Thornspire, 1 altar golem at The Sky Altar.
+  - [x] A 4-beat story from Ysolde ends when you wake the Sky Altar.
 - **Failure states.** Guardians hit back; at 0 health you are back at the last place you found 4 seconds later. Sprinting empties stamina and leaves you winded.
 - **Minute 5 -> hour 5.** At 5:00 you have found two places and glide. Later places are farther, higher and guarded, so stamina, the second jump and fast travel decide how you get there.
 - **References it is chasing.**
