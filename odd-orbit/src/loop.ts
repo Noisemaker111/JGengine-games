@@ -2,7 +2,6 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { registerCommands } from "./game/commands";
 import { registerCaptureCommands } from "./game/capture";
-import { registerLifeEvents } from "./game/sim/events";
 import { setupWorld } from "./game/sim/setup";
 import { simulateHousehold } from "./game/sim/simulate";
 import { checkpointOrbit, orbitSession, prepareOrbit, registerOrbitLifecycle } from "./game/session/lifecycle";
@@ -11,7 +10,6 @@ export function onInit(ctx: GameContext): void {
   registerCommands(ctx);
   registerCaptureCommands(ctx);
   setupWorld(ctx);
-  registerLifeEvents(ctx);
   registerOrbitLifecycle(ctx);
   prepareOrbit(ctx);
 }

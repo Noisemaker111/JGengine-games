@@ -24,18 +24,26 @@ export function createHouseholdEconomy(now = 0): ResourceLedger {
   });
 }
 
-export function dailyUpkeep(objects: readonly SceneObject[]): number {
-  return HABITAT_UPKEEP + objects.reduce((sum, obj) => sum + (FURNITURE_BY_ID[obj.catalogId]?.runningCost ?? 0), 0);
+/** Base habitat rent per night in each charter term; the Authority raises it as the charter runs. */
+export const TERM_RENT = [HABITAT_UPKEEP, 130, 190, 260] as const;
+
+export function rentFor(state: Pick<HouseholdState, "charter">): number {
+  return TERM_RENT[Math.min(TERM_RENT.length - 1, Math.max(0, state.charter?.term ?? 0))]!;
+}
+
+export function dailyUpkeep(objects: readonly SceneObject[], rent: number = HABITAT_UPKEEP): number {
+  return rent + objects.reduce((sum, obj) => sum + (FURNITURE_BY_ID[obj.catalogId]?.runningCost ?? 0), 0);
 }
 
 export function nextBill(state: HouseholdState, objects: readonly SceneObject[]): number {
-  return dailyUpkeep(objects) + Math.min(state.debt, 40);
+  return dailyUpkeep(objects, rentFor(state)) + Math.min(state.debt, 40);
 }
 
-export function settleHouseholdDay(state: HouseholdState, objects: readonly SceneObject[], now: number, notices: Pick<NoticeFeed, "push">): void {
+/** Settle any due midnight bills. Returns the closed day's income when a new day began, else null. */
+export function settleHouseholdDay(state: HouseholdState, objects: readonly SceneObject[], now: number, notices: Pick<NoticeFeed, "push">): number | null {
   const today = Math.floor(now / DAY_LENGTH);
   const due = state.economy.cursors.upkeep!.nextDueSeconds;
-  if (due > now) return;
+  if (due > now) return null;
   const newDay = today > state.day;
   let remainingDebt = state.debt;
   state.economy.accounts = { household: { credits: state.credits } };
@@ -44,7 +52,7 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
     policies: [(txn) => {
       const repayment = Math.min(remainingDebt, 40);
       remainingDebt = creditAmount(remainingDebt - repayment);
-      return [{ ...txn, amount: dailyUpkeep(objects) + repayment }];
+      return [{ ...txn, amount: dailyUpkeep(objects, rentFor(state)) + repayment }];
     }],
     maxCyclesPerRule: 7,
   });
@@ -57,7 +65,7 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
   if (!newDay) {
     if (state.lastDay !== null) state.lastDay.bill = creditAmount(state.lastDay.bill + bill);
     noteEvent(state, notices, `Outstanding habitat bills ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, state.debt > 0 ? "info" : "success");
-    return;
+    return null;
   }
   const missed = state.order.reduce((sum, id) => {
     const m = state.members[id];
@@ -65,6 +73,7 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
   }, 0);
   state.lastDay = { day: state.day, income: creditAmount(state.dayIncome), harvest: state.dayHarvest, bill, missed };
   noteEvent(state, notices, `Day ${state.day + 1}: earned ${Math.round(state.dayIncome)}, harvested ${state.dayHarvest} rations; habitat bill ${Math.round(bill)}${state.debt > 0 ? ` · debt ${Math.round(state.debt)}` : " paid"}.`, state.debt > 0 ? "info" : "success");
+  const closedIncome = state.dayIncome;
   state.day = today;
   state.dayIncome = 0;
   state.dayHarvest = 0;
@@ -76,4 +85,5 @@ export function settleHouseholdDay(state: HouseholdState, objects: readonly Scen
     m.shiftProgress = 0;
     m.concern = null;
   }
+  return closedIncome;
 }

@@ -8,7 +8,7 @@ import { bondLine, householdBook } from "../agents";
 import { FURNITURE_BY_ID } from "../objects/catalog";
 import { content } from "../content";
 import { setupWorld } from "../sim/setup";
-import { advanceLifeEvents, LIFE_EVENT_SECONDS } from "../sim/events";
+import { ANSWER_SECONDS } from "../sim/events";
 import { simulateHousehold } from "../sim/simulate";
 import { pairKey } from "./types";
 import { householdStore } from "./store";
@@ -93,8 +93,13 @@ test("bounded needs, relationships, economy, schedules and world reject atomical
     save => { save.household.order[1] = save.household.order[0]!; },
     save => { save.household.debt = -1; },
     save => { save.clock.now = Number.NaN; },
-    save => { save.household.nextLifeEventAt = save.clock.now + LIFE_EVENT_SECONDS + 1; },
-    save => { save.household.nextLifeEventAt = -1; },
+    save => { save.household.charter!.term = 9; },
+    save => { save.household.charter!.outcome = "won" as never; },
+    save => { save.household.story = { elapsed: 0, points: -1, nextAt: 0, lastFiredAt: {}, recent: [], fired: 0 }; },
+    save => { save.household.story = { elapsed: 0, points: 0, nextAt: 0, lastFiredAt: { meteorite: 1 }, recent: [], fired: 0 }; },
+    save => { save.household.incident = { id: "flood", memberId: null, otherId: null, objId: null, objCatalog: null, deadline: 1 }; },
+    save => { save.household.members[save.household.order[0]!]!.traits = ["anxious", "serene"]; },
+    save => { save.household.hazards!.broken = [7 as never]; },
     save => { save.objects = [null] as unknown as OrbitSave["objects"]; },
     save => { save.entities = [null] as unknown as OrbitSave["entities"]; },
     save => { save.objects[0]!.catalogId = "unknown"; },
@@ -111,51 +116,35 @@ test("bounded needs, relationships, economy, schedules and world reject atomical
 });
 
 
-test("life event deadline reload fires the same effect exactly once", () => {
+test("a transmission waiting across a reload resolves once, the same way in both households", () => {
   const first = boot();
-  const deadline = householdStore.read(first).nextLifeEventAt;
-  simulateHousehold(first, first.time.advance(deadline - first.time.now() - 0.25));
+  const notices: string[] = [];
+  first.game.notices.onPush(notice => notices.push(notice.text));
+  while (householdStore.read(first).incident == null && first.time.now() < 210 * 4) simulateHousehold(first, first.time.advance(1));
+  const pending = householdStore.read(first).incident!;
+  expect(pending).not.toBeNull();
   const { storage } = memory();
   expect(writeOrbitSave(first, storage)).toBe(true);
   const second = boot(); restoreOrbitSave(second, readOrbitSave(storage).save!);
-  simulateHousehold(first, first.time.advance(0.5));
-  simulateHousehold(second, second.time.advance(0.5));
-  expect(householdStore.read(first).nextLifeEventAt).toBe(deadline + LIFE_EVENT_SECONDS);
-  expect(captureOrbitSave(second)).toEqual(captureOrbitSave(first));
-  const after = captureOrbitSave(second);
-  const third = boot(); restoreOrbitSave(third, after);
-  simulateHousehold(second, second.time.advance(0.25)); simulateHousehold(third, third.time.advance(0.25));
-  expect(householdStore.read(third).nextLifeEventAt).toBe(after.household.nextLifeEventAt);
-  expect(householdStore.read(third).eventSeq).toBe(after.household.eventSeq);
-  expect(captureOrbitSave(third)).toEqual(captureOrbitSave(second));
+  expect(householdStore.read(second).incident).toEqual(pending);
+  const step = pending.deadline - first.time.now() + 0.5;
+  simulateHousehold(first, first.time.advance(step));
+  simulateHousehold(second, second.time.advance(step));
+  expect(householdStore.read(first).incident).toBeNull();
+  expect(notices.filter(text => text.startsWith("No answer in time"))).toHaveLength(1);
+  expect(captureOrbitSave(second).household).toEqual(captureOrbitSave(first).household);
+  expect(ANSWER_SECONDS).toBeGreaterThan(30);
 });
 
-test("a far future reload skips missed life events and preserves the next deadline", () => {
-  const first = boot();
-  simulateHousehold(first, first.time.advance(210 * 9));
-  first.time.advance(150);
-  const saved = captureOrbitSave(first);
-  expect(saved.clock.calendar.day).toBeGreaterThan(8);
-  expect(saved.household.nextLifeEventAt).toBeLessThan(saved.clock.now);
-  expect(validOrbitSave(saved)).toBe(true);
-  const second = boot(); restoreOrbitSave(second, saved);
-  const fired: string[][] = [[], []];
-  for (const [index, ctx] of [first, second].entries()) {
-    ctx.game.notices.onPush(notice => fired[index]!.push(notice.text));
-    const state = householdStore.read(ctx);
-    advanceLifeEvents(state, ctx.time.now(), ctx.game.notices);
-    householdStore.write(ctx, { ...state });
-  }
-  const after = captureOrbitSave(second);
-  expect(after).toEqual(captureOrbitSave(first));
-  expect(after.household.eventSeq).toBe(saved.household.eventSeq + 1);
-  expect(fired[1]).toHaveLength(1);
-  expect(fired[1]).toEqual(fired[0]!);
-  expect(after.household.nextLifeEventAt).toBeGreaterThan(after.clock.now);
-  expect(after.household.nextLifeEventAt).toBeLessThanOrEqual(after.clock.now + LIFE_EVENT_SECONDS);
-  advanceLifeEvents(householdStore.read(second), second.time.now(), second.game.notices);
-  expect(fired[1]).toHaveLength(1);
-  expect(captureOrbitSave(second)).toEqual(after);
+test("a long unattended gap does not burst transmissions on return", () => {
+  const ctx = boot();
+  const notices: string[] = [];
+  ctx.game.notices.onPush(notice => notices.push(notice.text));
+  simulateHousehold(ctx, ctx.time.advance(210 * 3));
+  expect(notices.filter(text => text.startsWith("Transmission:")).length).toBeLessThanOrEqual(1);
+  const story = householdStore.read(ctx).story!;
+  expect(story.elapsed).toBeLessThanOrEqual(11);
+  expect(validOrbitSave(captureOrbitSave(ctx))).toBe(true);
 });
 
 

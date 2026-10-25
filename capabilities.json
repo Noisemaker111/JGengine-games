@@ -814,6 +814,17 @@
       "intent": "pin a log/chat/console panel to its newest line as entries arrive — no hand-rolled scrollTop effects"
     },
     {
+      "id": "auto-target-cycle",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/scene/autoTarget",
+      "domain": "scene",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "step a player-chosen targeting priority to the next allowed policy"
+    },
+    {
       "id": "axis-shaping",
       "packages": [
         "@jgengine/core"
@@ -8860,6 +8871,17 @@
       "intent": "halt-and-complete order that brings a unit to an immediate standstill"
     },
     {
+      "id": "storyteller",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/director/storyteller",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "incident pacing by threat points that build with play time, with cooldowns, repeat damping and rest after big threats"
+    },
+    {
       "id": "street-generator",
       "packages": [
         "@jgengine/core"
@@ -9615,6 +9637,28 @@
       "intent": "gate content behind unlock conditions the player earns"
     },
     {
+      "id": "upgrade-options",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/upgradePaths",
+      "domain": "worldModel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "list the next upgrade steps a placed thing can take, priced and checked by the world"
+    },
+    {
+      "id": "upgrade-paths",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/upgradePaths",
+      "domain": "worldModel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "branching upgrade ladders for placed things: a shared trunk, then exclusive branches priced and refused by the world model"
+    },
+    {
       "id": "upgrade-tree",
       "packages": [
         "@jgengine/core"
@@ -10129,6 +10173,17 @@
       "intent": "parametric water surface volume"
     },
     {
+      "id": "wave-countdown",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/director/waveCountdown",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "intermission clock between waves that releases the next one when it runs out and prices calling it early"
+    },
+    {
       "id": "wave-hud",
       "packages": [
         "@jgengine/react"
@@ -10138,6 +10193,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "drop-in wave/spawn HUD over a wave runner — big WAVE N label, wave-progress bar, spawned/total + budget + alert readouts, theme-skinnable"
+    },
+    {
+      "id": "wave-preview",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/director/wavePreview",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "summarize an authored wave before it opens: units by first arrival, trait counts and entries used"
     },
     {
       "id": "wave-runner",

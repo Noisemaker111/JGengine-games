@@ -8,7 +8,7 @@ import { householdStore } from "../session/store";
 import { createHousehold, pairKey, type HouseholdState, type Lifestyle, type MemberState } from "../session/types";
 import { emptyNeeds } from "../needs/needs";
 import { householdBook, resetAgents, resetBook, syncBook } from "../agents";
-import { LIFE_EVENT_SECONDS } from "./events";
+import { rollTraits } from "../traits";
 import { createHouseholdEconomy } from "./economy";
 import { SCENE_PLACEMENTS } from "../../editorLayers";
 
@@ -28,7 +28,6 @@ export function setupWorld(ctx: GameContext): void {
   resetBook();
   const state = createHousehold(current.seed);
   state.day = ctx.time.calendar().day;
-  state.nextLifeEventAt = ctx.time.now() + LIFE_EVENT_SECONDS;
   state.economy = createHouseholdEconomy(ctx.time.now());
 
   for (const placement of SCENE_PLACEMENTS) {
@@ -78,6 +77,7 @@ export function setupWorld(ctx: GameContext): void {
       completedShifts: 0,
       missedShifts: 0,
       concern: null,
+      traits: rollTraits(`${state.seed}:${i}`),
     };
     state.members[id] = member;
     state.order.push(id);
