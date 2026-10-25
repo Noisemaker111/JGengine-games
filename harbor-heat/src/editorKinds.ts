@@ -110,3 +110,15 @@ export const GIG_STOP_KIND = definePlaceableMarkerKind({
   accent: "#f2c14e",
   fields: [{ type: "text", key: "tags", label: "Tags", default: "fare" }],
 });
+
+/**
+ * A gang's block: the centre of the turf and how far it reaches. `game/city.ts` names which crew
+ * holds it and which blocks it borders; moving one in the editor moves where its crew stands.
+ */
+export const TURF_KIND = definePlaceableMarkerKind({
+  kind: "turf",
+  label: "Gang turf",
+  category: "Harbor Heat",
+  accent: "#1fb5a8",
+  fields: [{ type: "number", key: "radius", label: "Radius (m)", default: 45, min: 10, step: 5 }],
+});

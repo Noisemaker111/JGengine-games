@@ -21,26 +21,40 @@ const mission = (id: string, title: string, objectives: MissionDef["objectives"]
 const killed = (target: string) => ({ kind: "kill" as const, target });
 
 /**
- * Blocks the Carmines hold at the start and the player can take. Each has a grip: Carmine soldiers
- * dying there wear it down, and at zero the block changes hands; the same fact then measures the
- * player's hold, which Carmine pushes and lost raids wear down again.
+ * Blocks the two crews hold at the start and the player can take: the Carmines run the docks, the
+ * heights, Canal Row and the Marina; the Riptides, a smuggling crew out of the east side, run the
+ * Saltworks Yards, the East Strand and the Low Flats airstrip. Each block has a grip: soldiers dying
+ * there wear it down, and at zero it goes to whoever was pushing. The same fact then measures the new
+ * owner's hold, which the other crews' pushes and lost raids wear down again.
  */
-export const TURF = ["port", "heights", "canal", "marina"] as const;
+export const TURF = ["port", "heights", "canal", "marina", "saltworks", "strand", "flats"] as const;
 export type TurfId = (typeof TURF)[number];
+/** The crews that hold turf, beside the player. */
+export const GANGS = ["carmine", "riptide"] as const;
+export type GangId = (typeof GANGS)[number];
 
 /** A block's hold drifts back toward 60 when nobody is fighting over it, whoever owns it. */
 const grip = (value: number): WorldFactSpec => calm(value, 0.08, { rest: 60, min: 0, max: 100 });
 
 /**
- * The war over those blocks. Once the Carmines are angry enough they push back into any block the
- * player took (from anywhere: it was theirs), each block on its own staggered clock.
+ * Who pushes where. The Carmines hit any block the player took (from anywhere: it was theirs). Once
+ * Rising Tide starts the war, the Riptides push out from their corners into the Carmines' blocks and
+ * the Carmines push back the same way; angry Riptides also push into the player's blocks next door.
  */
 export const turfWar = defineTurfWar({
-  blocks: Object.fromEntries(TURF.map((id) => [id, {}])),
-  sides: ["player", "carmine"],
-  labels: { player: "you", carmine: "the Carmines" },
+  blocks: {
+    port: { borders: ["strand", "flats"] },
+    strand: { borders: ["port", "canal"] },
+    canal: { borders: ["strand", "saltworks", "heights"] },
+    saltworks: { borders: ["canal", "heights"] },
+    heights: { borders: ["saltworks", "canal"] },
+    marina: { borders: ["flats"] },
+    flats: { borders: ["marina", "port"] },
+  },
+  sides: ["player", "carmine", "riptide"],
+  labels: { player: "you", carmine: "the Carmines", riptide: "the Riptides" },
   onTake: { player: { "locals.mood": 5 } },
-  onLose: { carmine: { "carmine.mood": -10 } },
+  onLose: { carmine: { "carmine.mood": -10 }, riptide: { "riptide.mood": -10 } },
   fronts: {
     carmine_pushback: {
       by: "carmine",
@@ -51,6 +65,37 @@ export const turfWar = defineTurfWar({
       when: { "carmine.mood": { atMost: -20 } },
       note: "Carmine crews are pushing back into {place}.",
       hook: "crewPush",
+    },
+    riptide_pushback: {
+      by: "riptide",
+      into: ["player"],
+      every: 91,
+      chance: 0.6,
+      when: { "riptide.mood": { atMost: -20 } },
+      note: "Riptide crews are moving in on {place}.",
+      hook: "crewPush",
+    },
+    carmine_war: {
+      by: "carmine",
+      into: ["riptide"],
+      every: 117,
+      chance: 0.5,
+      hit: 12,
+      when: { "war.on": true },
+      note: "Carmine and Riptide crews are shooting it out in {place}.",
+      world: { "war.tension": 12 },
+      hook: "gangClash",
+    },
+    riptide_war: {
+      by: "riptide",
+      into: ["carmine"],
+      every: 109,
+      chance: 0.5,
+      hit: 12,
+      when: { "war.on": true },
+      note: "Riptide and Carmine crews are shooting it out in {place}.",
+      world: { "war.tension": 12 },
+      hook: "gangClash",
     },
   },
 });
@@ -73,6 +118,7 @@ const front = (label: string, income: number, night: number) => ({
 export const city = defineWorldModel({
   factions: {
     carmine: { label: "Carmine crew", facts: { mood: calm(0, 0.05, { min: -100, max: 100 }) } },
+    riptide: { label: "Riptide crew", facts: { mood: calm(0, 0.05, { min: -100, max: 100 }) } },
     hhpd: { label: "HHPD", facts: { mood: calm(0, 0.05, { min: -100, max: 100 }) } },
     locals: { label: "Mainsail locals", facts: { mood: calm(0, 0.08, { min: -100, max: 100 }) } },
   },
@@ -83,6 +129,9 @@ export const city = defineWorldModel({
     heights: { label: "Palm Heights", marker: "kingpin", radius: 90, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(80) } },
     canal: { label: "Canal Row", marker: "bounty_canal", radius: 42, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(50) } },
     marina: { label: "the Marina", marker: "bounty_marina", radius: 40, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(40) } },
+    saltworks: { label: "the Saltworks Yards", marker: "riptide_yards", radius: 50, owner: "riptide", facts: { fear: calm(0, 1.5), grip: grip(70) } },
+    strand: { label: "the East Strand", marker: "riptide_strand", radius: 40, owner: "riptide", facts: { fear: calm(0, 1.5), grip: grip(50) } },
+    flats: { label: "the Low Flats", marker: "riptide_flats", radius: 45, owner: "riptide", facts: { fear: calm(0, 1.5), grip: grip(45) } },
     neon: { label: "the neon strip", marker: "marco", radius: 20, owner: "locals" },
     motors: { label: "Sunset Motors", marker: "garage", radius: 20, owner: "locals" },
     precinct: { label: "HHPD precinct", marker: "hhpd_station", radius: 20, owner: "hhpd" },
@@ -105,7 +154,9 @@ export const city = defineWorldModel({
         { text: "Sal knows the lounge is yours. His crew will hit it. Be there.", when: { "jobs.protection": { is: "done", not: true } } },
         { text: "Sal's re-arming the docks. Break his convoy before it lands.", when: { "jobs.convoy": { is: "done", not: true } } },
         { text: "Sal's alone up in Palm Heights. End it.", when: { "jobs.kingpin": { is: "done", not: true } } },
-        { text: "Every block the Carmines lose pays you protection. Keep taking them.", when: { "turf.held": { atMost: 3 } } },
+        { text: "There's a second crew on the east side, the Riptides. They smuggle through the Strand. Go introduce yourself.", when: { "jobs.riptide_intro": { is: "done", not: true } } },
+        { text: "The Riptides and Sal's people are at war now. Let them bleed each other, then take what's left.", when: { "war.tension": { atLeast: 30 } } },
+        { text: "Every block a crew loses pays you protection. Keep taking them.", when: { "turf.held": { atMost: 3 } } },
         { text: "This town runs on sunshine and dirty cash, and now it runs on you." },
       ],
     },
@@ -132,6 +183,21 @@ export const city = defineWorldModel({
       says: [
         { text: "You took my docks. I take everything else.", when: { "jobs.kingpin": { is: "done", not: true } } },
         { text: "..." },
+      ],
+    },
+    inez: {
+      name: "Inez Corvo",
+      faction: "riptide",
+      at: "saltworks",
+      phone: true,
+      known: false,
+      blip: { icon: "contact", when: { "inez.known": true } },
+      facts: { trust: calm(0, 0.02, { min: -100, max: 100 }) },
+      says: [
+        { text: "You put my boat crew in the water. Come back when you want to talk business instead.", when: { "riptide.mood": { atMost: -40 } } },
+        { text: "Sal's boys still sit on Canal Row. Clear them off and my crews leave your corners alone.", when: { "jobs.corvo_offer": { is: "done", not: true } } },
+        { text: "Every block Sal loses is a block I can move product through. Keep going.", when: { "carmine.mood": { atMost: -30 } } },
+        { text: "The tide comes in, the tide goes out. The Riptides stay." },
       ],
     },
     dee: {
@@ -289,6 +355,43 @@ export const city = defineWorldModel({
       ], 1500),
       beat: { "marco.trust": 5 },
     },
+    riptide_intro: {
+      title: "Rising Tide",
+      kind: "side",
+      giver: "marco",
+      requires: ["dock_sweep"],
+      pitch: "A crew called the Riptides is running guns through the East Strand. Sink their boat crew and Sal will think it was the other guys.",
+      mission: mission("riptide_intro", "Rising Tide", [
+        { id: "go", kind: "reach", actor: PLAYER, marker: "riptide_strand", radius: 30, label: "Find the Riptide boat crew on the East Strand", next: "drop" },
+        { id: "drop", kind: "kill", count: 4, match: killed("riptide_soldier"), label: "Drop the Riptide crew" },
+      ], 1800),
+      beat: { "riptide.mood": -25, "inez.known": true, "war.on": true, "war.tension": 20, "marco.trust": 5 },
+    },
+    corvo_offer: {
+      title: "Corvo's Offer",
+      kind: "side",
+      giver: "inez",
+      requires: ["riptide_intro"],
+      when: { "riptide.mood": { atLeast: -40 } },
+      pitch: "Sal's boys sit on Canal Row. Clear them out and my crews stay off your corners.",
+      mission: mission("corvo_offer", "Corvo's Offer", [
+        { id: "go", kind: "reach", actor: PLAYER, marker: "bounty_canal", radius: 30, label: "Get to Canal Row", next: "clear" },
+        { id: "clear", kind: "kill", count: 4, match: killed("ganger_dock"), label: "Clear the Carmine crew off Canal Row" },
+      ], 2400),
+      beat: { "riptide.mood": 45, "inez.trust": 25, "carmine.mood": -15, "war.tension": 15 },
+    },
+    low_flats: {
+      title: "Take the Low Flats",
+      kind: "side",
+      giver: "marco",
+      requires: ["riptide_intro"],
+      when: { "flats.owner": "riptide" },
+      pitch: "The Riptides land their planes on the Low Flats. Thin their crew until the airstrip is ours.",
+      mission: mission("low_flats", "Take the Low Flats", [
+        { id: "take", kind: "survive", until: { fact: "flats.owner", is: "player" }, label: "Drop Riptide crew on the Low Flats until it changes hands" },
+      ], 2000),
+      beat: { "marco.trust": 5 },
+    },
     clean_hands: {
       title: "Clean Hands",
       kind: "side",
@@ -338,14 +441,22 @@ export const city = defineWorldModel({
       { place: { fear: 20 }, faction: { mood: -6 }, note: "A Carmine soldier went down in {place}." },
       // On their own corner somebody calls it in; on yours, nobody saw a thing.
       { whenPlace: { owner: "carmine" }, place: { grip: -25, attacker: "player" }, out: { heat: 30 } },
+      { whenPlace: { owner: "riptide" }, out: { heat: 30 } },
       { whenPlace: { owner: "locals" }, out: { heat: 30 } },
       { whenPlace: { owner: "player" }, place: { grip: 6 } },
     ],
+    riptide_down: [
+      { place: { fear: 20 }, faction: { mood: -6 }, note: "A Riptide soldier went down in {place}." },
+      { whenPlace: { owner: "riptide" }, place: { grip: -25, attacker: "player" }, out: { heat: 30 } },
+      { whenPlace: { owner: "carmine" }, out: { heat: 30 } },
+      { whenPlace: { owner: "locals" }, out: { heat: 30 } },
+      { whenPlace: { owner: "player" }, place: { grip: 6 } },
+    ],
+    ...turfWar.ripples,
     cop_down: { place: { fear: 35 }, faction: { mood: -25 }, world: { "dee.trust": -40 }, out: { heat: 110 }, note: "Officer down in {place}." },
     wreck: { place: { fear: 15 }, out: { heat: 45 } },
     reckless: { place: { fear: 6 }, owner: { mood: -0.5 }, out: { heat: 6 } },
     carjack: { place: { fear: 10 }, owner: { mood: -1 }, out: { heat: 35 } },
-    ...turfWar.ripples,
     raid: { whenTarget: { hit: false, raid: false }, target: { raid: true, raid_clock: 60 }, note: "Carmines are hitting {target}!", hook: "raidStarted" },
     raid_repelled: {
       target: { raid: false, raid_clock: -999 },
@@ -368,7 +479,16 @@ export const city = defineWorldModel({
     ...turfWar.schedule,
   },
   triggers: turfWar.triggers,
-  facts: { ...turfWar.facts, "story.act": 0, "fronts.takings": { value: 0, min: 0 }, "fronts.repelled": 0 },
+  facts: {
+    ...turfWar.facts,
+    "story.act": 0,
+    "fronts.takings": { value: 0, min: 0 },
+    "fronts.repelled": 0,
+    /** Whether the two crews are at war; Rising Tide starts it. */
+    "war.on": false,
+    /** How hot the crew war runs: every clash adds to it, and it cools off between them. */
+    "war.tension": calm(0, 0.1, { min: 0, max: 100 }),
+  },
 });
 
 /** Mission actor id for the player, whichever body it is in. */

@@ -53,7 +53,8 @@ export function buyRefusal(ctx: GameContext, lot: FrontLot): string | null {
   const world = cityOf(ctx);
   if (world.occupant(lot.slot) !== null) return `${lot.label} is already yours.`;
   const place = world.placeAt(lot.position[0], lot.position[1]);
-  if (place !== null && world.fact(`${place}.owner`) === "carmine") return `The Carmines run ${world.def.places?.[place]?.label ?? "this block"}. Take it first.`;
+  const owner = place === null ? null : world.fact(`${place}.owner`);
+  if (owner === "carmine" || owner === "riptide") return `${owner === "carmine" ? "The Carmines" : "The Riptides"} run ${world.def.places?.[place ?? ""]?.label ?? "this block"}. Take it first.`;
   if (handrollOf(ctx).wanted().stars >= 2) return "Nobody sells a business to someone the cops are chasing.";
   if (ctx.game.economy.balance(ctx.player.userId, "cash") < lot.price) return `${lot.label} costs $${lot.price.toLocaleString()}.`;
   return null;

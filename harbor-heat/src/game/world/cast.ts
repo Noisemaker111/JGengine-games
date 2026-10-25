@@ -6,10 +6,13 @@
  */
 export const CAST: Record<string, string> = {
   street_runner: "human/man-casual-2",
-  ped_beach: "human/jogger",
+  ped_beach: "human/woman-casual-2",
   ped_city: "human/woman-casual",
   ped_docks: "human/construction-worker",
   contact_marco: "human/man-casual",
+  contact_inez: "human/businesswoman",
+  // The Riptides run in tracksuits; the Carmines in street clothes.
+  riptide_soldier: "human/jogger",
   ganger_dock: "human/man-casual",
   ganger_enforcer: "human/security-guard",
   kingpin_sal: "human/businessman",

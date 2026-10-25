@@ -4,16 +4,18 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import type { WorldHookCall } from "@jgengine/core/worldModel/worldModel";
 import { editorLayers } from "../../editorLayers";
 import { spend } from "../cash";
-import { TURF } from "../city";
+import { GANGS, TURF, type GangId } from "../city";
+import { landHit } from "../combat/hitModel";
 import { cityEvent, cityOf } from "../cityRuntime";
 import { handrollOf } from "../handroll";
 import { frontIn } from "./fronts";
 
 /**
- * The street layer of the city's systems: Carmine crews standing on the blocks they hold, crews
- * pushing back into blocks the player took, cover HHPD can't see into, and the two ways to buy heat
- * down (a respray at Sunset Motors, a call to Dee). All of it reads the world model; none of it keeps
- * state the world doesn't already have, except which crews are standing right now.
+ * The street layer of the city's systems: each crew standing on the blocks it holds, crews pushing
+ * into blocks they want, the Carmines and the Riptides shooting it out where their war lands, cover
+ * HHPD can't see into, and the two ways to buy heat down (a respray at Sunset Motors, a call to Dee).
+ * All of it reads the world model; none of it keeps state the world doesn't already have, except
+ * which bodies are standing right now.
  */
 
 /** Crews stand only on blocks within this many metres of the player, so the city never fills up. */
@@ -22,13 +24,32 @@ const CREW_REACH = 150;
 const CREW_RESPAWN = 45;
 /** Metres around the block's centre the crew loiters. */
 const CREW_SPREAD = 9;
-/** A crew turns on the player once the Carmines are this angry (or the block is already shooting). */
+/** A crew turns on the player once its gang is this angry (or the block is already shooting). */
 export const WAR_MOOD = -20;
 const PUSHERS = 3;
+/** Soldiers each crew sends to a clash the player is close enough to see. */
+const CLASH_SIDE = 2;
+/** Seconds a clash's survivors hang around before going home. */
+const CLASH_LIFETIME = 40;
+const CLASH_RANGE = 26;
+const CLASH_SHOT_RANGE = 15;
 /** No cover hides you while a cop is this close: they watched you pull in. */
 const COVER_BLOWN = 28;
 const RESPRAY_PER_STAR = 150;
 const PAYOFF_PER_STAR = 400;
+
+/** What each crew sends onto the street. */
+const SOLDIER: Record<GangId, string> = { carmine: "ganger_dock", riptide: "riptide_soldier" };
+export const GANG_LABEL: Record<string, string> = { carmine: "The Carmines", riptide: "The Riptides" };
+
+/** Which crew a body belongs to, by its catalog id, or null for anyone else. */
+export function gangOf(catalogId: string): GangId | null {
+  if (catalogId.startsWith("ganger_") || catalogId === "kingpin_sal") return "carmine";
+  if (catalogId.startsWith("riptide_")) return "riptide";
+  return null;
+}
+
+const isGang = (value: unknown): value is GangId => (GANGS as readonly unknown[]).includes(value);
 
 interface Street {
   /** Sim seconds before fast driving can scare the street again. */
@@ -37,32 +58,37 @@ interface Street {
   cooldown: Record<string, number>;
   /** Crew ids standing per block, so a dropped one is noticed. */
   standing: Record<string, string[]>;
+  /** The crew standing on each block, so a block that changed hands swaps its corner crew. */
+  standingFor: Record<string, GangId>;
+  /** Clashes on the street: the block and when the survivors go home. */
+  clashes: Record<string, number>;
   nextCheck: number;
 }
 
-const streetOf = perContext((): Street => ({ recklessAt: 0, cooldown: {}, standing: {}, nextCheck: 0 }));
+const streetOf = perContext((): Street => ({ recklessAt: 0, cooldown: {}, standing: {}, standingFor: {}, clashes: {}, nextCheck: 0 }));
 
 const crewId = (place: string, index: number) => `crew_${place}_${index}`;
-const pusherId = (place: string, index: number) => `crew_push_${place}_${index}`;
+const pusherId = (place: string, gang: GangId, index: number) => `crew_push_${gang}_${place}_${index}`;
+const clashId = (place: string, gang: GangId, index: number) => `clash_${place}_${gang}_${index}`;
 
 /** Crew members on a block: one more after dark, one fewer as the grip slips. */
 function crewSize(ctx: GameContext, place: string): number {
   const world = cityOf(ctx);
-  if (world.fact(`${place}.owner`) !== "carmine") return 0;
+  if (!isGang(world.fact(`${place}.owner`))) return 0;
   const grip = world.num(`${place}.grip`);
   const base = grip >= 60 ? 3 : grip >= 25 ? 2 : 1;
   return base + (world.fact("clock.night") === true ? 1 : 0);
 }
 
-function spawnAround(ctx: GameContext, id: string, at: readonly [number, number], index: number, count: number): void {
+function spawnAround(ctx: GameContext, id: string, catalogId: string, at: readonly [number, number], index: number, count: number, spread = CREW_SPREAD): void {
   if (ctx.scene.entity.get(id) !== null) return;
   const angle = (index / Math.max(1, count)) * Math.PI * 2 + 0.6;
-  const x = at[0] + Math.cos(angle) * CREW_SPREAD;
-  const z = at[1] + Math.sin(angle) * CREW_SPREAD;
-  ctx.scene.entity.spawn("ganger_dock", { id, position: [x, ctx.world.groundHeightAt(x, z), z], role: "npc" });
+  const x = at[0] + Math.cos(angle) * spread;
+  const z = at[1] + Math.sin(angle) * spread;
+  ctx.scene.entity.spawn(catalogId, { id, position: [x, ctx.world.groundHeightAt(x, z), z], role: "npc" });
 }
 
-/** Put each nearby Carmine block's crew on its corner, take crews off blocks that changed hands. */
+/** Put each nearby crew block's soldiers on its corner, and swap them when the block changed hands. */
 export function tickStreetCrews(ctx: GameContext): void {
   const street = streetOf(ctx);
   const now = ctx.time.now();
@@ -74,48 +100,122 @@ export function tickStreetCrews(ctx: GameContext): void {
   for (const place of TURF) {
     const at = world.position(place);
     if (at === null) continue;
+    const owner = world.fact(`${place}.owner`);
     const near = Math.hypot(at[0] - player.position[0], at[1] - player.position[2]) <= CREW_REACH;
     const want = near ? crewSize(ctx, place) : 0;
     const before = street.standing[place] ?? [];
+    const swapped = street.standingFor[place] !== undefined && street.standingFor[place] !== owner;
     const alive = before.filter((id) => ctx.scene.entity.get(id) !== null);
-    if (alive.length < before.length && want > 0) street.cooldown[place] = now + CREW_RESPAWN;
-    if (want === 0 || !near) {
+    if (alive.length < before.length && want > 0 && !swapped) street.cooldown[place] = now + CREW_RESPAWN;
+    if (want === 0 || !near || swapped || !isGang(owner)) {
       for (const id of alive) ctx.scene.entity.despawn(id);
       street.standing[place] = [];
+      delete street.standingFor[place];
       continue;
     }
     if (alive.length === 0 && (street.cooldown[place] ?? 0) <= now) {
       const ids = Array.from({ length: want }, (_, index) => crewId(place, index));
-      ids.forEach((id, index) => spawnAround(ctx, id, at, index, want));
+      ids.forEach((id, index) => spawnAround(ctx, id, SOLDIER[owner], at, index, want));
       street.standing[place] = ids;
+      street.standingFor[place] = owner;
     } else {
       street.standing[place] = alive;
     }
   }
 }
 
-/** Whether a Carmine body on the street goes for the player: pushers and raiders always, corner crews once it's war. */
-export function crewHostile(ctx: GameContext, entity: { id: string; position: readonly [number, number, number] }): boolean {
-  if (!entity.id.startsWith("crew_") || entity.id.startsWith("crew_push_")) return true;
+/**
+ * Whether a crew body on the street goes for the player: pushers and raiders always, clash fighters
+ * only while their own crew is angry at you, corner crews once it's war or their block is shooting.
+ */
+export function crewHostile(ctx: GameContext, entity: { id: string; name: string; position: readonly [number, number, number] }): boolean {
+  const corner = entity.id.startsWith("crew_") && !entity.id.startsWith("crew_push_");
+  const clash = entity.id.startsWith("clash_");
+  if (!corner && !clash) return true;
   const world = cityOf(ctx);
-  if (world.num("carmine.mood") <= WAR_MOOD) return true;
+  const gang = gangOf(entity.name);
+  if (gang !== null && world.num(`${gang}.mood`) <= WAR_MOOD) return true;
+  if (clash) return false;
   const place = world.placeAt(entity.position[0], entity.position[2]);
   return place !== null && world.num(`${place}.fear`) >= 30;
 }
 
-/** World hook: the Carmines push into a block the player holds; if the player is close, the crew turns up. */
+/** World hook: a crew pushes into a block the player holds; if the player is close, the crew turns up. */
 export function crewPush(ctx: GameContext, call: WorldHookCall): void {
   if (call.place === null) return;
-  const at = cityOf(ctx).position(call.place);
+  const world = cityOf(ctx);
+  const gang = world.fact(`${call.place}.attacker`);
+  if (!isGang(gang)) return;
+  const at = world.position(call.place);
   const player = ctx.scene.entity.get(ctx.player.userId);
-  const label = cityOf(ctx).def.places?.[call.place]?.label ?? "your block";
+  const label = world.def.places?.[call.place]?.label ?? "your block";
+  const crew = gang === "riptide" ? "Riptide" : "Carmine";
   if (at === null || player === null || Math.hypot(at[0] - player.position[0], at[1] - player.position[2]) > CREW_REACH) {
-    ctx.game.notices.push({ text: `Carmine crews are pushing into ${label}. Its hold is slipping.`, tone: "warn" });
+    ctx.game.notices.push({ text: `${crew} crews are pushing into ${label}. Its hold is slipping.`, tone: "warn" });
     return;
   }
-  for (let index = 0; index < PUSHERS; index += 1) spawnAround(ctx, pusherId(call.place, index), at, index, PUSHERS);
-  ctx.game.notices.push({ text: `Carmine crew rolling into ${label}! Drop them or lose the block.`, tone: "warn" });
+  for (let index = 0; index < PUSHERS; index += 1) spawnAround(ctx, pusherId(call.place, gang, index), SOLDIER[gang], at, index, PUSHERS);
+  ctx.game.notices.push({ text: `${crew} crew rolling into ${label}! Drop them or lose the block.`, tone: "warn" });
   ctx.game.feedback.cue("deny", `Crew in ${label}`);
+}
+
+/**
+ * World hook: the crews' war landed on a block. Far from the player it is a line on the news; within
+ * reach, two soldiers from each side turn up and shoot it out, and whoever drops whom moves the block.
+ */
+export function gangClash(ctx: GameContext, call: WorldHookCall): void {
+  if (call.place === null) return;
+  const street = streetOf(ctx);
+  const now = ctx.time.now();
+  if ((street.clashes[call.place] ?? 0) > now) return;
+  const world = cityOf(ctx);
+  const at = world.position(call.place);
+  const player = ctx.scene.entity.get(ctx.player.userId);
+  if (at === null || player === null || Math.hypot(at[0] - player.position[0], at[1] - player.position[2]) > CREW_REACH) return;
+  street.clashes[call.place] = now + CLASH_LIFETIME;
+  GANGS.forEach((gang, side) => {
+    // The two crews come at each other from opposite sides of the block's centre.
+    const offset = side === 0 ? -1 : 1;
+    const from: readonly [number, number] = [at[0] + offset * 10, at[1] + offset * 4];
+    for (let index = 0; index < CLASH_SIDE; index += 1) spawnAround(ctx, clashId(call.place!, gang, index), SOLDIER[gang], from, index, CLASH_SIDE, 2.5);
+  });
+  const label = world.def.places?.[call.place]?.label ?? "the block";
+  ctx.game.notices.push({ text: `Carmines and Riptides are shooting it out in ${label}.`, tone: "warn" });
+}
+
+/** Clash fighters go for the nearest soldier of the other crew; when nobody is left to fight, they go home. */
+export function tickClashes(ctx: GameContext, dt: number): void {
+  const street = streetOf(ctx);
+  const now = ctx.time.now();
+  const fighters = ctx.scene.entity.list().filter((entity) => entity.id.startsWith("clash_"));
+  if (fighters.length === 0) return;
+  const soldiers = ctx.scene.entity.list().filter((entity) => gangOf(entity.name) !== null);
+  for (const fighter of fighters) {
+    const place = fighter.id.split("_")[1] ?? "";
+    if ((street.clashes[place] ?? 0) <= now) {
+      ctx.scene.entity.despawn(fighter.id);
+      continue;
+    }
+    const gang = gangOf(fighter.name);
+    let target: (typeof soldiers)[number] | null = null;
+    let best = CLASH_RANGE;
+    for (const other of soldiers) {
+      const theirs = gangOf(other.name);
+      if (theirs === null || theirs === gang) continue;
+      const distance = Math.hypot(other.position[0] - fighter.position[0], other.position[2] - fighter.position[2]);
+      if (distance < best) {
+        best = distance;
+        target = other;
+      }
+    }
+    if (target === null) continue;
+    if (best > 7) ctx.scene.entity.moveToward(fighter.id, target.position, { speed: 4.2, stopDistance: 6, dt });
+    if (best > CLASH_SHOT_RANGE || !ctx.scene.entity.hasLineOfSight(fighter.id, target.id)) continue;
+    const meta = (fighter.meta ?? {}) as { nextShotAt?: number };
+    if ((meta.nextShotAt ?? 0) > now) continue;
+    ctx.scene.entity.update(fighter.id, { meta: { ...meta, nextShotAt: now + 1.1 + (fighter.id.length % 3) * 0.2 } });
+    landHit(ctx, { from: fighter.id, to: target.id, type: "ballistic", base: 9 });
+  }
 }
 
 /** Residents and pedestrians on a block the player holds don't talk to HHPD. Cops still see everything. */
@@ -250,12 +350,16 @@ export function streetPromptLabel(ctx: GameContext, id: string): string | null {
 /** What the phone's turf list shows. */
 export function turfViews(ctx: GameContext) {
   const world = cityOf(ctx);
-  return TURF.map((id) => ({
-    id,
-    label: world.def.places?.[id]?.label ?? id,
-    owner: String(world.fact(`${id}.owner`) ?? "carmine"),
-    grip: Math.round(world.num(`${id}.grip`)),
-  }));
+  return TURF.map((id) => {
+    const attacker = world.fact(`${id}.attacker`);
+    return {
+      id,
+      label: world.def.places?.[id]?.label ?? id,
+      owner: String(world.fact(`${id}.owner`) ?? "carmine"),
+      grip: Math.round(world.num(`${id}.grip`)),
+      attacker: typeof attacker === "string" ? attacker : "",
+    };
+  });
 }
 
 /** Above this speed a car near people on foot is reckless driving, metres per second (about 40 km/h). */

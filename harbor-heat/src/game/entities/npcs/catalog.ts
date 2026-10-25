@@ -11,6 +11,7 @@ export const NPCS: readonly NpcDef[] = [
   { id: "ped_city", role: "npc", walkSpeed: 1.9, health: 20 },
   { id: "ped_docks", role: "npc", walkSpeed: 1.5, health: 20 },
   { id: "contact_marco", role: "npc", walkSpeed: 0, health: 200 },
+  { id: "contact_inez", role: "npc", walkSpeed: 0, health: 200 },
 ];
 
 export const npcById = (id: string): NpcDef | undefined => NPCS.find((n) => n.id === id);
