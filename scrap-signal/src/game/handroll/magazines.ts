@@ -40,6 +40,23 @@ function ammoReserve(ctx: GameContext, gun: GunDef): MagazineReserve {
   };
 }
 
+/**
+ * Where a gun's live reload pace and reload-start notice come from beyond talents — the perk runtime
+ * (Outlaw speeds reloads, Kill Clip listens for one). Hooks, not an import, so this module stays below
+ * the perk runtime in the dependency order.
+ */
+export interface MagazineHooks {
+  reloadScale(ctx: GameContext, gun: GunDef): number;
+  reloadStarted(ctx: GameContext, gun: GunDef): void;
+}
+
+// Wiring, not state: set once at module load by the perk runtime; per-run values live in `ctx`.
+const hooks: MagazineHooks = { reloadScale: () => 1, reloadStarted: () => {} };
+
+export function setMagazineHooks(next: MagazineHooks): void {
+  Object.assign(hooks, next);
+}
+
 /** A gun's live magazine plus the effective capacity/reload it was built with, for drift detection. */
 interface MagEntry {
   mag: Magazine;
@@ -70,7 +87,7 @@ function buildEntry(ctx: GameContext, gun: GunDef, capacity: number, reloadMs: n
 function magFor(ctx: GameContext, gun: GunDef): Magazine {
   const magazines = magazinesOf(ctx);
   const capacity = effectiveMagSize(gun);
-  const reloadMs = effectiveReloadMs(gun);
+  const reloadMs = Math.max(1, Math.round(effectiveReloadMs(gun) / Math.max(0.1, hooks.reloadScale(ctx, gun))));
   let entry = magazines.get(gun.id);
   if (entry === undefined) {
     entry = buildEntry(ctx, gun, capacity, reloadMs, capacity);
@@ -96,7 +113,22 @@ export function isReloading(ctx: GameContext, gun: GunDef): boolean {
 
 /** Begin reloading a gun; returns false when already full, out of reserve, or already reloading. */
 export function startReload(ctx: GameContext, gun: GunDef): boolean {
-  return magFor(ctx, gun).startReload();
+  const started = magFor(ctx, gun).startReload();
+  if (started) hooks.reloadStarted(ctx, gun);
+  return started;
+}
+
+/**
+ * Put `rounds` back in a gun's magazine without touching the reserve, clamped to its capacity; returns
+ * how many went in. A reload in flight keeps its progress. Subsistence and Triple Tap land here.
+ */
+export function refundRounds(ctx: GameContext, gun: GunDef, rounds: number): number {
+  const mag = magFor(ctx, gun);
+  const snapshot = mag.snapshot();
+  const next = Math.min(mag.capacity(), snapshot.loaded + Math.max(0, Math.floor(rounds)));
+  const added = next - snapshot.loaded;
+  if (added <= 0) return 0;
+  return mag.restore({ ...snapshot, loaded: next }) ? added : 0;
 }
 
 /** Advance every live magazine's reload timer by `dtSeconds`, completing refills from the ammo reserve. */

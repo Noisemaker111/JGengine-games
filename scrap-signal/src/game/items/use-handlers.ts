@@ -4,7 +4,8 @@ import { seededRng } from "@jgengine/core/random/rng";
 import { cameraShake } from "@jgengine/shell/camera";
 import { AMMO_LABELS } from "../ammo";
 import { bonus } from "../characters";
-import { resolveGunHit } from "../combat/hitModel";
+import { resolveGunHit, type GunHitMods } from "../combat/hitModel";
+import { perkAfterHit, perkDamageScale, perkHitMods, perkShot, watchDeaths, withGunKills } from "../combat/gunPerks";
 import { noteHit, noteShot } from "../feel";
 import { playHit, playShot } from "../audio/drive";
 import {
@@ -47,10 +48,12 @@ export function hitFeel(crit: boolean, killed: boolean): HitReactionConfig | "en
  * the world takes it as one application, and the feel cues read the same resolution. Errors out on a
  * body the damage model has no profile for — that is the wiring check, not a zero-damage hit.
  */
-function landGunHit(ctx: GameContext, from: string, targetId: string, gunId: string, nowMs: number): void {
+function landGunHit(ctx: GameContext, from: string, targetId: string, gunId: string, nowMs: number, shot: GunHitMods = {}): void {
   const gun = gunById(gunId);
   if (gun === undefined) return;
-  const outcome = resolveGunHit(ctx, gun, from, targetId, gun.elementChance + bonus("elementChance"));
+  const wasAlive = (ctx.scene.entity.stats.get(targetId, "health")?.current ?? 0) > 0;
+  const mods = perkHitMods(ctx, gun, targetId, shot);
+  const { value: outcome, died } = watchDeaths(ctx, () => resolveGunHit(ctx, gun, from, targetId, gun.elementChance + bonus("elementChance"), mods));
   if (outcome.crit) {
     ctx.scene.entity.floatText({ instanceId: targetId, text: "CRITICAL!", kind: "warn" });
   }
@@ -61,6 +64,7 @@ function landGunHit(ctx: GameContext, from: string, targetId: string, gunId: str
   ctx.scene.entity.hitReaction({ from, to: targetId, config: hitFeel(outcome.crit, killed) });
   playHit(ctx, ctx.scene.entity.get(targetId)?.position ?? [0, 0, 0], outcome.crit);
   applyElementalProc(ctx, combatRng, gun, from, targetId);
+  perkAfterHit(ctx, gun, from, targetId, outcome, wasAlive && (killed || died.has(targetId)));
 }
 
 const fireGun: ItemUseHandler<GameContext> = {
@@ -78,6 +82,8 @@ const fireGun: ItemUseHandler<GameContext> = {
       if (!startReload(ctx, gun)) warn(ctx, input.from, `NO ${AMMO_LABELS[gun.ammo].toUpperCase()} AMMO`);
       return { state: ctx };
     }
+    // Perk shot events read the magazine before the round leaves it (Opening Shot wants a full mag).
+    const shot = perkShot(ctx, gun, input.aim);
     // Free-shot refund: roll before spending so a refunded shot leaves the mag untouched (the old code
     // spent the round then added it back). The `combatRng()` draw stays gated behind `ammoRefund > 0` and
     // happens once per fired shot, so the shared proc/crit rng stream keeps the same order.
@@ -106,22 +112,26 @@ const fireGun: ItemUseHandler<GameContext> = {
       ctx.time.after(gun.weapon.projectile.fuseTime, () => {
         const settled = ctx.scene.entity.settleProjectile(shotId);
         if (settled.status !== "settled") return;
-        // A launched round's direct impact was never elemental or critical: it lands its base number.
-        for (const hit of settled.hits) {
+        // A launched round's direct impact was never elemental or critical: it lands its base number,
+        // scaled by live perk buffs; its kills (direct and splash) earn the launcher's kill perks.
+        const scale = perkDamageScale(ctx, gun) * (shot.damageScale ?? 1);
+        withGunKills(ctx, gun, input.from, () => {
+          for (const hit of settled.hits) {
+            ctx.scene.entity.effect({
+              from: input.from,
+              to: hit.instanceId,
+              effect: "damage",
+              via: { amount: Math.round(gun.weapon.damage * scale), item: gun.id },
+            });
+          }
+          cameraShake(0.45);
           ctx.scene.entity.effect({
             from: input.from,
-            to: hit.instanceId,
+            at: settled.at,
+            radius: explosion.radius,
             effect: "damage",
-            via: { amount: gun.weapon.damage, item: gun.id },
+            via: { amount: Math.round(gun.weapon.damage * (1 + bonus("gunDamage")) * scale) },
           });
-        }
-        cameraShake(0.45);
-        ctx.scene.entity.effect({
-          from: input.from,
-          at: settled.at,
-          radius: explosion.radius,
-          effect: "damage",
-          via: { amount: Math.round(gun.weapon.damage * (1 + bonus("gunDamage"))) },
         });
       });
       return { state: ctx };
@@ -130,15 +140,18 @@ const fireGun: ItemUseHandler<GameContext> = {
     const settled = ctx.scene.entity.settleProjectile(shotId);
     if (settled.status === "settled") {
       for (const hit of settled.hits) {
-        landGunHit(ctx, input.from, hit.instanceId, gun.id, nowMs);
+        landGunHit(ctx, input.from, hit.instanceId, gun.id, nowMs, shot);
       }
-      if (settled.hits.length > 0 && gun.weapon.explosion !== undefined) {
-        ctx.scene.entity.effect({
-          from: input.from,
-          at: settled.at,
-          radius: gun.weapon.explosion.radius,
-          effect: "damage",
-          via: { amount: Math.round(gun.weapon.damage * 0.5) },
+      const explosion = gun.weapon.explosion;
+      if (settled.hits.length > 0 && explosion !== undefined) {
+        withGunKills(ctx, gun, input.from, () => {
+          ctx.scene.entity.effect({
+            from: input.from,
+            at: settled.at,
+            radius: explosion.radius,
+            effect: "damage",
+            via: { amount: Math.round(gun.weapon.damage * 0.5 * perkDamageScale(ctx, gun)) },
+          });
         });
       }
     }

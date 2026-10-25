@@ -48,9 +48,9 @@ export function hitBase(gun: GunDef, fluxed: boolean): number {
  * `gunDamage`, and its crit fields carry the gun's own crit chance and multiplier, so the shared
  * damage model reproduces one gun's numbers while keeping the chart itself target-only data.
  */
-export function zonesFor(gun: GunDef | null): HitZoneTable {
+export function zonesFor(gun: GunDef | null, forceCrit = false): HitZoneTable {
   const gunDamage = 1 + bonus("gunDamage");
-  const critChance = gun === null ? 0 : gun.weapon.critChance + bonus("critChance");
+  const critChance = gun === null ? 0 : forceCrit ? 1 : gun.weapon.critChance + bonus("critChance");
   const critMultiplier = gun === null ? 1 : gun.weapon.critMult + bonus("critDamage");
   return {
     zones: [{ id: "body", multiplier: gunDamage, critChance, critMultiplier: gunDamage * critMultiplier }],
@@ -123,6 +123,12 @@ export interface HitOutcome {
   multiplier: number;
 }
 
+/** Per-hit shaping a gun perk asks for: a damage multiplier on the base, and a guaranteed crit. */
+export interface GunHitMods {
+  damageScale?: number;
+  forceCrit?: boolean;
+}
+
 /**
  * Resolve one pellet or trigger pull through the shared damage model and apply it to the world. The
  * thrown `UnknownTargetProfileError` is the capability: a hit on a body nobody registered fails loudly
@@ -134,9 +140,10 @@ export function resolveGunHit(
   from: string,
   targetId: string,
   fluxChance: number,
+  mods: GunHitMods = {},
 ): HitOutcome {
   const combat = combatOf(ctx);
-  combat.damage.retune({ zones: zonesFor(gun) });
+  combat.damage.retune({ zones: zonesFor(gun, mods.forceCrit === true) });
   const resistance = resistanceOf(ctx, targetId);
   // A shield going up or down changes the class a body presents; anything never registered is left
   // unregistered on purpose so `hit` raises UnknownTargetProfileError instead of inventing a number.
@@ -145,7 +152,7 @@ export function resolveGunHit(
     combat.damage.registerTarget(targetId, { resistance });
   }
   const fluxed = isFluxed(ctx, targetId) && gun.element !== "flux";
-  const base = hitBase(gun, fluxed);
+  const base = hitBase(gun, fluxed) * (mods.damageScale ?? 1);
   const statuses = gun.element === "flux" ? [{ id: FLUX_STATUS.id, chanceScale: fluxChance }] : [];
   const resolution = combat.damage.hit({
     target: targetId,

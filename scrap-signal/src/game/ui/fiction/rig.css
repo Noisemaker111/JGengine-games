@@ -361,3 +361,14 @@
   .ss-hud *, .ss-scrim *, .ss-broadcast *, .ss-broadcast { animation: none !important; transition: none !important; }
 }
 .ss-stash > [data-jg-frame-face], .ss-scan > [data-jg-frame-face] { box-shadow: inset 4px 0 0 var(--ss-rarity), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.4); }
+
+/* Gun perks: red-text signatures and stamped steel chips on the pickup scan and the field stash. */
+.ss-perks { display: grid; gap: 4px; margin-top: 3px; }
+.ss-perk-red { display: grid; gap: 1px; padding: 4px 0 2px 8px; box-shadow: inset 3px 0 0 var(--ss-red); }
+.ss-perk-red em { font: italic 600 11.5px/1.3 var(--ss-body); color: var(--ss-red); text-shadow: 0 0 6px rgba(255, 74, 58, 0.35); }
+.ss-perk-red b { font: 400 11px/1.2 var(--ss-display); letter-spacing: 0.1em; text-transform: uppercase; color: #ffb4a8; }
+.ss-perk-red small, .ss-perk-chip small { font: 600 10px/1.3 var(--ss-body); color: #c9c2b4; }
+.ss-perk-red .ss-perk-src { justify-self: start; margin-top: 2px; font-size: 8.5px; }
+.ss-perk-chip > [data-jg-frame-face] { display: grid !important; gap: 1px; padding: 4px 8px 5px; }
+.ss-perk-chip b { font: 400 10px/1.2 var(--ss-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ss-amber); }
+.ss-perk-buffs { display: flex; flex-wrap: wrap; gap: 4px; }

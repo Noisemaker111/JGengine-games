@@ -4,3 +4,5 @@ export * from "./magazines";
 export * from "./shields";
 export * from "./elements";
 export * from "./reserve";
+export * from "./perks";
+export * from "./bossDrops";

@@ -15,6 +15,7 @@ import {
   type Rarity,
   type RarityTier,
 } from "./guns";
+import { derivePerks } from "./perks";
 
 /**
  * The gun catalog is a process-global registry, not per-context: the engine resolves item stats,
@@ -77,6 +78,18 @@ export interface RollGunOptions {
   family?: GunFamily;
   level?: number;
   luck?: number;
+  /** Pin a named legendary ("Sixgun"): forces legendary rarity, its family and its maker. */
+  legendary?: string;
+}
+
+/** The family and maker a named legendary belongs to, or undefined for a name nobody rolls. */
+export function legendaryEntry(name: string): { family: GunFamily; maker: string } | undefined {
+  for (const family of Object.keys(LEGENDARY_NAMES) as GunFamily[]) {
+    for (const [maker, legendaryName] of LEGENDARY_NAMES[family]) {
+      if (legendaryName === name) return { family, maker };
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -131,6 +144,13 @@ export function rollGun(rng: () => number, level: number, options: RollGunOption
   const pin: Record<string, string> = {};
   if (options.family !== undefined) pin.family = options.family;
   if (options.rarity !== undefined) pin.rarity = options.rarity;
+  if (options.legendary !== undefined) {
+    const entry = legendaryEntry(options.legendary);
+    if (entry === undefined) throw new Error(`unknown legendary: ${options.legendary}`);
+    pin.family = entry.family;
+    pin.rarity = "legendary";
+    pin.maker = `${entry.maker}:${options.legendary}`;
+  }
   const rolled = generate(gunSelectionSchema(options.luck ?? 1), rng, { pin });
   if (!rolled.ok) throw new Error(`gun roll failed: ${rolled.reason}`);
   const base = rolled.result.values.family as FamilyBase;
@@ -187,6 +207,8 @@ export function rollGun(rng: () => number, level: number, options: RollGunOption
       ...(base.stats.explosion !== undefined ? { explosion: base.stats.explosion } : {}),
     },
   };
+  // Perks come off the gun's own id stream (see `derivePerks`), never the roll rng above.
+  def.perks = derivePerks(def);
   gunProvenanceById.set(def.id, rolled.result.provenance);
   return registerGun(def);
 }

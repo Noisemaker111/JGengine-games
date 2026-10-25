@@ -9,7 +9,7 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { noteEquipped } from "../feel";
 import { earn } from "../cash";
-import { FAMILY_BASES, MANUFACTURERS, gunById, registerGun, type GunDef, type GunFamily, type Rarity } from "../handroll";
+import { FAMILY_BASES, MANUFACTURERS, gunById, perkLines, registerGun, type GunDef, type GunFamily, type PerkLine, type Rarity } from "../handroll";
 import { lastPickupStore } from "../stores";
 
 const pools: AffixPool[] = [
@@ -119,6 +119,8 @@ export interface FieldGearView {
   level: number;
   mass: number;
   affixes: readonly string[];
+  /** The gun's perks (rare and up), as the card draws them. */
+  perks: readonly PerkLine[];
   deltas: readonly EquippedStatDelta[];
   better: "candidate" | "equipped" | "equal";
   carried: boolean;
@@ -209,6 +211,7 @@ function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: Ite
     reloadMs: "reload",
   };
   const mass = haul.mass();
+  const fieldGun = gunById(drop.id);
   const view: FieldGearView = {
     dropId: drop.id,
     name: drop.name,
@@ -221,6 +224,7 @@ function writeView(ctx: GameContext, drop: ItemDrop, carried: boolean, worn: Ite
         ? `${label[affix.stat] ?? affix.stat} x${Math.round(affix.value * 100) / 100}`
         : `${label[affix.stat] ?? affix.stat} +${Math.round(affix.value * 10) / 10}`,
     ),
+    perks: fieldGun === undefined ? [] : perkLines(fieldGun),
     deltas: comparison.deltas,
     better: comparison.better,
     carried,
