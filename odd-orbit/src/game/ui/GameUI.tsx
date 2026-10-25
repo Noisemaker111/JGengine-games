@@ -13,6 +13,9 @@ import { nextBill, RATION_BUNDLE, RELIEF, PANTRY_CAP } from "../sim/economy";
 import { BuildPalette } from "./components/BuildPalette";
 import { Inspector } from "./components/Inspector";
 import { RosterPanel } from "./components/RosterPanel";
+import { CharterNote, TermLetter, TransmissionSlip } from "./components/Charter";
+import { FURNITURE_BY_ID } from "../objects/catalog";
+import { HULL_PATCH_COST, repairCost } from "../sim/events";
 import { FridgeMagnets, HouseClock } from "./components/TopBar";
 import { creditsText } from "./components/bits";
 import { Enamel } from "./fiction/kit";
@@ -50,6 +53,7 @@ export function GameUI() {
   const canBuy = household.credits >= RATION_BUNDLE.cost && household.pantry + RATION_BUNDLE.quantity <= PANTRY_CAP;
   const canRelief = household.reliefDay !== household.day && household.pantry < 4 && household.credits < RATION_BUNDLE.cost;
   const bill = nextBill(household, objects);
+  const broken = (household.hazards?.broken ?? []).flatMap((id) => { const obj = objects.find((o) => o.instanceId === id); return obj === undefined ? [] : [{ id, catalogId: obj.catalogId }]; });
   const setPreference = (key: keyof OrbitPreferences, value: boolean) => {
     const next = { ...preferences, [key]: value };
     setPreferences(next);
@@ -71,6 +75,8 @@ export function GameUI() {
       {!modal && <>
         <HudPanel id="clock" anchor="top-left" priority="critical"><HouseClock compact={compact} /></HudPanel>
         <HudPanel id="fridge" anchor="top-right" priority="critical"><FridgeMagnets compact={phone} /></HudPanel>
+        {!sheetOpen && <HudPanel id="charter" anchor="top-right" order={1} priority="secondary"><CharterNote compact={phone} /></HudPanel>}
+        {household.incident != null && household.charter?.review == null && <HudPanel id="transmission" anchor="top" priority="critical"><TransmissionSlip /></HudPanel>}
         {!(phone && sheetOpen) && <HudPanel id="roster" anchor={phone ? "bottom" : "left"} order={phone ? 1 : 0} priority="critical"><RosterPanel compact={compact} /></HudPanel>}
         {household.selectedMemberId && !drawer && <HudPanel id="inspector" anchor={phone ? "bottom" : "right"} order={phone ? 2 : 0} priority="secondary"><Inspector /></HudPanel>}
         {drawer && <HudPanel id="drawer" anchor={phone ? "bottom" : "right"} order={phone ? 2 : 0} priority="secondary">
@@ -94,6 +100,14 @@ export function GameUI() {
                 <p className="orbit-fine">{canBuy ? "Each meal uses one ration." : household.pantry + RATION_BUNDLE.quantity > PANTRY_CAP ? "The pantry has no room for six more." : `Need ${creditsText(RATION_BUNDLE.cost - household.credits)} more credits.`}</p>
                 <HudButton disabled={!canRelief} onClick={() => command("household.relief")}>Emergency {RELIEF.quantity} rations · +{RELIEF.debt} debt</HudButton>
                 <p className="orbit-fine">{canRelief ? "Once a day. The next bill repays up to 40." : household.reliefDay === household.day ? "Relief already taken today." : "Only when under 4 rations and 36 credits."}</p>
+                {(broken.length > 0 || household.hazards?.hullLeak === true) && <>
+                  <h3 className="orbit-repairs-head">Repairs</h3>
+                  {broken.map(({ id, catalogId }) => (
+                    <HudButton key={id} disabled={household.credits < repairCost(catalogId)} onClick={() => command("household.repair", { id })}>Mend the {FURNITURE_BY_ID[catalogId]?.name ?? "furnishing"} · {repairCost(catalogId)} credits</HudButton>
+                  ))}
+                  {household.hazards?.hullLeak === true && <HudButton disabled={household.credits < HULL_PATCH_COST} onClick={() => command("household.patchHull")}>Patch the torpor wing · {HULL_PATCH_COST} credits</HudButton>}
+                  <p className="orbit-fine">Broken furnishings stand idle and an inspector fines a habitat in disrepair.</p>
+                </>}
               </>}
             </div>
           </GameFrame>
@@ -119,6 +133,7 @@ export function GameUI() {
         </HudPanel>}
       </>}
     </HudCanvas>
+    {!modal && <TermLetter />}
     {modal && <OrbitMenu preferences={preferences} onPreference={setPreference} />}
   </>;
 }

@@ -9,7 +9,10 @@ import { BODY_SHAPES } from "../creatures/bodyPlan";
 import { ALIEN_KIND, JOBS } from "../entities/aliens/catalog";
 import { NEEDS } from "../needs/needs";
 import { FURNITURE_BY_ID, objectEntries } from "../objects/catalog";
-import { LIFE_EVENT_SECONDS } from "../sim/events";
+import { INCIDENTS } from "../sim/events";
+import { TERMS } from "../sim/charter";
+import { TRAIT_IDS, TRAITS, rollTraits } from "../traits";
+import { createCharter, createHazards } from "./types";
 import { createHouseholdEconomy, PANTRY_CAP } from "../sim/economy";
 import { householdStore } from "./store";
 import { resetAgents, resetBook } from "../agents";
@@ -87,7 +90,7 @@ function validEconomy(value: unknown, now: number): boolean {
 function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   if (!object(h) || h.seed !== WORLD_SEED || !Array.isArray(h.order) || h.order.length !== 4 || new Set(h.order).size !== 4 || h.order.some(id => !/^alien:[0-3]$/.test(id))) return false;
   if (!object(h.members) || !keys(h.members, h.order) || !number(h.credits) || !number(h.pantry, 0, PANTRY_CAP) || !number(h.debt) || !integer(h.day, Math.max(0, clock.calendar.day - 1), clock.calendar.day) || !integer(h.reliefDay, -1, h.day)) return false;
-  if (!number(h.nextLifeEventAt, 0, clock.now + LIFE_EVENT_SECONDS) || !number(h.dayIncome) || !number(h.dayHarvest) || !validEconomy(h.economy, clock.now)) return false;
+  if ((h.nextLifeEventAt !== undefined && !number(h.nextLifeEventAt, 0, MAX_TIME)) || !number(h.dayIncome) || !number(h.dayHarvest) || !validEconomy(h.economy, clock.now)) return false;
   if (h.lastDay !== null && (!object(h.lastDay) || !integer(h.lastDay.day, 0, h.day) || !["income", "harvest", "bill"].every(key => number(h.lastDay[key])) || !integer(h.lastDay.missed, 0, 4))) return false;
   if (h.selectedMemberId !== null && !h.order.includes(h.selectedMemberId)) return false;
   if (h.buildTool !== null && (typeof h.buildTool !== "string" || !Object.hasOwn(FURNITURE_BY_ID, h.buildTool))) return false;
@@ -96,6 +99,8 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
     if (!object(m) || m.id !== id || !text(m.name, 80) || !JOBS.includes(m.job) || !body(m.bodyPlan) || !object(m.needs) || !keys(m.needs, NEEDS) || !NEEDS.every(need => number(m.needs[need], 0, 100))) return false;
     if (!(LIFESTYLES as readonly string[]).includes(m.lifestyle) || !number(m.stress, 0, 100) || typeof m.recovering !== "boolean" || !number(m.workToday, 0, 20) || !number(m.harvestToday, 0, 5) || !number(m.shiftProgress, 0, 20) || !integer(m.shiftDay, -1, h.day) || !integer(m.completedShifts) || !integer(m.missedShifts) || (m.concern !== null && !text(m.concern, 240))) return false;
     if (m.bloomCrop !== undefined && !(BLOOM_CROPS as readonly string[]).includes(m.bloomCrop)) return false;
+    if (m.traits !== undefined && (!Array.isArray(m.traits) || m.traits.length !== 2 || new Set(m.traits).size !== 2 || !m.traits.every((t: unknown) => (TRAIT_IDS as readonly unknown[]).includes(t)) || (TRAITS[m.traits[0] as keyof typeof TRAITS].excludes ?? []).includes(m.traits[1]))) return false;
+    if (m.illUntil !== undefined && !number(m.illUntil, 0, clock.now + DAY_LENGTH)) return false;
     if (typeof m.assignedByPlayer !== "boolean" || !number(m.actionUntil, 0, clock.now + DAY_LENGTH) || !object(m.action)) return false;
     const a = m.action;
     if (a.kind === "idle") { if (!keys(a, ["kind"])) return false; }
@@ -110,7 +115,41 @@ function validHousehold(h: unknown, clock: ClockSnapshot): h is HouseholdState {
   if (h.milestones !== undefined) return false;
   if (h.standing !== undefined && !validStanding(h)) return false;
   if (h.careers !== undefined && !validCareers(h.careers)) return false;
+  if (h.charter !== undefined && !validCharter(h.charter)) return false;
+  if (h.story !== undefined && !validStory(h.story, clock.now)) return false;
+  if (h.incident !== undefined && h.incident !== null && !validIncident(h.incident, h.order, clock.now)) return false;
+  if (h.hazards !== undefined && !validHazards(h.hazards, clock.now)) return false;
   return integer(h.eventSeq);
+}
+
+/** The charter: a term inside the four, strikes and stars inside their bounds, an outcome word. */
+function validCharter(c: unknown): boolean {
+  if (!object(c) || !integer(c.term, 0, TERMS.length) || !integer(c.strikes, 0, TERMS.length) || !Array.isArray(c.stars) || c.stars.length > TERMS.length || !c.stars.every((n: unknown) => integer(n, 0, 3))) return false;
+  if (!number(c.termIncome) || !integer(c.answered, 0, 1000) || !["active", "evicted", "kept"].includes(c.outcome) || typeof c.warned !== "boolean") return false;
+  if (c.review === null) return true;
+  const r = c.review;
+  return object(r) && integer(r.term, 0, TERMS.length) && Array.isArray(r.met) && Array.isArray(r.missed) && [...r.met, ...r.missed].every((t: unknown) => text(t, 120)) && number(r.grant, 0, 10_000) && typeof r.strike === "boolean" && ["active", "evicted", "kept"].includes(r.outcome) && (r.reason === undefined || text(r.reason, 240));
+}
+
+const INCIDENT_IDS = new Set(INCIDENTS.map((def) => def.id));
+
+/** The storyteller's clock, points and history, naming only incidents the book has. */
+function validStory(s: unknown, now: number): boolean {
+  if (!object(s) || !number(s.elapsed, 0, MAX_TIME) || s.elapsed > now + 1 || !number(s.points, 0, 1000) || !number(s.nextAt, 0, MAX_TIME) || !integer(s.fired, 0, 1_000_000)) return false;
+  if (!object(s.lastFiredAt) || !Object.entries(s.lastFiredAt).every(([id, at]) => INCIDENT_IDS.has(id) && number(at, 0, MAX_TIME))) return false;
+  return Array.isArray(s.recent) && s.recent.length <= 8 && s.recent.every((id: unknown) => typeof id === "string" && INCIDENT_IDS.has(id));
+}
+
+function validIncident(i: unknown, order: string[], now: number): boolean {
+  if (!object(i) || typeof i.id !== "string" || !INCIDENT_IDS.has(i.id) || !number(i.deadline, 0, now + DAY_LENGTH)) return false;
+  if (i.memberId !== null && !order.includes(i.memberId)) return false;
+  if (i.otherId !== null && !order.includes(i.otherId)) return false;
+  if (i.objId !== null && !text(i.objId)) return false;
+  return i.objCatalog === null || (typeof i.objCatalog === "string" && Object.hasOwn(FURNITURE_BY_ID, i.objCatalog));
+}
+
+function validHazards(z: unknown, now: number): boolean {
+  return object(z) && number(z.consolesOfflineUntil, 0, now + DAY_LENGTH) && number(z.dustUntil, 0, now + DAY_LENGTH * 2) && typeof z.hullLeak === "boolean" && Array.isArray(z.broken) && z.broken.length <= 64 && z.broken.every((id: unknown) => text(id));
 }
 
 /** Standing records: known beings on the three authored tracks, inside the ledger's bounds. */
@@ -174,6 +213,16 @@ export function restoreOrbitSave(ctx: GameContext, save: OrbitSave): void {
   const legacy = detached.household as HouseholdState & { events?: unknown; milestones?: unknown };
   delete legacy.events;
   delete legacy.milestones;
+  // Saves from before the storyteller kept a fixed life-event deadline; the storyteller replaces it.
+  delete (legacy as { nextLifeEventAt?: unknown }).nextLifeEventAt;
+  // Saves from before the charter, traits and incidents: a household starts term one with fresh hazards.
+  legacy.charter ??= createCharter();
+  legacy.incident ??= null;
+  legacy.hazards ??= createHazards();
+  for (const id of legacy.order) {
+    const member = legacy.members[id];
+    if (member !== undefined && member.traits === undefined) member.traits = rollTraits(`${legacy.seed}:${id.slice(id.indexOf(":") + 1)}`);
+  }
   // A save from before posts existed: keep its standing empty and line each post up with its rhythm,
   // so nobody loses the station their household already ran.
   if (legacy.standing === undefined || legacy.careers === undefined) {

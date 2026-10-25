@@ -52,6 +52,9 @@ export const game = defineGame({
       // Four days of the same simulation: mastery tiers and promotion rungs have moved, which is the
       // roster a career proof needs and the one a lane otherwise plays three days to reach.
       "mid-week": ["orbit.new", { name: "household.stage", input: { mode: "week" } }],
+      // The first transmission waiting on an answer, and the Authority's letter at the close of term one.
+      transmission: ["orbit.new", { name: "household.stage", input: { mode: "transmission" } }],
+      "term-review": ["orbit.new", { name: "household.stage", input: { mode: "review" } }],
     },
     probe: (ctx) => {
       const state = householdStore.read(ctx);
@@ -60,7 +63,7 @@ export const game = defineGame({
         const member = state.members[id];
         if (member !== undefined && member.action.kind === "use" && member.action.goal === "work") working += 1;
       }
-      return { day: state.day, members: state.order.length, working, credits: state.credits };
+      return { day: state.day, members: state.order.length, working, credits: state.credits, incident: state.incident == null ? 0 : 1, term: state.charter?.term ?? 0, review: state.charter?.review == null ? 0 : 1 };
     },
   },
   hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },

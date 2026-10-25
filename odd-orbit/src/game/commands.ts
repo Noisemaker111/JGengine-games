@@ -17,6 +17,8 @@ import { creditAmount, PANTRY_CAP, RATION_BUNDLE, RELIEF } from "./sim/economy";
 import { canChangeLifestyle, scheduleLabel, shiftIsOpen } from "./sim/schedule";
 import { stationShortfall } from "./sim/goal";
 import { hasRoom, releaseMember, startConversation } from "./sim/simulate";
+import { answerIncident, HULL_PATCH_COST, repairCost, repairObject } from "./sim/events";
+import { charterOf } from "./sim/charter";
 import type { BloomCrop, HouseholdState, Lifestyle, MemberState } from "./session/types";
 
 export interface PointerInput {
@@ -514,4 +516,53 @@ function registerHouseholdCommands(ctx: GameContext): void {
       checkpoint(gameCtx);
     },
   });
+  ctx.game.commands.define<{ choice: string }>("incident.answer", {
+    apply(gameCtx, { choice }) {
+      if (gamePhase(gameCtx) !== "playing") return;
+      const state = householdStore.read(gameCtx);
+      if (!answerIncident(state, choice, gameCtx.time.now(), gameCtx.game.notices)) return;
+      gameCtx.game.audio.play("purchase");
+      householdStore.write(gameCtx, { ...state, members: { ...state.members } });
+      checkpoint(gameCtx);
+    },
+  });
+  ctx.game.commands.define<{ id: string }>("household.repair", {
+    apply(gameCtx, { id }) {
+      if (gamePhase(gameCtx) !== "playing") return;
+      const state = householdStore.read(gameCtx);
+      const obj = gameCtx.scene.object.get(id);
+      if (obj === null || !(state.hazards?.broken ?? []).includes(id)) return;
+      const cost = repairCost(obj.catalogId);
+      if (state.credits < cost) return;
+      state.credits = creditAmount(state.credits - cost);
+      repairObject(state, id);
+      noteEvent(state, gameCtx.game.notices, `Mended the ${FURNITURE_BY_ID[obj.catalogId]?.name ?? "furnishing"} for ${cost} credits.`, "success");
+      gameCtx.game.audio.play("purchase");
+      householdStore.write(gameCtx, { ...state });
+      checkpoint(gameCtx);
+    },
+  });
+  ctx.game.commands.define("household.patchHull", {
+    apply(gameCtx) {
+      if (gamePhase(gameCtx) !== "playing") return;
+      const state = householdStore.read(gameCtx);
+      if (state.hazards?.hullLeak !== true || state.credits < HULL_PATCH_COST) return;
+      state.credits = creditAmount(state.credits - HULL_PATCH_COST);
+      state.hazards = { ...state.hazards, hullLeak: false };
+      noteEvent(state, gameCtx.game.notices, `Patched the torpor wing for ${HULL_PATCH_COST} credits.`, "success");
+      gameCtx.game.audio.play("purchase");
+      householdStore.write(gameCtx, { ...state });
+      checkpoint(gameCtx);
+    },
+  });
+  ctx.game.commands.define("charter.dismiss", {
+    apply(gameCtx) {
+      const state = householdStore.read(gameCtx);
+      const charter = charterOf(state);
+      if (charter.review === null || charter.outcome === "evicted") return;
+      householdStore.write(gameCtx, { ...state, charter: { ...charter, review: null } });
+      checkpoint(gameCtx);
+    },
+  });
 }
+
