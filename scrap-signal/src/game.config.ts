@@ -17,6 +17,7 @@ import { keybinds } from "./game/keybinds";
 import { RARITY_COLORS } from "./game/palette";
 import { session } from "./game/session";
 import { RELAY } from "./game/relay";
+import { FRONT_SITE } from "./game/encounters/front";
 import { GameUI } from "./game/ui/GameUI";
 import { scrapTheme } from "./game/ui/theme";
 import { entityModels, objectModels } from "./game/world/models";
@@ -49,6 +50,12 @@ const mastBoardPosition = { x: boardMarker.position.x, z: boardMarker.position.z
 const staticPrompts: readonly PositionedPrompt[] = [
   { id: "relay:dead-air", position: { x: RELAY.x, z: RELAY.z }, priority: 2,
     prompt: { radius: 3.8, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "relay.start", input: undefined } } },
+  {
+    id: "rift:wreck",
+    position: { x: FRONT_SITE.x, z: FRONT_SITE.z },
+    priority: 2,
+    prompt: { radius: 4.5, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "rift.open", input: undefined } },
+  },
   {
     id: "mast:board",
     position: mastBoardPosition,
@@ -168,6 +175,9 @@ export const game = defineGame({
       // The boss shot: pick a character, then open the front's last wave with the Foreman one shot
       // above its second phase. The phase change itself is the next real hit.
       boss: [{ name: "character.pick", input: { characterId: "gunk" } }, "front.capture"],
+      // The Overdrive console at the wreck with seven tiers cleared, and a tier-8 run live on the field.
+      overdrive: [{ name: "character.pick", input: { characterId: "gunk" } }, { name: "rift.capture", input: { tier: 8, mode: "terminal" } }],
+      "overdrive-run": [{ name: "character.pick", input: { characterId: "gunk" } }, { name: "rift.capture", input: { tier: 8 } }],
       // The opening wave already on the field: both crews spawned and converging, so a fight shot
       // does not have to walk to the wreck and wait for the meeting. `front.capture` is dev-only.
       "front-fight": [
@@ -220,7 +230,7 @@ export const game = defineGame({
   inventories,
   input: keybinds,
   // The context-specific relay button lives beside its stakes and progress.
-  touch: { hidden: ["relay.overclock"] },
+  touch: { hidden: ["relay.overclock", "rift.callWave"] },
   server: { mode: "campaign" },
   save: "none",
   persist: true,

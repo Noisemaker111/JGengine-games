@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HudCanvas, HudPanel, useDisplayProfile, useHudLayout } from "@jgengine/react";
 import { useGameFonts } from "@jgengine/react/gameFonts";
 import { useGamePhase } from "@jgengine/react/hooks";
+import { useStore } from "@jgengine/react/store";
 import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { itemNameById } from "../content";
@@ -15,6 +16,8 @@ import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
 import { Operations } from "./components/Operations";
 import { FieldGearPanel } from "./components/FieldGearPanel";
+import { OverdriveCard, OverdriveTerminal } from "./components/Overdrive";
+import { riftStore } from "../rift/rift";
 import { GAME_FONTS } from "../../art/fonts/fonts";
 import { useHostilesNear } from "./fiction/useHostilesNear";
 import { OverlayHostContext } from "./fiction/OverlayHost";
@@ -32,6 +35,8 @@ export function GameUI() {
   const combat = useHostilesNear();
   const [overlay, setOverlay] = useState<HTMLElement | null>(null);
   const { phase } = useGamePhase();
+  const riftRun = useStore(riftStore).run;
+  const inRun = riftRun !== null && (riftRun.phase === "running" || riftRun.phase === "intermission");
   // The front end replaces the field: the menu is the only surface a boot shows, and no run overlay
   // paints through it. A run's HUD mounts when the player leaves the menu.
   if (phase === "menu") return <ScrapMenu />;
@@ -39,9 +44,16 @@ export function GameUI() {
     <OverlayHostContext.Provider value={overlay}>
     <HudCanvas layout={layout} className={`ss-hud ${profile.compact ? "compact" : ""}`}>
       <Operations />
-      <HudPanel id="missions" anchor="left" compact="keep" interactive={false}>
-        <MissionTracker />
+      <HudPanel id="overdrive" anchor="left" order={-1} compact="keep" interactive={true}>
+        <OverdriveCard />
       </HudPanel>
+
+      {/* A live Overdrive run takes the mission log's place: the clock is the only objective. */}
+      {inRun ? null : (
+        <HudPanel id="missions" anchor="left" compact="keep" interactive={false}>
+          <MissionTracker />
+        </HudPanel>
+      )}
 
       <HudPanel id="field-loot" anchor="left" order={1} compact="keep" interactive={true}>
         <FieldGearPanel />
@@ -85,13 +97,13 @@ export function GameUI() {
         <ItemCard />
       </HudPanel>
 
-      {/* On a phone the touch dock owns the foot of the screen: the wrist unit moves up to the
-          top-left corner and the cartridges stack over the magazine counter. */}
+      {/* On a phone the stick and the action cluster own the bottom corners: the wrist unit moves up
+          to the top-left corner and the cartridges sit in the free bottom centre. */}
       <HudPanel id="vitals" anchor={profile.compact ? "top-left" : "bottom-left"} order={profile.compact ? -1 : 0} compact="keep" interactive={false}>
         <VitalsPlate combat={combat} />
       </HudPanel>
 
-      <HudPanel id="hotbar" anchor={profile.compact ? "bottom-right" : "bottom"} order={profile.compact ? 1 : 0} compact="keep" interactive={false}>
+      <HudPanel id="hotbar" anchor="bottom" order={0} compact="keep" interactive={false}>
         <Hotbar combat={combat} />
       </HudPanel>
 
@@ -106,6 +118,7 @@ export function GameUI() {
       <TalentsPanel />
       <TravelPanel />
       <BlackMarketPanel />
+      <OverdriveTerminal />
       <ReactorEnding />
       <LevelUpBurst />
     </HudCanvas>

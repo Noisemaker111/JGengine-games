@@ -31,6 +31,7 @@ import {
 } from "./stores";
 import { TRAVEL_STATIONS } from "./world/sites";
 import { zoneLevelAt } from "./world/zones";
+
 export const BLACK_MARKET_UPGRADES = [
   { id: "ammo", name: "Ammo SDU", blurb: "+30% max ammo, every pool" },
   { id: "health", name: "Health SDU", blurb: "+25 max health" },
@@ -39,6 +40,11 @@ export const BLACK_MARKET_UPGRADES = [
 ] as const;
 
 export type BlackMarketCounts = Record<string, number>;
+
+/** Cash a full talent refund costs: it grows with level, so a build is a choice and not a toggle. */
+export function respecCost(level: number): number {
+  return 75 * Math.max(1, level);
+}
 
 export function upgradeCost(count: number): number {
   return 4 + count * 4;
@@ -496,6 +502,24 @@ export function registerCommands(ctx: GameContext): void {
       talentRanksStore.write(state, tree.snapshot().ranks);
       state.scene.entity.stats.set(state.player.userId, "skillPoints", { current: tree.pointsAvailable() });
       applyPassiveEffects(state, before);
+    },
+  });
+
+  ctx.game.commands.define("talent.respec", {
+    apply(state: GameContext) {
+      const tree = talentTree();
+      if (tree === null || tree.pointsSpent() === 0) return;
+      const cost = respecCost(Math.round(state.scene.entity.stats.get(state.player.userId, "level")?.current ?? 1));
+      if (!spend(state, "cash", cost, "respec")) {
+        state.game.notices.push({ text: `Recalibrating costs ${cost}.`, tone: "deny" });
+        return;
+      }
+      const before = 1 + bonus("maxHealth");
+      tree.reset();
+      talentRanksStore.write(state, tree.snapshot().ranks);
+      state.scene.entity.stats.set(state.player.userId, "skillPoints", { current: tree.pointsAvailable() });
+      applyPassiveEffects(state, before);
+      state.game.notices.push({ text: `CHASSIS RECALIBRATED — ${tree.pointsAvailable()} points to spend`, tone: "success" });
     },
   });
 

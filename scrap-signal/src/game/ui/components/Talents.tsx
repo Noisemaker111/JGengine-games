@@ -1,4 +1,5 @@
-import { useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
+import { useCurrency, useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
+import { respecCost } from "../../commands";
 import { useStore } from "@jgengine/react/store";
 import { HudButton } from "@jgengine/react/hudButton";
 import {
@@ -74,6 +75,8 @@ export function TalentsPanel() {
   const open = useStore(skillsOpenStore);
   useStore(talentRanksStore);
   const points = useEntityStat(userId, "skillPoints");
+  const level = Math.round(useEntityStat(userId, "level")?.current ?? 1);
+  const cash = useCurrency("cash");
   const character = activeCharacter();
   const tree = talentTree();
   if (!open || character === null || tree === null) return null;
@@ -109,9 +112,18 @@ export function TalentsPanel() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[10px] uppercase tracking-wider text-stone-500">
-          Capstones unlock at 10 points in their branch · earn points by leveling up
-        </p>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <p className="text-[10px] uppercase tracking-wider text-stone-500">
+            Capstones unlock at 10 points in their branch · earn points by leveling up
+          </p>
+          <HudButton
+            disabled={tree.pointsSpent() === 0 || cash < respecCost(level)}
+            onClick={() => commands.run("talent.respec", {})}
+            className="scrap-row scrap-row-amber"
+          >
+            <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">Recalibrate · ${respecCost(level)}</span>
+          </HudButton>
+        </div>
     </ScrapPanel>
   );
 }

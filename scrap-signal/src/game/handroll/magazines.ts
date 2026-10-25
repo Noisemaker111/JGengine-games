@@ -80,9 +80,8 @@ function buildEntry(ctx: GameContext, gun: GunDef, capacity: number, reloadMs: n
  * seed). `createMagazine` bakes capacity/reload at construction, but the game recomputes them live from
  * talent `bonus(...)`, so we rebuild the magazine when the effective values drift — preserving the loaded
  * count. The rebuild is deferred while a reload is in flight so its timer is never reset mid-reload, which
- * mirrors the old model that froze `reloadingUntilMs` at reload start. Because `magSize`/`reloadSpeed`
- * bonuses only ever grow during play (there is no in-game respec — the talent tree only allocates), the
- * preserved loaded count can never exceed the new, larger capacity.
+ * mirrors the old model that froze `reloadingUntilMs` at reload start. A respec can shrink `magSize`, so
+ * the preserved loaded count is clamped to the new capacity.
  */
 function magFor(ctx: GameContext, gun: GunDef): Magazine {
   const magazines = magazinesOf(ctx);
@@ -95,7 +94,7 @@ function magFor(ctx: GameContext, gun: GunDef): Magazine {
     return entry.mag;
   }
   if ((entry.capacity !== capacity || entry.reloadMs !== reloadMs) && !entry.mag.isReloading()) {
-    entry = buildEntry(ctx, gun, capacity, reloadMs, entry.mag.loaded());
+    entry = buildEntry(ctx, gun, capacity, reloadMs, Math.min(capacity, entry.mag.loaded()));
     magazines.set(gun.id, entry);
   }
   return entry.mag;

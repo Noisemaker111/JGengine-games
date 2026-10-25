@@ -9,6 +9,7 @@ import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { RELAY, relayDistance, relayStore } from "../../relay";
+import { riftStore } from "../../rift/rift";
 import { characterIdStore, vendorOpenStore, travelOpenStore, skillsOpenStore, blackMarketOpenStore } from "../../stores";
 import { FieldTerminalShell, PauseTerminal, type TerminalPage } from "../fiction/FieldTerminal";
 import { Crt, navItem, Pips, Plate, SIGNAL, Stamp, Waveform } from "../fiction/kit";
@@ -22,6 +23,7 @@ export function Operations() {
   const profile = useDisplayProfile();
   const character = useStore(characterIdStore);
   const relay = useStore(relayStore);
+  const riftRun = useStore(riftStore).run;
   const vendor = useStore(vendorOpenStore);
   const travel = useStore(travelOpenStore);
   const skills = useStore(skillsOpenStore);
@@ -80,6 +82,8 @@ export function Operations() {
   const active = relay.phase === "defend" || relay.phase === "upload";
   const result = relay.phase === "won" || relay.phase === "lost";
   return <>
+    {/* An idle contract gives way to a live Overdrive run, as the mission log does. */}
+    {!active && riftRun !== null && (riftRun.phase === "running" || riftRun.phase === "intermission") ? null : (
     <HudPanel id="dead-air" anchor="top-left" compact="keep" interactive>
       <HudFade watch={[relay.phase, relay.wave, relay.rewarded, relay.enemies.length, Math.round(distance / 20)]} hold={active} dimTo={0.55} idleMs={7000}>
         <Plate material="hull" cut="notch" depth={10} rim="#22363c" padding="0" className={`ss-contract ${active ? "live" : ""}`}>
@@ -104,6 +108,7 @@ export function Operations() {
         </Plate>
       </HudFade>
     </HudPanel>
+    )}
     <HudPanel id="pause-operation" anchor="top-right" order={-2} compact="keep" interactive>
       <Plate as="button" material="carbon" cut="notch" depth={7} rim="#5b4a33" padding="0" className="ss-pause-key" aria-label="Pause (Esc)" onClick={() => setManual(true)}>
         <GameIcon name="pause" size={14} /><span>Esc</span>
