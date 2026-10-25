@@ -8,7 +8,7 @@ import { useMenuNav, type MenuNavItemProps } from "@jgengine/react/menuNav";
 import { EntityPreview } from "@jgengine/shell/render/EntityPreview";
 import { IsolatedEntityModel } from "@jgengine/shell/render/SceneModels";
 import { entityModels } from "../../world/models";
-import { LIBRARY_CREDITS } from "../../world/props";
+import { tribuneAds } from "../../credits";
 import { BurnerPhone, type PhonePad } from "../fiction/BurnerPhone";
 import { HH, KeyLegend, navItem, useMenuSound, useMoveTick, useRoom } from "../fiction/kit";
 import { PhoneSettings, type SettingsPad } from "../fiction/PhoneSettings";
@@ -400,15 +400,7 @@ export function TitlePhone({ active, onBack }: { active: boolean; onBack: () => 
 
 /** Credits as a clipping from the Mainsail Tribune's back page. */
 export function TribuneCredits() {
-  const assets = LIBRARY_CREDITS.map((line) => {
-    const by = line.indexOf(" by ");
-    const link = line.lastIndexOf(" http");
-    return {
-      title: by < 0 ? line : line.slice(0, by),
-      who: by < 0 ? "" : line.slice(by + 4, link < 0 ? undefined : link),
-      page: link < 0 ? "" : line.slice(link + 1).replace(/^https?:\/\//, ""),
-    };
-  });
+  const assets = tribuneAds();
   return (
     <GameFrame material="paper" tint="#efe6d2" cut="torn" depth={14} edge="none" padding="0" className="hh-tribune">
       <span className="hh-tribune-mast"><b>The Mainsail Tribune</b><small>Late edition · Credits</small></span>
@@ -417,7 +409,6 @@ export function TribuneCredits() {
         <span><b>Harbor Heat</b> Mainsail dispatch: game and art direction. Original city, booth, towers and poster.</span>
         <span><b>Engine</b> JGengine: scene, save, menu.</span>
         <span><b>Type</b> Bangers and Barlow, SIL Open Font License.</span>
-        <span><b>Surfaces</b> ambientCG brick and glass facades, asphalt, concrete, ground (CC0). KayKit cars, people, aircraft, signs, cargo (CC0).</span>
       </span>
       <span className="hh-tribune-rule">Classifieds · props and people on loan</span>
       <span className="hh-tribune-ads" tabIndex={0} aria-label="Asset credits">
