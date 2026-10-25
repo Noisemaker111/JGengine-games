@@ -23,6 +23,7 @@ export const HARBOR_BAYS = [
 ] as const;
 
 import { harborFocus } from "./menuFocus";
+import { LIBRARY_CREDITS } from "../../world/props";
 
 const MENU_TOKENS = {
   "--jg-accent": "#ffb020",
@@ -237,10 +238,17 @@ export function HarborMenu(): ReactNode {
                 heading="Credits"
                 sections={[
                   { heading: "Harbor Heat", entries: [{ label: "Mainsail dispatch", detail: "game and art direction" }] },
-                  { heading: "Assets", entries: [{ label: "KayKit, Quaternius, ambientCG", detail: "CC0 art" }] },
+                  {
+                    heading: "Assets",
+                    entries: [
+                      { label: "ambientCG", detail: "CC0 brick and glass facades, asphalt, concrete, ground" },
+                      ...LIBRARY_CREDITS.map((line) => ({ label: line.slice(0, line.indexOf(" by ")), detail: line.slice(line.indexOf(" by ") + 4) })),
+                      { label: "KayKit", detail: "CC0 cars, people, aircraft, signs, cargo" },
+                    ],
+                  },
                   { heading: "Engine", entries: [{ label: "JGengine", detail: "scene, save, menu" }] },
                 ]}
-                notice="Original Mainsail art. Third-party packs are CC0."
+                notice="Original Mainsail art. Third-party models and materials are CC0."
               />
             );
           }

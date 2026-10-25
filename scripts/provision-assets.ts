@@ -5,8 +5,9 @@
  *   bun run provision                 every game
  *   bun run provision ember-command   one game
  *
- * A pack counts as referenced when its source id appears as a string literal in the game's `src/`.
- * Packs already on disk are skipped, so re-running is cheap.
+ * A pack counts as referenced when its source id appears as a string literal in the game's `src/`;
+ * a realistic library model (`city/street-lamp`) counts the same way and is pulled with
+ * `pull model:<name>`. Anything already on disk is skipped, so re-running is cheap.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -46,8 +47,9 @@ for (const game of gameDirs(only)) {
   } catch {
     continue;
   }
-  const { sources } = (await import(join(assetsDir, "dist/index.js"))) as {
+  const { sources, MODEL_LIBRARY } = (await import(join(assetsDir, "dist/index.js"))) as {
     sources: readonly { id: string; kind?: string }[];
+    MODEL_LIBRARY?: readonly { name: string; origin: { provider: string } }[];
   };
   const text = sourceText(join(gameDir, "src"));
   const referenced = sources.filter((source) => text.includes(`"${source.id}"`) || text.includes(`'${source.id}'`));
@@ -56,6 +58,16 @@ for (const game of gameDirs(only)) {
     if (isPopulated(join(gameDir, "public", subdir, source.id))) continue;
     console.log(`${game}: pulling ${source.id}`);
     const result = spawnSync("bun", [join(assetsDir, "dist/cli/pull.js"), "pull", source.id, "--dir", join(gameDir, "public")], {
+      cwd: gameDir,
+      stdio: "inherit",
+    });
+    if (result.status !== 0) failed = true;
+  }
+  for (const entry of MODEL_LIBRARY ?? []) {
+    if (entry.origin.provider !== "polyhaven" || !text.includes(`"${entry.name}"`)) continue;
+    if (isPopulated(join(gameDir, "public", "models", "library", ...entry.name.split("/")))) continue;
+    console.log(`${game}: pulling library model ${entry.name}`);
+    const result = spawnSync("bun", [join(assetsDir, "dist/cli/pull.js"), "pull", `model:${entry.name}`, "--dir", join(gameDir, "public")], {
       cwd: gameDir,
       stdio: "inherit",
     });

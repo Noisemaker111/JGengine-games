@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { summarizeEnvironment } from "@jgengine/core/world/environmentSummary";
-import { deriveBuildingLots } from "@jgengine/core/world/buildingLots";
+import { cityLots } from "@jgengine/core/world/cityLayout";
+import { rectClearsPolyline } from "@jgengine/core/world/cityGeometry";
 import { isOnRoad } from "@jgengine/core/world/roads";
 import { streets, world } from "../world";
 import {
@@ -27,6 +28,7 @@ import {
   STASH_SPOTS,
   HHPD_POS,
 } from "./world/districts";
+import { cityLayout, LOT_ROADS, roadSource, SEAFRONT_BUILD_LINE, zoneAt } from "./world/cityLayout";
 import { curbPoseNear } from "./world/setup";
 
 describe("harbor-heat authored scene parity", () => {
@@ -166,38 +168,48 @@ describe("harbor-heat world", () => {
     expect(summary.terrain?.palette.low).not.toBe("#30402c");
   });
 
-  test("frontage building lots line every street and none straddle the asphalt", () => {
-    // Mirrors game/world/setup.ts placeBuildings: the same frontage engine + off-road clearance
-    // filter that keeps buildings out of the middle of the streets.
-    const CLEARANCE = 16;
-    const lots = deriveBuildingLots({
-      roads: streets.map((street) => ({ path: street.path, width: street.width })),
-      footprint: { w: 22, d: 16 },
-      spacing: 8,
-      setback: 4,
-      bothSides: true,
+  test("the city layout lines every street with lots that clear the road and its sidewalk", () => {
+    const layout = cityLayout.get();
+    const lots = cityLots(layout, {
+      roads: LOT_ROADS,
+      zoneAt,
       seed: "harbor-heat-lots",
       area: { center: [0, 0], halfExtents: [320, 320] },
-      maxLots: 320,
+      maxLots: 420,
     });
-    const kept = lots.filter(
-      (lot) => !streets.some((street) => isOnRoad(street.path, street.width + CLEARANCE, lot.center[0], lot.center[1])),
-    );
-    // A real city's worth of street-facing buildings survive the filter…
-    expect(kept.length).toBeGreaterThanOrEqual(60);
-    // …and not one of them sits on a road surface (checked against the raw asphalt width).
-    for (const lot of kept) {
-      expect(streets.some((street) => isOnRoad(street.path, street.width, lot.center[0], lot.center[1]))).toBe(false);
+    // A real city's worth of street-facing buildings…
+    expect(lots.length).toBeGreaterThanOrEqual(60);
+    expect(new Set(lots.map((lot) => lot.zone))).toEqual(new Set(["core", "commercial", "industrial", "residential"]));
+    // …none reaching onto a road or its sidewalk, and none out on the sand.
+    for (const lot of lots) {
+      const rect = { x: lot.center[0], z: lot.center[1], hw: lot.footprint.w / 2, hd: lot.footprint.d / 2, angle: lot.rotationY };
+      for (const street of streets) {
+        expect(rectClearsPolyline(rect, street.path, street.width / 2 + layout.sidewalkWidth - 0.05)).toBe(true);
+      }
+      expect(lot.center[0]).toBeGreaterThan(SEAFRONT_BUILD_LINE);
     }
   });
 
-  test("nine street ribbons ride the road primitive at their authored widths", () => {
+  test("street ribbons take their widths, sidewalks and kerbs from the one layout block", () => {
     expect(summary.counts.roads).toBe(9);
-    // Avenues carry four lanes (two each way), side streets two; both widths are authored in the doc.
-    expect(summary.roads.filter((r) => r.width === 14)).toHaveLength(4);
-    expect(summary.roads.filter((r) => r.width === 9)).toHaveLength(5);
+    // Avenues: four 3.5 m lanes. Streets: two lanes plus a 2.4 m parking lane each side.
+    expect(summary.roads.filter((r) => Math.abs(r.width - 14) < 1e-6)).toHaveLength(4);
+    expect(summary.roads.filter((r) => Math.abs(r.width - 11.8) < 1e-6)).toHaveLength(5);
     expect(summary.roads.reduce((sum, r) => sum + r.length, 0)).toBeGreaterThan(4000);
+    expect(streets.every((street) => street.sidewalk?.width === 3 && street.sidewalk.kerb === 0.15)).toBe(true);
   });
+
+  test("dragging a layout slider redraws the streets", () => {
+    const saved = cityLayout.snapshot();
+    try {
+      cityLayout.set({ laneWidth: 3 });
+      expect(roadSource.current().filter((r) => Math.abs(r.width - 12) < 1e-6)).toHaveLength(4);
+    } finally {
+      cityLayout.restore(saved);
+    }
+    expect(roadSource.current()[0]!.width).toBeCloseTo(roadSource.initial[0]!.width);
+    // Contexts other suites booted are still subscribed and re-lay their whole city on each change.
+  }, 30_000);
 
   test("districts resolve and roads cover the city", () => {
     expect(districtAt(40, -60)?.id).toBe("downtown");

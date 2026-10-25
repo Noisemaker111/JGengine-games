@@ -20,3 +20,30 @@ Third-party asset catalog keys identify the actual files being loaded. KayKit, Q
 All eight listed games have runnable packages. Deepward uses original procedural industrial geometry, materials, and an authored extraction setting; it requires no downloaded model pack. Its current implementation includes salvage banking, permanent tank and reserve-ammunition refits, and persistent loss/reprint acknowledgment. The earlier identity migration preserved game mechanics while changing identities and authored vocabulary. The content review removes explicit positioning as reproductions of commercial titles and the identifiable borrowed names found in authored content. It does not establish legal clearance or exclusive rights to a title.
 
 Harbor Heat and Scrap Signal retain historical save namespaces and identifiers only in their compatibility loaders. A current save takes precedence; otherwise the loader copies an existing legacy slot into the new namespace and translates renamed content IDs through the whole-world save controller. It leaves the old record intact. Save and reload behavior is game-specific; Deepward has an offline continuation path.
+
+## Harbor Heat realistic assets
+
+Harbor Heat's street furniture comes from the engine's realistic model library and its building faces from ambientCG scans. Every file is downloaded from the publisher's own site by `bun run provision harbor-heat` (Poly Haven files are checked against Poly Haven's published md5), compressed, and kept out of Git under `public/`. All are CC0 1.0: no attribution is required, and these credits are given anyway.
+
+| In game | Asset | Author | License | Source |
+| --- | --- | --- | --- | --- |
+| `obj_streetlight` | Cast-iron street lamp (`city/street-lamp`) | Josh Dean | CC0 1.0 | https://polyhaven.com/a/street_lamp_01 |
+| `obj_bench` | Painted wooden bench (`park/bench`) | Kirill Sannikov | CC0 1.0 | https://polyhaven.com/a/painted_wooden_bench |
+| `obj_hydrant` | Fire hydrant (`city/fire-hydrant`) | Gonçalo Felício | CC0 1.0 | https://polyhaven.com/a/fire_hydrant |
+| `obj_trashcan` | Galvanised trash can (`city/trash-can`) | GurJas Studios | CC0 1.0 | https://polyhaven.com/a/metal_trash_can |
+| `obj_dumpster` | Street utility cabinet (`city/utility-cabinet`) | James Ray Cock | CC0 1.0 | https://polyhaven.com/a/utility_box_02 |
+| `obj_barrier` | Concrete road barrier (`city/road-barrier`) | Amal Kumar | CC0 1.0 | https://polyhaven.com/a/concrete_road_barrier_02 |
+| `obj_crate_dock` | Wooden shipping crate (`industrial/wooden-crate`) | James Ray Cock, Jurita Burger | CC0 1.0 | https://polyhaven.com/a/wooden_crate_02 |
+| `obj_barrel` | Steel drum barrel (`industrial/barrel`) | Jorge Camacho | CC0 1.0 | https://polyhaven.com/a/Barrel_01 |
+| `obj_planter` | Potted plant (`park/potted-plant`) | Rico Cilliers | CC0 1.0 | https://polyhaven.com/a/potted_plant_02 |
+| `obj_hedge` | Wooden planter box (`park/planter-box`) | James Ray Cock | CC0 1.0 | https://polyhaven.com/a/planter_box_01 |
+| `obj_cactus` | Quiver tree (`nature/quiver-tree`) | Dario Barresi, Rico Cilliers | CC0 1.0 | https://polyhaven.com/a/quiver_tree_02 |
+| building face `facade/brick-red` | Brick facade, red (Facade018A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade018A |
+| building face `facade/brick-grey` | Brick facade, grey (Facade019A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade019A |
+| building face `facade/brick-brown` | Brick facade, brown (Facade020A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade020A |
+| building face `facade/glass-blue` | Glass curtain wall, blue (Facade001) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade001 |
+| building face `facade/glass-mirror` | Glass curtain wall, mirror (Facade005) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade005 |
+| streets | Road asphalt (Asphalt003) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Asphalt003 |
+| streets | Sidewalk and driveway concrete (Concrete006) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Concrete006 |
+
+The building block itself (`harbor-heat/src/art/city-block.glb`) is original geometry with no textures. Cars, people, aircraft, signs, neon, signals and cargo are still KayKit (CC0): no CC0 realistic glTF cars or rigged humans exist on Poly Haven or ambientCG, and the engine's `MODEL_LIBRARY_GAPS` lists the route for each.

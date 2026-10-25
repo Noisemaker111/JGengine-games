@@ -4,18 +4,17 @@ import { resolveModelPlan, type ModelPick } from "@jgengine/shell/render/resolve
 
 import { assets } from "../assets";
 import { BUILDING_SPECS } from "./buildings";
+import { LIBRARY_PROPS } from "./props";
 
 const CHAR = "kaykit-adventurers";
 const CITY = "kaykit-city-builder";
 const SPACE = "kaykit-space-base";
-const NATURE = "quaternius-stylized-nature";
 const DUNGEON = "kaykit-dungeon";
-const FURN = "kaykit-furniture";
 
 /** Lacquered body paint: the clearcoat is what separates a car from a clay toy. */
 const GLOSS = librarySurfaceParameters("paint/gloss");
-/** Facades keep their pastel tint and take real plaster grain, relief and roughness. */
-const STUCCO = librarySurfaceScan("plaster/interior", { tint: 0 });
+/** The unit building every lot scales to its own width, depth and storey height. */
+const CITY_BLOCK_URL = new URL("../../art/city-block.glb", import.meta.url).href;
 
 /**
  * Casting note (asset-catalog gap): every rigged human this repository can pull is a fantasy
@@ -146,18 +145,6 @@ export const entityModels: Record<string, ModelConfig> = resolveModelPlan(assets
 });
 
 /**
- * Licensed tree fallbacks remain available; the three palm casts below are overridden by our
- * original folded-frond GLB. Quaternius's red-crowned tree keeps its original material as the
- * occasional flame-tree accent.
- */
-const PALMS: readonly { id: string; model: string; fallbackModel: string; targetHeight: number }[] = [
-  { id: "obj_palm", model: `${NATURE}/CommonTree_2`, fallbackModel: `${NATURE}/CommonTree_1`, targetHeight: 7.6 },
-  { id: "obj_palm_tall", model: `${NATURE}/CommonTree_4`, fallbackModel: `${NATURE}/CommonTree_2`, targetHeight: 9 },
-  { id: "obj_palm_low", model: `${NATURE}/CommonTree_5`, fallbackModel: `${NATURE}/CommonTree_3`, targetHeight: 6.2 },
-  { id: "obj_flametree", model: `${NATURE}/TwistedTree_2`, fallbackModel: `${NATURE}/CommonTree_3`, targetHeight: 6.8 },
-];
-
-/**
  * The palm is one authored GLB drawn at three street sizes, so all three species share its two
  * detail levels. `mainsail-palm-far.glb` keeps every frond vertex (the crown is the look) and
  * collapses only the trunk rings and coconuts; past 60 m a palm is a silhouette, and the engine's
@@ -168,15 +155,7 @@ const PALM_FAR_URL = new URL("../../art/mainsail-palm-far.glb", import.meta.url)
 const PALM_VARIANTS = { levels: [{ url: PALM_URL, maxDistance: 60 }, { url: PALM_FAR_URL }] } as const;
 
 /**
- * The planter is a licensed bush of 450 leaf cards and 36 flower heads: its far level keeps a
- * spread of whole cards, so the bush thins rather than dissolving into collapsed slivers. Its near
- * level is whatever the catalog resolved, so the variant cannot drift from the planted asset.
- */
-const PLANTER_FAR_URL = new URL("../../art/planter-far.glb", import.meta.url).href;
-
-/**
- * Street-tree planting cycle — `setup.ts` walks it so no two neighbours match. The flame tree lands
- * once every seven, so its red crown reads as an accent on a green street rather than an autumn wood.
+ * Street-tree planting cycle — `setup.ts` walks it so no two neighbours match.
  */
 export const PALM_IDS: readonly string[] = [
   "obj_palm",
@@ -185,22 +164,9 @@ export const PALM_IDS: readonly string[] = [
   "obj_palm",
   "obj_palm_low",
   "obj_palm_tall",
-  "obj_flametree",
 ];
 
 const objectPlan: Record<string, ModelPick> = {
-  obj_palm_planter: {
-    model: `${NATURE}/TwistedTree_5`,
-    fallbackModel: `${CITY}/bush`,
-    style: { targetHeight: 5.8 },
-  },
-  obj_streetlight: {
-    model: `${CITY}/streetlight`,
-    fallbackModel: `${FURN}/lamp_standing`,
-    // The lamp head is the only light a street has after dark, so it carries a warm self-lit finish:
-    // with the day cycle's night exposure it reads as a lit street rather than a black pole.
-    style: { targetHeight: 4.3, material: { emissive: "#ffcf94", emissiveIntensity: 0.55 } },
-  },
   obj_gunshop_sign: {
     model: `${CITY}/trafficlight_A`,
     fallbackModel: `${DUNGEON}/banner_red`,
@@ -216,31 +182,6 @@ const objectPlan: Record<string, ModelPick> = {
     fallbackModel: `${DUNGEON}/banner_red`,
     style: { targetHeight: 2.4 },
   },
-  obj_crate_dock: {
-    model: `${CITY}/box_A`,
-    fallbackModel: `${CITY}/dumpster`,
-    style: { targetHeight: 1 },
-  },
-  obj_bench: {
-    model: `${CITY}/bench`,
-    fallbackModel: `${FURN}/chair_A`,
-    style: { targetHeight: 0.9 },
-  },
-  obj_hydrant: {
-    model: `${CITY}/firehydrant`,
-    fallbackModel: `${CITY}/trafficlight_C`,
-    style: { targetHeight: 1, material: { color: "#d64545" } },
-  },
-  obj_trashcan: {
-    model: `${CITY}/trash_A`,
-    fallbackModel: `${CITY}/trash_B`,
-    style: { targetHeight: 1.1 },
-  },
-  obj_dumpster: {
-    model: `${CITY}/dumpster`,
-    fallbackModel: `${CITY}/box_B`,
-    style: { targetHeight: 1.3, material: { color: "#3f6d4a" } },
-  },
   // Emissive, not just pink: the bloom stage needs something above threshold to glow around, and a
   // storefront sign is the only light source a daylit street legitimately has.
   obj_neon: {
@@ -255,54 +196,42 @@ const objectPlan: Record<string, ModelPick> = {
     fallbackModel: `${CITY}/trafficlight_A`,
     style: { targetHeight: 3.6, material: { emissive: "#2fd8b0", emissiveIntensity: 0.55 } },
   },
-  obj_hedge: {
-    model: `${NATURE}/Bush_Common`,
-    fallbackModel: `${CITY}/bush`,
-    style: { targetHeight: 1.5 },
-  },
-  obj_planter: {
-    model: `${NATURE}/Bush_Common_Flowers`,
-    fallbackModel: `${NATURE}/Bush_Common`,
-    style: { targetHeight: 1.3 },
-  },
   obj_cargo: {
     model: `${SPACE}/containers_B`,
     fallbackModel: `${CITY}/box_B`,
     style: { targetHeight: 2.4, material: { color: "#c08a3c" } },
   },
-  obj_cactus: {
-    model: `${FURN}/cactus_medium_A`,
-    fallbackModel: `${FURN}/cactus_small_A`,
-    style: { targetHeight: 1.9 },
-  },
 };
 
-for (const palm of PALMS) {
-  objectPlan[palm.id] = {
-    model: palm.model,
-    fallbackModel: palm.fallbackModel,
-    style: { targetHeight: palm.targetHeight },
-  };
-}
-
-for (const b of BUILDING_SPECS) {
-  objectPlan[b.id] = {
-    model: b.model,
-    fallbackModel: b.fallbackModel,
-    style: { targetHeight: b.targetHeight, material: { color: b.tint, scan: STUCCO } },
-  };
-}
+/**
+ * Each cast is the unit block with one scanned facade on its walls; the roof keeps its own membrane.
+ * Native size (no `targetHeight`): every placement scales it to its lot through `visual.scale`.
+ */
+const BUILDING_MODELS: Record<string, ModelConfig> = Object.fromEntries(
+  BUILDING_SPECS.map((b) => [
+    b.id,
+    {
+      url: CITY_BLOCK_URL,
+      anchor: "origin",
+      material: { scan: librarySurfaceScan(b.facade, { tint: 1 }), materials: ["facade"] },
+    } satisfies ModelConfig,
+  ]),
+);
 
 export const objectModels: Record<string, ModelConfig> = (() => {
   const plan = resolveModelPlan(assets, objectPlan);
-  // The planter's far level is our own decimated copy of the resolved near level, so the pair
-  // cannot drift: `url` comes from the catalog, only the second level is authored here.
-  const planter = plan.obj_planter;
-  if (planter !== undefined) {
-    planter.variants = { levels: [{ url: planter.url, maxDistance: 60 }, { url: PLANTER_FAR_URL }] };
-  }
   return {
     ...plan,
+    ...LIBRARY_PROPS,
+    ...BUILDING_MODELS,
+    // Driveways are the unit block flattened to a slab, in the sidewalk's concrete.
+    obj_driveway: {
+      url: CITY_BLOCK_URL,
+      anchor: "origin",
+      material: { color: "#c4beb2", scan: librarySurfaceScan("concrete/smooth", { tint: 0 }) },
+    },
+    obj_flametree: { url: PALM_URL, targetHeight: 6.8, anchor: "origin", variants: PALM_VARIANTS },
+    obj_palm_planter: { url: PALM_URL, targetHeight: 5.8, anchor: "origin", variants: PALM_VARIANTS },
     obj_palm: { url: PALM_URL, targetHeight: 7.6, anchor: "origin", variants: PALM_VARIANTS },
     obj_palm_tall: { url: PALM_URL, targetHeight: 9, anchor: "origin", variants: PALM_VARIANTS },
     obj_palm_low: { url: PALM_URL, targetHeight: 6.2, anchor: "origin", variants: PALM_VARIANTS },

@@ -40,7 +40,7 @@ import {
   SAFEHOUSE_POS,
   HHPD_POS,
 } from "./game/world/districts";
-import { setupWorld } from "./game/world/setup";
+import { disposeWorld, setupWorld } from "./game/world/setup";
 import { disposeTraffic, setupTraffic, tickTraffic } from "./game/world/traffic";
 import { disposeResidents, setupResidents, tickResidents } from "./game/world/residents";
 import { courierLoop, courierStore, finishCourier, registerCourier, restoreCourier, setupCourierLandmarks, tickCourier } from "./game/jobs/courier";
@@ -344,6 +344,7 @@ function onDispose(ctx: GameContext): void {
   convoyFeedback(ctx).detach();
   disposeTraffic(ctx);
   disposeResidents(ctx);
+  disposeWorld(ctx);
 }
 
 export const loop = { onInit, onNewPlayer, onTick, onDispose };

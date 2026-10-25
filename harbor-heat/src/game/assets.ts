@@ -2,15 +2,11 @@ import { buildCatalog } from "@jgengine/assets/catalogs/build";
 import { buildMaterialCatalog } from "@jgengine/assets/materials";
 import type { AssetCatalog } from "@jgengine/core/scene/assetCatalog";
 
-/** Preferred CC0 packs — KayKit city-builder has buildings + cars. */
-const MODEL_SOURCES = [
-  "kaykit-city-builder",
-  "kaykit-space-base",
-  "kaykit-adventurers",
-  "quaternius-stylized-nature",
-  "kaykit-furniture",
-  "kaykit-dungeon",
-] as const;
+/**
+ * Kit packs still cast where the realistic library has nothing yet: KayKit cars, people, aircraft,
+ * signs and cargo. Buildings and street furniture come from the realistic library (see `props.ts`).
+ */
+const MODEL_SOURCES = ["kaykit-city-builder", "kaykit-space-base", "kaykit-adventurers", "kaykit-dungeon"] as const;
 
 /**
  * Ground grain under the isle's authored sand/scrub palette. Blended at a low `tint` so the beach,
@@ -21,10 +17,19 @@ const MODEL_SOURCES = [
 const GROUND_MATERIAL = "ambientcg-ground025";
 
 /**
- * The scans behind the library surfaces the streets and facades name (`asphalt/dry`,
- * `concrete/smooth`, `plaster/interior`), listed by source id so provisioning pulls them.
+ * The scans behind the library surfaces the streets and buildings name (`asphalt/dry`,
+ * `concrete/smooth`, and the `facade/*` brick and glass walls), listed by source id so provisioning
+ * pulls them.
  */
-const SURFACE_MATERIALS = ["ambientcg-asphalt003", "ambientcg-concrete006", "ambientcg-plaster001"] as const;
+const SURFACE_MATERIALS = [
+  "ambientcg-asphalt003",
+  "ambientcg-concrete006",
+  "ambientcg-facade018a",
+  "ambientcg-facade019a",
+  "ambientcg-facade020a",
+  "ambientcg-facade001",
+  "ambientcg-facade005",
+] as const;
 
 /** Every pack this game ships — credits are generated from it, so it cannot drift. */
 export const ASSET_SOURCE_IDS: readonly string[] = [...MODEL_SOURCES, GROUND_MATERIAL, ...SURFACE_MATERIALS];
