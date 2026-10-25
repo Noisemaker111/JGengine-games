@@ -26,9 +26,9 @@ export function spawnAll(ctx: GameContext): void {
 }
 
 /** The world removed a structure (`brightway.remove`, refund already in the till): it leaves the scene. */
-export function despawnObject(ctx: GameContext, id: string): void {
+export function despawnObject(ctx: GameContext, id: string, refund = 0): void {
   ctx.scene.object.remove(id);
-  ctx.game.notices.push({ text: "Demolished — half its build cost refunded", tone: "info" });
+  ctx.game.notices.push({ text: refund > 0 ? `Demolished — $${Math.round(refund).toLocaleString()} refunded` : "Demolished", tone: "info" });
   ctx.game.audio.play("sell");
   if (session.selectedObject === id) session.selectedObject = null;
   for (const guest of session.guests.values()) {

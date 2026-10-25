@@ -77,6 +77,7 @@ function kindOf(def: BuildableDef): WorldKindDecl {
   }
   return {
     label: def.label,
+    tags: [def.category],
     grid: "lot",
     size: [sizeOf(def), sizeOf(def)],
     cost: { "park.cash": -def.cost },
@@ -152,7 +153,12 @@ const actions: Record<string, WorldActionDecl> = {
     note: `Paid $${LOAN.payment} off the loan`,
   },
 };
-const totals: Record<string, WorldTotalDecl> = {};
+const totals: Record<string, WorldTotalDecl> = {
+  // Across every kind by its category tag: the dashboard's counts.
+  "park.rides": { of: "ride" },
+  "park.rides_open": { of: "ride", where: { broken: false } },
+  "park.stalls": { of: "stall" },
+};
 const flows: Record<string, WorldFlowDecl> = {
   // Every guest drops a little litter; every janitor post sweeps it up.
   litter: { to: "park.litter", from: "park.guests", rate: 0.01 },
@@ -167,7 +173,6 @@ for (const id of BUILD_IDS) {
   // A broken ride draws no one: its appeal drops out of the park's until the crew is done.
   totals[`appeal.${id}`] = { of: id, sum: "appeal", ...(ride(def) ? { where: { broken: false } } : {}) };
   if (def.ride !== undefined) {
-    totals[`open.${id}`] = { of: id, where: { broken: false } };
     prices[`price.${id}`] = { value: def.ride.price, min: 0, max: 20 };
     Object.assign(actions, rideActions(def));
   }
@@ -249,7 +254,9 @@ export const park = defineGameSpec({
     },
   },
   onReady: (ctx, instance) => spawnObject(ctx, instance),
-  onRemoved: (ctx, id) => despawnObject(ctx, id),
+  onRemoved: (ctx, gone) => despawnObject(ctx, gone.id, Number(gone.refund["park.cash"] ?? 0)),
+  // Once the park has gone under, nothing more is built, run or sold.
+  accepting: (ctx) => (park.of(ctx).fact("park.game_over") === true ? "The park has closed for good" : null),
   onLanded: (ctx, action, target) => landed(ctx, action, target),
   onReward: (ctx, rewards) => {
     const cash = rewards.economy?.cash ?? 0;
@@ -320,9 +327,6 @@ export interface ParkMetrics {
 }
 
 export function parkMetrics(w: WorldModel): ParkMetrics {
-  let rides = 0;
-  let ridesOpen = 0;
-  let stalls = 0;
   let totalAppeal = 0;
   let dailyUpkeep = 0;
   let wages = 0;
@@ -335,20 +339,13 @@ export function parkMetrics(w: WorldModel): ParkMetrics {
     if (n === 0) continue;
     dailyUpkeep += def.upkeep * n;
     if (def.category === "staff") wages += def.upkeep * n;
-    if (def.ride !== undefined) {
-      rides += n;
-      ridesOpen += w.num(`open.${id}`);
-      variety += 1;
-    }
-    if (def.stall !== undefined) {
-      stalls += n;
-      needs.add(def.stall.need);
-    }
+    if (def.ride !== undefined) variety += 1;
+    if (def.stall !== undefined) needs.add(def.stall.need);
   }
   return {
-    rides,
-    ridesOpen,
-    stalls,
+    rides: w.num("park.rides"),
+    ridesOpen: w.num("park.rides_open"),
+    stalls: w.num("park.stalls"),
     tracks: countOf(w, "track_piece"),
     variety: variety + needs.size,
     totalAppeal,
@@ -368,12 +365,6 @@ export function freshWorld(ctx: GameContext, cash = STARTING_CASH): WorldModel {
 
 /** Put an authored structure down without charging the till: the starter park comes with the lot. */
 export function placeFree(w: WorldModel, kind: string, cell: readonly [number, number]): string | null {
-  const cost = BUILDABLES[kind]!.cost;
-  w.change({ "park.cash": cost });
-  const result = w.place(kind, { cell });
-  if (!result.ok) {
-    w.change({ "park.cash": -cost });
-    return null;
-  }
-  return result.id;
+  const result = w.place(kind, { cell }, { free: true });
+  return result.ok ? result.id : null;
 }
