@@ -1,0 +1,2897 @@
+{
+  "version": 1,
+  "markers": [
+    {
+      "id": "trackside-1",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 142.6,
+        "y": 0,
+        "z": 5.2
+      },
+      "rotationY": -2.09,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-2",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 113.6,
+        "y": 0,
+        "z": 11.7
+      },
+      "rotationY": 0.96,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-3",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 122.6,
+        "y": 0,
+        "z": 36.6
+      },
+      "rotationY": -1.8,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-4",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 98.8,
+        "y": 0,
+        "z": 54.1
+      },
+      "rotationY": 1.46,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-5",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 112.6,
+        "y": 0,
+        "z": 88
+      },
+      "rotationY": -2.13,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-6",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 77.7,
+        "y": 0,
+        "z": 97.1
+      },
+      "rotationY": 0.35,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-7",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 39.6,
+        "y": 0,
+        "z": 125.5
+      },
+      "rotationY": -3.32,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-8",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 5.6,
+        "y": 0,
+        "z": 94.4
+      },
+      "rotationY": -0.56,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-9",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -36.4,
+        "y": 0,
+        "z": 90.9
+      },
+      "rotationY": -3.82,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-10",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -47.9,
+        "y": 0,
+        "z": 57.6
+      },
+      "rotationY": -0.34,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-11",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -78.2,
+        "y": 0,
+        "z": 70.9
+      },
+      "rotationY": -3.33,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-12",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -103.3,
+        "y": 0,
+        "z": 44.1
+      },
+      "rotationY": -0.35,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-13",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -141.7,
+        "y": 0,
+        "z": 49.3
+      },
+      "rotationY": -3.83,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-14",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -145.6,
+        "y": 0,
+        "z": 16.7
+      },
+      "rotationY": -1.01,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-15",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -176.6,
+        "y": 0,
+        "z": 2.8
+      },
+      "rotationY": -4.45,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-16",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -160.2,
+        "y": 0,
+        "z": -21.7
+      },
+      "rotationY": 4.43,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-17",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -163.5,
+        "y": 0,
+        "z": -57.1
+      },
+      "rotationY": 0.57,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-18",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -123.9,
+        "y": 0,
+        "z": -52.9
+      },
+      "rotationY": 3.27,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-19",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -82.6,
+        "y": 0,
+        "z": -76.7
+      },
+      "rotationY": -0.06,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-20",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -47.6,
+        "y": 0,
+        "z": -53.8
+      },
+      "rotationY": 3.25,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-21",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": -31,
+        "y": 0,
+        "z": -78.9
+      },
+      "rotationY": 0.57,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-22",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": -77.4
+      },
+      "rotationY": 3.63,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-23",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 35.6,
+        "y": 0,
+        "z": -113
+      },
+      "rotationY": 0.13,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-24",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 75.4,
+        "y": 0,
+        "z": -93.7
+      },
+      "rotationY": 2.81,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-25",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 118.7,
+        "y": 0,
+        "z": -94.9
+      },
+      "rotationY": -0.86,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-26",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 117.8,
+        "y": 0,
+        "z": -60.7
+      },
+      "rotationY": 1.94,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-27",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 145.6,
+        "y": 0,
+        "z": -43.2
+      },
+      "rotationY": -1.39,
+      "label": "Trackside"
+    },
+    {
+      "id": "trackside-28",
+      "kind": "prop",
+      "catalogId": "trackside",
+      "position": {
+        "x": 127.6,
+        "y": 0,
+        "z": -21.2
+      },
+      "rotationY": 1.45,
+      "label": "Trackside"
+    },
+    {
+      "id": "spawn",
+      "kind": "player_spawn",
+      "position": {
+        "x": 133.5,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Grid",
+      "meta": {
+        "clearance": 4
+      }
+    },
+    {
+      "id": "scenery-1",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -220,
+        "y": 0,
+        "z": 63.2
+      },
+      "rotationY": 3.02,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-2",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -122,
+        "y": 0,
+        "z": 123.1
+      },
+      "rotationY": 5.92,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-3",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -53.9,
+        "y": 0,
+        "z": -117.8
+      },
+      "rotationY": 2.82,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-4",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -56.2,
+        "y": 0,
+        "z": 11.9
+      },
+      "rotationY": 1.67,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-5",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 105.7,
+        "y": 0,
+        "z": -139
+      },
+      "rotationY": 3.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-6",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 55.3,
+        "y": 0,
+        "z": 12.7
+      },
+      "rotationY": 1.2,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-7",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -143.7,
+        "y": 0,
+        "z": 121.3
+      },
+      "rotationY": 4.07,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-8",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -164.9,
+        "y": 0,
+        "z": 146.1
+      },
+      "rotationY": 3.9,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-9",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 46,
+        "y": 0,
+        "z": 27.4
+      },
+      "rotationY": 5.02,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-10",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -192.2,
+        "y": 0,
+        "z": -92.8
+      },
+      "rotationY": 2.65,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-11",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 21.2,
+        "y": 0,
+        "z": 7.9
+      },
+      "rotationY": 5.96,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-12",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 6.9,
+        "y": 0,
+        "z": 43.8
+      },
+      "rotationY": 0.21,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-13",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 8.6,
+        "y": 0,
+        "z": 195.1
+      },
+      "rotationY": 2.15,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-14",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -25.4,
+        "y": 0,
+        "z": -50.8
+      },
+      "rotationY": 5.65,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-15",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 78.7,
+        "y": 0,
+        "z": 159.2
+      },
+      "rotationY": 6.1,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-16",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -12.9,
+        "y": 0,
+        "z": -39.3
+      },
+      "rotationY": 4.01,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-17",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 173,
+        "y": 0,
+        "z": -65
+      },
+      "rotationY": 5.7,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-18",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -71.4,
+        "y": 0,
+        "z": -9
+      },
+      "rotationY": 0.18,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-19",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 52.6,
+        "y": 0,
+        "z": 58.8
+      },
+      "rotationY": 2.98,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-20",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 20.3,
+        "y": 0,
+        "z": -11.8
+      },
+      "rotationY": 5.01,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-21",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 46.3,
+        "y": 0,
+        "z": -50.2
+      },
+      "rotationY": 2.66,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-22",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -24,
+        "y": 0,
+        "z": 36.7
+      },
+      "rotationY": 5.98,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-23",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 147.1,
+        "y": 0,
+        "z": 13.9
+      },
+      "rotationY": 1.97,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-24",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -140.1,
+        "y": 0,
+        "z": -6.2
+      },
+      "rotationY": 3.97,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-25",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 17,
+        "y": 0,
+        "z": 38.9
+      },
+      "rotationY": 1.58,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-26",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -169.2,
+        "y": 0,
+        "z": -124.1
+      },
+      "rotationY": 0.05,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-27",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -6.6,
+        "y": 0,
+        "z": 227.4
+      },
+      "rotationY": 0.57,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-28",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -28.2,
+        "y": 0,
+        "z": 145
+      },
+      "rotationY": 3.74,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-29",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -187.1,
+        "y": 0,
+        "z": -78.3
+      },
+      "rotationY": 1.21,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-30",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -147.8,
+        "y": 0,
+        "z": -113
+      },
+      "rotationY": 3.92,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-31",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -2.4,
+        "y": 0,
+        "z": -36.6
+      },
+      "rotationY": 0.75,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-32",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 56.7,
+        "y": 0,
+        "z": -19
+      },
+      "rotationY": 3.9,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-33",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 115.4,
+        "y": 0,
+        "z": -45.6
+      },
+      "rotationY": 5.95,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-34",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 114.2,
+        "y": 0,
+        "z": -198.8
+      },
+      "rotationY": 6.01,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-35",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -72.7,
+        "y": 0,
+        "z": -33.9
+      },
+      "rotationY": 1.02,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-36",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -122.5,
+        "y": 0,
+        "z": -14.2
+      },
+      "rotationY": 3.32,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-37",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 8.1,
+        "y": 0,
+        "z": -224.7
+      },
+      "rotationY": 0.2,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-38",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 224.4,
+        "y": 0,
+        "z": -75.8
+      },
+      "rotationY": 2.24,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-39",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -60.2,
+        "y": 0,
+        "z": 131
+      },
+      "rotationY": 2.41,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-40",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -118.3,
+        "y": 0,
+        "z": 81.1
+      },
+      "rotationY": 4.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-41",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 40.1,
+        "y": 0,
+        "z": -22.8
+      },
+      "rotationY": 1.41,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-42",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 96.1,
+        "y": 0,
+        "z": 1.5
+      },
+      "rotationY": 0.64,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-43",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 170.1,
+        "y": 0,
+        "z": -149.1
+      },
+      "rotationY": 5.65,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-44",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -70,
+        "y": 0,
+        "z": -91.9
+      },
+      "rotationY": 2.35,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-45",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 134.5,
+        "y": 0,
+        "z": 110
+      },
+      "rotationY": 1.67,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-46",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 85.2,
+        "y": 0,
+        "z": 69.4
+      },
+      "rotationY": 1.09,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-47",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -8.1,
+        "y": 0,
+        "z": -124.3
+      },
+      "rotationY": 4.65,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-48",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 104.9,
+        "y": 0,
+        "z": -23.2
+      },
+      "rotationY": 4.7,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-49",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -22.4,
+        "y": 0,
+        "z": 57.6
+      },
+      "rotationY": 1.91,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-50",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -121.2,
+        "y": 0,
+        "z": -31.8
+      },
+      "rotationY": 1.1,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-51",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 195,
+        "y": 0,
+        "z": -9.7
+      },
+      "rotationY": 5.15,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-52",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -63.1,
+        "y": 0,
+        "z": 3.5
+      },
+      "rotationY": 4.41,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-53",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 59.2,
+        "y": 0,
+        "z": -143.4
+      },
+      "rotationY": 0.94,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-54",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 34.5,
+        "y": 0,
+        "z": 6.9
+      },
+      "rotationY": 0.03,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-55",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 55.2,
+        "y": 0,
+        "z": 162
+      },
+      "rotationY": 5.31,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-56",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 173.5,
+        "y": 0,
+        "z": 20
+      },
+      "rotationY": 4.96,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-57",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -47,
+        "y": 0,
+        "z": 225.6
+      },
+      "rotationY": 2.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-58",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -47.1,
+        "y": 0,
+        "z": 50.7
+      },
+      "rotationY": 1.46,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-59",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -29.1,
+        "y": 0,
+        "z": -32
+      },
+      "rotationY": 3.59,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-60",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -133.3,
+        "y": 0,
+        "z": 156.9
+      },
+      "rotationY": 4.65,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-61",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -50.2,
+        "y": 0,
+        "z": -87
+      },
+      "rotationY": 2.81,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-62",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -30.8,
+        "y": 0,
+        "z": -42.3
+      },
+      "rotationY": 3.92,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-63",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -106.6,
+        "y": 0,
+        "z": -194.1
+      },
+      "rotationY": 5.9,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-64",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 212.2,
+        "y": 0,
+        "z": -34.8
+      },
+      "rotationY": 0.76,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-65",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 78.7,
+        "y": 0,
+        "z": -39.1
+      },
+      "rotationY": 2.62,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-66",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 149.1,
+        "y": 0,
+        "z": -144.6
+      },
+      "rotationY": 6.25,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-67",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 80.7,
+        "y": 0,
+        "z": 29.8
+      },
+      "rotationY": 4.5,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-68",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -160.2,
+        "y": 0,
+        "z": -73.7
+      },
+      "rotationY": 2.77,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-69",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -47.5,
+        "y": 0,
+        "z": -133.5
+      },
+      "rotationY": 3.36,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-70",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -226.8,
+        "y": 0,
+        "z": -15.4
+      },
+      "rotationY": 0.44,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-71",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -112.4,
+        "y": 0,
+        "z": -26.6
+      },
+      "rotationY": 3.33,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-72",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -14.2,
+        "y": 0,
+        "z": -28.3
+      },
+      "rotationY": 2.59,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-73",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 75.1,
+        "y": 0,
+        "z": 11.2
+      },
+      "rotationY": 6.22,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-74",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -92.8,
+        "y": 0,
+        "z": -220.5
+      },
+      "rotationY": 5.45,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-75",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 68.3,
+        "y": 0,
+        "z": 175.6
+      },
+      "rotationY": 2.82,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-76",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -188.4,
+        "y": 0,
+        "z": 101
+      },
+      "rotationY": 4.73,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-77",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 165.3,
+        "y": 0,
+        "z": 132.3
+      },
+      "rotationY": 1.61,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-78",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -116.9,
+        "y": 0,
+        "z": 170.8
+      },
+      "rotationY": 1.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-79",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 57.1,
+        "y": 0,
+        "z": 173.7
+      },
+      "rotationY": 2.77,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-80",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 34.3,
+        "y": 0,
+        "z": 194.4
+      },
+      "rotationY": 5.68,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-81",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 72.2,
+        "y": 0,
+        "z": 209.4
+      },
+      "rotationY": 2.94,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-82",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -99.8,
+        "y": 0,
+        "z": 33.8
+      },
+      "rotationY": 4.09,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-83",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 108.8,
+        "y": 0,
+        "z": 143.7
+      },
+      "rotationY": 5.94,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-84",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -215.2,
+        "y": 0,
+        "z": -35
+      },
+      "rotationY": 4.32,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-85",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -89,
+        "y": 0,
+        "z": -27.7
+      },
+      "rotationY": 5.86,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-86",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 64.1,
+        "y": 0,
+        "z": 223.9
+      },
+      "rotationY": 2.89,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-87",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -38.3,
+        "y": 0,
+        "z": -166.7
+      },
+      "rotationY": 5.23,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-88",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -192.5,
+        "y": 0,
+        "z": -108.8
+      },
+      "rotationY": 5.08,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-89",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 30.4,
+        "y": 0,
+        "z": 59.6
+      },
+      "rotationY": 1.1,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-90",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -60,
+        "y": 0,
+        "z": -98.6
+      },
+      "rotationY": 3.01,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-91",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 178.9,
+        "y": 0,
+        "z": -15.4
+      },
+      "rotationY": 4.83,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-92",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -62.5,
+        "y": 0,
+        "z": 185.6
+      },
+      "rotationY": 5.09,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-93",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -42.6,
+        "y": 0,
+        "z": -16.7
+      },
+      "rotationY": 2.46,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-94",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 49.3,
+        "y": 0,
+        "z": -79.8
+      },
+      "rotationY": 1.92,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-95",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 219.4,
+        "y": 0,
+        "z": -60.2
+      },
+      "rotationY": 2.81,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-96",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 142.3,
+        "y": 0,
+        "z": 69.8
+      },
+      "rotationY": 0.53,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-97",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -87.8,
+        "y": 0,
+        "z": 223.2
+      },
+      "rotationY": 4.82,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-98",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 35.1,
+        "y": 0,
+        "z": 96
+      },
+      "rotationY": 5.08,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-99",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 52.1,
+        "y": 0,
+        "z": 38.8
+      },
+      "rotationY": 3.89,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-100",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 31.1,
+        "y": 0,
+        "z": 47.9
+      },
+      "rotationY": 3.71,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-101",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -85.3,
+        "y": 0,
+        "z": 76.6
+      },
+      "rotationY": 5.58,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-102",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -13.3,
+        "y": 0,
+        "z": 152.5
+      },
+      "rotationY": 3.67,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-103",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 124.5,
+        "y": 0,
+        "z": -158.5
+      },
+      "rotationY": 0.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-104",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 55.5,
+        "y": 0,
+        "z": -176.6
+      },
+      "rotationY": 2.49,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-105",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -23.9,
+        "y": 0,
+        "z": -1.9
+      },
+      "rotationY": 0.59,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-106",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 39.4,
+        "y": 0,
+        "z": 160.8
+      },
+      "rotationY": 4.05,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-107",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 23.1,
+        "y": 0,
+        "z": -172.3
+      },
+      "rotationY": 4.36,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-108",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -16.7,
+        "y": 0,
+        "z": -12.2
+      },
+      "rotationY": 2.9,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-109",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -130.8,
+        "y": 0,
+        "z": -171.6
+      },
+      "rotationY": 2.95,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-110",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 28.2,
+        "y": 0,
+        "z": -153.9
+      },
+      "rotationY": 1.78,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-111",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 67.8,
+        "y": 0,
+        "z": -37.9
+      },
+      "rotationY": 4.21,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-112",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 101.2,
+        "y": 0,
+        "z": -52.3
+      },
+      "rotationY": 1.05,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-113",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -43.8,
+        "y": 0,
+        "z": -28.5
+      },
+      "rotationY": 4.34,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-114",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 20.1,
+        "y": 0,
+        "z": 27.9
+      },
+      "rotationY": 5.84,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-115",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 30.9,
+        "y": 0,
+        "z": 77.3
+      },
+      "rotationY": 5.39,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-116",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 17.4,
+        "y": 0,
+        "z": -220.9
+      },
+      "rotationY": 2.57,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-117",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 168.2,
+        "y": 0,
+        "z": -6.1
+      },
+      "rotationY": 1.69,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-118",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -72.8,
+        "y": 0,
+        "z": 88
+      },
+      "rotationY": 3.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-119",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -216.6,
+        "y": 0,
+        "z": 82.6
+      },
+      "rotationY": 4.68,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-120",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -137.9,
+        "y": 0,
+        "z": -36
+      },
+      "rotationY": 2.51,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-121",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 7.5,
+        "y": 0,
+        "z": -25.7
+      },
+      "rotationY": 5.18,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-122",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -75.8,
+        "y": 0,
+        "z": 24.2
+      },
+      "rotationY": 5.16,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-123",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -206.4,
+        "y": 0,
+        "z": -43.3
+      },
+      "rotationY": 3.92,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-124",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": 229.7,
+        "y": 0,
+        "z": 33.2
+      },
+      "rotationY": 3.52,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-125",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -17.2,
+        "y": 0,
+        "z": 125.3
+      },
+      "rotationY": 4.46,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-126",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 73.3,
+        "y": 0,
+        "z": -182.9
+      },
+      "rotationY": 2.32,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-127",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 174.7,
+        "y": 0,
+        "z": -138.9
+      },
+      "rotationY": 2.95,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-128",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": 118.9,
+        "y": 0,
+        "z": -117.2
+      },
+      "rotationY": 0.05,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-129",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 14.3,
+        "y": 0,
+        "z": 180.4
+      },
+      "rotationY": 2.86,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-130",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -198.8,
+        "y": 0,
+        "z": -120.2
+      },
+      "rotationY": 1.55,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-131",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": -30.2,
+        "y": 0,
+        "z": 11.4
+      },
+      "rotationY": 4.93,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-132",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 45.1,
+        "y": 0,
+        "z": 228.6
+      },
+      "rotationY": 1.4,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-133",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": 28.5,
+        "y": 0,
+        "z": -3.1
+      },
+      "rotationY": 0.82,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-134",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -147.2,
+        "y": 0,
+        "z": 97
+      },
+      "rotationY": 3.5,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-135",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": -31.4,
+        "y": 0,
+        "z": -86.4
+      },
+      "rotationY": 5.71,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-136",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -4.3,
+        "y": 0,
+        "z": -52.3
+      },
+      "rotationY": 2.01,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-137",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 5.4,
+        "y": 0,
+        "z": -178.7
+      },
+      "rotationY": 2.09,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-138",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 46.4,
+        "y": 0,
+        "z": -155.5
+      },
+      "rotationY": 4.53,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-139",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -135.5,
+        "y": 0,
+        "z": 80.1
+      },
+      "rotationY": 1.21,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-140",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -191.8,
+        "y": 0,
+        "z": -52
+      },
+      "rotationY": 3.71,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-141",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 66.9,
+        "y": 0,
+        "z": -124.5
+      },
+      "rotationY": 1.5,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-142",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -40.9,
+        "y": 0,
+        "z": 15.8
+      },
+      "rotationY": 1.78,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-143",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 82.3,
+        "y": 0,
+        "z": -16.2
+      },
+      "rotationY": 3.96,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-144",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": 225.8,
+        "y": 0,
+        "z": 14.7
+      },
+      "rotationY": 3.82,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-145",
+      "kind": "prop",
+      "catalogId": "scenery1",
+      "position": {
+        "x": -26,
+        "y": 0,
+        "z": 134.4
+      },
+      "rotationY": 0.11,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-146",
+      "kind": "prop",
+      "catalogId": "scenery2",
+      "position": {
+        "x": -208.5,
+        "y": 0,
+        "z": 68.2
+      },
+      "rotationY": 0.42,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-147",
+      "kind": "prop",
+      "catalogId": "scenery3",
+      "position": {
+        "x": 195.2,
+        "y": 0,
+        "z": 88.3
+      },
+      "rotationY": 4.61,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-148",
+      "kind": "prop",
+      "catalogId": "scenery4",
+      "position": {
+        "x": -105.5,
+        "y": 0,
+        "z": -149.4
+      },
+      "rotationY": 1.46,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-149",
+      "kind": "prop",
+      "catalogId": "scenery5",
+      "position": {
+        "x": 160.3,
+        "y": 0,
+        "z": 98.4
+      },
+      "rotationY": 5.38,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    },
+    {
+      "id": "scenery-150",
+      "kind": "prop",
+      "catalogId": "scenery6",
+      "position": {
+        "x": -158.1,
+        "y": 0,
+        "z": -139.2
+      },
+      "rotationY": 5.14,
+      "label": "Scenery",
+      "meta": {
+        "clearance": 2
+      }
+    }
+  ],
+  "volumes": [],
+  "paths": [
+    {
+      "id": "track",
+      "kind": "track",
+      "label": "Circuit",
+      "points": [
+        {
+          "x": 133.5,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 128.3,
+          "y": 0,
+          "z": 9.2
+        },
+        {
+          "x": 122.2,
+          "y": 0,
+          "z": 17.7
+        },
+        {
+          "x": 116.5,
+          "y": 0,
+          "z": 25.8
+        },
+        {
+          "x": 112.4,
+          "y": 0,
+          "z": 34.3
+        },
+        {
+          "x": 110.2,
+          "y": 0,
+          "z": 43.9
+        },
+        {
+          "x": 109.2,
+          "y": 0,
+          "z": 55.2
+        },
+        {
+          "x": 107.8,
+          "y": 0,
+          "z": 68.3
+        },
+        {
+          "x": 103.7,
+          "y": 0,
+          "z": 82.4
+        },
+        {
+          "x": 95.2,
+          "y": 0,
+          "z": 95.9
+        },
+        {
+          "x": 81.3,
+          "y": 0,
+          "z": 107
+        },
+        {
+          "x": 62.8,
+          "y": 0,
+          "z": 113.7
+        },
+        {
+          "x": 41.5,
+          "y": 0,
+          "z": 115.2
+        },
+        {
+          "x": 19.8,
+          "y": 0,
+          "z": 111.3
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "z": 103.3
+        },
+        {
+          "x": -16.5,
+          "y": 0,
+          "z": 93
+        },
+        {
+          "x": -29.8,
+          "y": 0,
+          "z": 82.7
+        },
+        {
+          "x": -40.8,
+          "y": 0,
+          "z": 73.9
+        },
+        {
+          "x": -51.4,
+          "y": 0,
+          "z": 67.5
+        },
+        {
+          "x": -62.9,
+          "y": 0,
+          "z": 63.4
+        },
+        {
+          "x": -76.3,
+          "y": 0,
+          "z": 60.6
+        },
+        {
+          "x": -91.3,
+          "y": 0,
+          "z": 57.8
+        },
+        {
+          "x": -106.9,
+          "y": 0,
+          "z": 54
+        },
+        {
+          "x": -121.9,
+          "y": 0,
+          "z": 48.5
+        },
+        {
+          "x": -135,
+          "y": 0,
+          "z": 41.2
+        },
+        {
+          "x": -145.8,
+          "y": 0,
+          "z": 32.3
+        },
+        {
+          "x": -154.5,
+          "y": 0,
+          "z": 22.3
+        },
+        {
+          "x": -161.3,
+          "y": 0,
+          "z": 11.5
+        },
+        {
+          "x": -166.5,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": -169.8,
+          "y": 0,
+          "z": -12.1
+        },
+        {
+          "x": -170.3,
+          "y": 0,
+          "z": -24.6
+        },
+        {
+          "x": -166.7,
+          "y": 0,
+          "z": -36.9
+        },
+        {
+          "x": -157.9,
+          "y": 0,
+          "z": -48.2
+        },
+        {
+          "x": -143.8,
+          "y": 0,
+          "z": -57.2
+        },
+        {
+          "x": -125.3,
+          "y": 0,
+          "z": -63.3
+        },
+        {
+          "x": -104.3,
+          "y": 0,
+          "z": -66.1
+        },
+        {
+          "x": -83.3,
+          "y": 0,
+          "z": -66.2
+        },
+        {
+          "x": -64.5,
+          "y": 0,
+          "z": -65
+        },
+        {
+          "x": -48.8,
+          "y": 0,
+          "z": -64.2
+        },
+        {
+          "x": -36.2,
+          "y": 0,
+          "z": -65.6
+        },
+        {
+          "x": -25.3,
+          "y": 0,
+          "z": -70.1
+        },
+        {
+          "x": -13.8,
+          "y": 0,
+          "z": -77.5
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "z": -86.7
+        },
+        {
+          "x": 17,
+          "y": 0,
+          "z": -95.8
+        },
+        {
+          "x": 37,
+          "y": 0,
+          "z": -102.6
+        },
+        {
+          "x": 58.2,
+          "y": 0,
+          "z": -105.4
+        },
+        {
+          "x": 78.8,
+          "y": 0,
+          "z": -103.6
+        },
+        {
+          "x": 96.7,
+          "y": 0,
+          "z": -97.5
+        },
+        {
+          "x": 110.8,
+          "y": 0,
+          "z": -88
+        },
+        {
+          "x": 120.8,
+          "y": 0,
+          "z": -76.5
+        },
+        {
+          "x": 127.6,
+          "y": 0,
+          "z": -64.5
+        },
+        {
+          "x": 132.2,
+          "y": 0,
+          "z": -52.6
+        },
+        {
+          "x": 135.3,
+          "y": 0,
+          "z": -41.3
+        },
+        {
+          "x": 137.3,
+          "y": 0,
+          "z": -30.4
+        },
+        {
+          "x": 138,
+          "y": 0,
+          "z": -20
+        },
+        {
+          "x": 136.8,
+          "y": 0,
+          "z": -9.8
+        }
+      ],
+      "meta": {
+        "width": 14
+      }
+    }
+  ]
+}

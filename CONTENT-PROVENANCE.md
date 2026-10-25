@@ -47,3 +47,15 @@ Harbor Heat's street furniture comes from the engine's realistic model library a
 | streets | Sidewalk and driveway concrete (Concrete006) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Concrete006 |
 
 The building block itself (`harbor-heat/src/art/city-block.glb`) is original geometry with no textures. Cars, people, aircraft, signs, neon, signals and cargo are still KayKit (CC0): no CC0 realistic glTF cars or rigged humans exist on Poly Haven or ambientCG, and the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
+
+## Games made by `bun run new-game`
+
+Hold the Line, Fernwild and Apex Nights were generated from one-sentence ideas by `bun run new-game` (see [docs/new-game.md](docs/new-game.md)). Their names, story text and settings are original. The generator copies the pack models each game uses from the engine's `apps/dev/public/models/` into `<game>/public/models/imported/`. Textures over 1 MB are scaled down to 1024 px. Library models (`city/...`, `vehicle/...`) come from `bun run provision <game>`, as with Harbor Heat above. Every copied file is CC0 1.0 and keeps its source name. Each game's Credits screen lists them.
+
+| Game | Pack (folder under `public/models/imported/`) | Author | License |
+| --- | --- | --- | --- |
+| Hold the Line, Apex Nights | KayKit City Builder Bits (`kaykit-city-builder`): buildings, cars, water tower, dumpster | Kay Lousberg | CC0 1.0 |
+| Hold the Line, Fernwild | Quaternius Stylized Nature (`quaternius-stylized-nature`): trees, bushes, ferns | Quaternius | CC0 1.0 |
+| Fernwild | Quaternius Medieval Village (`quaternius-medieval-village`): wooden fence | Quaternius | CC0 1.0 |
+| Fernwild | KayKit Dungeon (`kaykit-dungeon`): lit torch | Kay Lousberg | CC0 1.0 |
+| Fernwild | KayKit adventurer and Quaternius animal models renamed for the engine's former Lantern Reach port (`lantern-reach`): ranger, raptor, stag, boar, bull, settlement | Kay Lousberg; Quaternius | CC0 1.0 |

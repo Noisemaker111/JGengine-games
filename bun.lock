@@ -8,6 +8,31 @@
         "@typescript/native-preview": "^7.0.0-dev.20260707.2",
       },
     },
+    "apex-nights": {
+      "name": "@games/apex-nights",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
     "beacon-bastion": {
       "name": "@games/beacon-bastion",
       "version": "0.1.0",
@@ -136,6 +161,31 @@
         "vite": "^6.2.2",
       },
     },
+    "fernwild": {
+      "name": "@games/fernwild",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
     "harbor-heat": {
       "name": "@games/harbor-heat",
       "version": "0.1.0",
@@ -146,6 +196,31 @@
         "@jgengine/react": "catalog:",
         "@jgengine/shell": "catalog:",
         "@jgengine/ws": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
+    "hold-the-line": {
+      "name": "@games/hold-the-line",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
         "@react-three/fiber": "^9.5.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",
@@ -355,6 +430,8 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
 
+    "@games/apex-nights": ["@games/apex-nights@workspace:apex-nights"],
+
     "@games/beacon-bastion": ["@games/beacon-bastion@workspace:beacon-bastion"],
 
     "@games/brightway-park": ["@games/brightway-park@workspace:brightway-park"],
@@ -365,7 +442,11 @@
 
     "@games/ember-command": ["@games/ember-command@workspace:ember-command"],
 
+    "@games/fernwild": ["@games/fernwild@workspace:fernwild"],
+
     "@games/harbor-heat": ["@games/harbor-heat@workspace:harbor-heat"],
+
+    "@games/hold-the-line": ["@games/hold-the-line@workspace:hold-the-line"],
 
     "@games/hud-components": ["@games/hud-components@workspace:registry"],
 

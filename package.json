@@ -42,6 +42,7 @@
     "bg:run": "bun scripts/bg.ts run",
     "bg:await": "bun scripts/bg.ts await",
     "provision": "bun scripts/provision-assets.ts",
+    "new-game": "bun scripts/new-game.ts",
     "test": "bun test",
     "test:games": "bun test",
     "check-types": "bun --filter='*' run check-types",
@@ -63,7 +64,10 @@
     "dev:beacon-bastion": "bun --cwd=beacon-bastion run dev",
     "dev:harbor-heat": "bun --cwd=harbor-heat run dev",
     "dev:drift-foundry": "bun --cwd=drift-foundry run dev",
-    "dev:deepward": "bun --cwd=deepward run dev"
+    "dev:deepward": "bun --cwd=deepward run dev",
+    "dev:hold-the-line": "bun --cwd=hold-the-line run dev",
+    "dev:fernwild": "bun --cwd=fernwild run dev",
+    "dev:apex-nights": "bun --cwd=apex-nights run dev"
   },
   "packageManager": "bun@1.3.8",
   "devDependencies": {
