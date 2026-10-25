@@ -120,7 +120,10 @@ proves no commit, so it is not adoptable evidence: pin the commit you proved bef
 CI follows that claim: the `games` job reads the `Engine pin:` line from the PR body and
 installs that commit before it typechecks, so the checks run against the engine the PR
 proved. A PR without the line runs the published catalog exactly as before, and a claim that
-names a commit lacking the seam the branch uses fails there like any other type error.
+names a commit lacking the seam the branch uses fails there like any other type error. A pinned PR then
+lands only when the catalog's published release already contains its pin
+(`scripts/ci-pin-released.ts`): beta installs the catalog, so merging earlier turns beta red.
+Pin to prove and review; release, adopt and drop the line to land.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

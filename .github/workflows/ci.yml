@@ -80,6 +80,15 @@ jobs:
       - run: bun run check-types
       - run: bun run test
       - run: bun run capabilities:probe
+      # The checks above are the pin's evidence; beta still installs the published catalog.
+      # A pinned PR lands only once a release containing its pin is in the catalog, or
+      # merging it turns beta red (#240 needed engine 8be64264, beta had 0.41.0).
+      - name: The pinned engine is released in the catalog beta installs
+        if: steps.engine.outputs.pin != ''
+        env:
+          PIN: ${{ steps.engine.outputs.pin }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun scripts/ci-pin-released.ts "$PIN"
 
   # The same checks against engine `beta` source, so a PR can go green on an engine
   # module that has never been published. The `games` job above keeps the published
