@@ -195,7 +195,6 @@ export function beginScenario(ctx: GameContext, id: string): boolean {
   setGamePhase(ctx, "playing");
   ctx.time.play();
   syncAmbience(ctx);
-  ctx.game.notices.push({ text: `${scenario.title} — ${scenario.goal}`, tone: "info" });
   savePark(ctx);
   return true;
 }
@@ -236,7 +235,6 @@ export function tickScenario(ctx: GameContext, dt: number): void {
       ctx.time.pause();
       setGamePhase(ctx, "paused");
       syncAmbience(ctx);
-      ctx.game.notices.push({ text: `Scenario failed: ${event.reason}`, tone: "warn" });
       ctx.game.audio.play("bankrupt");
       savePark(ctx);
       return;
@@ -248,10 +246,6 @@ export function tickScenario(ctx: GameContext, dt: number): void {
       ctx.time.pause();
       setGamePhase(ctx, "paused");
       syncAmbience(ctx);
-      ctx.game.notices.push({
-        text: reward > 0 ? `Scenario won! +${reward} and the park is yours` : "Scenario won!",
-        tone: "success",
-      });
       ctx.game.audio.play("ribbon");
       savePark(ctx);
       return;

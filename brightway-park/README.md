@@ -17,11 +17,11 @@ Read from `src/game/{catalog,objects,sim,session,scenarios,milestones,loan,rides
   - [x] Rides that rate. Every placed ride runs the shared ride sim: its own load, ride and unload cycle,
     its own line whose wait comes from measured throughput, its own wear and breakdown curve. A
     breakdown takes the ride offline with a message and a repair bill; a mechanic bay shortens repairs
-    and servicing clears wear before it breaks. The dashboard reads rides online, riders and the queue.
+    and servicing clears wear before it breaks. The status card flags a ride that is down; the park books show the queue.
   - [x] Money that binds. Entry fee plus a per-ride ticket the park sets; guests weigh the ticket
     against the wait. Staff are a wage line separate from facility upkeep. A $6,000 loan at 3% a day
     over ten days is repaid nightly out of the same shared ledger as upkeep; the balance and interest
-    show on the HUD. Rating still gates the crowd: 34 visitors at zero stars, plus 0.14 per star.
+    show in the park books (Books, or L). Rating still gates the crowd: 34 visitors at zero stars, plus 0.14 per star.
   - [x] Milestones that open real content. Six authored gates on a park-rating standing track. Each
     names the unlock it grants (flower beds and lamps, the drinks kiosk and fountain, the ferris wheel
     and souvenir shop, the mechanic bay, the drop tower, the grand topiary), and the gate set refuses to

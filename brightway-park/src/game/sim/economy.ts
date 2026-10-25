@@ -124,12 +124,7 @@ export function economyDayTick(ctx: GameContext): void {
   }
   session.upkeepYesterday = total;
   session.revenueYesterday = session.revenueToday;
-  const net = session.revenueYesterday - total;
-  const detail = instalment === null ? "" : " incl. loan";
-  ctx.game.notices.push({
-    text: `Day ${session.day}: ${net >= 0 ? "+" : ""}${Math.round(net)} net${detail} (${session.guestsToday} guests)`,
-    tone: net >= 0 ? "success" : "warn",
-  });
+  // The day's net shows on the next gate-open banner; no toast for it.
   ctx.game.audio.play("settle");
 
   if (session.cash < 0) {
@@ -140,7 +135,6 @@ export function economyDayTick(ctx: GameContext): void {
       ctx.time.pause();
       setGamePhase(ctx, "ended");
       syncAmbience(ctx);
-      ctx.game.notices.push({ text: "Bankrupt! The park has closed for good.", tone: "warn" });
       ctx.game.audio.play("bankrupt");
     } else {
       ctx.game.notices.push({ text: `In the red — ${BANKRUPT_LIMIT - session.bankruptDays} day(s) to recover`, tone: "warn" });
@@ -172,10 +166,7 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
   for (const gate of claimMilestones(session.cash, granted)) {
     ctx.game.unlocks?.grant(ctx.player.userId, gate.unlock);
     const contents = milestoneContents(gate.unlock);
-    ctx.game.notices.push({
-      text: `Milestone! ${gate.label} — ${contents.length > 0 ? contents.join(" & ") : gate.unlock} now in the build palette`,
-      tone: "success",
-    });
+    ctx.game.notices.push({ text: `Unlocked ${contents.length > 0 ? contents.join(" & ") : gate.label}`, tone: "success" });
     ctx.game.audio.play("milestone");
   }
 }

@@ -36,7 +36,7 @@ export const DELIVERY_ROUTES = [
 
 /** The pursuer and the runner the mission tracks by id, whichever body the player is in. */
 const PLAYER_ACTOR = "harbor_player";
-const THIEF = "parcel_thief";
+export const THIEF = "parcel_thief";
 /** HHPD tier at which a live courier run is swept: officers working the block, 2 pips. */
 export const COURIER_HEAT_TIER = 2;
 /** The world fact the mission machine reads for that sweep; the heat slice owns the number. */
@@ -357,41 +357,53 @@ function handleMissionEvents(ctx: GameContext, events: readonly MissionEvent[]):
   }
 }
 
+/** Why a parcel cannot be taken right now, or null when it can. Refusals are the command's own answer. */
+function acceptRefusal(state: GameContext, input: { service?: string } | undefined) {
+  const current = courierStore.read(state);
+  if (courierLoop(state).phase() === "open" || courierRuntime(state).state()?.status === "active") {
+    return { reason: "already-running", message: "Finish the parcel you are already carrying." };
+  }
+  if (!near(state, DISPATCH, 9)) return { reason: "not-at-dispatch", message: "Take a parcel from the dispatch booth." };
+  if (input?.service !== "rush") return null;
+  if (current.delivered < 1) return { reason: "rush-locked", message: "Complete a standard delivery first." };
+  if (state.game.economy.balance(state.player.userId, "cash") < RUSH_BOND) {
+    return { reason: "no-bond", message: `Fragile rush needs a $${RUSH_BOND} bond.` };
+  }
+  return null;
+}
+
+function acceptParcel(state: GameContext, input: { service?: string } | undefined): void {
+  const current = courierStore.read(state);
+  const rush = input?.service === "rush";
+  if (rush) spend(state, RUSH_BOND, "courier-bond");
+  // Route rotation and the rush gate read the delivery tally; the session number is the loop's.
+  const routeIndex = current.delivered % DELIVERY_ROUTES.length;
+  const route = DELIVERY_ROUTES[routeIndex]!;
+  const position = courierPosition(state)!;
+  courierRuntime(state).start(courierMissionId(routeIndex, rush));
+  courierLoop(state).start();
+  const contract: CourierState = { ...current, route: routeIndex, remaining: courierDeadline(route.seconds, rush), receipt: null, service: rush ? "rush" : "standard", condition: 100, lastHealth: state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 100,
+    distance: Math.round(Math.hypot(position[0] - route.position[0], position[2] - route.position[1])) };
+  publishCourier(state, contract);
+  syncObjective(state);
+  commit(state);
+  loadContraband(state);
+  state.game.feedback.cue("pickup", `Parcel taken — ${route.label}, $${route.payout}.`);
+  void state.game.save?.checkpoint();
+}
+
+function dismissReceipt(state: GameContext): void {
+  const current = courierStore.read(state);
+  if (courierLoop(state).phase() === "open") return;
+  courierRuntime(state).abandon();
+  publishCourier(state, { ...current, receipt: null });
+  commit(state);
+  sessionStore.write(state, { ...sessionStore.read(state), notice: "" });
+  syncSession(state, true);
+}
+
 export function registerCourier(ctx: GameContext): void {
-  ctx.game.commands.define<{ service?: string }>("courier.accept", {
-    // Refusals are the command's own answer, so the shell shows them once and plays the deny cue.
-    validate(state, input) {
-      const current = courierStore.read(state);
-      if (courierLoop(state).phase() === "open" || courierRuntime(state).state()?.status === "active") {
-        return { reason: "already-running", message: "Finish the parcel you are already carrying." };
-      }
-      if (!near(state, DISPATCH, 9)) return { reason: "not-at-dispatch", message: "Take a parcel from the dispatch booth." };
-      if (input?.service !== "rush") return null;
-      if (current.delivered < 1) return { reason: "rush-locked", message: "Complete a standard delivery first." };
-      if (state.game.economy.balance(state.player.userId, "cash") < RUSH_BOND) {
-        return { reason: "no-bond", message: `Fragile rush needs a $${RUSH_BOND} bond.` };
-      }
-      return null;
-    },
-    apply(state, input) {
-    const current = courierStore.read(state);
-    const rush = input?.service === "rush";
-    if (rush) spend(state, RUSH_BOND, "courier-bond");
-    // Route rotation and the rush gate read the delivery tally; the session number is the loop's.
-    const routeIndex = current.delivered % DELIVERY_ROUTES.length;
-    const route = DELIVERY_ROUTES[routeIndex]!;
-    const position = courierPosition(state)!;
-    courierRuntime(state).start(courierMissionId(routeIndex, rush));
-    courierLoop(state).start();
-    const contract: CourierState = { ...current, route: routeIndex, remaining: courierDeadline(route.seconds, rush), receipt: null, service: rush ? "rush" : "standard", condition: 100, lastHealth: state.scene.entity.stats.get(state.player.userId, "health")?.current ?? 100,
-      distance: Math.round(Math.hypot(position[0] - route.position[0], position[2] - route.position[1])) };
-    publishCourier(state, contract);
-    syncObjective(state);
-    commit(state);
-    loadContraband(state);
-    state.game.feedback.cue("pickup", `Parcel taken — ${route.label}, $${route.payout}.`);
-    void state.game.save?.checkpoint();
-  } });
+  ctx.game.commands.define<{ service?: string }>("courier.accept", { validate: acceptRefusal, apply: acceptParcel });
   ctx.game.commands.define("courier.deliver", {
     validate(state) {
       const current = courierStore.read(state);
@@ -409,14 +421,15 @@ export function registerCourier(ctx: GameContext): void {
       void state.game.save?.checkpoint();
     },
   });
-  ctx.game.commands.define("courier.dismiss", { apply(state) {
-    const current = courierStore.read(state);
-    if (courierLoop(state).phase() === "open") return;
-    courierRuntime(state).abandon();
-    publishCourier(state, { ...current, receipt: null });
-    commit(state);
-    sessionStore.write(state, { ...sessionStore.read(state), notice: "" });
-    syncSession(state, true);
+  ctx.game.commands.define("courier.dismiss", { apply: dismissReceipt });
+  // The receipt's "Try again" / "Next parcel": back at the booth with the parcel in hand, no walk back.
+  ctx.game.commands.define<{ service?: string }>("courier.retry", { apply(state, input) {
+    dismissReceipt(state);
+    handrollOf(state).exitVehicle(state, true);
+    const x = DISPATCH[0] + 3;
+    state.scene.entity.setPose(state.player.userId, { position: [x, state.world.groundHeightAt(x, DISPATCH[1]), DISPATCH[1]] });
+    const service = acceptRefusal(state, input) === null ? input : undefined;
+    if (acceptRefusal(state, service) === null) acceptParcel(state, service);
   } });
 }
 

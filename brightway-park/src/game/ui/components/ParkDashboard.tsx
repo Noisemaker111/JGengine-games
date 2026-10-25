@@ -1,84 +1,78 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
+import { KitObjective } from "@jgengine/react/kitFlow";
+import { KitButton, KitMeter, KitPanel } from "@jgengine/react/uiKitRoot";
+import type { KitTone } from "@jgengine/react/uiKit";
+
 import { guestCap } from "../../catalog";
-import { session } from "../../session";
-import { currentMetrics } from "../../sim/economy";
 import { loanSummary } from "../../loan";
 import { rideBoard } from "../../rides";
-import { scenarioView } from "../../scenarios";
+import { scenarioDef, scenarioView } from "../../scenarios";
+import { session } from "../../session";
+import { currentMetrics } from "../../sim/economy";
 import { nextMilestone, nextStepText } from "../nextStep";
+import { Rows } from "./Inspector";
 
-/** A countdown in the units a park manager thinks in: days and hours on the clock. */
-function countdown(seconds: number | null): string {
-  if (seconds === null) return "";
-  const day = 150;
-  const days = Math.floor(seconds / day);
-  const hours = Math.floor(((seconds % day) / day) * 24);
-  return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
+const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString()}`;
+const tone = (value: number, good: number, warn: number): KitTone => (value >= good ? "good" : value >= warn ? "warn" : "bad");
+const watch = () => [session.cash, session.rating, session.guests.size, session.happinessAvg, session.litter, session.ticketPrice, session.day, session.open, session.revenueToday, session.revenueYesterday, session.upkeepYesterday, session.placed.size, session.loan?.outstanding ?? 0, session.scenario?.result ?? "", session.scenarioVisitors, session.scenarioRevenue, session.won].join("|");
+
+/** The park at a glance: funds, crowd and rating up front; mood and tidiness as meters that warn. */
+export function ParkStatus() {
+  useGameStore(watch);
+  const clock = useGameStore((ctx) => { const c = ctx.time.calendar(); return `${String(c.hour).padStart(2, "0")}:${String(c.minute).padStart(2, "0")}`; });
+  const rides = rideBoard(), clean = 100 - session.litter;
+  return (
+    <KitPanel className="bw-status" eyebrow={`Day ${session.day} · ${clock} · ${session.open ? "Gates open" : "After hours"}`} title={money(session.cash)} tone={session.cash < 0 ? "bad" : undefined} aside={`★ ${Math.round(session.rating)}`}>
+      <div className="bw-line"><span>{session.guests.size} / {guestCap(session.rating)} guests</span>{rides.broken > 0 ? <b data-bad="">{rides.broken} ride down</b> : null}</div>
+      <KitMeter size="sm" label="Mood" value={session.happinessAvg} max={100} readout={`${Math.round(session.happinessAvg)}%`} tone={tone(session.happinessAvg, 50, 35)} />
+      <KitMeter size="sm" label="Clean" value={clean} max={100} readout={`${Math.round(clean)}%`} tone={tone(clean, 60, 40)} />
+    </KitPanel>
+  );
 }
 
-export function ParkDashboard() {
-  useGameStore(() => [session.cash,session.rating,session.guests.size,session.happinessAvg,session.litter,session.ticketPrice,session.day,session.open,session.revenueYesterday,session.upkeepYesterday,session.placed.size,session.loan?.outstanding ?? 0,session.scenario?.id ?? "",session.scenario?.result ?? "",session.scenarioVisitors,session.scenarioRevenue].join("|"));
-  const {commands}=useGame();
-  const calendar=useGameStore(ctx=>`${String(ctx.time.calendar().hour).padStart(2,"0")}:${String(ctx.time.calendar().minute).padStart(2,"0")}`);
-  const m=currentMetrics(), next=nextMilestone(session.rating), nextStep=nextStepText(session.rating);
-  const net=session.revenueYesterday-session.upkeepYesterday;
-  const rides=rideBoard();
-  const scenario=scenarioView();
-  const loan=session.loan===null?null:loanSummary(session.loan);
-  return <>
-    <HudSurface className="park-header park-surface" as="header">
-      <div className="park-wordmark"><img src={new URL("../../../../public/art/brightway-sign.svg",import.meta.url).href} alt="Brightway Park" /><span>A little seaside. A lot of possibility.</span></div>
-      <div className="park-status"><span className={session.open?"park-open":"park-closed"}>{session.open?"GATES OPEN":"AFTER HOURS"}</span><strong>Day {session.day} · {calendar}</strong></div>
-    </HudSurface>
-    <HudSurface className="park-stats park-surface" as="section" aria-label="Park statistics">
-      <Stat label="Park funds" value={`$${Math.round(session.cash).toLocaleString()}`} tone={session.cash<0?"bad":"good"}/>
-      <Stat label="Park rating" value={`${Math.round(session.rating)} ★`} tone="gold"/>
-      <Stat label="Visitors" value={`${session.guests.size} / ${guestCap(session.rating)}`}/>
-      <Stat label="Guest mood" value={`${Math.round(session.happinessAvg)}%`} tone={session.happinessAvg<50?"bad":"good"}/>
-      <Stat label="Cleanliness" value={`${Math.round(100-session.litter)}%`} tone={session.litter>40?"bad":"good"}/>
-      <Stat label="Rides" value={rides.rides===0?"none":`${rides.online}/${rides.rides} up`} tone={rides.broken>0?"bad":""}/>
-      <div className="park-ticket"><span>Entry ticket</span><div><HudButton size="icon" aria-label="Lower ticket price" onClick={()=>commands.run("park.ticket",{delta:-1})}>−</HudButton><strong>${session.ticketPrice}</strong><HudButton size="icon" aria-label="Raise ticket price" onClick={()=>commands.run("park.ticket",{delta:1})}>+</HudButton></div></div>
-    </HudSurface>
-    <HudSurface className="park-objectives park-surface" as="aside" aria-label="Park goals">
-      {scenario!==null ? <>
-        <div className="park-section-label">SCENARIO · {scenario.title.toUpperCase()}</div>
-        <h2>{scenario.goal}</h2>
-        <div className="park-goals">
-          <Goal done={scenario.result==="won"} label={`Takings · $${Math.round(scenario.facts.revenue)}`}/>
-          <Goal done={scenario.result==="won"} label={`Visitors · ${scenario.facts.visitors}`}/>
-          <Goal done={scenario.facts.cash>0} label={`Till · $${Math.round(scenario.facts.cash)}`}/>
-        </div>
-        <div className="park-unlock"><span>{scenario.result==="failed"?`Failed — ${scenario.reason ?? "the goal slipped away"}`:scenario.result==="won"?"Scenario complete":countdown(scenario.remaining)}</span>
-          {scenario.remaining!==null&&scenario.duration!==null&&scenario.result===null?<progress max={scenario.duration} value={scenario.duration-scenario.remaining}/>:null}
-        </div>
-      </> : <>
-        <div className="park-section-label">{session.won?"BLUE RIBBON PARK":"YOUR FIRST BLUE RIBBON"}</div>
-        <h2>{session.won?"Keep the good days rolling":"Build a fair worth coming back to"}</h2>
-        <div className="park-goals">
-          <Goal done={m.rides>=3} label={`Three rides · ${m.rides}/3`}/>
-          <Goal done={session.rating>=220} label={`Rating · ${Math.round(session.rating)}/220`}/>
-          <Goal done={session.day>1&&net>=0} label={session.day>1?`Last day net · ${net<0?"−":"+"}$${Math.abs(Math.round(net))}`:"Finish a profitable day"}/>
-          <Goal done={session.happinessAvg>=50&&session.litter<=40} label="Happy 50%+ · clean 60%+"/>
-        </div>
-        <p>{session.litter>25?"Hire a janitor before litter takes over.":m.stalls<3?"Add refreshments to keep visitors smiling.":"Mix gentle rides and thrills: families and thrill seekers want different days out."}</p>
-        {next&&nextStep&&<div className="park-unlock"><span>{nextStep}</span><progress max={next.rating} value={session.rating}/></div>}
-      </>}
-      <div className="park-ledger">
-        <span>Rides &amp; shops upkeep</span><strong>${m.facilitiesUpkeep}</strong>
-        <span>Staff wages</span><strong>${m.wages}</strong>
-        <span>Today’s sales</span><strong>${Math.round(session.revenueToday)}</strong>
-        {rides.rides>0&&<><span>Ride lines</span><strong>{rides.queued} waiting</strong></>}
-        {loan!==null&&<><span>Loan owed</span><strong>${Math.round(loan.owed)} · ${loan.daysLeft}d</strong></>}
-      </div>
-      <div className="park-finance">
-        {loan===null
-          ? <HudButton size="sm" variant="ghost" onClick={()=>commands.run("park.loan",{})} aria-label="Take a park loan">Take a $6,000 loan · 3%/day</HudButton>
-          : <HudButton size="sm" variant="ghost" onClick={()=>commands.run("park.repay",{})} aria-label="Pay the loan down">Pay loan · $${Math.round(loan.payment)}/day</HudButton>}
-      </div>
-    </HudSurface>
-  </>;
+/** The one card that says what to do next: the first unmet goal, the checklist, and a hint when stuck. */
+export function ParkGoal() {
+  useGameStore(watch);
+  const m = currentMetrics(), net = session.revenueYesterday - session.upkeepYesterday, scenario = scenarioView();
+  if (scenario !== null && session.scenario !== null) {
+    const when = scenarioDef(session.scenario.id)?.mission.objectives[0]?.branches?.find((b) => b.to === "done")?.when;
+    const target = Array.isArray(when) ? when[0] : when;
+    const goal = target?.atLeast ?? 0, fact = target?.fact ?? "revenue";
+    const have = fact === "revenue" ? money(scenario.facts.revenue) : fact === "visitors" ? `${scenario.facts.visitors}` : `★ ${Math.round(scenario.facts.rating)}`;
+    return <KitObjective className="bw-goal" eyebrow={`Scenario · ${scenario.title}`} title={scenario.goal}
+      steps={[{ id: "target", label: `${have} of ${fact === "revenue" ? money(goal) : goal}`, done: scenario.result === "won" }, { id: "till", label: `Till ${money(scenario.facts.cash)}`, done: scenario.facts.cash > 0 }]}
+      deadline={scenario.remaining !== null && scenario.duration !== null ? { remaining: scenario.remaining, total: scenario.duration } : undefined}
+      hint="Cheaper tickets and more rides pull a bigger crowd." progressKey={`${Math.round(scenario.facts.visitors / 5)}`} />;
+  }
+  const steps = [
+    { id: "rides", label: `Three rides · ${Math.min(m.rides, 3)}/3`, done: m.rides >= 3, next: "Build a third ride" },
+    { id: "rating", label: `Rating · ${Math.round(session.rating)}/220`, done: session.rating >= 220, next: "Raise the rating to 220" },
+    { id: "profit", label: session.day > 1 ? `Last day ${net < 0 ? "lost" : "made"} ${money(Math.abs(net))}` : "Finish a profitable day", done: session.day > 1 && net >= 0, next: "Finish a day in profit" },
+    { id: "happy", label: "Happy 50%+ · clean 60%+", done: session.happinessAvg >= 50 && session.litter <= 40, next: "Cheer guests up and tidy the paths" },
+  ];
+  const next = steps.find((s) => !s.done);
+  const hint = session.litter > 25 ? "Litter is piling up: hire a janitor from Staff." : m.stalls < 3 ? "Hungry guests turn grumpy: add food and drink from Shops." : m.rides < 3 ? "Open Rides in the build palette and place one on an empty plot." : nextStepText(session.rating) ?? "Mix gentle rides and thrills: families and thrill seekers want different days out.";
+  return <KitObjective className="bw-goal" eyebrow={session.won ? "Blue ribbon park" : "Your first blue ribbon"} title={session.won ? "Keep the good days rolling" : next?.next ?? "Hold it until midnight"}
+    steps={session.won ? undefined : steps} hint={hint} progressKey={steps.filter((s) => s.done).length} />;
 }
-function Stat({label,value,tone=""}:{label:string;value:string;tone?:string}) { return <div className={`park-stat ${tone}`}><span>{label}</span><strong>{value}</strong></div>; }
-function Goal({done,label}:{done:boolean;label:string}) { return <div className={done?"park-goal complete":"park-goal"}><span aria-hidden>{done?"✓":"○"}</span>{label}</div>; }
+
+/** The ledger, the gate price, the loan and the next unlock: open when the player asks for them. */
+export function ParkBooks({ onClose }: { onClose: () => void }) {
+  const { commands } = useGame();
+  useGameStore(watch);
+  const m = currentMetrics(), next = nextMilestone(session.rating), rides = rideBoard();
+  const loan = session.loan === null ? null : loanSummary(session.loan);
+  return (
+    <KitPanel variant="card" eyebrow="The office" title="Park books" aside={<KitButton variant="ghost" size="sm" cue="close" aria-label="Close park books" onClick={onClose}>✕</KitButton>}
+      footer={loan === null
+        ? <KitButton size="sm" onClick={() => commands.run("park.loan", {})}>Take a $6,000 loan · 3%/day</KitButton>
+        : <KitButton size="sm" onClick={() => commands.run("park.repay", {})}>Pay {money(loan.payment)} off the loan</KitButton>}>
+      <div className="bw-line"><span>Entry ticket</span><span className="bw-stepper">
+        <KitButton size="sm" aria-label="Lower ticket price" onClick={() => commands.run("park.ticket", { delta: -1 })}>−</KitButton><b>${session.ticketPrice}</b>
+        <KitButton size="sm" aria-label="Raise ticket price" onClick={() => commands.run("park.ticket", { delta: 1 })}>+</KitButton></span></div>
+      <Rows rows={[["Today’s sales", money(session.revenueToday)], ["Rides & shops upkeep", `${money(m.facilitiesUpkeep)} / day`], ["Staff wages", `${money(m.wages)} / day`],
+        ...(rides.rides > 0 ? [["Ride lines", `${rides.queued} waiting`] as [string, string]] : []), ...(loan !== null ? [["Loan owed", `${money(loan.owed)} · ${loan.daysLeft} days`] as [string, string]] : [])]} />
+      {next !== null ? <KitMeter size="sm" label={`Next: ${next.label}`} value={session.rating} max={next.rating} readout={`★ ${Math.round(session.rating)} / ${next.rating}`} /> : null}
+    </KitPanel>
+  );
+}

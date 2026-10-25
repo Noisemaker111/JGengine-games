@@ -66,6 +66,12 @@ export function registerCommands(ctx: GameContext): void {
     syncSession(state, startedStore.read(state) === true);
   } });
   ctx.game.commands.define("session.save", { apply(state) { void state.game.save?.checkpoint(); } });
+  // A result screen's "Title": back to the dispatch board over the paused coast; Continue picks the run up.
+  ctx.game.commands.define("session.title", { apply(state) {
+    sessionStore.write(state, { ...sessionStore.read(state), paused: false, notice: "" });
+    startedStore.write(state, false);
+    syncSession(state, false);
+  } });
   ctx.game.commands.define("fire", {
     apply(state, input) {
       const itemId = selectedHotbarItem(state);

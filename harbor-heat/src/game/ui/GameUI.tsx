@@ -1,122 +1,49 @@
-import { HudCanvas, HudPanel, SettingsTrigger, useHudLayout } from "@jgengine/react";
-import { lootDropsOf } from "@jgengine/core/game/events";
-import { ToastStack } from "@jgengine/react/components";
-import { useActivePrompt, useGameStore } from "@jgengine/react/hooks";
+import { useEffect } from "react";
+import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/react";
+import { useGameContext } from "@jgengine/react/provider";
+import { useStore } from "@jgengine/react/store";
 import { ITEM_LABELS } from "../content";
-import { prompts as buildPrompts } from "../prompts";
-import { RACE_ROUTES } from "../world/districts";
+import { sessionStore } from "../session";
 import { CityMinimap } from "./components/CityMinimap";
-import { DialoguePanel } from "./components/DialoguePanel";
-import { GaragePanel } from "./components/GaragePanel";
-import { RaceHud } from "./components/RaceHud";
+import { Counters } from "./components/Counters";
 import { Hotbar } from "./components/Hotbar";
-import { MissionTracker } from "./components/MissionTracker";
-import { ShopPanel } from "./components/ShopPanel";
+import { Objective } from "./components/Objective";
+import { PauseButton, SessionUI } from "./components/SessionUI";
 import { Speedo } from "./components/Speedo";
 import { StatusPanel } from "./components/StatusPanel";
-import { HarborMenu, useGameStarted } from "./menu/HarborMenu";
 import { WantedStars } from "./components/WantedStars";
-import { CourierHud, SessionUI } from "./components/SessionUI";
-import { CargoPanel } from "./components/CargoPanel";
-import { ResidentsPanel } from "./components/ResidentsPanel";
+import { HarborMenu, useGameStarted } from "./menu/HarborMenu";
 
-function PromptHint() {
-  const prompts = useGameStore((ctx) => buildPrompts(ctx));
-  const active = useActivePrompt(prompts);
-  if (active === null) return null;
-  const label = active.id.startsWith("enter:")
-    ? "Enter vehicle"
-    : active.id.startsWith("shop:")
-      ? "Browse Ammu-Isle"
-      : active.id.startsWith("garage:")
-        ? "Browse Sunset Motors"
-        : active.id.startsWith("race:")
-          ? `Race ${RACE_ROUTES.find((r) => `race:${r.id}` === active.id)?.label ?? "the streets"} ($200 entry)`
-          : active.id === "safehouse:buy"
-            ? "Buy Palmview Bungalow ($5,000)"
-            : active.id === "safehouse:rest"
-              ? "Rest at the bungalow"
-              : active.id === "courier:accept" ? "Take a courier parcel" : active.id === "courier:deliver" ? "Deliver parcel · slow to stop" : "Talk";
-  return (
-    <div className="-skew-x-6 border-2 border-black bg-[#ffb020] px-3 py-1 text-sm font-black uppercase text-black shadow-[3px_3px_0_#000]">
-      [E] {label}
-    </div>
-  );
+/** Pickups speak through the kit's toasts, like every other notice. */
+function useLootNotices() {
+  const ctx = useGameContext();
+  useEffect(() => ctx.game.events.on("loot.granted", ({ userId, drops }) => {
+    if (userId !== ctx.player.userId) return;
+    for (const drop of drops) ctx.game.notices.push({ text: `+ ${drop.item === undefined ? `$${drop.count}` : (ITEM_LABELS[drop.item] ?? drop.item)}`, tone: "success" });
+  }), [ctx]);
 }
 
 export function GameUI() {
   const layout = useHudLayout({ storageKey: "harbor-heat" });
   const started = useGameStarted();
-  if (!started) {
-    return (
-      <div className="pointer-events-none absolute inset-0 z-20 font-sans">
-        <HarborMenu />
-        <SessionUI />
-      </div>
-    );
-  }
+  const paused = useStore(sessionStore, (session) => session.paused);
+  useLootNotices();
   return (
-    <><SessionUI /><HarborMenu /><HudCanvas layout={layout} className="z-20 font-sans hh-hud">
-      <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}>
-        <div className="flex flex-col items-center gap-2">
-          <WantedStars />
-          <RaceHud />
-        </div>
-      </HudPanel>
-      <HudPanel id="settings" anchor="top-right" order={-1} compact="keep">
-        <SettingsTrigger />
-      </HudPanel>
-      <HudPanel id="minimap" anchor="bottom-left" compact="keep" interactive={false}>
-        <CityMinimap />
-      </HudPanel>
-      <HudPanel id="status" anchor="top-left" compact="keep" interactive={false}>
-        <StatusPanel />
-      </HudPanel>
-      <HudPanel id="cargo" anchor="top-left" order={1} compact="keep" interactive={false}>
-        <CargoPanel />
-      </HudPanel>
-      <HudPanel id="residents" anchor="top-left" order={2} compact="hide" interactive={false}>
-        <ResidentsPanel />
-      </HudPanel>
-      <HudPanel id="mission" anchor="right" compact="hide" interactive={false}>
-        <MissionTracker />
-      </HudPanel>
-      <HudPanel id="courier" anchor="top" order={1} compact="keep">
-        <CourierHud />
-      </HudPanel>
-      <HudPanel id="hotbar" anchor="bottom" compact="keep" interactive={false}>
-        <div className="flex flex-col items-center gap-2">
-          <PromptHint />
-          <Hotbar />
-        </div>
-      </HudPanel>
-      <HudPanel id="speedo" anchor="bottom-right" compact="keep" interactive={false}>
-        <Speedo />
-      </HudPanel>
-      <HudPanel id="dialogue" anchor="center" compact="keep">
-        <div className="flex flex-col items-center gap-3">
-          <DialoguePanel />
-          <ShopPanel />
-          <GaragePanel />
-        </div>
-      </HudPanel>
-      <HudPanel id="loot-toasts" anchor="top-right" order={1} compact="hide" interactive={false}>
-        <ToastStack
-          action="loot.granted"
-          renderToast={(entry) => {
-            const first = lootDropsOf(entry.data)[0];
-            if (first === undefined) return null;
-            const label = first.item !== undefined ? (ITEM_LABELS[first.item] ?? first.item) : `$${first.count}`;
-            return (
-              <div className="-skew-x-6 border-2 border-black bg-[#12141a]/90 px-2 py-1 text-xs font-black uppercase text-[#ffb020] shadow-[3px_3px_0_#000]">
-                + {label}
-              </div>
-            );
-          }}
-        />
-      </HudPanel>
-    </HudCanvas></>
+    <>
+      <HarborMenu />
+      <SessionUI />
+      {started && !paused ? (
+        <HudCanvas layout={layout} className="z-20">
+          <HudPanel id="objective" anchor="top-left" compact="keep"><Objective /></HudPanel>
+          <HudPanel id="pause" anchor="top-right" order={-1} compact="keep"><PauseButton /></HudPanel>
+          <HudPanel id="status" anchor="top-right" compact="keep" interactive={false}><StatusPanel /></HudPanel>
+          <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}><WantedStars /></HudPanel>
+          <HudPanel id="minimap" anchor="bottom-left" compact="keep" interactive={false}><CityMinimap /></HudPanel>
+          <HudPanel id="hotbar" anchor="bottom" compact="keep"><Hotbar /></HudPanel>
+          <HudPanel id="speedo" anchor="bottom-right" compact="keep" interactive={false}><Speedo /></HudPanel>
+          <HudPanel id="counter" anchor="center" compact="keep"><Counters /></HudPanel>
+        </HudCanvas>
+      ) : null}
+    </>
   );
 }
-
-

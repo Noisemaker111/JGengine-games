@@ -40,6 +40,21 @@ describe("the build palette is a toggleable window", () => {
   });
 });
 
+describe("placement mode", () => {
+  test("a one-off build ends placement; a path keeps laying", () => {
+    const live = runner();
+    live.ui.invoke("park.start");
+    live.ui.invoke("build.select", { id: "path_walk" });
+    live.ui.invoke("park.pointer", { point: [-40, 0, -40], object: null, entity: null });
+    expect([...session.placed.values()].at(-1)!.catalogId).toBe("path_walk");
+    expect(session.selectedTool).toBe("path_walk");
+    live.ui.invoke("build.select", { id: "staff_janitor" });
+    live.ui.invoke("park.pointer", { point: [-36, 0, -28], object: null, entity: null });
+    expect([...session.placed.values()].at(-1)!.catalogId).toBe("staff_janitor");
+    expect(session.selectedTool).toBeNull();
+  });
+});
+
 describe("click selection", () => {
   test("a guest click selects the guest and drops the path that was selected", () => {
     const live = runner();

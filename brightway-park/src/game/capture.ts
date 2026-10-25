@@ -24,7 +24,6 @@ function updateOpenState(ctx: GameContext): void {
   const wantOpen = !session.gameOver && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
   if (wantOpen === session.open) return;
   session.open = wantOpen;
-  ctx.game.notices.push({ text: wantOpen ? `Day ${session.day} — gates open!` : "Gates closed for the night", tone: "info" });
   if (wantOpen) ctx.game.audio.play("gates");
 }
 

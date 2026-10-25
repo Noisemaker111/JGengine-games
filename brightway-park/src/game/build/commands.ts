@@ -36,6 +36,8 @@ function selectTool(ctx: GameContext, id: string): void {
   bump(ctx);
 }
 
+const LAID_IN_RUNS: ReadonlySet<string> = new Set(["track", "path", "scenery"]);
+
 function affordable(catalogId: string): boolean {
   return session.cash >= buildableDef(catalogId).cost;
 }
@@ -68,6 +70,8 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   const placed = placeObject(ctx, toolId, x, z);
   if (placed === null) return;
   session.cash -= def.cost;
+  // A ride, stall or hire is placed once; track, paths and scenery are laid in runs and stay picked.
+  if (!LAID_IN_RUNS.has(def.category)) session.selectedTool = null;
   ctx.game.notices.push({ text: `${def.label} built · -$${def.cost}`, tone: "success" });
   if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") announceCircuit(ctx);
   ctx.game.audio.play("place", [placed.x, 0, placed.z]);

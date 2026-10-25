@@ -9,6 +9,7 @@ import { entityModels, objectModels } from "./game/models";
 import { BrightwayParkWorldOverlay } from "./game/render/WorldOverlay";
 import { session } from "./game/session";
 import { GameUI } from "./game/ui/GameUI";
+import { parkKit } from "./game/ui/kit";
 import { parkTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { physics, world } from "./world";
@@ -32,8 +33,10 @@ export const game = defineGame({
   worldHealthBars: false,
   // A refused build is a deny notice; its cue is the park's own "denied" chime.
   audio: { sounds: BRIGHTWAY_SOUNDS, uiCues: { deny: BRIGHTWAY_SOUNDS.denied! } },
-  // Park news lingers like the old ticker: up to six lines, seven seconds each.
-  notices: { cap: 6, ttlMs: 7000 },
+  notices: { cap: 3, ttlMs: 5000 },
+  // The build palette is the touch control: no derived pick/clear buttons over it.
+  touch: { buttons: [] },
+  uiKit: parkKit,
   hudTheme: parkTheme,
   look: "cinematic",
   mood: "day",

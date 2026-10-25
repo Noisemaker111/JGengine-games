@@ -3,12 +3,13 @@ import { createSaveSlots, type SaveSlotMeta } from "@jgengine/core/game/saveSlot
 import { formatSavePlaytime, gameSaveSlotSource, refreshSaveSlots } from "@jgengine/core/game/saveSlotIndex";
 import { ContinuePane, CreditsPane, SaveSlotsPane } from "@jgengine/react/gameMenuSaves";
 import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
-import { useGame, useGameStore } from "@jgengine/react/hooks";
+import { useGame } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
 import { useStore } from "@jgengine/react/store";
+import { KitButton } from "@jgengine/react/uiKitRoot";
 
 import { startedStore } from "../../commands";
 import { captureHarborThumb, harborProfile } from "../../menuProfile";
@@ -24,13 +25,14 @@ export const HARBOR_BAYS = [
 
 import { harborFocus } from "./menuFocus";
 
+const DEFAULT_DRIVER = "Mara Vell";
 const MENU_TOKENS = {
   "--jg-accent": "#ffb020",
   "--jg-accent-glow": "rgba(255,176,32,0.28)",
   "--jg-accent-soft": "rgba(255,176,32,0.22)",
   "--jg-text": "#fff6e6",
   "--jg-text-dim": "rgba(255,236,205,0.66)",
-  "--jg-font-display": "\"Arial Black\", \"Arial Narrow\", Impact, sans-serif",
+  "--jg-font-display": "Impact, \"Haettenschweiler\", \"Arial Narrow Bold\", sans-serif",
   "--jg-font-body": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
   "--jg-menu-logo-size": "clamp(34px, 5.4vw, 78px)",
   "--jg-menu-card-radius": "2px",
@@ -38,6 +40,7 @@ const MENU_TOKENS = {
   "--jg-menu-card-height": "clamp(272px, 31vh, 320px)",
   // The HUD root is pointer-events-none so the canvas owns the mouse; the menu must take it back.
   pointerEvents: "auto",
+  zIndex: 60,
 } as const;
 
 const harborSlots = createSaveSlots({
@@ -71,67 +74,17 @@ export function useGameStarted(): boolean {
   return useStore(startedStore, (value) => value === true);
 }
 
+/** A name is already on the board, so "Take the run" always works; typing just changes it. */
 function NewDispatchPane({ name, onName, onBegin }: { name: string; onName: (next: string) => void; onBegin: () => void }): ReactNode {
-  const trimmed = name.trim();
   return (
-    <div data-new-dispatch-pane="" style={{ display: "flex", flexDirection: "column", gap: 14, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800, letterSpacing: "0.02em" }}>
-        Hit the street
-      </div>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "rgba(255,236,205,0.72)", maxWidth: "46ch" }}>
-        A courier needs a name on the dispatch board. It goes on every parcel receipt from here.
-      </p>
-      <label style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 420 }}>
-        <span style={{ fontSize: "var(--jg-type-xs)", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,236,205,0.6)" }}>
-          Courier name
-        </span>
-        <input
-          data-new-dispatch-name=""
-          value={name}
-          maxLength={24}
-          placeholder="Name the courier"
-          onChange={(event) => onName(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onBegin();
-            }
-          }}
-          style={{
-            padding: "10px 12px",
-            borderRadius: 2,
-            border: "1px solid rgba(255,176,32,0.35)",
-            background: "rgba(10,11,7,0.72)",
-            color: "#fff6e6",
-            fontFamily: "var(--jg-font-display)",
-            fontSize: "var(--jg-type-xl)",
-            fontWeight: 700,
-            outline: "none",
-          }}
-        />
+    <div data-new-dispatch-pane="" style={{ display: "grid", gap: 16, justifyItems: "start" }}>
+      <div style={{ font: "400 calc(44px * var(--kit-text, 1)) / 1 var(--kit-font-display)", textTransform: "uppercase" }}>Hit the street</div>
+      <p style={{ margin: 0, maxWidth: "46ch" }}>Your name goes on every parcel receipt.</p>
+      <label className="hh-field">
+        Courier name
+        <input data-new-dispatch-name="" value={name} maxLength={24} onFocus={(event) => event.currentTarget.select()} onChange={(event) => onName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); onBegin(); } }} />
       </label>
-      <button
-        type="button"
-        data-new-dispatch-start=""
-        disabled={trimmed.length === 0}
-        onClick={onBegin}
-        style={{
-          alignSelf: "flex-start",
-          padding: "11px 22px",
-          borderRadius: 2,
-          border: "none",
-          background: trimmed.length === 0 ? "rgba(148,163,184,0.24)" : "#ffb020",
-          color: "#141609",
-          fontFamily: "var(--jg-font-display)",
-          fontSize: "var(--jg-type-lg)",
-          fontWeight: 800,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          cursor: trimmed.length === 0 ? "not-allowed" : "pointer",
-        }}
-      >
-        Take the run
-      </button>
+      <KitButton variant="primary" size="lg" data-new-dispatch-start="" onClick={onBegin}>Take the run</KitButton>
     </div>
   );
 }
@@ -144,10 +97,11 @@ export function HarborMenu(): ReactNode {
   const started = useGameStarted();
   const settings = useSettings();
   const bays = useSaveSlots(harborSlots);
-  const [name, setName] = useState(harborProfile.driver ?? "");
+  const [name, setName] = useState(harborProfile.driver ?? DEFAULT_DRIVER);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const recent = harborSlots.mostRecent();
+  const style = MENU_TOKENS as CSSProperties;
   const paused = session.paused === true;
 
   useEffect(() => {
@@ -183,7 +137,7 @@ export function HarborMenu(): ReactNode {
     setBusy(true);
     try {
       if (harborSave(ctx).slot() !== slot) await harborSave(ctx).switchSlot(slot, { flush: false });
-      harborProfile.driver = name.trim() === "" ? "Courier" : name.trim();
+      harborProfile.driver = name.trim() === "" ? DEFAULT_DRIVER : name.trim();
       await saveHarborState(ctx);
       await refreshHarborSlots(ctx);
       commands.run("game.start", {});
@@ -258,7 +212,7 @@ export function HarborMenu(): ReactNode {
           if (id === "keeps") document.querySelector<HTMLButtonElement>("[data-save-slot-load]")?.focus();
         }}
         footer={<span>Harbor Heat - the dispatch remembers{notice === null ? "" : ` - ${notice}`}{busy ? " - saving" : ""}</span>}
-        style={MENU_TOKENS as CSSProperties}
+        style={style}
       />
     );
   }
@@ -282,17 +236,15 @@ export function HarborMenu(): ReactNode {
         id === "settings" ? (
           <HarborSettings />
         ) : id === "save" ? (
-          <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "rgba(255,236,205,0.7)" }}>
-            {notice ?? "Saving keeps the bay, the parcel and the clock as they stand."}
-          </p>
+          <p style={{ margin: 0 }}>{notice ?? "Saving keeps the bay, the parcel and the clock as they stand."}</p>
         ) : null
       }
       onSelect={(id) => {
         if (id === "resume") commands.run("session.pause", { paused: false });
         else if (id === "save") void saveHere();
       }}
-      footer={<span>{settings.isOpen ? "" : `${bays.filter((bay) => !bay.empty).length} bays kept`}</span>}
-      style={MENU_TOKENS as CSSProperties}
+      footer={<span>{settings.isOpen ? "" : `${bays.filter((bay) => !bay.empty).length} of ${bays.length} bays kept`}</span>}
+      style={style}
     />
   );
 }
@@ -313,7 +265,6 @@ function HarborSettings(): ReactNode {
   const active = categories.find((category) => category.id === activeId) ?? null;
   return (
     <div data-harbor-settings="" style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800 }}>Settings</div>
       <SettingsTabs categories={categories} activeId={activeId} onSelect={setChosen} />
       <div style={{ overflowY: "auto", minHeight: 0, paddingRight: 4 }}>
         {active === null ? null : <SettingsSection category={active} heading={false} />}
@@ -321,9 +272,3 @@ function HarborSettings(): ReactNode {
     </div>
   );
 }
-
-
-
-
-
-

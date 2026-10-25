@@ -11,7 +11,7 @@ import { GameUI } from "./game/ui/GameUI";
 import { bindHarborCapture } from "./game/menuProfile";
 import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
 import { createElement } from "react";
-import { harborTheme } from "./game/ui/theme";
+import { harborKit, harborTheme } from "./game/ui/theme";
 import { loop } from "./loop";
 import { residentBoardStore } from "./game/world/residents";
 import { physics, world } from "./world";
@@ -85,6 +85,7 @@ export const game = defineGame({
   GameUI,
   WorldOverlay: () => createElement(SceneCaptureBinding, { bind: bindHarborCapture }),
   hudTheme: harborTheme,
+  uiKit: harborKit,
   capture: {
     play: ["game.start"],
     // The dispatch poster is the first thing a player sees; a capture state keeps it reproducible.

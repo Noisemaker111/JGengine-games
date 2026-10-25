@@ -112,6 +112,7 @@ describe("park saves and real command boundaries", () => {
     live.ui.invoke("park.ticket", { delta: 2 });
     live.ui.invoke("pickCarousel");
     expect(session.cash).toBe(cash);
-    expect(session.selectedTool).toBe("staff_janitor");
+    // The janitor was placed once, so placement ended; the refused pick did not start a new one.
+    expect(session.selectedTool).toBeNull();
   });
 });
