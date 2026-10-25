@@ -3021,6 +3021,17 @@
       "intent": "cast-free narrow of SceneEntity.meta via a type guard"
     },
     {
+      "id": "entity-muzzle",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/render/entityMuzzle",
+      "domain": "render",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "draw a character's or turret's shots leaving from its hand or barrel"
+    },
+    {
       "id": "entity-portrait",
       "packages": [
         "@jgengine/react"
@@ -3306,7 +3317,7 @@
       "domain": "input",
       "gameFacing": false,
       "probe": null,
-      "intent": "bind a key or mouse button to a named action that runs the same-named command with the aim; repeatMs auto-fires while held"
+      "intent": "bind a key or mouse button to a named action that runs the same-named command with the aim; repeatMs auto-fires while held, `held` tells a click from a held trigger"
     },
     {
       "id": "flight-metrics",
@@ -3498,6 +3509,72 @@
       "intent": "per-world seeded randomness for replay, lockstep, and multi-world hosts"
     },
     {
+      "id": "game-cursor",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameCursor",
+      "domain": "game-cursor",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "console-style selection cursor (brackets, chevron, bar) that glides to the focused menu item"
+    },
+    {
+      "id": "game-font-stacks",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameFonts",
+      "domain": "game-font-stacks",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "display/body/numeric font stacks for a game's font pairing, with installed fallbacks"
+    },
+    {
+      "id": "game-fonts",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameFonts",
+      "domain": "game-fonts",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "load a game's bundled display and body fonts"
+    },
+    {
+      "id": "game-frame",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameFrame",
+      "domain": "game-frame",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "material frame (steel, wood, stone, paper, glass…) with an angled or irregular cut, as a panel or a game button"
+    },
+    {
+      "id": "game-frame-cut",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameFrame",
+      "domain": "game-frame-cut",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "clip path for an angled or irregular frame silhouette (chamfer, banner, ticket, torn…)"
+    },
+    {
+      "id": "game-frame-style",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameFrame",
+      "domain": "game-frame-style",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "CSS variables for a material frame on an element the game already owns"
+    },
+    {
       "id": "game-kit",
       "packages": [
         "@jgengine/shell"
@@ -3555,6 +3632,17 @@
         "kind": "devtools"
       },
       "intent": "hash a save document's state for a determinism test or a diff"
+    },
+    {
+      "id": "game-slider",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/gameSlider",
+      "domain": "game-slider",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "drawn game slider (groove or pips) with keyboard, drag and screen reader support, no browser range input"
     },
     {
       "id": "game-spec",
@@ -3942,6 +4030,17 @@
       "intent": "currency counter widget bound to a currency id"
     },
     {
+      "id": "hud-fade",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/hudFade",
+      "domain": "hud-fade",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "HUD group that fades when idle and returns when its values change"
+    },
+    {
       "id": "hud-frame",
       "packages": [
         "@jgengine/react"
@@ -3973,6 +4072,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "painted-icon treatment for hotbar/action slots — glyph + gradient + count badge"
+    },
+    {
+      "id": "hud-idle",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/hudFade",
+      "domain": "hud-idle",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "true while a HUD group's values are changing, false once they sit still"
     },
     {
       "id": "hud-interact",
@@ -4831,6 +4941,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "paint a building part from a named library material"
+    },
+    {
+      "id": "library-foliage-thinning",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/modelLibraryPull",
+      "domain": "library-foliage-thinning",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "thin a foliage scan's leaf clusters for a lighter level while keeping canopy cover"
     },
     {
       "id": "library-model",
@@ -5735,6 +5856,28 @@
       "gameFacing": false,
       "probe": null,
       "intent": "ask for a realistic licensed model by what it is (\"street lamp\", \"office desk\")"
+    },
+    {
+      "id": "model-library-authored",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/modelLibraryAuthored",
+      "domain": "model-library-authored",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "build an engine-authored library model (server rack, robot arm) without a download"
+    },
+    {
+      "id": "model-library-rigged",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/rocketboxPull",
+      "domain": "model-library-rigged",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "pull a rigged, animated Microsoft Rocketbox human or animal into a game as one GLB"
     },
     {
       "id": "model-load-idle",

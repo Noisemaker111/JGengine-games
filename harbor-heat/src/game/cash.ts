@@ -29,6 +29,12 @@ export type CashReason =
   | "stash-bonus"
   | "busted-fine"
   | "clinic-fee"
+  | "front-purchase"
+  | "front-refund"
+  | "front-takings"
+  | "front-repair"
+  | "payoff"
+  | "respray"
   | "reconcile";
 
 export const CASH = "cash";

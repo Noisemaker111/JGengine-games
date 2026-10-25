@@ -4,11 +4,24 @@ import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { KitButton, KitPanel, useActionGlyph } from "@jgengine/react/uiKitRoot";
 import { cityOf, phoneStore } from "../../cityRuntime";
+import { frontViews } from "../../city/fronts";
+import { payoffCost, turfViews } from "../../city/street";
+import { handrollOf } from "../../handroll";
 
 function readPhone(ctx: GameContext) {
   const world = cityOf(ctx);
   const factions = Object.entries(world.def.factions ?? {}).map(([id, faction]) => ({ id, label: faction.label ?? id, mood: Math.round(world.num(`${id}.mood`)) }));
-  return { contacts: world.contacts(), news: [...world.log()].reverse().slice(0, 4), factions };
+  const stars = handrollOf(ctx).wanted().stars;
+  const dee = world.fact("dee.known") === true && world.num("dee.trust") > -20;
+  return {
+    contacts: world.contacts(),
+    news: [...world.log()].reverse().slice(0, 4),
+    factions,
+    turf: turfViews(ctx),
+    fronts: frontViews(ctx).filter((front) => front.owned),
+    takings: Math.floor(world.num("fronts.takings")),
+    payoff: dee && stars > 0 ? payoffCost(stars) : null,
+  };
 }
 
 const moodWord = (mood: number) => (mood <= -40 ? "furious" : mood <= -10 ? "angry" : mood >= 20 ? "friendly" : "calm");
@@ -38,6 +51,11 @@ export function PhonePanel() {
       ))}
       <div style={HEAD}>Street</div>
       {phone.factions.map((faction) => <div key={faction.id} style={ROW}><span>{faction.label}</span><span>{moodWord(faction.mood)} ({faction.mood})</span></div>)}
+      {phone.payoff === null ? null : <KitButton size="sm" onClick={() => commands.run("city.payoff", {})}>{`Pay Dee to lose a report · $${phone.payoff}`}</KitButton>}
+      <div style={HEAD}>Turf</div>
+      {phone.turf.map((block) => <div key={block.id} style={ROW}><span>{block.label}</span><span style={{ color: block.owner === "player" ? "var(--kit-good)" : "var(--kit-bad)" }}>{block.owner === "player" ? "yours" : "Carmine"} · hold {block.grip}</span></div>)}
+      {phone.fronts.length > 0 ? <div style={HEAD}>{`Fronts · safe $${phone.takings}`}</div> : null}
+      {phone.fronts.map((front) => <div key={front.slot} style={ROW}><span>{front.label}</span><span style={{ color: front.status === "open" ? "var(--kit-good)" : "var(--kit-bad)" }}>{front.status === "raid" ? `RAID ${front.raidSeconds}s` : front.status === "wrecked" ? "wrecked" : `$${front.income}/s`}</span></div>)}
       {phone.news.length > 0 ? <div style={HEAD}>News</div> : null}
       {phone.news.map((entry, i) => <div key={`${entry.at}-${i}`} style={{ fontSize: 13 }}>{entry.text}</div>)}
     </KitPanel>

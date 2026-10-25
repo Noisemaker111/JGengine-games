@@ -1,10 +1,13 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { PositionedPrompt } from "@jgengine/core/interaction/proximityPrompt";
-import { safehouseStore } from "./commands";
+import { safehouseStore, SHOP_CLOSES, SHOP_OPENS } from "./commands";
 import { vehicleById } from "./entities/vehicles/catalog";
 import { handrollOf } from "./handroll";
 import { courierPrompts } from "./jobs/courier";
 import { cityOf } from "./cityRuntime";
+import { frontPromptLabel, frontPrompts } from "./city/fronts";
+import { garagePrompts, garagePromptLabel } from "./city/garage";
+import { streetPromptLabel, streetPrompts } from "./city/street";
 import { GARAGE_POS, GUNSHOP_POS, RACE_ROUTES, SAFEHOUSE_POS } from "./world/districts";
 
 const staticPrompts: readonly PositionedPrompt[] = [
@@ -88,11 +91,11 @@ function safehousePrompt(ctx: GameContext): PositionedPrompt {
 export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
   if (handrollOf(ctx).drivingVehicleId() !== null) {
     if (handrollOf(ctx).raceActive()) return [];
-    return [...courierPrompts(ctx), ...racePrompts];
+    return [...streetPrompts(ctx), ...garagePrompts(ctx), ...courierPrompts(ctx), ...racePrompts];
   }
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return staticPrompts;
-  const nearbyPrompts = [...staticPrompts, ...cityPrompts(ctx)];
+  const nearbyPrompts = [...staticPrompts, ...cityPrompts(ctx), ...frontPrompts(ctx, player.position), ...garagePrompts(ctx)];
   let nearestCar: { id: string; x: number; z: number } | null = null;
   let nearestDist = 6;
   for (const entity of ctx.scene.entity.list()) {
@@ -120,4 +123,13 @@ export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
       },
     },
   ];
+}
+
+/** Label for a prompt this module's systems own, or null for the HUD's own table. */
+export function systemPromptLabel(ctx: GameContext, id: string): string | null {
+  if (id === "shop:ammunation") {
+    const hour = ctx.time.calendar().hour;
+    return hour >= SHOP_OPENS && hour < SHOP_CLOSES ? null : `Ammu-Isle · shut until ${SHOP_OPENS}:00`;
+  }
+  return frontPromptLabel(ctx, id) ?? streetPromptLabel(ctx, id) ?? garagePromptLabel(ctx, id);
 }
