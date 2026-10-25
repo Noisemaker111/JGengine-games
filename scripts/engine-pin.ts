@@ -1,21 +1,16 @@
 /**
- * Pin this workspace to an immutable, cached build of one committed engine ref, so
- * an edit made in the live engine checkout cannot break a lane that is mid-flight.
+ * Build one committed engine ref into an immutable cached snapshot and link every
+ * installed `@jgengine/*` to it. `bun run engine:sync` drives this with the commit in
+ * engine-ref.txt; edits in the live engine checkout cannot reach the snapshot.
  *
- *   bun run engine:pin                        # the engine checkout's HEAD commit
- *   bun run engine:pin --ref origin/beta      # any commit, tag or branch
- *   bun run engine:pin --ref 6c97931 --dir <engine path>
- *   bun run engine:pin --version 0.36.0       # the published build the catalog locks
  *   bun run engine:snapshots                  # what is cached, and what is linked
  *   bun run engine:snapshots --prune <sha>    # delete one commit's snapshots
  *   bun run engine:snapshots --prune all      # delete the whole cache
  *
- * The build comes from `git archive <commit>` extracted into a temporary tree, so
- * only committed bytes are compiled: a modified working tree is never read. The
- * result is cached under the user's local app data, keyed by the commit and a hash
- * of its build inputs, and every installed `@jgengine/*` entry links to it the same
- * way `engine:local` links a checkout. Two lanes pinning one commit pay one build;
- * `engine:published` (or `engine:local`) takes the links back out.
+ * The build comes from `git archive <commit>` extracted into a temporary tree, so only
+ * committed bytes are compiled. The result is cached under the user's local app data
+ * (or JGENGINE_SNAPSHOT_DIR), keyed by the commit and a hash of its build inputs, so
+ * lanes on one commit pay one build.
  */
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -199,6 +194,15 @@ export function snapshotValid(dir: string): boolean {
   });
 }
 
+/**
+ * Windows' own bsdtar: Git Bash's GNU tar comes first on PATH there, reads "C:\..." as a
+ * remote host and cannot create the engine's skill symlinks. Paths stay relative either way.
+ */
+function tarCommand(): string {
+  const system = join(process.env.SystemRoot ?? "C:\Windows", "System32", "tar.exe");
+  return process.platform === "win32" && existsSync(system) ? system : "tar";
+}
+
 function buildSnapshot(options: { enginePath: string; commit: string; short: string; ref: string; target: string; inputs: string }): number {
   const { enginePath, commit, short, target, inputs, ref } = options;
   mkdirSync(cacheRoot(), { recursive: true });
@@ -209,7 +213,7 @@ function buildSnapshot(options: { enginePath: string; commit: string; short: str
     gitValue(enginePath, ["archive", "--format=tar", `--output=${archive}`, commit]);
     const tree = join(work, "tree");
     mkdirSync(tree);
-    const extract = spawn("tar", ["-xf", archive, "-C", tree], work);
+    const extract = spawn(tarCommand(), ["-xf", basename(archive), "-C", basename(tree)], work);
     if (extract.status !== 0) throw new Error(`tar could not extract ${commit}: ${extract.output.trim()}`);
 
     const install = ["install", ...(existsSync(join(tree, "bun.lock")) ? ["--frozen-lockfile"] : [])];
