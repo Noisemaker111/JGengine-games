@@ -1,7 +1,7 @@
 import "./style.css";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Group, PointLight, Vector3 } from "three";
+import { Group, SpotLight, Vector3 } from "three";
 import { stationAssets } from "./game/assets";
 import { StationModels, hasStationModel } from "./game/stationModels";
 import type { SceneEntity } from "@jgengine/core/scene/entityStore";
@@ -26,6 +26,7 @@ import { registerSceneCapture } from "@jgengine/shell/render/sceneCaptureRequest
 import { ITEMS } from "./game/state";
 import { StationStructure, StationBatch } from "./game/stationArt";
 import { InteriorArt } from "./game/interiorArt";
+import { ShiftLocker } from "./game/fixtureArt";
 import { GameUI } from "./game/ui/GameUI";
 import { shiftTheme } from "./game/ui/ItemMark";
 import { deepwardKit } from "./game/ui/menu/deepwardKit";
@@ -92,21 +93,32 @@ function Architecture({ place, shell = true }: { place: Place; shell?: boolean }
     </>}
   </group>;
 }
-/** Fixed pool selected on the render frame; no timers, actor hiding, or graphics-profile changes. */
+/** How much brighter a ceiling spot burns than the old all-round bulb: the light it no longer spends on the ceiling. */
+const ROOM_SPOT_GAIN = 1.3;
+/**
+ * Fixed pool selected on the render frame; no timers, actor hiding, or graphics-profile changes. Each
+ * lamp is a downward spot, so it leaves a pool on the floor, dark corners between pools, and a beam in
+ * the haze; the dock's work lights are near-hemispheres.
+ */
 function RoomLights() {
-  const view = useStore(viewStore), refs = useRef<(PointLight | null)[]>([]);
+  const view = useStore(viewStore);
   const place: Place = view.mode === "home" || view.dive === null ? "home" : view.dive.stratum;
   const lamps = useMemo(() => deriveRoomPresentation(place).lamps, [place]);
+  const lights = useMemo(() => Array.from({ length: ROOM_LIGHT_BUDGET }, () => {
+    const light = new SpotLight(place === "home" ? "#f3c390" : STRATA[place].lamp.color, 0, place === "home" ? ROOM_LIGHT_REACH : STRATA[place].lamp.reach, place === "home" ? 1.45 : 1.3, 0.8, 2);
+    light.add(light.target);
+    light.target.position.set(0, -4, 0);
+    return light;
+  }), [place]);
   useFrame(({ camera }) => {
     const closest = activeRoomLamps(lamps, [camera.position.x, camera.position.y, camera.position.z]);
-    for (let i = 0; i < ROOM_LIGHT_BUDGET; i++) {
-      const light = refs.current[i], candidate = closest[i];
-      if (!light) continue;
-      light.intensity = candidate ? ROOM_LIGHT_INTENSITY[place] : 0;
+    lights.forEach((light, i) => {
+      const candidate = closest[i];
+      light.intensity = candidate ? ROOM_LIGHT_INTENSITY[place] * ROOM_SPOT_GAIN : 0;
       if (candidate) light.position.set(...candidate.light);
-    }
+    });
   });
-  return <>{Array.from({ length: ROOM_LIGHT_BUDGET }, (_, i) => <pointLight key={i} ref={light => { refs.current[i] = light; }} intensity={0} color={place === "home" ? "#f3c390" : STRATA[place].lamp.color} distance={place === "home" ? ROOM_LIGHT_REACH : STRATA[place].lamp.reach} decay={2} />)}</>;
+  return <>{lights.map((light, i) => <primitive key={i} object={light} />)}</>;
 }
 function SalvageModel({ kind, empty }: { kind: keyof typeof ITEMS; empty: boolean }) {
   const color = empty ? C.panel : ITEMS[kind].color;
@@ -199,7 +211,7 @@ function WorldOverlay() {
     </group><group visible={dive !== null && dive.stratum === "vault"}>
     <RailCart at={[EXIT[0], EXIT[1], EXIT[2] + 0.5]} />
     {DECOR.filter(entry => entry.id.startsWith("locker-shift-")).map(entry => <group key={entry.id} position={[entry.position.x, entry.position.y, entry.position.z]}>
-      <Block at={[0, 1.1, 0]} size={[0.8, 2.2, 0.7]} color={C.wall} />
+      <ShiftLocker ajar={entry.id.endsWith("2") ? 0.35 : 0} />
       <Sign at={[0, 1.6, 0.37]} title={String(entry.meta?.number ?? entry.label)} sub={String(entry.meta?.name ?? "SHIFT CREW")} width={0.65} />
     </group>)}
     <Sign at={decorPoint("sign-shift")} title="SHIFT 406" sub="REPORT TO YOUR POST" color={C.amber} />
@@ -278,7 +290,7 @@ export const game = defineGame({
   backdrop: { background: C.black, fog: { color: C.black, near: 24, far: 75 } },
   // Lamp housings and amber signage sit near the bloom threshold; a high strength smeared the ceiling into haze.
   // Indoor air: a thin haze the scene fog colours per floor, and a glow around each lit lamp in it.
-  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 }, atmosphere: { indoor: true, fogDensity: 0.012, fogFalloff: 0.02, fogHeight: 0, fogMax: 0.4, shafts: 0, lamps: 1.8 } },
+  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 }, atmosphere: { indoor: true, fogDensity: 0.013, fogFalloff: 0.02, fogHeight: 0, fogMax: 0.4, shafts: 0, lamps: 1.25, beams: 0.35 } },
   capture: {
     probe: captureProbe,
     // "Enter Marrow" is `deepward.enter`; declaring it keeps a play capture on the same path the title button takes.

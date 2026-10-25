@@ -8,7 +8,7 @@ import { StaticShapeInstances, type StaticShapeInstance } from "@jgengine/shell/
 import { InstancedScatter } from "@jgengine/shell/scatter/InstancedScatter";
 
 import { editorLayers, floorDressing } from "../world";
-import { FLOOR_PROPS } from "./interiorPlan";
+import { FLOOR_DEBRIS, FLOOR_PROPS } from "./interiorPlan";
 import { blendTint, FLOOR_LOOK, librarySurface, type FloorLook } from "./interiorLook";
 import { stationModelReplacements } from "./stationModels";
 import { deriveRoomPresentation } from "./roomPresentation";
@@ -17,7 +17,7 @@ import { STRATA, type Stratum } from "./strata";
 // Rooms are short sight lines: the lighter level takes over at 10 m, and clutter only receives
 // shadows, so a floor of props neither doubles its triangles in the shadow pass nor draws scans afar.
 const PROP_MODELS: Readonly<Record<string, ModelConfig>> = Object.fromEntries(
-  [...new Set(Object.values(FLOOR_PROPS).flat())].map(name => [name, { ...libraryModel(name, { farDistance: 10 }), shadows: "receive" } satisfies ModelConfig]),
+  [...new Set([...Object.values(FLOOR_PROPS).flat(), ...Object.values(FLOOR_DEBRIS).flat()])].map(name => [name, { ...libraryModel(name, { farDistance: 10 }), shadows: "receive" } satisfies ModelConfig]),
 );
 const resolveProp = (item: string): ModelConfig | null => PROP_MODELS[item] ?? null;
 
@@ -77,9 +77,14 @@ export function InteriorArt({ stratum }: { stratum: Stratum }) {
   const look = FLOOR_LOOK[stratum];
   const dressing = floorDressing(stratum);
   const shapes = useMemo(() => [...shellShapes(stratum, look), ...structureShapes(stratum, look)], [stratum, look]);
-  const props = useMemo<ScatterInstance[]>(() => dressing.props.map(({ slot, model }) => ({
-    id: slot.id, regionId: stratum, item: model, x: slot.position[0], y: slot.position[1], z: slot.position[2], rotationY: slot.rotationY, scale: 1,
-  })), [dressing, stratum]);
+  const props = useMemo<ScatterInstance[]>(() => [
+    ...dressing.props.map(({ slot, model }) => ({
+      id: slot.id, regionId: stratum, item: model, x: slot.position[0], y: slot.position[1], z: slot.position[2], rotationY: slot.rotationY, scale: 1,
+    })),
+    ...dressing.debris.map(({ slot, model }) => ({
+      id: slot.id, regionId: stratum, item: model, x: slot.position[0], y: slot.position[1], z: slot.position[2], rotationY: slot.rotationY, scale: slot.scale,
+    })),
+  ], [dressing, stratum]);
   return <group>
     <StaticShapeInstances instances={shapes} />
     <InteriorDressing plan={dressing.plan} surfaces={look.dressing} cableColor={look.cable} decalSeed={stratum} />
