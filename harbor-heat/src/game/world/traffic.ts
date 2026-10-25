@@ -1,9 +1,13 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { BodySnapshot } from "@jgengine/core/scene/bodyBind";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import type { EditorDocument } from "@jgengine/core/editor/index";
 import { createTraffic, laneGraphFromDocument, type LaneGraph, type Traffic } from "@jgengine/core/world";
+import { cityRoadWidth, type CityLayout } from "@jgengine/core/world/cityLayout";
+import { nearestOnPath } from "@jgengine/core/world/roads";
 
 import { editorLayers } from "../../editorLayers";
+import { cityLayout, LOT_ROADS } from "./cityLayout";
 
 /**
  * Mainsail's street traffic (D1.1): the lane graph, its signals, its kerbside spots and the fleet on
@@ -50,15 +54,92 @@ interface CityTraffic {
   lastPolicy: number;
 }
 
-const cityStore = perContext<{ value: CityTraffic | null }>(() => ({ value: null }));
+const cityStore = perContext<{ value: CityTraffic | null; stop: (() => void) | null }>(() => ({ value: null, stop: null }));
 
 function city(ctx: GameContext): CityTraffic | null {
   return cityStore(ctx).value;
 }
 
-/** The authored lane graph, rebuilt from the scene document — never serialized. */
-export function laneGraph(): LaneGraph {
-  return laneGraphFromDocument(editorLayers, {
+type LotRoad = (typeof LOT_ROADS)[number];
+
+/** The street a lane or kerb spot runs along: the nearest centreline running the same way. */
+function streetFor(x: number, z: number, dirX: number, dirZ: number): { road: LotRoad; side: number; at: readonly [number, number]; normal: readonly [number, number] } | null {
+  let best: { road: LotRoad; side: number; at: readonly [number, number]; normal: readonly [number, number]; distance: number } | null = null;
+  for (const road of LOT_ROADS) {
+    const near = nearestOnPath(road.path, x, z);
+    if (near === null) continue;
+    const [tx, tz] = near.tangent;
+    // A lane runs along its street; a kerb spot (no direction) takes the nearest street outright.
+    if ((dirX !== 0 || dirZ !== 0) && Math.abs(tx * dirX + tz * dirZ) < 0.9 * Math.hypot(dirX, dirZ)) continue;
+    if (best !== null && near.distance >= best.distance) continue;
+    const normal = [-tz, tx] as const;
+    const side = Math.sign((x - near.point[0]) * normal[0] + (z - near.point[1]) * normal[1]) || 1;
+    best = { road, side, at: near.point, normal, distance: near.distance };
+  }
+  return best;
+}
+
+/** Move a point onto the line `offset` metres to `side` of its street's centreline. */
+function onOffset(x: number, z: number, road: LotRoad, side: number, offset: number): { x: number; z: number } {
+  const near = nearestOnPath(road.path, x, z);
+  if (near === null) return { x, z };
+  const [tx, tz] = near.tangent;
+  return { x: near.point[0] - tz * side * offset, z: near.point[1] + tx * side * offset };
+}
+
+/**
+ * The scene document's lanes and kerb spots re-seated on the streets the layout draws now. Authored
+ * lanes name their slot (`_in_` the inside lane of a direction, `_out_` the outside one); each moves
+ * to its slot's centre for the current lane width, a lane the layout no longer has is dropped (with
+ * any lane-change link to it), and kerb spots move to the kerb's parking lane. Junction markers stay
+ * where the streets cross.
+ */
+export function layoutLanes(doc: EditorDocument, layout: CityLayout): Pick<EditorDocument, "paths" | "markers"> {
+  const dropped = new Set<string>();
+  const paths = doc.paths.flatMap((path) => {
+    if (path.kind !== "traffic_lane" || path.points.length < 2) return [path];
+    const first = path.points[0]!;
+    const last = path.points[path.points.length - 1]!;
+    const midX = (first.x + last.x) / 2;
+    const midZ = (first.z + last.z) / 2;
+    const street = streetFor(midX, midZ, last.x - first.x, last.z - first.z);
+    if (street === null) return [path];
+    const slot = /_out_/.test(path.id) ? 1 : 0;
+    const perSide = Math.max(1, Math.floor((street.road.roadClass === "avenue" ? layout.avenueLanes : layout.streetLanes) / 2));
+    if (slot >= perSide) {
+      dropped.add(path.id);
+      return [];
+    }
+    const offset = (slot + 0.5) * layout.laneWidth;
+    return [{
+      ...path,
+      points: path.points.map((point) => {
+        const moved = onOffset(point.x, point.z, street.road, street.side, offset);
+        return { ...point, x: moved.x, z: moved.z };
+      }),
+    }];
+  });
+  const unlinked = paths.map((path) => {
+    if (path.meta === undefined || dropped.size === 0) return path;
+    const meta = { ...path.meta };
+    for (const key of ["left", "right"]) if (typeof meta[key] === "string" && dropped.has(meta[key] as string)) delete meta[key];
+    return { ...path, meta };
+  });
+  const markers = doc.markers.map((marker) => {
+    if (marker.kind !== "traffic_parking") return marker;
+    const street = streetFor(marker.position.x, marker.position.z, 0, 0);
+    if (street === null) return marker;
+    const parking = street.road.roadClass === "avenue" ? layout.avenueParking : layout.streetParking;
+    const offset = cityRoadWidth(layout, street.road.roadClass) / 2 - (parking > 0 ? parking / 2 : 0.6);
+    const moved = onOffset(marker.position.x, marker.position.z, street.road, street.side, offset);
+    return { ...marker, position: { ...marker.position, x: moved.x, z: moved.z } };
+  });
+  return { paths: unlinked, markers };
+}
+
+/** The lane graph for the layout as it is now, rebuilt from the scene document — never serialized. */
+export function laneGraph(layout: CityLayout = cityLayout.get()): LaneGraph {
+  return laneGraphFromDocument(layoutLanes(editorLayers, layout), {
     // The street bake renders the roads; the `traffic_lane` paths are the lane graph.
     roadKinds: [],
     joinRadius: JOIN_RADIUS,
@@ -165,6 +246,18 @@ function parkPass(ctx: GameContext, now: number): void {
  * the traffic itself is rebuilt rather than restored, so a save never has to carry a car's arc.
  */
 export function setupTraffic(ctx: GameContext): void {
+  buildTraffic(ctx);
+  const store = cityStore(ctx);
+  store.stop?.();
+  // A layout slider moves the lanes with the streets: the fleet is rebuilt on the new graph rather
+  // than left driving the old lane lines.
+  store.stop = cityLayout.subscribe(() => {
+    store.value?.traffic.dispose();
+    buildTraffic(ctx);
+  });
+}
+
+function buildTraffic(ctx: GameContext): void {
   const graph = laneGraph();
   const traffic = createTraffic({
     graph,
@@ -222,6 +315,9 @@ export function trafficStats(ctx: GameContext): ReturnType<Traffic["stats"]> | n
 
 /** Drop the fleet and its devtools probe; used when a world is torn down. */
 export function disposeTraffic(ctx: GameContext): void {
-  city(ctx)?.traffic.dispose();
-  cityStore(ctx).value = null;
+  const store = cityStore(ctx);
+  store.stop?.();
+  store.stop = null;
+  store.value?.traffic.dispose();
+  store.value = null;
 }

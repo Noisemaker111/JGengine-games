@@ -41,12 +41,22 @@ Harbor Heat's street furniture comes from the engine's realistic model library a
 | building face `facade/brick-red` | Brick facade, red (Facade018A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade018A |
 | building face `facade/brick-grey` | Brick facade, grey (Facade019A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade019A |
 | building face `facade/brick-brown` | Brick facade, brown (Facade020A) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade020A |
-| building face `facade/glass-blue` | Glass curtain wall, blue (Facade001) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade001 |
-| building face `facade/glass-mirror` | Glass curtain wall, mirror (Facade005) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade005 |
+| `obj_shade_tree` | Jacaranda tree (`nature/jacaranda`) | Rob Tuytel, Rico Cilliers | CC0 1.0 | https://polyhaven.com/a/jacaranda_tree |
+| `obj_patio` | Outdoor table and chairs (`park/patio-set`) | James Ray Cock | CC0 1.0 | https://polyhaven.com/a/outdoor_table_chair_set_01 |
+| `obj_picnic` | Wooden picnic table (`park/picnic-table`) | Ulan Cabanilla | CC0 1.0 | https://polyhaven.com/a/wooden_picnic_table |
+| building face `facade/glass-curtain` | Glass curtain wall with mullions (Facade006) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Facade006 |
 | streets | Road asphalt (Asphalt003) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Asphalt003 |
 | streets | Sidewalk and driveway concrete (Concrete006) | ambientCG (Lennart Demes) | CC0 1.0 | https://ambientcg.com/view?id=Concrete006 |
 
-The building block itself (`harbor-heat/src/art/city-block.glb`) is original geometry with no textures. Cars, people, aircraft, signs, neon, signals and cargo are still KayKit (CC0): no CC0 realistic glTF cars or rigged humans exist on Poly Haven or ambientCG, and the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
+The building block itself (`harbor-heat/src/art/city-block.glb`) is original geometry with no textures. People, animals and the street cars come from the engine library's non-CC0 entries, which do require attribution (the in-game credits list them):
+
+| In game | Asset | Author | License | Source |
+| --- | --- | --- | --- | --- |
+| player, residents, contacts, gangs, police, bounty marks (`src/game/world/cast.ts`) | Microsoft Rocketbox avatars (`human/*`: man-casual, man-casual-2, woman-casual, woman-casual-2, jogger, construction-worker, security-guard, businessman, police-officer, soldier) | Microsoft (Rocketbox Studios GmbH) | MIT | https://github.com/microsoft/Microsoft-Rocketbox (commit 0943055d) |
+| `obj_dog`, `obj_dog_shepherd`, `obj_duck` | Rocketbox animals (`creature/dog-beagle`, `creature/dog-shepherd`, `creature/duck`) | Microsoft (Rocketbox Studios GmbH) | MIT | https://github.com/microsoft/Microsoft-Rocketbox (commit 0943055d) |
+| `car_compact`, `car_muscle`, `car_sport`, `car_suv` (repainted) | CarConcept (`vehicle/sports-car`, logos removed) | Eric Chadwick, Darmstadt Graphics Group GmbH | CC-BY 4.0 | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept (commit 8f492390) |
+
+Police car, bus, aircraft, signs, neon, signals and cargo are still KayKit (CC0); the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
 
 ## Games made by `bun run new-game`
 
