@@ -5,6 +5,7 @@ import { tickDrivableVehicle } from "@jgengine/core/physics/drivableVehicle";
 import { createKinematicVehicle, type KinematicVehicle, type KinematicVehicleModifiers, type KinematicVehicleTuning } from "@jgengine/core/physics/kinematicVehicle";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
+import { createSessionLoop, type SessionLoop } from "@jgengine/core/run/sessionLoop";
 import { defineSystem } from "@jgengine/shell/gameKit";
 
 import { editorLayers } from "../editorLayers";
@@ -13,11 +14,10 @@ import { boostOf, career, currentRace, fact } from "./spec";
 import { circuitOf, gridSlot, headingTo, nearestOnLine, trackOf } from "./track";
 
 /**
- * The race loop: garage -> countdown -> racing -> finished -> garage. The engine's race state counts
- * checkpoints, laps and places; the arcade vehicle sim moves every car; this file only decides who
- * presses what and what a finish pays.
+ * Each race is one session on the engine's session loop: lining up opens it, the finish settles it
+ * with the place, and the settle rule pays. The engine's race state counts checkpoints, laps and
+ * places; the arcade vehicle sim moves every car; this file only decides who presses what.
  */
-export type RacePhase = "garage" | "countdown" | "racing" | "finished";
 
 export interface RaceResult {
   place: number;
@@ -50,7 +50,8 @@ export const BASE: KinematicVehicleTuning = {
 export const circuit = circuitOf(editorLayers);
 
 interface Session {
-  phase: RacePhase;
+  /** One race = one session: open while lined up or racing, closed once it has paid. */
+  loop: SessionLoop<never, { place: number; raceId: string }, number>;
   raceId: string;
   countdown: number;
   clock: number;
@@ -68,8 +69,12 @@ interface Session {
 }
 
 export const session = perContext(
-  (_ctx: GameContext): Session => ({
-    phase: "garage",
+  (ctx: GameContext): Session => ({
+    loop: createSessionLoop<never, { place: number; raceId: string }, number>({
+      kind: "race",
+      carries: false,
+      settle: ({ input }) => payout(ctx, input.raceId, input.place),
+    }),
     raceId: idea.races[0]!.id,
     countdown: 0,
     clock: 0,
@@ -87,6 +92,26 @@ export const session = perContext(
 );
 
 const rivalId = (index: number) => `rival-${index + 1}`;
+
+/** Where the player stands, read off the session loop: between races, counting down, racing, or paid. */
+export function racePhase(state: Session): "garage" | "countdown" | "racing" | "finished" {
+  if (state.loop.phase() === "open") return state.countdown > 0 ? "countdown" : "racing";
+  return state.result === null ? "garage" : "finished";
+}
+
+/** The settle rule: a podium pays its share of the purse and counts toward the career. */
+function payout(ctx: GameContext, raceId: string, place: number): number {
+  const race = idea.races.find((entry) => entry.id === raceId)!;
+  const pay = Math.round(race.pay * (PAYOUT[place - 1] ?? 0));
+  const world = career.of(ctx);
+  world.set(fact(idea.currency.id), world.num(fact(idea.currency.id)) + pay);
+  world.set(fact("raced"), world.num(fact("raced")) + 1);
+  if (place === 1) world.set(fact("wins"), world.num(fact("wins")) + 1);
+  if (place <= 3) world.set(fact(`podium_${race.id}`), 1);
+  const best = world.num(fact(`best_${race.id}`));
+  if (best === 0 || place < best) world.set(fact(`best_${race.id}`), place);
+  return pay;
+}
 
 function carFor(state: Session, id: string, slot: number): KinematicVehicle {
   const grid = gridSlot(circuit, slot);
@@ -117,7 +142,7 @@ export function parkPlayer(ctx: GameContext): void {
 /** Line up the next race: the player and this race's rivals on the grid, then a three-second count. */
 export function lineUp(ctx: GameContext): void {
   const state = session(ctx);
-  if (state.phase === "countdown" || state.phase === "racing") return;
+  if (state.loop.phase() === "open") return;
   const race = currentRace(ctx);
   const raceIndex = idea.races.indexOf(race);
   for (const id of state.rivals) ctx.scene.entity.despawn(id);
@@ -132,7 +157,7 @@ export function lineUp(ctx: GameContext): void {
   });
   state.race = createRaceState({ track: trackOf(circuit, race.laps) });
   state.raceId = race.id;
-  state.phase = "countdown";
+  state.loop.start();
   state.countdown = COUNTDOWN;
   state.result = null;
   state.winnerAt = -1;
@@ -142,11 +167,11 @@ export function lineUp(ctx: GameContext): void {
 /** Back to the garage after a result. */
 export function toGarage(ctx: GameContext): void {
   const state = session(ctx);
-  if (state.phase !== "finished") return;
+  if (racePhase(state) !== "finished") return;
   for (const id of state.rivals) ctx.scene.entity.despawn(id);
   state.rivals = [];
   state.race = null;
-  state.phase = "garage";
+  state.result = null;
   parkPlayer(ctx);
 }
 
@@ -183,17 +208,8 @@ function offRoad(car: KinematicVehicle): boolean {
 function finish(ctx: GameContext, place: number): void {
   const state = session(ctx);
   const race = idea.races.find((entry) => entry.id === state.raceId)!;
-  const share = PAYOUT[place - 1] ?? 0;
-  const pay = Math.round(race.pay * share);
-  const world = career.of(ctx);
-  world.set(fact(idea.currency.id), world.num(fact(idea.currency.id)) + pay);
-  world.set(fact("raced"), world.num(fact("raced")) + 1);
-  if (place === 1) world.set(fact("wins"), world.num(fact("wins")) + 1);
-  if (place <= 3) world.set(fact(`podium_${race.id}`), 1);
-  const best = world.num(fact(`best_${race.id}`));
-  if (best === 0 || place < best) world.set(fact(`best_${race.id}`), place);
+  const pay = state.loop.settle({ place, raceId: race.id }).result;
   state.result = { place, pay, time: state.clock - state.startedAt, title: race.title };
-  state.phase = "finished";
   ctx.game.notices.push({ text: place <= 3 ? `P${place}! +${pay} ${idea.currency.label.toLowerCase()}` : `P${place}. No pay this time.`, tone: place <= 3 ? "success" : "warn" });
   void ctx.game.save?.checkpoint();
 }
@@ -201,16 +217,16 @@ function finish(ctx: GameContext, place: number): void {
 export function tickRace(ctx: GameContext, dt: number): void {
   const state = session(ctx);
   state.clock += dt;
-  if (state.phase === "countdown") {
+  if (racePhase(state) === "countdown") {
     state.countdown -= dt;
     if (state.countdown <= 0) {
-      state.phase = "racing";
+      state.countdown = 0;
       state.startedAt = state.clock;
       state.race?.addRacer(ctx.player.userId, state.clock);
       for (const id of state.rivals) state.race?.addRacer(id, state.clock);
     }
   }
-  const racing = state.phase === "racing";
+  const racing = racePhase(state) === "racing";
   const engine = boostOf(ctx, "engine");
   const grip = boostOf(ctx, "grip");
   const nitroBoost = boostOf(ctx, "nitro");
@@ -271,8 +287,9 @@ export function raceView(ctx: GameContext) {
   const me = state.race?.progressOf(ctx.player.userId) ?? null;
   const world = career.of(ctx);
   const next = currentRace(ctx);
+  const phase = racePhase(state);
   return {
-    phase: state.phase,
+    phase,
     countdown: Math.ceil(state.countdown),
     speed: Math.round(state.speedKmh),
     nitro: state.nitro,
@@ -280,7 +297,7 @@ export function raceView(ctx: GameContext) {
     laps: race.laps,
     position: me?.position ?? 1,
     field: state.rivals.length + 1,
-    time: state.phase === "racing" ? state.clock - state.startedAt : 0,
+    time: phase === "racing" ? state.clock - state.startedAt : 0,
     assist: state.assist,
     result: state.result,
     cash: Math.floor(world.num(fact(idea.currency.id))),
@@ -323,7 +340,7 @@ export const raceSystem = defineSystem({
     idea.upgrades.forEach((upgrade, index) => {
       ctx.game.commands.define(`buy${index + 1}`, {
         apply(state) {
-          if (session(state).phase !== "garage") return state;
+          if (racePhase(session(state)) !== "garage") return state;
           const done = career.of(state).act(`buy_${upgrade.id}`, upgrade.id);
           if (!done.ok) state.game.notices.push({ text: done.message, tone: "deny" });
           return state;
