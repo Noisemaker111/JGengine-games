@@ -23,6 +23,7 @@ import {
   dirName,
   engineDirtyFiles,
   installedEntries,
+  isEnginePackage,
   linkCatalog,
   linkChecks,
   type LinkCheck,
@@ -135,7 +136,7 @@ function readPackages(tree: string): { byName: Map<string, SnapshotPackage>; dep
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, any>;
     if (typeof manifest.name !== "string") continue;
     byName.set(manifest.name, { dir: entry.name, name: manifest.name, version: String(manifest.version ?? "0.0.0") });
-    const names = Object.keys({ ...(manifest.dependencies ?? {}), ...(manifest.peerDependencies ?? {}) }).filter((name) => name.startsWith(ENGINE_SCOPE));
+    const names = Object.keys({ ...(manifest.dependencies ?? {}), ...(manifest.peerDependencies ?? {}) }).filter(isEnginePackage);
     deps.set(manifest.name, names);
   }
   return { byName, deps };

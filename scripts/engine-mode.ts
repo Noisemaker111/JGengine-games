@@ -40,13 +40,25 @@ export function readRootPackage(): Record<string, any> {
   return JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 }
 
-export function catalogPackages(pkg = readRootPackage()): string[] {
-  const catalog = (pkg.workspaces?.catalog ?? {}) as Record<string, string>;
-  return Object.keys(catalog).filter((name) => name.startsWith(scope));
+/**
+ * The engine's unscoped CLI package. Its subpath modules (`jgengine/templates/captureArgs`,
+ * `jgengine/gameShape`) own the rules this repo's checks read, so it links like the scoped ones.
+ */
+const CLI_PACKAGE = "jgengine";
+
+/** An engine package this workspace links to engine source: every `@jgengine/*` plus the CLI. */
+export function isEnginePackage(name: string): boolean {
+  return name.startsWith(scope) || name === CLI_PACKAGE;
 }
 
+export function catalogPackages(pkg = readRootPackage()): string[] {
+  const catalog = (pkg.workspaces?.catalog ?? {}) as Record<string, string>;
+  return Object.keys(catalog).filter(isEnginePackage);
+}
+
+/** The engine `packages/<dir>` a package is built from. */
 export function dirName(name: string): string {
-  return name.slice(scope.length);
+  return name === CLI_PACKAGE ? CLI_PACKAGE : name.slice(scope.length);
 }
 
 export function readState(): EngineState | null {
@@ -246,7 +258,7 @@ export function currentMode(): Mode {
 export function statusLine(): { line: string; ok: boolean; state: unknown } {
   const pkg = readRootPackage();
   const catalogVersions = Object.fromEntries(
-    Object.entries((pkg.workspaces?.catalog ?? {}) as Record<string, string>).filter(([name]) => name.startsWith(scope)),
+    Object.entries((pkg.workspaces?.catalog ?? {}) as Record<string, string>).filter(([name]) => isEnginePackage(name)),
   );
   const state = readState();
   const mode = currentMode();
@@ -460,7 +472,7 @@ export function publish(): number {
   }
 
   const catalogVersions = Object.fromEntries(
-    Object.entries((readRootPackage().workspaces?.catalog ?? {}) as Record<string, string>).filter(([name]) => name.startsWith(scope)),
+    Object.entries((readRootPackage().workspaces?.catalog ?? {}) as Record<string, string>).filter(([name]) => isEnginePackage(name)),
   );
   const wrong = catalogPackages().filter((name) =>
     installedEntries(name).some((path) => {

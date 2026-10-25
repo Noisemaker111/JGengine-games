@@ -3,7 +3,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { checkGames, inspectGame, parseFlow, readLoopProof, runCli } from "./check-game-design";
+import { driveStepKinds, parseStepFile } from "jgengine/templates/captureArgs";
+
+import { checkFlow, checkGames, inspectGame, readLoopProof, runCli, type Io, type ParseSteps } from "./check-game-design";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -81,68 +83,94 @@ describe("loop proof line", () => {
   });
 });
 
-describe("flow parsing", () => {
-  test("a real drive flow parses, and its includes are listed", () => {
-    const parsed = parseFlow(FLOW, "g/proofs/flows/a.json");
-    expect(parsed.problems).toEqual([]);
-    expect(parsed.asserts).toBe(1);
+/** An in-memory flow folder: name -> file text. */
+function memoryIo(flows: Record<string, string>): Io {
+  const name = (path: string) => path.replace(/^.*\//, "").replace(/\.json$/, "");
+  return {
+    read: (path) => flows[name(path)] ?? "",
+    exists: (path) => flows[name(path)] !== undefined,
+    listFlows: () => Object.keys(flows),
+  };
+}
 
-    const including = parseFlow(`{ "steps": [ { "flow": "to-menu" }, { "assert": "1 === 1" } ] }`, "x");
-    expect(including.includes).toEqual(["to-menu"]);
+const check = (steps: unknown[], extra: Record<string, string> = {}, parse?: ParseSteps) =>
+  checkFlow("g", "proof", "g/proofs/flows", memoryIo({ proof: JSON.stringify({ steps }), ...extra }), parse);
+
+/** The engine's own verdict on a one-file step list: null when drive accepts it, else its message. */
+function engineVerdict(steps: unknown[]): string | null {
+  try {
+    parseStepFile({ steps }, "g/proofs/flows/proof.json");
+    return null;
+  } catch (error) {
+    return (error as Error).message;
+  }
+}
+
+describe("flow parsing reads the engine's drive parser", () => {
+  test("every step kind the engine lists is a kind this gate accepts", () => {
+    const samples: Record<string, unknown> = {
+      click: "Start", doubleClick: "Unit", clickAt: [10, 20], rightClickAt: [10, 20], moveMouse: [1, 2], look: [-90, 0],
+      aimAt: "crosshair()", fill: { label: "Name", value: "x" }, key: "KeyW", wait: 10, waitFor: "ready", reload: true,
+      shot: "hud", rpc: { method: "run_command", name: "game.start" }, probe: "p", assert: "true",
+    };
+    for (const kind of driveStepKinds().filter((kind) => kind !== "flow")) {
+      expect(samples[kind]).toBeDefined();
+      expect(check([{ [kind]: samples[kind] }, { assert: "true" }]).problems).toEqual([]);
+    }
   });
 
-  test("broken JSON, a missing steps array and an empty script each say what is wrong", () => {
-    expect(parseFlow("{ nope", "g/a.json").problems[0]).toContain("not valid JSON");
-    expect(parseFlow(`{ "steps": 3 }`, "g/a.json").problems[0]).toContain('no "steps" array');
-    expect(parseFlow(`{ "steps": [] }`, "g/a.json").problems[0]).toContain("empty");
+  test("refuses a step exactly when drive refuses it, with drive's message", () => {
+    const corpus: unknown[][] = [
+      [{ rpc: { method: "run_command", name: "x.y" } }],
+      [{ rpc: "run_command x.y" }],
+      [{ rpc: { name: "x" } }],
+      [{ wiggle: "x" }],
+      [{ click: "a", key: "KeyW" }],
+      [{ assert: "" }],
+      [{ click: "a", wobble: 1 }],
+      [{ key: "KeyW", ms: 2500 }, { clickAt: [800, 450] }],
+      [{ clickAt: "800,450" }],
+      [{ key: "KeyW", ms: -1 }],
+      [{ assert: "units.length", is: 5 }],
+      [{ click: "a", is: 5 }],
+      [{ waitFor: "ready", timeoutMs: 45000 }],
+      [{ click: "Start", timeoutMs: 5000 }],
+      [{ click: "Start", ms: 500 }],
+      [{ click: "Start", after: { is: "x", until: 1 } }],
+      [],
+    ];
+    for (const steps of corpus) {
+      const verdict = engineVerdict(steps);
+      const problems = check(steps).problems;
+      if (verdict === null) expect(problems).toEqual([]);
+      else expect(problems).toEqual([`g Loop proof "proof": ${verdict.startsWith("g/") ? verdict : `g/proofs/flows/proof.json ${verdict}`}`]);
+    }
   });
 
-  test("a step must be one known kind, and an assert must carry an expression", () => {
-    expect(parseFlow(`{ "steps": [ { "wiggle": "x" } ] }`, "g/a.json").problems[0]).toContain("none of the drive step keys");
-    expect(parseFlow(`{ "steps": [ { "click": "a", "key": "KeyW:10" } ] }`, "g/a.json").problems[0]).toContain("mixes step keys");
-    expect(parseFlow(`{ "steps": [ { "assert": "" } ] }`, "g/a.json").problems[0]).toContain("non-empty string");
-    expect(parseFlow(`{ "steps": [ { "click": "a", "wobble": 1 } ] }`, "g/a.json").problems[0]).toContain('unknown field "wobble"');
+  test("follows the engine when its parser changes: the verdict is whatever drive's parser says", () => {
+    const steps = [{ teleport: [0, 0] }, { assert: "true" }];
+    expect(check(steps).problems[0]).toContain('unknown step kind "teleport"');
+    const newerEngine: ParseSteps = (input, source, options) => {
+      const list = (input as { steps: Record<string, unknown>[] }).steps.filter((step) => !("teleport" in step));
+      return parseStepFile({ steps: list }, source, options);
+    };
+    expect(check(steps, {}, newerEngine)).toEqual({ problems: [], asserts: 1 });
+    const stricterEngine: ParseSteps = () => {
+      throw new Error("steps[1]: assert now needs a note");
+    };
+    expect(check(steps.slice(1), {}, stricterEngine).problems).toEqual(['g Loop proof "proof": g/proofs/flows/proof.json steps[1]: assert now needs a note']);
   });
 
-  test("an rpc takes the bridge request object the engine's drive runner reads", () => {
-    expect(parseFlow(`{ "steps": [ { "rpc": { "method": "run_command", "name": "approach", "input": {} } } ] }`, "g/a.json").problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "rpc": "agent_status" } ] }`, "g/a.json").problems[0]).toContain("bridge request object");
-    expect(parseFlow(`{ "steps": [ { "rpc": { "name": "x" } } ] }`, "g/a.json").problems[0]).toContain("bridge request object");
+  test("counts asserts through includes and names a missing include with the flows that exist", () => {
+    const menu = JSON.stringify({ steps: [{ reload: true }, { assert: "menu.ready" }] });
+    expect(check([{ flow: "to-menu" }, { click: "Start" }, { assert: "started" }], { "to-menu": menu })).toEqual({ problems: [], asserts: 2 });
+    const missing = check([{ flow: "to-base" }]);
+    expect(missing.problems[0]).toContain('no flow named "to-base": g/proofs/flows/to-base.json does not exist (available: proof)');
   });
 
-  test("a key takes a chord with an optional hold, and a click takes pixels", () => {
-    expect(parseFlow(`{ "steps": [ { "key": "KeyW", "ms": 2500 }, { "clickAt": [800, 450] } ] }`, "g/a.json").problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "clickAt": "800,450" } ] }`, "g/a.json").problems[0]).toContain("[x, y] pixel numbers");
-    expect(parseFlow(`{ "steps": [ { "key": "KeyW", "ms": -1 } ] }`, "g/a.json").problems[0]).toContain("non-negative");
-  });
-
-  test("the aim steps parse: look and moveMouse take pixels, aimAt takes a page expression", () => {
-    const aimed = parseFlow(
-      `{ "steps": [ { "moveMouse": [640, 360] }, { "look": [-90, 0] }, { "aimAt": "crosshair()", "tolerancePx": 4 } ] }`,
-      "g/a.json",
-    );
-    expect(aimed.problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "look": "-90,0" } ] }`, "g/a.json").problems[0]).toContain("[x, y] pixel numbers");
-    expect(parseFlow(`{ "steps": [ { "moveMouse": [0, 1] } ] }`, "g/a.json").problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "aimAt": "" } ] }`, "g/a.json").problems[0]).toContain("screen point");
-  });
-
-  test("an assert may carry the expected value beside its expression", () => {
-    expect(parseFlow(`{ "steps": [ { "assert": "units.length", "is": 5 } ] }`, "g/a.json").problems).toEqual([]);
-    expect(parseFlow(`{ "steps": [ { "click": "a", "is": 5 } ] }`, "g/a.json").problems[0]).toContain('"is" is the expected value of an assert');
-  });
-
-  test("a waitFor with its cap parses: the runner honours both", () => {
-    const flow = `{ "steps": [ { "waitFor": "__jgProbe().started === 1", "timeoutMs": 45000 }, { "assert": "true" } ] }`;
-    const parsed = parseFlow(flow, "g/proofs/flows/to-front.json");
-    expect(parsed.problems).toEqual([]);
-    expect(parsed.asserts).toBe(1);
-  });
-
-  test("a cap on a step that cannot use it fails with the rule named", () => {
-    const stray = parseFlow(`{ "steps": [ { "click": "Start", "timeoutMs": 5000 } ] }`, "g/a.json");
-    expect(stray.problems[0]).toContain("a poll cap proves nothing without a condition");
-    expect(stray.problems[0]).toContain('before { "timeoutMs": n }');
+  test("broken JSON says so and names the file", () => {
+    const io = memoryIo({ proof: "{ nope" });
+    expect(checkFlow("g", "proof", "g/proofs/flows", io).problems[0]).toContain("g/proofs/flows/proof.json is not valid JSON");
   });
 });
 
@@ -196,7 +224,7 @@ describe("game design gate", () => {
   test("a flow that parses but asserts nothing is not a proof", () => {
     const root = fixture({
       "motion/README.md": readme("Loop proof: to-start"),
-      "motion/proofs/flows/to-start.json": `{ "steps": [ { "key": "KeyW:2000" }, { "wait": 500 } ] }`,
+      "motion/proofs/flows/to-start.json": `{ "steps": [ { "key": "KeyW", "ms": 2000 }, { "wait": 500 } ] }`,
     });
     const result = checkGames(root, ["motion"]);
     expect(result.failures).toBe(1);
@@ -212,12 +240,12 @@ describe("game design gate", () => {
       "loop/proofs/flows/b.json": `{ "steps": [ { "flow": "a" }, { "assert": "1 === 1" } ] }`,
     });
     const linked = checkGames(root, ["linked"]);
-    expect(linked.lines[0]).toContain('includes "missing-menu"');
+    expect(linked.lines[0]).toContain('no flow named "missing-menu"');
     expect(linked.lines[0]).toContain("does not exist");
 
     const loop = checkGames(root, ["loop"]);
     expect(loop.failures).toBe(1);
-    expect(loop.lines[0]).toContain("in a cycle (a -> b -> a)");
+    expect(loop.lines[0]).toContain("flow cycle by name: b -> a -> b");
   });
 
   test("a TODO proof is reported, not silently passed, and --strict fails it", () => {

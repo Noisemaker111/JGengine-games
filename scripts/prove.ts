@@ -27,6 +27,8 @@ import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 
+import { parseGraphicsTier } from "jgengine/templates/captureArgs";
+
 import { engineCommit, readState, resolveEngine } from "./engine-mode";
 
 export interface SizeSpec {
@@ -123,8 +125,6 @@ export interface ProveArgs {
   keepGoing: boolean;
 }
 
-const TIERS = ["low", "medium", "high", "ultra"];
-
 export function parseSizes(value: string): SizeSpec[] {
   const sizes = value.split(",").map((entry) => entry.trim()).filter((entry) => entry !== "");
   if (sizes.length === 0) throw new Error("--sizes needs at least one WxH, such as 1600x900");
@@ -176,7 +176,7 @@ export function parseProveArgs(argv: string[]): ProveArgs {
     else throw new Error(`prove: one game id, got "${game}" and "${arg}"`);
   }
   if (game === undefined) throw new HelpRequested();
-  if (!TIERS.includes(tier)) throw new Error(`--tier must be one of ${TIERS.join(", ")} (got ${tier})`);
+  parseGraphicsTier(tier);
   if (views.length === 0) throw new Error("prove: pass --view <name> at least once; a proof names the framing it judged (bun run shoot <game> --list-views)");
   return {
     game,
