@@ -1,6 +1,8 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+
+import { viteIdleExit } from "../shared/viteIdleExit";
 import { appendFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -8,7 +10,7 @@ import { join } from "node:path";
 const evidenceDirectory = process.env.BRIGHTWAY_EVIDENCE_DIR;
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), evidenceDirectory && {
+  plugins: [react(), tailwindcss(), viteIdleExit(), evidenceDirectory && {
     name: "brightway-native-evidence",
     apply: "serve",
     configureServer(server) {

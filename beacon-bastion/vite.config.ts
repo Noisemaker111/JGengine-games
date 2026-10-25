@@ -4,11 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+import { viteIdleExit } from "../shared/viteIdleExit";
+
 const engineSrc = (pkg: string) => fileURLToPath(new URL(`../../packages/${pkg}/src`, import.meta.url));
 const registryUi = fileURLToPath(new URL("../registry/jgengine", import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), viteIdleExit()],
   clearScreen: false,
   build: { target: "es2022" },
   resolve: {
