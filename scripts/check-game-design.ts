@@ -7,10 +7,12 @@
  *   - has no README, or is missing a section (core loop, progression, failure states,
  *     minute 5 -> hour 5, references, gap to target);
  *   - has no `Loop proof:` line, or names no flow;
- *   - names a flow whose file is not at `<game>/proofs/flows/<name>.json`, does not parse, has no
- *     step, or has no arrival assert (keys and shapes come from `flow-schema.ts`, which is checked
- *     against the engine's drive step file);
- *   - includes a flow by name that does not exist, or includes itself in a cycle.
+ *   - names a flow whose file is not at `<game>/proofs/flows/<name>.json`, or that the engine's
+ *     drive refuses, or that asserts nothing.
+ *
+ * Whether a flow parses is the engine's answer, not this file's: each one goes through `drive`'s own
+ * `parseStepFile` (`jgengine/templates/captureArgs`) with this game's flow folder, so its step kinds,
+ * fields, includes, depth and cycles are refused here exactly when `drive` would refuse them.
  *
  * A name prefixed `TODO` is a flow the README promises and nobody has written. It is reported as a
  * TODO line rather than a failure, so the four games still to be covered can be cut as their own
@@ -21,8 +23,12 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { parseStepFile, type FlowFile } from "jgengine/templates/captureArgs";
+
 import { gameDirs } from "./capabilities";
-import { FLOW_NAME, MAX_FLOW_DEPTH, stepProblems } from "./flow-schema";
+
+/** This repo names flow files in lowercase letters, digits and dashes; the Loop proof line uses them. */
+const FLOW_NAME = /^[a-z0-9][a-z0-9-]*$/;
 
 /** The six sections every game's design checklist states, and the bold label each is written as. */
 export const SECTIONS: ReadonlyArray<{ id: string; label: string; pattern: RegExp }> = [
@@ -77,41 +83,6 @@ export function readLoopProof(readme: string): LoopProof {
   return { ok: true, entries };
 }
 
-export interface FlowParse {
-  problems: string[];
-  /** Names this flow includes; the caller resolves them against the game's folder. */
-  includes: string[];
-  asserts: number;
-}
-
-/** Parse a flow file's text: the shape the engine's drive runner reads, checked without a browser. */
-export function parseFlow(text: string, label: string): FlowParse {
-  const problems: string[] = [];
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch (error) {
-    return { problems: [`${label} is not valid JSON (${error instanceof Error ? error.message : String(error)})`], includes: [], asserts: 0 };
-  }
-  const root = json as { steps?: unknown } | null;
-  if (root === null || typeof root !== "object" || !Array.isArray(root.steps)) {
-    return { problems: [`${label} has no "steps" array`], includes: [], asserts: 0 };
-  }
-  if (root.steps.length === 0) return { problems: [`${label} has an empty "steps" array`], includes: [], asserts: 0 };
-
-  const includes: string[] = [];
-  let asserts = 0;
-  root.steps.forEach((step: unknown, index: number) => {
-    const at = `${label} steps[${index}]`;
-    const checked = stepProblems(step, at);
-    problems.push(...checked.problems);
-    if (checked.kind === null || checked.problems.length > 0) return;
-    if (checked.kind === "assert") asserts += 1;
-    if (checked.kind === "flow") includes.push((step as Record<string, unknown>).flow as string);
-  });
-  return { problems, includes, asserts };
-}
-
 export interface GameInspection {
   game: string;
   problems: string[];
@@ -143,48 +114,36 @@ export const realIo: Io = {
   },
 };
 
-/** Walk a flow's includes, so a proof that leans on a missing or self-including flow fails here. */
-function checkFlowTree(game: string, flowName: string, flowsDir: string, io: Io): { problems: string[]; asserts: number } {
-  const problems: string[] = [];
-  let asserts = 0;
-  const seen = new Map<string, number>();
+/** The engine's step-file parser, or a stand-in a test hands over to prove this gate follows it. */
+export type ParseSteps = typeof parseStepFile;
 
-  const walk = (name: string, depth: number, chain: string[]): void => {
+/**
+ * Parse one named flow the way `drive` does, includes and all, and count the asserts it runs. A flow
+ * the parser refuses comes back as one problem carrying the engine's own message.
+ */
+export function checkFlow(game: string, flowName: string, flowsDir: string, io: Io = realIo, parse: ParseSteps = parseStepFile): { problems: string[]; asserts: number } {
+  const read = (name: string): FlowFile | undefined => {
     const file = `${flowsDir}/${name}.json`;
-    const label = `${game}/proofs/flows/${name}.json`;
-    if (chain.includes(name)) {
-      problems.push(`${game} Loop proof "${flowName}" includes "${name}" in a cycle (${[...chain, name].join(" -> ")})`);
-      return;
-    }
-    if (depth > MAX_FLOW_DEPTH) {
-      problems.push(`${game} Loop proof "${flowName}" nests includes more than ${MAX_FLOW_DEPTH} deep (${[...chain, name].join(" -> ")})`);
-      return;
-    }
-    const previous = seen.get(name);
-    if (previous !== undefined) {
-      asserts += previous;
-      return;
-    }
+    const source = `${game}/proofs/flows/${name}.json`;
     if (!io.exists(file)) {
-      const available = io.listFlows(flowsDir);
-      problems.push(
-        `${game} Proof "${flowName}" includes "${name}", but ${label} does not exist` +
-          (available.length === 0 ? "" : ` (available: ${available.sort().join(", ")})`),
-      );
-      return;
+      const available = io.listFlows(flowsDir).sort();
+      throw new Error(`no flow named "${name}": ${source} does not exist${available.length === 0 ? "" : ` (available: ${available.join(", ")})`}`);
     }
-    const parsed = parseFlow(io.read(file), label);
-    problems.push(...parsed.problems);
-    const before = asserts;
-    for (const include of parsed.includes) walk(include, depth + 1, [...chain, name]);
-    asserts = before;
-    const own = parsed.asserts;
-    seen.set(name, own);
-    asserts += own;
+    try {
+      return { json: JSON.parse(io.read(file)) as unknown, source };
+    } catch (error) {
+      throw new Error(`${source} is not valid JSON (${error instanceof Error ? error.message : String(error)})`);
+    }
   };
-
-  walk(flowName, 0, []);
-  return { problems, asserts };
+  try {
+    const root = read(flowName)!;
+    const steps = parse(root.json, root.source, { flows: read });
+    return { problems: [], asserts: steps.filter((step) => step.kind === "assert").length };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const located = message.startsWith(`${game}/`) ? message : `${game}/proofs/flows/${flowName}.json ${message}`;
+    return { problems: [`${game} Loop proof "${flowName}": ${located}`], asserts: 0 };
+  }
 }
 
 /** Check one game's README and the flows it names. */
@@ -226,7 +185,7 @@ export function inspectGame(root: string, game: string, io: Io = realIo): GameIn
       );
       continue;
     }
-    const tree = checkFlowTree(game, entry.name, flowsDir, io);
+    const tree = checkFlow(game, entry.name, flowsDir, io);
     problems.push(...tree.problems);
     if (tree.problems.length === 0) {
       if (tree.asserts === 0) {

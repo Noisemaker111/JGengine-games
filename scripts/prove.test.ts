@@ -55,7 +55,7 @@ describe("parseProveArgs", () => {
   test("refuses a proof with no named framing, a bad size or an unknown tier", () => {
     expect(() => parseProveArgs(["harbor-heat"])).toThrow(/--view/);
     expect(() => parseProveArgs(["harbor-heat", "--view", "x", "--sizes", "big"])).toThrow(/WxH/);
-    expect(() => parseProveArgs(["harbor-heat", "--view", "x", "--tier", "extreme"])).toThrow(/--tier/);
+    expect(() => parseProveArgs(["harbor-heat", "--view", "x", "--tier", "extreme"])).toThrow(/must be one of low, medium, high, ultra \(got extreme\)/);
   });
 });
 

@@ -6,6 +6,7 @@
       "name": "jgengine-games",
       "devDependencies": {
         "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+        "jgengine": "catalog:",
       },
     },
     "apex-nights": {
@@ -480,6 +481,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.182.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "jgengine": "0.41.0",
     "tailwindcss": "^4.0.15",
     "typescript": "^5",
     "vite": "^6.2.2",
@@ -927,6 +929,8 @@
 
     "its-fine": ["its-fine@2.0.0", "", { "dependencies": { "@types/react-reconciler": "^0.28.9" }, "peerDependencies": { "react": "^19.0.0" } }, "sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng=="],
 
+    "jgengine": ["jgengine@0.41.0", "", { "dependencies": { "@jgengine/assets": "^0.44.0" }, "bin": { "jgengine": "dist/cli/index.js" } }, "sha512-SKBUIE39sdX5roxRKVQx0uEPngoVfHtM5fuhfJV2ecpfRlqm0usHFapxDovcecMnG0Rn851EjKICU74Pd3caEA=="],
+
     "jiti": ["jiti@2.7.0", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ=="],
 
     "jpeg-js": ["jpeg-js@0.4.4", "", {}, "sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg=="],
@@ -1093,6 +1097,8 @@
 
     "@tailwindcss/oxide-wasm32-wasi/tslib": ["tslib@2.8.1", "", { "bundled": true }, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
+    "jgengine/@jgengine/assets": ["@jgengine/assets@0.44.0", "", { "dependencies": { "@gltf-transform/core": "4.2.1", "@gltf-transform/extensions": "4.2.1", "@gltf-transform/functions": "4.2.1", "@jgengine/core": "^0.44.0", "fflate": "^0.8.2", "jpeg-js": "0.4.4", "meshoptimizer": "0.22.0", "three": "^0.182.0" }, "bin": { "assets": "dist/cli/pull.js" } }, "sha512-xNLW+ZaQQX9yBj/AFFPicsQqQNV8HaRdUfmnIjIxWxYXekdkOIji+7hJj5Szu6h309/RV2KGgU22aUxANbeVDg=="],
+
     "sharp/semver": ["semver@7.8.5", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA=="],
 
     "stats-gl/three": ["three@0.170.0", "", {}, "sha512-FQK+LEpYc0fBD+J8g6oSEyyNzjp+Q7Ks1C568WWaoMRLW+TkNNWmenWeGgJjV105Gd+p/2ql1ZcjYvNiPZBhuQ=="],
@@ -1100,5 +1106,7 @@
     "three-stdlib/fflate": ["fflate@0.6.11", "", {}, "sha512-3JyEFWGjFn7zHmoa9+zG1BmW7X2okcmAB+0Cnu9UFbVs/jCBnl2A8o065ZlXiw145K3eBM3uLuzrYXC0RK7eDg=="],
 
     "tunnel-rat/zustand": ["zustand@4.5.7", "", { "dependencies": { "use-sync-external-store": "^1.2.2" }, "peerDependencies": { "@types/react": ">=16.8", "immer": ">=9.0.6", "react": ">=16.8" }, "optionalPeers": ["@types/react", "immer", "react"] }, "sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw=="],
+
+    "jgengine/@jgengine/assets/@jgengine/core": ["@jgengine/core@0.44.0", "", {}, "sha512-HO6CoKYfueH0USAPVhjKHmkWs8O0TV0pOPspJBejKBr9gL9ZdlzyQzkIE3MQI+ChoijtSt0qK7JLhlR2ynVflw=="],
   }
 }

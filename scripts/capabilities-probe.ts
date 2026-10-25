@@ -173,9 +173,10 @@ async function pageTarget(debugPort: number, timeoutMs: number): Promise<string>
 const READ_PAGE = `(() => {
   const agent = window.__jgengineAgent;
   const windows = {};
-  for (const name of ["__jgengineAudio", "__jgengineRun"]) {
+  // Every readout the engine mounts, not a list kept here: a new window.__jgengine* is read too.
+  for (const name of Object.keys(window).filter((key) => key.startsWith("__jgengine") && key !== "__jgengineAgent")) {
     const probe = window[name];
-    if (probe === undefined) continue;
+    if (probe === null || typeof probe !== "object" || (typeof probe.read !== "function" && typeof probe.measure !== "function")) continue;
     try {
       if (typeof probe.read === "function") {
         windows[name] = probe.read();
