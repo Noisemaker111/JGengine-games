@@ -1,8 +1,19 @@
 {
   "adopts": [
+    "action-glyph",
     "agents",
     "audio-probe",
     "game-spec",
+    "input-device",
+    "kit-action-prompt",
+    "kit-banner",
+    "kit-button",
+    "kit-menu",
+    "kit-meter",
+    "kit-objective",
+    "kit-panel",
+    "kit-result-screen",
+    "kit-toast",
     "mission-events",
     "mission-rewards",
     "mission-runtime",
@@ -12,6 +23,10 @@
     "ride-choice",
     "ride-sim",
     "session-loop",
+    "ui-kit-customize",
+    "ui-kit-paper",
+    "ui-kit-root",
+    "ui-kits",
     "wait-queue",
     "world-model"
   ],
@@ -62,6 +77,10 @@
       "kind": "debt",
       "reason": "The park's save has no state digest, so a determinism test cannot compare snapshots; adopt the shared save document's digest.",
       "issue": 126
+    },
+    "kit-minimap-frame": {
+      "kind": "not-applicable",
+      "reason": "kit-minimap-frame has nothing to frame here: Brightway Park is one fenced lot the sky camera shows whole, so there is no minimap."
     },
     "loan-schedule": {
       "kind": "debt",
@@ -160,6 +179,34 @@
     "transaction-ledger": {
       "kind": "not-applicable",
       "reason": "Transaction ledger is not part of brightway-park: park money is the world fact park.cash, moved by declared costs, flows and ripples, so a transaction ledger would be a second book."
+    },
+    "ui-kit-arcade": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-arcade is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the arcade kit never mounts."
+    },
+    "ui-kit-broadcast": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-broadcast is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the broadcast kit never mounts."
+    },
+    "ui-kit-holo": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-holo is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the holo kit never mounts."
+    },
+    "ui-kit-ink": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-ink is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the ink kit never mounts."
+    },
+    "ui-kit-parchment": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-parchment is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the parchment kit never mounts."
+    },
+    "ui-kit-signal": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-signal is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the signal kit never mounts."
+    },
+    "ui-kit-terminal": {
+      "kind": "not-applicable",
+      "reason": "ui-kit-terminal is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the terminal kit never mounts."
     },
     "utility-brain": {
       "kind": "not-applicable",

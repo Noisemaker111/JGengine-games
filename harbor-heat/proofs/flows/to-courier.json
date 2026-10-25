@@ -1,7 +1,7 @@
 {
   "steps": [
     {
-      "assert": "document.body.innerText.includes('Take standard parcel')",
+      "assert": "/take standard parcel/i.test(document.body.innerText)",
       "note": "arrival: the dispatch booth is in reach at the authored spawn, so a parcel can be taken"
     },
     {
@@ -29,7 +29,7 @@
       "note": "the deadline is the contract's own boundary: the session closes when it expires"
     },
     {
-      "assert": "(() => { const readout = window.__jgengineRun.read(); return readout.closed >= 1 && document.body.innerText.includes('Missed the tide'); })()",
+      "assert": "(() => { const readout = window.__jgengineRun.read(); return readout.closed >= 1 && /missed the tide/i.test(document.body.innerText); })()",
       "note": "arrival: the closed session settled at the boundary and the receipt is up"
     }
   ]

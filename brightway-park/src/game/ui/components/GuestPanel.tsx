@@ -1,14 +1,12 @@
-import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
-
+import { useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
+import { KitMeter, KitPanel } from "@jgengine/react/uiKitRoot";
 
 import { parkObject } from "../../park";
 import { session } from "../../session";
 import { liveAgent } from "../../agents";
 import { guestRidePreference } from "../../sim/rideExperience";
-import { Row } from "./Row";
+import { CloseButton, Rows } from "./Inspector";
 
 /** What a guest is doing, read from its own phase/target - the "thought" the window shows. */
 function activity(name: string | null, phase: string): string {
@@ -22,7 +20,6 @@ function activity(name: string | null, phase: string): string {
 
 /** The guest window: the mood the shared agent loop holds, its needs, and what it is doing. */
 export function GuestPanel({ id }: { id: string }) {
-  const { commands } = useGame();
   const ctx = useGameContext();
   const view = useGameStore(() => {
     const guest = session.guests.get(id);
@@ -30,39 +27,16 @@ export function GuestPanel({ id }: { id: string }) {
     const agent = liveAgent(id);
     const mood = agent?.mood();
     const fullness = (need: string) => Math.round((agent?.needs.fraction(need) ?? 0) * 100);
-    return [
-      guest.kind,
-      mood?.label ?? "",
-      Math.round(mood?.score ?? 0),
-      Math.round(guest.money),
-      fullness("hunger"),
-      fullness("thirst"),
-      guest.visits,
-      guest.phase,
-      guest.targetId ?? "",
-    ].join("|");
+    return [guest.kind, mood?.label ?? "", Math.round(mood?.score ?? 0), Math.round(guest.money), fullness("hunger"), fullness("thirst"), guest.visits, guest.phase, guest.targetId ?? ""].join("|");
   });
   if (view === null) return null;
   const [kind, moodLabel, moodScore, money, fullness, thirst, visits, phase, targetId] = view.split("|");
-  const preference = guestRidePreference(kind!);
+  const score = Number(moodScore);
   return (
-    <HudSurface as="section" aria-label="Guest details" elevation="overlay">
-      <div className="mb-2 flex items-center gap-2">
-        <HudButton variant="ghost" size="icon" className="park-inspector-close" aria-label="Close guest window" cue="close" onClick={()=>commands.run("build.clear", {})}>x</HudButton>
-        <span className="text-2xl">🎟️</span>
-        <div className="flex flex-col leading-tight">
-          <span className="text-sm font-bold text-slate-100">{preference.label}</span>
-          <span className="text-[10px] uppercase tracking-wide text-slate-400">Guest - {kind}</span>
-        </div>
-      </div>
-      <p className="mb-2 text-[11px] leading-snug text-slate-300">{activity(parkObject(ctx, targetId === "" ? null : targetId!)?.def.label ?? null, phase!)}</p>
-      <div className="flex flex-col gap-1">
-        <Row label="Mood" value={`${moodLabel} ${moodScore}%`} />
-        <Row label="Money" value={`$${Math.round(Number(money))}`} />
-        <Row label="Hungry" value={`${100 - Number(fullness)}%`} />
-        <Row label="Thirsty" value={`${100 - Number(thirst)}%`} />
-        <Row label="Stops made" value={`${visits}`} />
-      </div>
-    </HudSurface>
+    <KitPanel variant="card" aria-label="Guest details" eyebrow="🎟️ Guest" title={guestRidePreference(kind!).label} aside={<CloseButton label="Close guest window" />}>
+      <p className="bw-blurb">{activity(parkObject(ctx, targetId === "" ? null : targetId!)?.def.label ?? null, phase!)}</p>
+      <KitMeter size="sm" label={`Mood · ${moodLabel}`} value={score} max={100} readout={`${score}%`} tone={score >= 50 ? "good" : score >= 35 ? "warn" : "bad"} />
+      <Rows rows={[["Money", `$${money}`], ["Hungry", `${100 - Number(fullness)}%`], ["Thirsty", `${100 - Number(thirst)}%`], ["Stops made", visits]]} />
+    </KitPanel>
   );
 }

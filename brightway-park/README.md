@@ -18,10 +18,10 @@ Read from `src/game/{park,catalog,objects,sim,scenarios,milestones,rides}`; the 
     its own line whose wait comes from measured throughput, its own wear and breakdown curve. A
     breakdown takes the ride offline, sours the crowd's mood, drops the ride's appeal out of the rating
     and queues a repair for the two-lane crew (22 s and $90 at the carousel); a mechanic bay cuts each
-    repair by a third, and servicing clears wear before it breaks. The dashboard reads rides online, riders and the queue.
+    repair by a third, and servicing clears wear before it breaks. The status card flags a ride that is down; the park books show the queue.
   - [x] Money that binds. Entry fee plus a per-ride ticket the park sets; guests weigh the ticket
     against the wait. Staff are a wage line separate from facility upkeep. A $6,000 loan is repaid $703 a
-    night for ten nights ($7,030 in all), or an instalment early on demand; what is owed shows on the HUD. Rating still gates the crowd: 34 visitors at zero stars, plus 0.14 per star.
+    night for ten nights ($7,030 in all), or an instalment early on demand; what is owed shows in the park books (Books, or L). Rating still gates the crowd: 34 visitors at zero stars, plus 0.14 per star.
   - [x] Milestones that open real content. Six milestones on the park's best-ever rating; each
     locked blueprint's world condition reads that rating, and each milestone names the unlock it grants (flower beds and lamps, the drinks kiosk and fountain, the ferris wheel
     and souvenir shop, the mechanic bay, the drop tower, the grand topiary), and the game refuses to

@@ -1,36 +1,24 @@
 import { useEffect, useRef } from "react";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
+import { useInputDevice } from "@jgengine/react/inputDevice";
+import { KitButton } from "@jgengine/react/uiKitRoot";
 
-/** Touch buttons feed the published RTS rig's existing DOM input boundary. */
+/** Touch-only camera keys: they feed the published RTS rig's existing DOM input boundary. */
 export function CameraPad() {
-  const held=useRef(new Set<string>());
-  const pulse=useRef<ReturnType<typeof setTimeout>|null>(null);
-  const release=()=>{
-    if(pulse.current!==null){clearTimeout(pulse.current);pulse.current=null;}
-    for(const code of held.current) window.dispatchEvent(new KeyboardEvent("keyup",{code}));
+  const touch = useInputDevice() === "touch";
+  const held = useRef(new Set<string>());
+  const release = () => {
+    for (const code of held.current) window.dispatchEvent(new KeyboardEvent("keyup", { code }));
     held.current.clear();
   };
-  const press=(code:string)=>{
-    release();held.current.add(code);
-    window.dispatchEvent(new KeyboardEvent("keydown",{code}));
-  };
-  useEffect(()=>{
-    window.addEventListener("blur",release);
-    return ()=>{release();window.removeEventListener("blur",release);};
-  },[]);
-  const key=(label:string,glyph:string,code:string)=><HudButton key={code} size="icon" aria-label={label}
-    onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);press(code);}}
-    onPointerUp={release} onPointerCancel={release} onLostPointerCapture={release}
-    onClick={e=>{if(e.detail===0){press(code);pulse.current=setTimeout(release,180);}}}>{glyph}</HudButton>;
-  const zoom=(deltaY:number)=>{
-    const canvas=document.querySelector("canvas");
-    canvas?.dispatchEvent(new WheelEvent("wheel",{deltaY,bubbles:true,cancelable:true}));
-  };
-  return <HudSurface className="park-camera park-surface" as="nav" aria-label="Camera navigation">
-    <span>LOOK AROUND</span>
-    <div>{key("Rotate camera left","↶","KeyQ")}{key("Pan camera up","↑","ArrowUp")}{key("Rotate camera right","↷","KeyE")}
-    {key("Pan camera left","←","ArrowLeft")}<HudButton size="icon" aria-label="Zoom camera in" onClick={()=>zoom(-100)}>＋</HudButton>{key("Pan camera right","→","ArrowRight")}
-    <HudButton size="icon" aria-label="Zoom camera out" onClick={()=>zoom(100)}>−</HudButton>{key("Pan camera down","↓","ArrowDown")}</div>
-  </HudSurface>;
+  const press = (code: string) => { release(); held.current.add(code); window.dispatchEvent(new KeyboardEvent("keydown", { code })); };
+  useEffect(() => { window.addEventListener("blur", release); return () => { release(); window.removeEventListener("blur", release); }; }, []);
+  if (!touch) return null;
+  const key = (label: string, glyph: string, code: string) => <KitButton key={code} size="sm" aria-label={label}
+    onPointerDown={(e) => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); press(code); }} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={release}>{glyph}</KitButton>;
+  const zoom = (deltaY: number) => document.querySelector("canvas")?.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }));
+  return <nav className="bw-camera" aria-label="Camera navigation">
+    {key("Rotate camera left", "↶", "KeyQ")}{key("Pan camera up", "↑", "ArrowUp")}{key("Rotate camera right", "↷", "KeyE")}
+    {key("Pan camera left", "←", "ArrowLeft")}<KitButton size="sm" aria-label="Zoom camera in" onClick={() => zoom(-100)}>＋</KitButton>{key("Pan camera right", "→", "ArrowRight")}
+    <KitButton size="sm" aria-label="Zoom camera out" onClick={() => zoom(100)}>−</KitButton>{key("Pan camera down", "↓", "ArrowDown")}
+  </nav>;
 }
