@@ -95,7 +95,7 @@ versions; game and shared workspace manifests use `catalog:` and never own SDK
 versions. A published version is adopted by changing the root catalog and regenerating
 `bun.lock` at a milestone release. The CLI `jgengine` keeps its separate version cadence.
 
-The current catalog installs SDK 0.40.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
+The current catalog installs SDK 0.41.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
 
 **Adopting an engine change without a release.** Pin the commit you need, adopt it, prove
 it, land it. The PR carries one line naming that commit - `Engine pin: <sha>` - and
