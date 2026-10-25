@@ -1,4 +1,4 @@
-import type { WalkerIdea } from "./ideaShape";
+import type { Idea } from "./kindShape";
 
 /**
  * Hold the Line: "zombie survival: scavenge by day, fortify your safehouse, nights get harder"
@@ -6,7 +6,7 @@ import type { WalkerIdea } from "./ideaShape";
  * Everything the game says and draws starts here. Change a word, a cost or a model and the game
  * follows; places live in `src/editor.scene.json` (F2+E in the running game).
  */
-export const idea: WalkerIdea = {
+export const idea: Idea = {
   "tagline": "Scavenge by day. Fortify by dusk. Live through the night.",
   "kit": "terminal",
   "look": "cinematic",
@@ -228,12 +228,12 @@ export const idea: WalkerIdea = {
   ],
   "scenery": [
     {
-      "model": "/models/imported/kaykit-city-builder/building_D.glb",
-      "height": 10
+      "model": "/models/imported/kaykit-city-builder/car_sedan.glb",
+      "height": 1.5
     },
     {
-      "model": "/models/imported/kaykit-city-builder/building_F.glb",
-      "height": 12
+      "model": "industrial/barrel",
+      "height": 1
     },
     {
       "model": "/models/imported/kaykit-city-builder/car_hatchback.glb",
@@ -257,10 +257,10 @@ export const idea: WalkerIdea = {
     }
   ],
   "winAt": 7,
-  "player": "walker",
+  "kind": "survival",
+  "name": "Hold the Line",
   "id": "hold-the-line",
   "spec": "hold_the_line",
-  "name": "Hold the Line",
   "pitch": "zombie survival: scavenge by day, fortify your safehouse, nights get harder",
   "beats": [
     {
@@ -295,5 +295,43 @@ export const idea: WalkerIdea = {
       "fact": "camp.held",
       "atLeast": 7
     }
-  ]
+  ],
+  "world": {
+    "relief": 3,
+    "frequency": 0.012,
+    "waterLevel": -40,
+    "scatter": {
+      "deadtree": {
+        "model": "/models/imported/quaternius-stylized-nature/DeadTree_2.glb",
+        "height": 8
+      },
+      "deadtree2": {
+        "model": "/models/imported/quaternius-stylized-nature/DeadTree_4.glb",
+        "height": 7
+      },
+      "pine": {
+        "model": "/models/imported/quaternius-stylized-nature/Pine_3.glb",
+        "height": 10
+      },
+      "bush": {
+        "model": "/models/imported/quaternius-stylized-nature/Bush_Common.glb",
+        "height": 1.1
+      },
+      "grass": {
+        "model": "/models/imported/quaternius-stylized-nature/Grass_Wispy_Tall.glb",
+        "height": 0.7
+      },
+      "rock": {
+        "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_2.glb",
+        "height": 1.6
+      }
+    },
+    "sky": {
+      "preset": "day",
+      "cycle": true,
+      "dayLength": 150,
+      "startHour": 7,
+      "haze": 0.55
+    }
+  }
 };

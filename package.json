@@ -68,7 +68,13 @@
     "dev:deepward": "bun --cwd=deepward run dev",
     "dev:hold-the-line": "bun --cwd=hold-the-line run dev",
     "dev:fernwild": "bun --cwd=fernwild run dev",
-    "dev:apex-nights": "bun --cwd=apex-nights run dev"
+    "dev:apex-nights": "bun --cwd=apex-nights run dev",
+    "dev:briarcrown": "bun --cwd=briarcrown run dev",
+    "dev:the-sunken-crown": "bun --cwd=the-sunken-crown run dev",
+    "dev:outpost-zero": "bun --cwd=outpost-zero run dev",
+    "dev:orbit-watch": "bun --cwd=orbit-watch run dev",
+    "dev:red-frontier": "bun --cwd=red-frontier run dev",
+    "dev:saltwick": "bun --cwd=saltwick run dev"
   },
   "packageManager": "bun@1.3.8",
   "devDependencies": {

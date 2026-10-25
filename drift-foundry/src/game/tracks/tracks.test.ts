@@ -119,7 +119,7 @@ describe("yard tracks", () => {
       // The pit wade trades the deep pool for distance: no faster, never much slower.
       else expect(short.runTime).toBeLessThan(long.runTime + 1);
     }
-  });
+  }, 30_000); // drives all six tracks twice at 60 Hz; the default 5 s budget is tight on a shared CI runner (took 5.08 s)
 
   test("a gate on a shortcut only stops karts on that shortcut", () => {
     const track = trackById("rail-yard")!;

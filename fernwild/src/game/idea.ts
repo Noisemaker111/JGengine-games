@@ -1,4 +1,4 @@
-import type { WalkerIdea } from "./ideaShape";
+import type { Idea } from "./kindShape";
 
 /**
  * Fernwild: "ARK-like dinosaur survival: tame dinos, build a base, craft and survive"
@@ -6,7 +6,7 @@ import type { WalkerIdea } from "./ideaShape";
  * Everything the game says and draws starts here. Change a word, a cost or a model and the game
  * follows; places live in `src/editor.scene.json` (F2+E in the running game).
  */
-export const idea: WalkerIdea = {
+export const idea: Idea = {
   "tagline": "Tame the wild. Raise a camp. Outlast the hunt.",
   "kit": "parchment",
   "look": "cinematic",
@@ -252,31 +252,31 @@ export const idea: WalkerIdea = {
       "height": 8
     },
     {
-      "model": "/models/imported/quaternius-stylized-nature/CommonTree_5.glb",
-      "height": 9
+      "model": "/models/imported/quaternius-stylized-nature/Bush_Common.glb",
+      "height": 1.2
     },
     {
       "model": "/models/imported/quaternius-stylized-nature/Fern_1.glb",
       "height": 1.2
     },
     {
-      "model": "/models/imported/quaternius-stylized-nature/Plant_7_Big.glb",
-      "height": 1.6
+      "model": "/models/imported/quaternius-stylized-nature/Fern_1.glb",
+      "height": 1.3
     },
     {
       "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_3.glb",
       "height": 2
     },
     {
-      "model": "/models/imported/quaternius-stylized-nature/TwistedTree_1.glb",
-      "height": 7
+      "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_2.glb",
+      "height": 1.2
     }
   ],
   "winAt": 7,
-  "player": "walker",
+  "kind": "survival",
+  "name": "Fernwild",
   "id": "fernwild",
   "spec": "fernwild",
-  "name": "Fernwild",
   "pitch": "ARK-like dinosaur survival: tame dinos, build a base, craft and survive",
   "beats": [
     {
@@ -311,5 +311,51 @@ export const idea: WalkerIdea = {
       "fact": "camp.held",
       "atLeast": 7
     }
-  ]
+  ],
+  "world": {
+    "relief": 5,
+    "frequency": 0.01,
+    "waterLevel": -40,
+    "scatter": {
+      "tree": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_3.glb",
+        "height": 10
+      },
+      "tree2": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_1.glb",
+        "height": 12
+      },
+      "tree3": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_2.glb",
+        "height": 9
+      },
+      "fern": {
+        "model": "/models/imported/quaternius-stylized-nature/Fern_1.glb",
+        "height": 0.9
+      },
+      "plant": {
+        "model": "/models/imported/quaternius-stylized-nature/Plant_1_Big.glb",
+        "height": 1.6
+      },
+      "bush": {
+        "model": "/models/imported/quaternius-stylized-nature/Bush_Common_Flowers.glb",
+        "height": 1.2
+      },
+      "rock": {
+        "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_3.glb",
+        "height": 2.2
+      },
+      "rock2": {
+        "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_1.glb",
+        "height": 1.4
+      }
+    },
+    "sky": {
+      "preset": "day",
+      "cycle": true,
+      "dayLength": 160,
+      "startHour": 7,
+      "haze": 0.35
+    }
+  }
 };

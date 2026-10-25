@@ -126,10 +126,11 @@ export function stepValueProblem(kind: string, value: unknown): string | null {
     case "reload":
       return null;
     case "rpc":
-      // The engine's drive reads a bridge request object, e.g. {"method":"run_command","name":"x.y"}.
-      return value !== null && typeof value === "object" && !Array.isArray(value) && typeof (value as { method?: unknown }).method === "string"
+      // The engine's drive runner reads a bridge request object, such as {"method":"run_command","name":"approach"}.
+      return value !== null && typeof value === "object" && !Array.isArray(value) &&
+        typeof (value as { method?: unknown }).method === "string" && (value as { method: string }).method !== ""
         ? null
-        : 'rpc takes a bridge request object such as {"method":"run_command","name":"game.command"}';
+        : 'rpc takes a bridge request object such as {"method":"agent_status"}';
     default:
       return typeof value === "string" && value.trim().length > 0 ? null : `${kind} takes a non-empty string`;
   }

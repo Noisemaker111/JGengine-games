@@ -15,6 +15,10 @@
     "game-pause-menu",
     "game-spec",
     "game-system",
+    "hud-canvas",
+    "hud-frame",
+    "hud-layout",
+    "hud-panel",
     "hud-ticker",
     "kinematic-vehicle",
     "kit-action-glyph",
@@ -41,6 +45,7 @@
     "race-session",
     "race-track",
     "raf-loop",
+    "session-loop",
     "title-menu",
     "ui-kit-root",
     "use-modal-stack",
@@ -55,199 +60,195 @@
   "declines": {
     "agents": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no agent loop yet: it is a circuit racing starter, and nothing in its loop uses agents."
+      "reason": "Apex Nights has no agent loop yet: it is a circuit racing career starter, and nothing in its loop uses agents."
     },
     "audio-probe": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no audio mix yet: it is a circuit racing starter, and nothing in its loop uses audio-probe."
+      "reason": "Apex Nights has no audio mix yet: it is a circuit racing career starter, and nothing in its loop uses audio-probe."
     },
     "cover-field": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no cover yet: it is a circuit racing starter, and nothing in its loop uses cover-field."
+      "reason": "Apex Nights has no cover yet: it is a circuit racing career starter, and nothing in its loop uses cover-field."
     },
     "cover-points-from-solids": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no cover yet: it is a circuit racing starter, and nothing in its loop uses cover-points-from-solids."
+      "reason": "Apex Nights has no cover yet: it is a circuit racing career starter, and nothing in its loop uses cover-points-from-solids."
     },
     "cover-points-near": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no cover yet: it is a circuit racing starter, and nothing in its loop uses cover-points-near."
+      "reason": "Apex Nights has no cover yet: it is a circuit racing career starter, and nothing in its loop uses cover-points-near."
     },
     "cover-score": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no cover yet: it is a circuit racing starter, and nothing in its loop uses cover-score."
+      "reason": "Apex Nights has no cover yet: it is a circuit racing career starter, and nothing in its loop uses cover-score."
     },
     "cover-select": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no cover yet: it is a circuit racing starter, and nothing in its loop uses cover-select."
+      "reason": "Apex Nights has no cover yet: it is a circuit racing career starter, and nothing in its loop uses cover-select."
     },
     "damage-runtime": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no damage table yet: it is a circuit racing starter, and nothing in its loop uses damage-runtime."
+      "reason": "Apex Nights has no damage table yet: it is a circuit racing career starter, and nothing in its loop uses damage-runtime."
     },
     "damage-target-unknown": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no damage table yet: it is a circuit racing starter, and nothing in its loop uses damage-target-unknown."
+      "reason": "Apex Nights has no damage table yet: it is a circuit racing career starter, and nothing in its loop uses damage-target-unknown."
     },
     "equipment-slot-inventory": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no equipment slots yet: it is a circuit racing starter, and nothing in its loop uses equipment-slot-inventory."
+      "reason": "Apex Nights has no equipment slots yet: it is a circuit racing career starter, and nothing in its loop uses equipment-slot-inventory."
     },
     "game-save": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no save document yet: it is a circuit racing starter, and nothing in its loop uses game-save."
+      "reason": "Apex Nights has no save document yet: it is a circuit racing career starter, and nothing in its loop uses game-save."
     },
     "game-save-digest": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no save document yet: it is a circuit racing starter, and nothing in its loop uses game-save-digest."
+      "reason": "Apex Nights has no save document yet: it is a circuit racing career starter, and nothing in its loop uses game-save-digest."
     },
     "loan-schedule": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loans yet: it is a circuit racing starter, and nothing in its loop uses loan-schedule."
+      "reason": "Apex Nights has no loans yet: it is a circuit racing career starter, and nothing in its loop uses loan-schedule."
     },
     "loans": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loans yet: it is a circuit racing starter, and nothing in its loop uses loans."
+      "reason": "Apex Nights has no loans yet: it is a circuit racing career starter, and nothing in its loop uses loans."
     },
     "loot-comparison": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing starter, and nothing in its loop uses loot-comparison."
+      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing career starter, and nothing in its loop uses loot-comparison."
     },
     "loot-generation": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing starter, and nothing in its loop uses loot-generation."
+      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing career starter, and nothing in its loop uses loot-generation."
     },
     "loot-roller": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing starter, and nothing in its loop uses loot-roller."
+      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing career starter, and nothing in its loop uses loot-roller."
     },
     "loot-score": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing starter, and nothing in its loop uses loot-score."
+      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing career starter, and nothing in its loop uses loot-score."
     },
     "loot-validation": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing starter, and nothing in its loop uses loot-validation."
+      "reason": "Apex Nights has no loot rolling yet: it is a circuit racing career starter, and nothing in its loop uses loot-validation."
     },
     "mission-events": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing starter, and nothing in its loop uses mission-events."
+      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing career starter, and nothing in its loop uses mission-events."
     },
     "mission-rewards": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing starter, and nothing in its loop uses mission-rewards."
+      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing career starter, and nothing in its loop uses mission-rewards."
     },
     "mission-runtime": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing starter, and nothing in its loop uses mission-runtime."
+      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing career starter, and nothing in its loop uses mission-runtime."
     },
     "mission-validation": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing starter, and nothing in its loop uses mission-validation."
+      "reason": "Apex Nights has no mission runtime yet: it is a circuit racing career starter, and nothing in its loop uses mission-validation."
     },
     "nav-crowd": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no navigation yet: it is a circuit racing starter, and nothing in its loop uses nav-crowd."
+      "reason": "Apex Nights has no navigation yet: it is a circuit racing career starter, and nothing in its loop uses nav-crowd."
     },
     "nav-runtime": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no navigation yet: it is a circuit racing starter, and nothing in its loop uses nav-runtime."
+      "reason": "Apex Nights has no navigation yet: it is a circuit racing career starter, and nothing in its loop uses nav-runtime."
     },
     "navmesh-from-scene": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no navigation yet: it is a circuit racing starter, and nothing in its loop uses navmesh-from-scene."
+      "reason": "Apex Nights has no navigation yet: it is a circuit racing career starter, and nothing in its loop uses navmesh-from-scene."
     },
     "near-agents": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no agent loop yet: it is a circuit racing starter, and nothing in its loop uses near-agents."
+      "reason": "Apex Nights has no agent loop yet: it is a circuit racing career starter, and nothing in its loop uses near-agents."
     },
     "offscreen-world": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no offscreen simulation yet: it is a circuit racing starter, and nothing in its loop uses offscreen-world."
+      "reason": "Apex Nights has no offscreen simulation yet: it is a circuit racing career starter, and nothing in its loop uses offscreen-world."
     },
     "perception-service": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no perception yet: it is a circuit racing starter, and nothing in its loop uses perception-service."
+      "reason": "Apex Nights has no perception yet: it is a circuit racing career starter, and nothing in its loop uses perception-service."
     },
     "police-response": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no police heat yet: it is a circuit racing starter, and nothing in its loop uses police-response."
+      "reason": "Apex Nights has no police heat yet: it is a circuit racing career starter, and nothing in its loop uses police-response."
     },
     "police-roads": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no police heat yet: it is a circuit racing starter, and nothing in its loop uses police-roads."
+      "reason": "Apex Nights has no police heat yet: it is a circuit racing career starter, and nothing in its loop uses police-roads."
     },
     "ride-appeal": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing starter, and nothing in its loop uses ride-appeal."
+      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing career starter, and nothing in its loop uses ride-appeal."
     },
     "ride-choice": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing starter, and nothing in its loop uses ride-choice."
+      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing career starter, and nothing in its loop uses ride-choice."
     },
     "ride-sim": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing starter, and nothing in its loop uses ride-sim."
+      "reason": "Apex Nights has no ride simulation yet: it is a circuit racing career starter, and nothing in its loop uses ride-sim."
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no run yet: it is a circuit racing starter, and nothing in its loop uses run-loop."
+      "reason": "Apex Nights has no run yet: it is a circuit racing career starter, and nothing in its loop uses run-loop."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no crowd steering yet: it is a circuit racing starter, and nothing in its loop uses rvo-avoidance."
-    },
-    "session-loop": {
-      "kind": "not-applicable",
-      "reason": "Apex Nights has no run yet: it is a circuit racing starter, and nothing in its loop uses session-loop."
+      "reason": "Apex Nights has no crowd steering yet: it is a circuit racing career starter, and nothing in its loop uses rvo-avoidance."
     },
     "skill-tree": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no skill tree yet: it is a circuit racing starter, and nothing in its loop uses skill-tree."
+      "reason": "Apex Nights has no skill tree yet: it is a circuit racing career starter, and nothing in its loop uses skill-tree."
     },
     "squad-combat": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no squad combat yet: it is a circuit racing starter, and nothing in its loop uses squad-combat."
+      "reason": "Apex Nights has no squad combat yet: it is a circuit racing career starter, and nothing in its loop uses squad-combat."
     },
     "status-runtime": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no status effects yet: it is a circuit racing starter, and nothing in its loop uses status-runtime."
+      "reason": "Apex Nights has no status effects yet: it is a circuit racing career starter, and nothing in its loop uses status-runtime."
     },
     "status-unknown": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no status effects yet: it is a circuit racing starter, and nothing in its loop uses status-unknown."
+      "reason": "Apex Nights has no status effects yet: it is a circuit racing career starter, and nothing in its loop uses status-unknown."
     },
     "supply-demand-pricing": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no market pricing yet: it is a circuit racing starter, and nothing in its loop uses supply-demand-pricing."
+      "reason": "Apex Nights has no market pricing yet: it is a circuit racing career starter, and nothing in its loop uses supply-demand-pricing."
     },
     "traffic": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no traffic yet: it is a circuit racing starter, and nothing in its loop uses traffic."
+      "reason": "Apex Nights has no traffic yet: it is a circuit racing career starter, and nothing in its loop uses traffic."
     },
     "transaction-ledger": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no transaction ledger yet: it is a circuit racing starter, and nothing in its loop uses transaction-ledger."
+      "reason": "Apex Nights has no transaction ledger yet: it is a circuit racing career starter, and nothing in its loop uses transaction-ledger."
     },
     "utility-brain": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no agent loop yet: it is a circuit racing starter, and nothing in its loop uses utility-brain."
+      "reason": "Apex Nights has no agent loop yet: it is a circuit racing career starter, and nothing in its loop uses utility-brain."
     },
     "vehicle-damage": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no vehicle damage yet: it is a circuit racing starter, and nothing in its loop uses vehicle-damage."
+      "reason": "Apex Nights has no vehicle damage yet: it is a circuit racing career starter, and nothing in its loop uses vehicle-damage."
     },
     "visitor-population": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no park population yet: it is a circuit racing starter, and nothing in its loop uses visitor-population."
+      "reason": "Apex Nights has no park population yet: it is a circuit racing career starter, and nothing in its loop uses visitor-population."
     },
     "wait-queue": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no queue yet: it is a circuit racing starter, and nothing in its loop uses wait-queue."
+      "reason": "Apex Nights has no queue yet: it is a circuit racing career starter, and nothing in its loop uses wait-queue."
     },
     "weapon-system": {
       "kind": "not-applicable",
-      "reason": "Apex Nights has no weapon runtime yet: it is a circuit racing starter, and nothing in its loop uses weapon-system."
+      "reason": "Apex Nights has no weapon runtime yet: it is a circuit racing career starter, and nothing in its loop uses weapon-system."
     }
   }
 }

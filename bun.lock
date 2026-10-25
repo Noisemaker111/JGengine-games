@@ -58,6 +58,31 @@
         "vite": "^6.2.2",
       },
     },
+    "briarcrown": {
+      "name": "@games/briarcrown",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
     "brightway-park": {
       "name": "@games/brightway-park",
       "version": "0.1.0",
@@ -264,6 +289,81 @@
         "vite": "^6.2.2",
       },
     },
+    "orbit-watch": {
+      "name": "@games/orbit-watch",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
+    "outpost-zero": {
+      "name": "@games/outpost-zero",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
+    "red-frontier": {
+      "name": "@games/red-frontier",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
+      },
+    },
     "registry": {
       "name": "@games/hud-components",
       "dependencies": {
@@ -272,6 +372,31 @@
       },
       "devDependencies": {
         "@types/react": "^19",
+      },
+    },
+    "saltwick": {
+      "name": "@games/saltwick",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
       },
     },
     "scrap-signal": {
@@ -313,6 +438,31 @@
         "@types/react": "^19",
         "@types/three": "^0.182.0",
         "typescript": "^5",
+      },
+    },
+    "the-sunken-crown": {
+      "name": "@games/the-sunken-crown",
+      "version": "0.1.0",
+      "dependencies": {
+        "@jgengine/assets": "catalog:",
+        "@jgengine/core": "catalog:",
+        "@jgengine/editor": "catalog:",
+        "@jgengine/react": "catalog:",
+        "@jgengine/shell": "catalog:",
+        "@react-three/fiber": "^9.5.0",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "three": "^0.182.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.0.15",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.182.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "tailwindcss": "^4.0.15",
+        "typescript": "^5",
+        "vite": "^6.2.2",
       },
     },
   },
@@ -435,6 +585,8 @@
 
     "@games/beacon-bastion": ["@games/beacon-bastion@workspace:beacon-bastion"],
 
+    "@games/briarcrown": ["@games/briarcrown@workspace:briarcrown"],
+
     "@games/brightway-park": ["@games/brightway-park@workspace:brightway-park"],
 
     "@games/deepward": ["@games/deepward@workspace:deepward"],
@@ -453,7 +605,17 @@
 
     "@games/odd-orbit": ["@games/odd-orbit@workspace:odd-orbit"],
 
+    "@games/orbit-watch": ["@games/orbit-watch@workspace:orbit-watch"],
+
+    "@games/outpost-zero": ["@games/outpost-zero@workspace:outpost-zero"],
+
+    "@games/red-frontier": ["@games/red-frontier@workspace:red-frontier"],
+
+    "@games/saltwick": ["@games/saltwick@workspace:saltwick"],
+
     "@games/scrap-signal": ["@games/scrap-signal@workspace:scrap-signal"],
+
+    "@games/the-sunken-crown": ["@games/the-sunken-crown@workspace:the-sunken-crown"],
 
     "@gltf-transform/core": ["@gltf-transform/core@4.2.1", "", { "dependencies": { "property-graph": "^3.0.0" } }, "sha512-qKhrQ29KJ9K6sz7xGoGRllqPBlROjPJMQPvCLBOfgMPH3S/Ph5E0e6fD5WmwTY5QPyBsDMRqKd1Vl0ncThTXGw=="],
 

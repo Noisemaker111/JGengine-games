@@ -104,6 +104,12 @@ describe("flow parsing", () => {
     expect(parseFlow(`{ "steps": [ { "click": "a", "wobble": 1 } ] }`, "g/a.json").problems[0]).toContain('unknown field "wobble"');
   });
 
+  test("an rpc takes the bridge request object the engine's drive runner reads", () => {
+    expect(parseFlow(`{ "steps": [ { "rpc": { "method": "run_command", "name": "approach", "input": {} } } ] }`, "g/a.json").problems).toEqual([]);
+    expect(parseFlow(`{ "steps": [ { "rpc": "agent_status" } ] }`, "g/a.json").problems[0]).toContain("bridge request object");
+    expect(parseFlow(`{ "steps": [ { "rpc": { "name": "x" } } ] }`, "g/a.json").problems[0]).toContain("bridge request object");
+  });
+
   test("a key takes a chord with an optional hold, and a click takes pixels", () => {
     expect(parseFlow(`{ "steps": [ { "key": "KeyW", "ms": 2500 }, { "clickAt": [800, 450] } ] }`, "g/a.json").problems).toEqual([]);
     expect(parseFlow(`{ "steps": [ { "clickAt": "800,450" } ] }`, "g/a.json").problems[0]).toContain("[x, y] pixel numbers");
