@@ -54,9 +54,9 @@ The building block itself (`harbor-heat/src/art/city-block.glb`) is original geo
 | --- | --- | --- | --- | --- |
 | player, residents, contacts, gangs, police, bounty marks (`src/game/world/cast.ts`) | Microsoft Rocketbox avatars (`human/*`: man-casual, man-casual-2, woman-casual, woman-casual-2, jogger, construction-worker, security-guard, businessman, police-officer, soldier) | Microsoft (Rocketbox Studios GmbH) | MIT | https://github.com/microsoft/Microsoft-Rocketbox (commit 0943055d) |
 | `obj_dog`, `obj_dog_shepherd`, `obj_duck` | Rocketbox animals (`creature/dog-beagle`, `creature/dog-shepherd`, `creature/duck`) | Microsoft (Rocketbox Studios GmbH) | MIT | https://github.com/microsoft/Microsoft-Rocketbox (commit 0943055d) |
-| `car_compact`, `car_muscle`, `car_sport`, `car_suv` (repainted) | CarConcept (`vehicle/sports-car`, logos removed) | Eric Chadwick, Darmstadt Graphics Group GmbH | CC-BY 4.0 | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept (commit 8f492390) |
+| `car_compact`, `car_muscle`, `car_sport`, `car_suv`, `car_cop` (repainted; the cruiser adds an original light bar) | CarConcept (`vehicle/sports-car`, logos removed) | Eric Chadwick, Darmstadt Graphics Group GmbH | CC-BY 4.0 | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept (commit 8f492390) |
 
-Police car, bus, aircraft, signs, neon, signals and cargo are still KayKit (CC0); the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
+The Islander bus (`islander-bus.glb`) and the cruiser's light bar (`hhpd-lightbar.glb`) are original geometry from `harbor-heat/scripts/author-harbor.mjs`. Aircraft, signs, neon, signals and cargo are still KayKit (CC0); the engine's `MODEL_LIBRARY_GAPS` lists the route for each.
 
 ## Games made by `bun run new-game`
 

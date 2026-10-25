@@ -10,7 +10,7 @@ Use **WASD** to move or drive, **Shift** to sprint, **E** to interact and **F** 
 
 Garage purchases use the published SDK's entity allocator: each paid vehicle has a distinct identity, even when buying the same model at one game time or after reload. Existing saved vehicle identities remain intact.
 
-The dispatch booth, three parcel towers, coconut palm and title poster are original repository art. The readable generator is `scripts/author-harbor.mjs`; run it with Node to rebuild the GLBs. See [art credits](src/art/README.md) and the repository's [content provenance](../CONTENT-PROVENANCE.md) for source attribution. Existing KayKit, Quaternius and ambientCG credits and licenses remain in force.
+The dispatch booth, three parcel towers, coconut palm, Islander bus, HHPD light bar and title poster are original repository art. The readable generator is `scripts/author-harbor.mjs`; run it with Node to rebuild the GLBs. See [art credits](src/art/README.md) and the repository's [content provenance](../CONTENT-PROVENANCE.md) for source attribution. Existing KayKit, Quaternius and ambientCG credits and licenses remain in force.
 
 ## Design checklist
 

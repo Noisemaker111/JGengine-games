@@ -57,6 +57,8 @@ export const game = defineGame({
       { action: "sprint", label: "Sprint" },
     ],
     modes: {
+      // A counter, a conversation or a receipt owns the screen: no stick or verbs over its buttons.
+      screen: { movement: false, buttons: [], look: false },
       car: {
         buttons: [
           { action: "jump", label: "Handbrake", shape: "lever" },
@@ -106,6 +108,16 @@ export const game = defineGame({
       chase: ["game.start", { name: "chase.stage", input: { mode: "chase" } }],
       // `taxi` (dev-only `gigs.stage`): in the nearest car, taxi light on, a fare hailing at the closest kerb.
       taxi: ["game.start", { name: "gigs.stage", input: { mode: "taxi" } }],
+      // Presentation states: the courier behind the wheel, at the gun counter, the garage, talking
+      // to Marco, and holding a paid or missed receipt.
+      drive: ["game.start", { name: "drive.stage", input: { vehicle: "car_sport" } }],
+      "drive-cop": ["game.start", { name: "drive.stage", input: { vehicle: "car_cop" } }],
+      "drive-bus": ["game.start", { name: "drive.stage", input: { vehicle: "car_bus" } }],
+      shop: ["game.start", "shop.open"],
+      garage: ["game.start", "garage.open"],
+      dialogue: ["game.start", { name: "dialogue.open", input: { id: "person:marco" } }],
+      result: ["game.start", { name: "result.stage", input: { won: true } }],
+      "result-missed": ["game.start", { name: "result.stage", input: { won: false } }],
     },
     views: {
       boulevard: {
@@ -117,6 +129,16 @@ export const game = defineGame({
         description: "Mainsail plaza street level: tower blocks, neon, traffic.",
         look: "@marker:bounty_plaza",
         lookFrom: "46,14,2.4",
+      },
+      bus: {
+        description: "The Islander shuttle parked at the docks, from the kerb.",
+        look: "180,150",
+        lookFrom: "11,3.2,0.9",
+      },
+      palms: {
+        description: "A palm on the boulevard, close enough to read its trunk and fronds.",
+        look: "@marker:player_spawn",
+        lookFrom: "16,4,1.9",
       },
       beach: {
         description: "The boardwalk from the water line — dunes, palms, and the city behind them.",

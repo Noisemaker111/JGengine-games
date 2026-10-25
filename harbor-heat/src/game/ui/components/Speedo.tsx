@@ -6,13 +6,33 @@ import { vehicleById } from "../../entities/vehicles/catalog";
 import { drivingStore, handrollOf } from "../../handroll";
 import { KeyCap } from "../fiction/kit";
 
+/** Label steps a dial face can count in; the face shows six of them, so every number is round. */
+const STEPS = [10, 20, 25, 30, 40, 50, 60, 80, 100, 125, 150, 200];
+
+/** The dial's full scale for a vehicle: its top speed with a little headroom, in round numbers. */
+export function dialTop(topKmh: number): number {
+  const need = (Math.max(60, topKmh) * 1.08) / 6;
+  return (STEPS.find((step) => step >= need) ?? Math.ceil(need / 50) * 50) * 6;
+}
+
+function topKmhOf(name: string | undefined): number {
+  const def = name === undefined ? undefined : vehicleById(name);
+  if (def === undefined) return 220;
+  return (def.dynamics.type === "ground" ? def.dynamics.tuning.topSpeed : def.dynamics.tuning.maxSpeed) * 3.6;
+}
+
 function speedoView(ctx: GameContext) {
   const id = drivingStore.read(ctx);
   if (id == null) return null;
   const t = handrollOf(ctx).telemetry();
   const name = ctx.scene.entity.get(id)?.name;
+  const def = name === undefined ? undefined : vehicleById(name);
   const air = t.mode !== "aircraft" ? null : t.stalled ? "Stall" : `${Math.round(t.altitude)} m up`;
-  return { label: (name === undefined ? undefined : vehicleById(name)?.label) ?? "Vehicle", kmh: formatSpeed(t.speedMs, { unit: "kmh", decimals: 0, showUnit: false }), air, stalled: t.stalled, aircraft: t.mode === "aircraft", vtol: t.mode === "aircraft" && t.vtol };
+  const redline = def?.dynamics.type === "ground" ? def.dynamics.tuning.powertrain?.redlineRpm ?? 7600 : 0;
+  // Revs in tenths of the redline, so the store only republishes when a lamp changes.
+  const revs = t.mode === "aircraft" || redline <= 0 ? null : Math.min(10, Math.round((t.rpm / redline) * 10));
+  const gear = t.mode === "aircraft" ? null : t.gear < 0 ? "R" : t.gear === 0 ? "N" : String(t.gear);
+  return { label: def?.label ?? "Vehicle", top: dialTop(topKmhOf(name)), kmh: formatSpeed(t.speedMs, { unit: "kmh", decimals: 0, showUnit: false }), air, stalled: t.stalled, aircraft: t.mode === "aircraft", vtol: t.mode === "aircraft" && t.vtol, gear, revs };
 }
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -20,7 +40,6 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 /** The dial sweeps 240 degrees, from 0 at lower left to the top speed at lower right. */
 const SWEEP = 240;
 const START = -120;
-const TOP = 240;
 
 /** Polar point on the dial face, angle in degrees clockwise from straight up. */
 function at(angle: number, radius: number): [number, number] {
@@ -45,8 +64,9 @@ function Dial({ kmh, top }: { kmh: number; top: number }) {
         return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className={i % 2 === 0 ? "hh-dial-major" : "hh-dial-minor"} />;
       })}
       {ticks.filter((i) => i % 2 === 0).map((i) => {
-        const [x, y] = at(START + (SWEEP / 12) * i, 36);
-        return <text key={i} x={x} y={y + 4} className="hh-dial-num">{Math.round((top / 12) * i)}</text>;
+        const [x, y] = at(START + (SWEEP / 12) * i, 35);
+        const value = Math.round((top / 12) * i);
+        return <text key={i} x={x} y={y + 4} className="hh-dial-num" data-long={value >= 100 ? "" : undefined}>{value}</text>;
       })}
       <g style={{ transform: `rotate(${needle}deg)`, transformOrigin: "70px 70px", transition: "transform 120ms linear" }}>
         <path d="M 67.5 78 L 70 14 L 72.5 78 Z" className="hh-dial-needle" />
@@ -79,8 +99,16 @@ export function Speedo() {
   return (
     <div className="hh-dash" data-stalled={view.stalled ? "" : undefined}>
       <div className="hh-dash-gauge">
-        <Dial kmh={kmh} top={TOP} />
-        <span className="hh-dash-lcd"><b>{view.kmh}</b><small>km/h</small></span>
+        <Dial kmh={kmh} top={view.top} />
+        <span className="hh-dash-lcd">
+          {view.gear === null ? null : <i className="hh-dash-gear" data-reverse={view.gear === "R" ? "" : undefined}>{view.gear}</i>}
+          <b>{view.kmh}</b><small>km/h</small>
+        </span>
+        {view.revs === null ? null : (
+          <span className="hh-dash-revs" aria-hidden="true">
+            {Array.from({ length: 10 }, (_, i) => <i key={i} data-on={i < (view.revs ?? 0) ? "" : undefined} data-red={i >= 8 ? "" : undefined} />)}
+          </span>
+        )}
         <span className="hh-dash-badge">{view.label}</span>
         {view.air === null ? null : <span className="hh-dash-lamp" data-alarm={view.stalled ? "" : undefined}>{view.air}</span>}
       </div>

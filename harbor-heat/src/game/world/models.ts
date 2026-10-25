@@ -1,6 +1,7 @@
 import { librarySurfaceParameters, librarySurfaceScan } from "@jgengine/assets/catalogs/materialLibrary";
 import { libraryModel } from "@jgengine/assets/catalogs/modelLibrary";
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
+import type { MaterialAsset } from "@jgengine/core/material/materialAsset";
 import { resolveModelPlan, type ModelPick } from "@jgengine/shell/render/resolveModel";
 
 import { assets } from "../assets";
@@ -20,12 +21,35 @@ const CITY_BLOCK_URL = new URL("../../art/city-block.glb", import.meta.url).href
 /**
  * Traffic is the library's Khronos CarConcept (CC-BY 4.0) at its real 4.4 m length, resprayed per
  * kind: only the two body-paint materials take the colour, so glass, lights, tyres and trim keep
- * their own finish. Police and the shuttle stay on the city kit until the library has a cruiser and
- * a bus (`libraryModelGap("bus")`).
+ * their own finish. The library has no cruiser or bus (`libraryModelGap("bus")`), so the HHPD
+ * cruiser is the same car in a two-tone livery under an authored light bar, and the Islander is an
+ * authored city bus (`scripts/author-harbor.mjs`).
  */
 const CAR_PAINT = ["Paint 1 Carmine", "Paint 2 Carmine"];
 function car(color: string): ModelConfig {
   return { ...libraryModel(CAR_MODEL_NAME), material: { ...GLOSS, color, materials: CAR_PAINT } };
+}
+
+/** The cruiser's white roof, doors and hood panel: the car's second paint slot. */
+const HHPD_WHITE: MaterialAsset = {
+  schemaVersion: 1,
+  id: "harbor-heat/hhpd-white",
+  name: "HHPD white",
+  family: "standard",
+  capabilities: ["pbr", "clearcoat"],
+  surface: { ...GLOSS, color: "#eef1f5" },
+};
+const LIGHT_BAR_URL = new URL("../../art/hhpd-lightbar.glb", import.meta.url).href;
+
+/** HHPD cruiser: navy body, white upper panels, red-and-blue bar on the roof. */
+function cruiser(): ModelConfig {
+  return {
+    ...libraryModel(CAR_MODEL_NAME),
+    material: { ...GLOSS, color: "#13213d", materials: ["Paint 1 Carmine"] },
+    materialAssets: [HHPD_WHITE],
+    materialAssignments: [{ selector: { slot: "Paint 2 Carmine" }, materialId: HHPD_WHITE.id }],
+    parts: [{ model: { url: LIGHT_BAR_URL, anchor: "origin" }, position: [0, 1.17, -0.05] }],
+  };
 }
 
 const castModels: Record<string, ModelConfig> = {
@@ -34,21 +58,12 @@ const castModels: Record<string, ModelConfig> = {
   car_muscle: car("#b8282e"),
   car_sport: car("#2fa8b8"),
   car_suv: car("#59664a"),
+  car_cop: cruiser(),
+  car_bus: { url: new URL("../../art/islander-bus.glb", import.meta.url).href, anchor: "origin" },
 };
 
 export const entityModels: Record<string, ModelConfig> = {
   ...resolveModelPlan(assets, {
-  car_cop: {
-    model: `${CITY}/car_police`,
-    fallbackModel: `${CITY}/car_taxi`,
-    style: { targetHeight: 1.4, material: GLOSS },
-  },
-  car_bus: {
-    // Large boxy truck body as an island shuttle bus; scaled up to bus height. Never Kenney.
-    model: `${SPACE}/spacetruck_large`,
-    fallbackModel: `${SPACE}/spacetruck`,
-    style: { targetHeight: 3.3, material: { color: "#e0a53c" } },
-  },
   air_helicopter: {
     model: `${SPACE}/lander_B`,
     fallbackModel: `${CITY}/car_sedan`,
@@ -80,9 +95,10 @@ export const entityModels: Record<string, ModelConfig> = {
 
 /**
  * The palm is one authored GLB drawn at three street sizes, so all three species share its two
- * detail levels. `mainsail-palm-far.glb` keeps every frond vertex (the crown is the look) and
- * collapses only the trunk rings and coconuts; past 60 m a palm is a silhouette, and the engine's
- * per-instance switch holds an instance on its level for 6 m either side of the boundary.
+ * detail levels. Both levels come from the same parameters in `scripts/author-harbor.mjs`; the far
+ * one keeps the crown's outline with fewer leaflets, rings and nuts. Past 60 m a palm is a
+ * silhouette, and the engine's per-instance switch holds an instance on its level for 6 m either
+ * side of the boundary.
  */
 const PALM_URL = new URL("../../art/mainsail-palm.glb", import.meta.url).href;
 const PALM_FAR_URL = new URL("../../art/mainsail-palm-far.glb", import.meta.url).href;
