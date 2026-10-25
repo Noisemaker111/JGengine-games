@@ -1,3 +1,6 @@
+import type { CSSProperties } from "react";
+import { GameIcon } from "@jgengine/react/gameIcons";
+import { HudFade } from "@jgengine/react/hudFade";
 import { useEntityStat, useGameStore, useInventory, usePlayer } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
@@ -5,6 +8,7 @@ import { AMMO_LABELS, AMMO_STAT_IDS } from "../../ammo";
 import { gunById, isReloading, magLoaded, type GunDef } from "../../handroll";
 import { ELEMENT_COLORS, RARITY_COLORS } from "../../palette";
 import { lastPickupStore, selectedSlotStore } from "../../stores";
+import { Crt, Pips, Plate, SIGNAL, Stamp } from "../fiction/kit";
 
 export function useSelectedSlot(): number {
   return useStore(selectedSlotStore);
@@ -14,7 +18,7 @@ function useNowMs(): number {
   return useGameStore((ctx) => ctx.time.now() * 1000);
 }
 
-export function AmmoPlate() {
+export function AmmoPlate({ combat = false }: { combat?: boolean }) {
   const ctx = useGameContext();
   const { userId } = usePlayer();
   const selected = useSelectedSlot();
@@ -28,115 +32,84 @@ export function AmmoPlate() {
   const grenades = useEntityStat(userId, "grenades");
 
   if (gun === undefined) {
-    return <div className="text-sm font-bold uppercase tracking-widest text-stone-400">No weapon — find a gun</div>;
+    return <Stamp tone="dim" className="ss-no-gun">No weapon · find a gun</Stamp>;
   }
   const loaded = magLoaded(ctx, gun);
   const reloading = isReloading(ctx, gun);
-
+  const rarity = RARITY_COLORS[gun.rarity];
+  const reserveCount = Math.round(reserve?.current ?? 0);
+  const grenadeCount = Math.round(grenades?.current ?? 0);
   return (
-    <div className="scrap-scrim-corner flex flex-col items-end gap-0.5 pl-16 pt-10">
-      <div className="text-right">
-        <div
-          className="text-sm font-black uppercase tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
-          style={{ color: RARITY_COLORS[gun.rarity] }}
-        >
-          {gun.name}
-        </div>
-        <div className="text-xs font-semibold uppercase tracking-wider text-stone-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-          {gun.manufacturer} {gun.family} · lv{gun.level} · {gun.weapon.damage} dmg
-          {gun.element !== "none" ? (
-            <span style={{ color: ELEMENT_COLORS[gun.element] }}> · {gun.element}</span>
-          ) : null}
-        </div>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <span
-          className={`text-5xl font-black tabular-nums drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] ${
-            reloading ? "animate-pulse text-amber-300" : loaded === 0 ? "animate-pulse text-rose-400" : "text-stone-50"
-          }`}
-        >
-          {reloading ? "—" : loaded}
+    <HudFade watch={[gun.id, loaded, reloading, reserveCount, grenadeCount]} hold={combat || reloading || loaded === 0} dimTo={0.5} idleMs={5000}>
+      <Plate material="hull" tint="#283135" cut="notch" depth={12} rim="#34444a" padding="0" className="ss-ammo" style={{ "--ss-rarity": rarity } as CSSProperties}>
+        <span className="ss-ammo-label">
+          <b>{gun.name}</b>
+          <small>
+            {gun.manufacturer} {gun.family} · lv{gun.level} · {gun.weapon.damage} dmg
+            {gun.element !== "none" ? <span style={{ color: ELEMENT_COLORS[gun.element] }}> · {gun.element}</span> : null}
+          </small>
         </span>
-        <span className="text-lg font-bold tabular-nums text-stone-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
-          / {Math.round(reserve?.current ?? 0)}
+        <span className="ss-ammo-body">
+          <Crt className={`ss-ammo-tube ${reloading ? "reload" : loaded === 0 ? "empty" : ""}`}>
+            <strong>{reloading ? "--" : String(loaded).padStart(2, "0")}</strong>
+            <span>/ {reserveCount}</span>
+          </Crt>
+          <span className="ss-ammo-side">
+            <span className="ss-grenades" title="Grenades"><GameIcon name="bomb" size={15} />{grenadeCount}</span>
+            <span className="ss-ammo-pool">{AMMO_LABELS[gun.ammo]}</span>
+          </span>
         </span>
-      </div>
-      <div className="text-xs font-semibold uppercase tracking-wider text-stone-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-        {reloading ? "RELOADING…" : `${AMMO_LABELS[gun.ammo]} ammo · [R] reload`} · ✜ {Math.round(grenades?.current ?? 0)}
-      </div>
-    </div>
+        <Pips value={reloading ? 0 : loaded} max={gun.magSize} count={Math.min(gun.magSize, 24)} color={SIGNAL.amber} className="ss-mag" />
+        <span className="ss-ammo-foot">{reloading ? "Reloading…" : loaded === 0 ? "Empty · R to reload" : "R reload · G grenade"}</span>
+      </Plate>
+    </HudFade>
   );
 }
 
-export function Hotbar() {
+/** The weapon cartridges slotted into the forearm rig; the live one rides up and lights. */
+export function Hotbar({ combat = false }: { combat?: boolean }) {
   const selected = useSelectedSlot();
   const slots = useInventory("hotbar");
+  const ids = [0, 1, 2, 3].map((index) => slots[index]?.itemId ?? "");
   return (
-    <div className="flex gap-1.5">
-      {[0, 1, 2, 3].map((index) => {
-        const stack = slots[index] ?? null;
-        const gun = stack === null ? undefined : gunById(stack.itemId);
-        const active = index === selected;
-        return (
-          <div
-            key={index}
-            className={`flex h-11 w-24 skew-x-[-8deg] flex-col items-center justify-center border-2 px-1 ${
-              active ? "border-amber-400 bg-black/80" : "border-black/70 bg-black/55"
-            }`}
-          >
-            <span className="text-[11px] font-bold text-stone-400">{index + 1}</span>
-            {gun !== undefined ? (
-              <span
-                className="max-w-full truncate text-xs font-black uppercase"
-                style={{ color: RARITY_COLORS[gun.rarity] }}
-              >
-                {gun.name}
-              </span>
-            ) : (
-              <span className="text-xs text-stone-600">empty</span>
-            )}
-          </div>
-        );
-      })}
-    </div>
+    <HudFade watch={[selected, ...ids]} hold={combat} dimTo={0.4} idleMs={4000}>
+      <div className="ss-hotbar">
+        {[0, 1, 2, 3].map((index) => {
+          const stack = slots[index] ?? null;
+          const gun = stack === null ? undefined : gunById(stack.itemId);
+          const active = index === selected;
+          return (
+            <span key={index} className={`ss-cart ${active ? "active" : ""} ${gun === undefined ? "empty" : ""}`} style={{ "--ss-rarity": gun === undefined ? "#3b3f44" : RARITY_COLORS[gun.rarity] } as CSSProperties}>
+              <span className="ss-cart-num">{index + 1}</span>
+              <span className="ss-cart-label">{gun !== undefined ? gun.name : "empty"}</span>
+            </span>
+          );
+        })}
+      </div>
+    </HudFade>
   );
 }
 
+/** The pickup scan: the new gun’s numbers on a tube for five seconds after it is picked up. */
 export function ItemCard() {
   const nowMs = useNowMs();
   const pickup = useStore(lastPickupStore);
   if (pickup === null || nowMs - pickup.atMs > 5000) return null;
   const gun: GunDef | undefined = gunById(pickup.gunId);
   if (gun === undefined) return null;
+  const rarity = RARITY_COLORS[gun.rarity];
   return (
-    <div
-      className="w-64 border-2 bg-black/85 p-3 shadow-[0_4px_16px_rgba(0,0,0,0.8)]"
-      style={{ borderColor: RARITY_COLORS[gun.rarity] }}
-    >
-      <div className="text-sm font-black uppercase tracking-wider" style={{ color: RARITY_COLORS[gun.rarity] }}>
-        {gun.name}
-      </div>
-      <div className="text-xs font-semibold uppercase tracking-widest text-stone-400">
-        {gun.rarity} {gun.manufacturer} {gun.family} · level {gun.level}
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px] font-semibold text-stone-200">
-        <span>Damage</span>
-        <span className="text-right tabular-nums">{gun.weapon.damage}{gun.weapon.pellets !== undefined ? ` ×${gun.weapon.pellets}` : ""}</span>
-        <span>Fire rate</span>
-        <span className="text-right tabular-nums">{(1000 / gun.weapon.fireIntervalMs).toFixed(1)}/s</span>
-        <span>Magazine</span>
-        <span className="text-right tabular-nums">{gun.magSize}</span>
-        <span>Crit</span>
-        <span className="text-right tabular-nums">{Math.round(gun.weapon.critChance * 100)}% ×{gun.weapon.critMult}</span>
-        {gun.element !== "none" ? (
-          <>
-            <span style={{ color: ELEMENT_COLORS[gun.element] }}>Element</span>
-            <span className="text-right uppercase" style={{ color: ELEMENT_COLORS[gun.element] }}>
-              {gun.element}
-            </span>
-          </>
-        ) : null}
-      </div>
-    </div>
+    <Plate material="hull" tint="#283135" cut="notch" depth={12} rim="#34444a" padding="0" className="ss-scan" style={{ "--ss-rarity": rarity } as CSSProperties}>
+      <span className="ss-scan-head"><Stamp tone="phosphor">Pickup scan</Stamp></span>
+      <span className="ss-scan-name">{gun.name}</span>
+      <span className="ss-scan-sub">{gun.rarity} {gun.manufacturer} {gun.family} · level {gun.level}</span>
+      <Crt className="ss-scan-tube">
+        <span>Damage</span><b>{gun.weapon.damage}{gun.weapon.pellets !== undefined ? ` ×${gun.weapon.pellets}` : ""}</b>
+        <span>Fire rate</span><b>{(1000 / gun.weapon.fireIntervalMs).toFixed(1)}/s</b>
+        <span>Magazine</span><b>{gun.magSize}</b>
+        <span>Crit</span><b>{Math.round(gun.weapon.critChance * 100)}% ×{gun.weapon.critMult}</b>
+        {gun.element !== "none" ? <><span style={{ color: ELEMENT_COLORS[gun.element] }}>Element</span><b style={{ color: ELEMENT_COLORS[gun.element] }}>{gun.element}</b></> : null}
+      </Crt>
+    </Plate>
   );
 }

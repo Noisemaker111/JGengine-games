@@ -1,8 +1,9 @@
+import type { CSSProperties } from "react";
 import { useGame } from "@jgengine/react/hooks";
-import { HudButton } from "@jgengine/react/hudButton";
 import { useStore } from "@jgengine/react/store";
 import { RARITY_COLORS } from "../../palette";
 import { fieldGearStore } from "../../items/fieldGear";
+import { Crt, Plate, Stamp } from "../fiction/kit";
 
 const STAT_LABEL: Record<string, string> = {
   damage: "damage",
@@ -19,67 +20,41 @@ function shown(stat: string, delta: number): string {
   return `${delta > 0 ? "+" : ""}${Math.round(delta * 10) / 10}`;
 }
 
+/** The loot scanner: what the gun on the ground would change, read off a tube, with three hard keys. */
 export function FieldGearPanel() {
   const { commands } = useGame();
   const view = useStore(fieldGearStore);
   if (view === null) return null;
   const color = RARITY_COLORS[view.rarity as keyof typeof RARITY_COLORS] ?? "#d6d3d1";
   return (
-    <div className="w-72 border-2 bg-black/80 p-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.8)]" style={{ borderColor: color }}>
-      <div className="flex items-baseline justify-between">
-        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-stone-400">Field stash</span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
-          {view.runMass}/{view.runMass + Math.max(0, view.remaining)} carry
-        </span>
-      </div>
-      <div className="mt-1 text-sm font-black uppercase leading-tight" style={{ color }}>
-        {view.name}
-      </div>
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-stone-500">
-        lvl {view.level} {view.rarity} {view.manufacturer}
-      </div>
-      <div className="mt-1.5 border-t border-stone-700/70 pt-1.5">
+    <Plate material="carbon" cut="notch" depth={12} rim="#4a3b29" padding="0" className="ss-stash" style={{ "--ss-rarity": color } as CSSProperties}>
+      <span className="ss-stash-head">
+        <Stamp tone="phosphor">Field stash</Stamp>
+        <em>{view.runMass}/{view.runMass + Math.max(0, view.remaining)} carry</em>
+      </span>
+      <span className="ss-stash-name">{view.name}</span>
+      <span className="ss-stash-sub">lvl {view.level} {view.rarity} {view.manufacturer}</span>
+      <Crt className="ss-stash-tube">
         {view.deltas.map((delta) => (
-          <div key={delta.stat} className="flex justify-between text-[11px] font-semibold leading-snug">
-            <span className="text-stone-400">{STAT_LABEL[delta.stat] ?? delta.stat}</span>
-            <span
-              className={
-                delta.better === "candidate" ? "text-emerald-300" : delta.better === "equipped" ? "text-rose-300" : "text-stone-400"
-              }
-            >
-              {shown(delta.stat, delta.delta)}
-            </span>
-          </div>
+          <span key={delta.stat} className="ss-stash-row">
+            <span>{STAT_LABEL[delta.stat] ?? delta.stat}</span>
+            <b className={delta.better === "candidate" ? "up" : delta.better === "equipped" ? "down" : ""}>{shown(delta.stat, delta.delta)}</b>
+          </span>
         ))}
-      </div>
-      {view.affixes.length > 0 ? (
-        <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300">
-          {view.affixes.join(" / ")}
-        </div>
-      ) : null}
-      <div className="mt-1 text-[10px] font-black uppercase tracking-widest text-stone-400">
-        {view.better === "candidate" ? "Upgrade" : view.better === "equipped" ? "Worn gun is better" : "Sidegrade"}
-      </div>
-      <div className="mt-1.5 flex gap-1">
-        <HudButton
-          block
-          disabled={!view.carried}
-          onClick={() => commands.run("loot.equip", { dropId: view.dropId })}
-          className="scrap-row scrap-row-amber"
-        >
-          Equip
-        </HudButton>
-        <HudButton block onClick={() => commands.run("loot.salvage", { dropId: view.dropId })} className="scrap-row">
-          Salvage
-        </HudButton>
-        <HudButton block disabled={!view.carried} onClick={() => commands.run("loot.bank", {})} className="scrap-row">
-          Bank
-        </HudButton>
-      </div>
-      <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+        {view.affixes.length > 0 ? <span className="ss-stash-affix">{view.affixes.join(" / ")}</span> : null}
+        <span className={`ss-stash-verdict ${view.better === "candidate" ? "up" : view.better === "equipped" ? "down" : ""}`}>
+          {view.better === "candidate" ? "▲ Upgrade" : view.better === "equipped" ? "▼ Worn gun is better" : "◆ Sidegrade"}
+        </span>
+      </Crt>
+      <span className="ss-stash-keys">
+        <Plate as="button" material="steel" cut="notch" depth={6} rim="#1b1f25" padding="0" className="ss-hwkey primary" disabled={!view.carried} onClick={() => commands.run("loot.equip", { dropId: view.dropId })}>Equip</Plate>
+        <Plate as="button" material="steel" cut="notch" depth={6} rim="#1b1f25" padding="0" className="ss-hwkey" onClick={() => commands.run("loot.salvage", { dropId: view.dropId })}>Salvage</Plate>
+        <Plate as="button" material="steel" cut="notch" depth={6} rim="#1b1f25" padding="0" className="ss-hwkey" disabled={!view.carried} onClick={() => commands.run("loot.bank", {})}>Bank</Plate>
+      </span>
+      <span className="ss-stash-foot">
         Stash {view.stash.length}
         {view.stash.length > 0 ? ` - ${view.stash.slice(-2).join(", ")}` : " - empty"}
-      </div>
-    </div>
+      </span>
+    </Plate>
   );
 }

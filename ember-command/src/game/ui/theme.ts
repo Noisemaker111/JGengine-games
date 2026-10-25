@@ -1,10 +1,25 @@
+import { gameFontStacks } from "@jgengine/react/gameFonts";
 import { hudTheme } from "@jgengine/react/hudTheme";
 
-/** Ember Command's forged-teal and brass field-desk palette; the shell applies it at the HUD root. */
+import { GAME_FONTS } from "../../art/fonts/fonts";
+
+/** The bundled faces: IM Fell English SC for the hand that writes orders, Alegreya for the body. */
+export const EMBER_FONTS = gameFontStacks(GAME_FONTS);
+
+/** The war table's colours: iron-gall ink, sealing wax, brass, campaign parchment, and the two sides' inks. */
+export const INK = "#2b1d10";
+export const INK_DIM = "#5e4630";
+export const WAX = "#8e1f17";
+export const BRASS = "#c99a4a";
+export const PARCHMENT = "#efe3c6";
+export const VANGUARD_INK = "#2d5b8c";
+export const MARAUDER_INK = "#a3291c";
+
+/** Ember Command's field-desk palette; the shell applies it at the HUD root (notices, engine blocks). */
 export const emberTheme = hudTheme({
-  palette: { accent: "#efc878", accentDeep: "#b88947", accentGlow: "#ecc98555", accentDim: "#efc87822" },
-  surface: { surface: "#1c2b2cf2", surfaceDeep: "#121e21", edge: "#bca16d88", edgeBright: "#ffda83", text: "#f3e6c7", textDim: "#c3d3cf", backdrop: "#07161de8" },
-  status: { warning: "#e9c57e", danger: "#ff7a5c", success: "#5cd66a", hostile: "#ff7a5c", friendly: "#7db4ff" },
-  font: { display: 'Georgia, "Times New Roman", serif', body: 'Georgia, "Times New Roman", serif', numeric: 'Georgia, "Times New Roman", serif' },
-  frame: { bg: "linear-gradient(145deg, #303b39f5, #121e21f5)", border: "1px solid #bca16d88", radius: "6px", glow: "inset 0 2px #ecd49f33, inset 0 -3px #080f13aa, 0 8px 25px #0008" },
+  palette: { accent: "#c99a4a", accentDeep: "#8a6528", accentGlow: "#e8c27a55", accentDim: "#c99a4a22" },
+  surface: { surface: "#efe3c6f2", surfaceDeep: "#e3d3ae", edge: "#5e463088", edgeBright: "#2b1d10", text: "#2b1d10", textDim: "#5e4630", backdrop: "#1a120ae0" },
+  status: { warning: "#b0741c", danger: "#a3291c", success: "#3f6f2a", hostile: "#a3291c", friendly: "#2d5b8c" },
+  font: { display: EMBER_FONTS.fontDisplay, body: EMBER_FONTS.fontBody, numeric: EMBER_FONTS.fontNumeric },
+  frame: { bg: "linear-gradient(180deg, #f3e8cd, #e2cfa6)", border: "1px solid #5e463088", radius: "2px", glow: "0 6px 18px #0007" },
 });

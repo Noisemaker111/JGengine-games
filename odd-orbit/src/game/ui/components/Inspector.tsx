@@ -1,5 +1,5 @@
 import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
+import { GameFrame } from "@jgengine/react/gameFrame";
 import { useGame, useGameClock, useSceneObjects } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { NEEDS } from "../../needs/needs";
@@ -41,11 +41,11 @@ export function Inspector() {
   const bonds = household.order.filter(other => other !== id).map(other => ({ id: other, name: household.members[other]?.name ?? "?", value: household.relationships[pairKey(id, other)] ?? 0 })).sort((a,b) => b.value - a.value);
   const book = householdBook(household);
   const company = member.action.kind === "wander" && member.action.company !== undefined ? household.members[member.action.company]?.name : undefined;
-  return <HudSurface className="orbit-inspector" as="section" aria-label={`${member.name} care and schedule`}>
+  return <GameFrame material="paper" cut="box" padding="0" edgeWidth={0} shadow={false} className="orbit-inspector" as="section" aria-label={`${member.name} care and schedule`}>
     <header><AlienSwatch plan={member.bodyPlan} size={52}/><div><h2>{member.name}</h2><small>{member.job}</small></div><HudButton className="orbit-close" aria-label="Close member care" onClick={() => commands.run("member.select",{ id:null })}>×</HudButton></header>
     <div className="orbit-inspector-body">
     <div className="orbit-member-state"><MoodBadge tier={mood.tier} face={mood.face} label={mood.label}/><span>{activeGoalLabel(member, company)}</span></div>
-    <div className="orbit-stress"><span>{member.recovering ? "Burnout recovery" : "Stress"}</span><meter aria-label="Stress" min={0} max={100} value={member.stress}/><b>{Math.round(member.stress)}</b></div>
+    <div className="orbit-stress"><span>{member.recovering ? "Burnout recovery" : "Stress"}</span><span className="orbit-bar" role="meter" aria-label="Stress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(member.stress)}><i style={{ width: `${Math.round(Math.max(0, Math.min(100, member.stress)))}%`, background: "#ff9e8c" }}/></span><b>{Math.round(member.stress)}</b></div>
     {member.recovering && <p className="orbit-warning">Paid work stops during recovery. Reach 50 Nourish and Rest, then reduce stress below 35.</p>}
     <div className="orbit-full-needs">{NEEDS.map(need => <NeedBar key={need} need={need} value={member.needs[need]}/>)}</div>
     <h3>Post & mastery</h3>
@@ -66,13 +66,13 @@ export function Inspector() {
     {member.lifestyle === "bloom" && <><h3>Choose today's crop</h3><div className="orbit-lifestyles" role="group" aria-label="Bloom crop">{(["pantry","export"] as const).map(choice => { const output = bloomHarvestIn(view, member, choice, false); return <HudButton key={choice} aria-pressed={crop === choice} disabled={cropLocked && crop !== choice} onClick={() => commands.run("member.bloomCrop", { id, crop:choice })}><strong>{choice === "pantry" ? "Pantry crop" : "Export crop"}</strong><span>{output.rations} rations · {output.credits} credits</span></HudButton>; })}</div><p className="orbit-fine">Export trades 3 rations for 12 extra credits. Friends tending nearby add 1 ration and 12 credits. {cropLocked ? "Crop committed until tomorrow." : "Choose before tending starts."}</p></>}
     <HudButton className="orbit-paid-action" disabled={paidReason !== null || shiftLabel !== null} onClick={() => commands.run("member.direct", { id, goal: member.lifestyle === "bloom" ? "tend" : "work" })}>{shiftLabel ?? (member.lifestyle === "bloom" ? `Tend ${crop} crop · ${reward.rations} rations + ${reward.credits} credits` : `Start Yield shift · earn up to ${yieldShiftValue(household, member)} credits`)}</HudButton>
     <p className="orbit-fine">{paidReason ?? (shiftLabel !== null ? "Shift under way. Care needs can interrupt it." : "20 seconds at the station. Care needs can interrupt your shift.")}</p>
-    <div className="orbit-shift"><span>Shift progress</span><progress max={SHIFT_SECONDS} value={shiftProgress}/><span>{Math.round(shiftProgress)} / {SHIFT_SECONDS}s</span></div>
+    <div className="orbit-shift"><span>Shift progress</span><span className="orbit-bar" role="progressbar" aria-valuemin={0} aria-valuemax={SHIFT_SECONDS} aria-valuenow={Math.round(shiftProgress)}><i style={{ width: `${Math.max(0, Math.min(100, (shiftProgress / SHIFT_SECONDS) * 100))}%`, background: "#8fdcb8" }}/></span><span>{Math.round(shiftProgress)} / {SHIFT_SECONDS}s</span></div>
     <p className="orbit-fine">Today: {member.workToday.toFixed(0)} seconds worked · {member.harvestToday} rations grown</p>
     <HudButton className="orbit-release" onClick={() => commands.run("member.release", { id })}>Release direction · let {member.name.split(" ")[0]} choose</HudButton>
     <h3>Relationships</h3><p className="orbit-fine">Conversations ease stress. Two stressed beings may dispute instead.</p>
     <div className="orbit-bonds">{bonds.map(bond => <div key={bond.id}><span><strong>{bond.name}</strong><small>{bondWord(book, id, bond.id)} · {Math.round(bond.value)}</small></span><HudButton onClick={() => commands.run("member.socialize", { id, withId:bond.id })}>Talk</HudButton></div>)}</div>
     <p className="orbit-fine">Select a furnishing in the habitat to direct this being. A Bond Ring used alone can only restore Social to 55.</p>
     </div>
-  </HudSurface>;
+  </GameFrame>;
 }
 

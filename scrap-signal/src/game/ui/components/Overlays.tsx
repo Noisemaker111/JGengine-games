@@ -6,21 +6,20 @@ import { AMMO_LABELS, AMMO_POOLS } from "../../ammo";
 import { gearItems, AMMO_PRICES } from "../../items/gear/catalog";
 import { FERRALON } from "../../palette";
 import { ScrapPanel } from "./ScrapPanel";
+import { Pips, SIGNAL } from "../fiction/kit";
 import { reserveStore, ruskDownStore, vendorOpenStore } from "../../stores";
 
+/** The emergency reserve: the rig’s tube flashes a reboot countdown across the middle of the view. */
 export function ReserveOverlay() {
   const reserve = useStore(reserveStore);
   if (reserve.phase !== "downed") return null;
   const secondsLeft = reserve.secondsLeft;
   return (
-    <div className="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center">
-      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 180px 60px rgba(160, 20, 10, 0.75)" }} />
-      <span className="animate-pulse text-4xl font-black uppercase tracking-[0.2em] text-rose-500 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
-        Reboot Window!
-      </span>
-      <span className="mt-2 text-lg font-bold text-stone-100">
-        Get a kill for a Power Surge — {secondsLeft.toFixed(1)}s
-      </span>
+    <div className="ss-reserve" role="alert">
+      <div className="ss-reserve-bleed" />
+      <span className="ss-reserve-title">Reboot Window!</span>
+      <Pips value={secondsLeft} max={12} count={12} color={SIGNAL.red} className="ss-reserve-pips" />
+      <span className="ss-reserve-hint">Get a kill for a Power Surge — {secondsLeft.toFixed(1)}s</span>
     </div>
   );
 }

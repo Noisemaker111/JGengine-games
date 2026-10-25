@@ -19,16 +19,20 @@ interface Blip {
   stroke: boolean;
 }
 
-/** Dot palette per marker kind — same faction colours and blip sizes as the old radar. */
+/** Marks per marker kind, in the survey's inks: the Vanguard in blue, the hero in brass, the
+ * Marauders in red, gold seams in ochre. Buildings carry an iron-gall outline. */
 const BLIP: Record<string, Blip> = {
-  playerHero: { color: "#ffd24a", radius: 3.4, stroke: false },
-  playerBuilding: { color: "#5b9bff", radius: 4, stroke: true },
-  playerUnit: { color: "#5b9bff", radius: 2.4, stroke: false },
-  enemyHero: { color: "#f0603f", radius: 3.4, stroke: false },
-  enemyBuilding: { color: "#f0603f", radius: 4, stroke: true },
-  enemyUnit: { color: "#f0603f", radius: 2.4, stroke: false },
-  goldmine: { color: "#e8c14a", radius: 2.6, stroke: false },
+  playerHero: { color: "#c99a4a", radius: 3.6, stroke: true },
+  playerBuilding: { color: "#2d5b8c", radius: 4.2, stroke: true },
+  playerUnit: { color: "#2d5b8c", radius: 2.5, stroke: false },
+  enemyHero: { color: "#a3291c", radius: 3.6, stroke: true },
+  enemyBuilding: { color: "#a3291c", radius: 4.2, stroke: true },
+  enemyUnit: { color: "#a3291c", radius: 2.5, stroke: false },
+  goldmine: { color: "#b0741c", radius: 2.7, stroke: false },
 };
+
+const INK = "#2b1d10";
+const FOG_INK = "#3a2a18";
 
 /** The fog grids, re-read on the fog tick (5 Hz) so the map never shows a stale sightline. */
 function useFogSnapshot(): FogCellsSnapshot | null {
@@ -103,25 +107,38 @@ export function Minimap() {
       position: m.position,
       color: blip.color,
       radius: blip.radius,
-      ...(blip.stroke ? { strokeColor: "#0b1220", strokeWidth: 0.6 } : {}),
+      ...(blip.stroke ? { strokeColor: INK, strokeWidth: 0.9 } : {}),
     };
   });
 
   const fogPaint = fog === null ? null : fogPaths(fog);
 
   return (
-    <div className="rounded-lg border border-slate-500/40 bg-slate-900/80 p-1 shadow-lg backdrop-blur-sm">
-      <svg width={SIZE} height={SIZE} className="block rounded" role="img" aria-label="Battlefield minimap">
-        <rect x={0} y={0} width={SIZE} height={SIZE} fill="#25401f" rx={4} />
-        <rect x={0} y={0} width={SIZE} height={SIZE / 2} fill="#3a2020" opacity={0.35} />
-        {fogPaint !== null ? (
-          <>
-            <path d={fogPaint.unseen} fill="#0a0d12" opacity={FOG_ALPHA.unseen} />
-            <path d={fogPaint.explored} fill="#0a0d12" opacity={FOG_ALPHA.explored} />
-          </>
-        ) : null}
-        <MinimapChrome view={VIEW} markers={dots} />
-      </svg>
-    </div>
+    <svg width={SIZE} height={SIZE} className="ec-minimap" role="img" aria-label="Battlefield minimap">
+      {/* The vale as a survey sheet: parchment, the Warcamp's half washed red, ruled survey squares. */}
+      <rect x={0} y={0} width={SIZE} height={SIZE} fill="#dccaa0" />
+      <rect x={0} y={0} width={SIZE} height={SIZE / 2} fill="#a3291c" opacity={0.08} />
+      <path
+        d={Array.from({ length: 5 }, (_, i) => `M${(i + 1) * (SIZE / 6)} 0V${SIZE}M0 ${(i + 1) * (SIZE / 6)}H${SIZE}`).join("")}
+        stroke={INK}
+        strokeOpacity={0.12}
+        strokeWidth={0.6}
+        fill="none"
+      />
+      {/* Ground never surveyed is cross-hatched in ink; ground surveyed but out of sight is washed. */}
+      <defs>
+        <pattern id="ec-unsurveyed" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill={FOG_INK} fillOpacity={0.42} />
+          <path d="M0 0V6" stroke={INK} strokeOpacity={0.55} strokeWidth={1.4} />
+        </pattern>
+      </defs>
+      {fogPaint !== null ? (
+        <>
+          <path d={fogPaint.unseen} fill="url(#ec-unsurveyed)" opacity={FOG_ALPHA.unseen} />
+          <path d={fogPaint.explored} fill={FOG_INK} opacity={FOG_ALPHA.explored * 0.45} />
+        </>
+      ) : null}
+      <MinimapChrome view={VIEW} markers={dots} />
+    </svg>
   );
 }
