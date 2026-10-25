@@ -1,9 +1,15 @@
 {
   "adopts": [
     "audio-probe",
+    "game-cursor",
+    "game-font-stacks",
+    "game-fonts",
+    "game-frame",
     "game-save",
     "game-save-digest",
+    "game-slider",
     "game-spec",
+    "hud-fade",
     "mount-game",
     "run-loop",
     "session-loop",
