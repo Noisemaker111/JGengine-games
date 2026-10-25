@@ -3,7 +3,7 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { content } from "./content";
-import { GOLD_CURRENCY } from "./entities/base/catalog";
+import { keep, towersStanding } from "./keep";
 import { resetSession, session } from "./session";
 import { setupWorld } from "./world/setup";
 import { stageRun, type StageMode } from "./capture";
@@ -26,16 +26,17 @@ function fingerprint(ctx: HeadlessRunner["ctx"]): string {
   const creeps = [...session.creeps.values()]
     .map((creep) => `${creep.catalogId}@${creep.path.position.map((n) => n.toFixed(2)).join(",")}`)
     .sort();
-  const towers = [...session.towers.values()].map((tower) => `${tower.catalogId}:${tower.level}`).sort();
+  const world = keep.of(ctx);
+  const towers = world.instances().map((tower) => `${tower.kind}:${world.num(`${tower.id}.level`)}`).sort();
   return JSON.stringify({
     wave: session.encounter.view().wave,
     creeps,
     towers,
     boss: session.boss === null ? null : `${session.boss.unitId}:${session.boss.stance}`,
-    gold: ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY),
-    bounty: session.bountyEarned,
-    victory: session.victory,
-    gameOver: session.gameOver,
+    gold: keep.of(ctx).num("keep.gold"),
+    bounty: keep.of(runner.ctx).num("keep.bounty_earned"),
+    victory: (keep.of(runner.ctx).fact("keep.held") === true),
+    gameOver: (keep.of(runner.ctx).fact("keep.fallen") === true),
   });
 }
 
@@ -43,7 +44,7 @@ describe("staged capture states", () => {
   test("mid-wave puts raiders on the approach", () => {
     stageRun(runner.ctx, "midwave");
     expect(session.creeps.size).toBeGreaterThan(0);
-    expect(session.waveStarted).toBe(true);
+    expect((keep.of(runner.ctx).fact("keep.wave_started") === true)).toBe(true);
   });
 
   test("boss stands the Warden on the field in its second phase", () => {
@@ -55,7 +56,7 @@ describe("staged capture states", () => {
 
   test("result plays the defense out to its own ending", () => {
     stageRun(runner.ctx, "result");
-    expect(session.gameOver || session.victory).toBe(true);
+    expect((keep.of(runner.ctx).fact("keep.fallen") === true) || (keep.of(runner.ctx).fact("keep.held") === true)).toBe(true);
   });
 
   for (const mode of ["midwave", "boss", "result"] as const satisfies readonly StageMode[]) {

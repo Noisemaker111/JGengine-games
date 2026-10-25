@@ -1,60 +1,48 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { defineGameDefinition } from "@jgengine/core/game/defineGame";
-import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
+import type { HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 import { attachRefusalNotices } from "@jgengine/core/game/notices";
 
-import { content } from "../content";
-import { GOLD_CURRENCY, STARTING_GOLD } from "../entities/base/catalog";
+import { STARTING_GOLD } from "../entities/base/catalog";
 import { TOWER_CATALOG } from "../entities/towers/catalog";
-import { sellValue, upgradeCost } from "../entities/towers/progression";
+import { keep, sellValue } from "../keep";
 import { session } from "../session";
-import { setupWorld } from "../world/setup";
+import { advanceKeep, beaconRunner } from "../testing";
 import { BUILD_PLOTS } from "../world/path";
-import { physics, world } from "../../world";
-import { tickConstruction } from "./construction";
 
 const archer = TOWER_CATALOG.tower_archer!;
 const cannon = TOWER_CATALOG.tower_cannon!;
 
 let runner: HeadlessRunner;
+const world = () => keep.of(runner.ctx);
+const gold = () => world().num("keep.gold");
+const plotPoint = (index: number) => BUILD_PLOTS[index]!.position;
+const occupant = (index: number) => world().occupant(BUILD_PLOTS[index]!.id);
 
-function gold(): number {
-  return runner.ctx.game.economy.balance(runner.ctx.player.userId, GOLD_CURRENCY);
-}
-
-function plotPoint(index: number): readonly [number, number, number] {
-  return BUILD_PLOTS[index]!.position;
-}
-
+/** Pick a tower card, click a plot, put the card down, and let the build finish. */
 function build(slot: 1 | 2 | 3, plotIndex: number): string {
   runner.ui.invoke(`buildTower${slot}`, {});
   runner.ui.invoke("tower.build", { point: plotPoint(plotIndex) });
   runner.ui.invoke(`buildTower${slot}`, {});
-  tickConstruction(runner.ctx, 1 / 60);
-  return session.plotOccupant.get(BUILD_PLOTS[plotIndex]!.id)!;
+  advanceKeep(runner, 5);
+  return occupant(plotIndex)!;
 }
 
 beforeEach(() => {
-  runner = createHeadlessRunner({
-    definition: defineGameDefinition({ name: "Beacon Bastion (test)", world, physics }),
-    content,
-    loop: { onInit: setupWorld, onNewPlayer() {} },
-  });
+  runner = beaconRunner("Beacon Bastion (test)", { terrain: true });
 });
 
 describe("tower.build on plots", () => {
-  test("placing spawns the tower entity and reserves the plot", () => {
+  test("placing raises the tower entity on the plot and charges its price", () => {
     const id = build(1, 0);
     expect(runner.ctx.scene.entity.get(id)).not.toBeNull();
-    expect(session.towers.get(id)?.level).toBe(1);
+    expect(world().num(`${id}.level`)).toBe(1);
     expect(gold()).toBe(STARTING_GOLD - archer.cost);
   });
 
   test("clicking an occupied plot inspects its tower instead of rejecting", () => {
     const id = build(1, 0);
     runner.ui.invoke("buildTower2", {});
-    const result = runner.ui.tryInvoke("tower.build", { point: plotPoint(0) });
-    expect(result.status).toBe("applied");
+    expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(0) }).status).toBe("applied");
     expect(session.inspectedTowerId).toBe(id);
     expect(gold()).toBe(STARTING_GOLD - archer.cost);
   });
@@ -69,14 +57,14 @@ describe("tower.build on plots", () => {
 
   test("an empty plot with nothing selected still rejects, and says why", () => {
     expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(1) })).toEqual({ status: "rejected", reason: "no-tower-selected", message: "Pick a tower first" });
-    expect(session.plotOccupant.get(BUILD_PLOTS[1]!.id)).toBeNull();
+    expect(occupant(1)).toBeNull();
   });
 
   test("a tower the player cannot afford rejects and names the shortfall", () => {
-    runner.ctx.game.economy.charge(runner.ctx.player.userId, GOLD_CURRENCY, gold() - (archer.cost - 15));
+    world().set("keep.gold", archer.cost - 15);
     runner.ui.invoke("buildTower1", {});
-    expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(1) })).toEqual({ status: "rejected", reason: "insufficient-gold", message: `${archer.label} needs 15 more gold` });
-    expect(session.plotOccupant.get(BUILD_PLOTS[1]!.id)).toBeNull();
+    expect(runner.ui.tryInvoke("tower.build", { point: plotPoint(1) })).toEqual({ status: "rejected", reason: "cost", message: `${archer.label} needs 15 more gold` });
+    expect(occupant(1)).toBeNull();
   });
 });
 
@@ -87,22 +75,25 @@ test("a refused build shows its message as a deny notice in the shared feed", ()
   detach();
 });
 
-describe("sellTower", () => {
+describe("sellTower (keybind)", () => {
   test("refunds the sell value, despawns the tower, and frees the plot", () => {
     const id = build(2, 0);
     const before = gold();
+    const refund = sellValue(world(), id, cannon.id);
     runner.ui.invoke("sellTower", { instanceId: id });
-    expect(gold()).toBe(before + sellValue(cannon, 1));
+    advanceKeep(runner, 0.25);
+    expect(gold()).toBe(before + refund);
+    expect(refund).toBe(Math.round(cannon.cost * 0.7));
     expect(runner.ctx.scene.entity.get(id)).toBeNull();
-    expect(session.towers.has(id)).toBe(false);
-    expect(session.plotOccupant.get(BUILD_PLOTS[0]!.id)).toBeNull();
+    expect(occupant(0)).toBeNull();
   });
 
-  test("acts on the inspected tower when no id is given (keybind path)", () => {
+  test("acts on the inspected tower when no id is given", () => {
     const id = build(1, 0);
     runner.ui.invoke("tower.build", { point: plotPoint(0) });
     runner.ui.invoke("sellTower", { yaw: 0, pitch: 0 });
-    expect(session.towers.has(id)).toBe(false);
+    advanceKeep(runner, 0.25);
+    expect(world().instance(id)).toBeNull();
     expect(session.inspectedTowerId).toBeNull();
   });
 
@@ -115,34 +106,34 @@ describe("sellTower", () => {
     runner.ui.invoke("sellTower", { instanceId: first });
     const second = build(3, 0);
     expect(second).not.toBe(first);
-    expect(session.towers.get(second)?.catalogId).toBe("tower_frost");
+    expect(world().instance(second)?.kind).toBe("tower_frost");
   });
 });
 
-describe("upgradeTower", () => {
-  test("charges the upgrade cost and raises the level", () => {
+describe("upgradeTower (keybind)", () => {
+  test("charges the declared upgrade cost and raises the level", () => {
     const id = build(1, 0);
     const before = gold();
     runner.ui.invoke("upgradeTower", { instanceId: id });
-    expect(session.towers.get(id)?.level).toBe(2);
-    expect(gold()).toBe(before - upgradeCost(archer, 1)!);
+    expect(world().num(`${id}.level`)).toBe(2);
+    expect(gold()).toBe(before - Math.round(archer.cost * 0.75));
   });
 
   test("rejects without enough gold and at max level", () => {
     const id = build(2, 0);
-    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "insufficient-gold", message: expect.stringMatching(/^Upgrade needs \d+ more gold$/) });
-    runner.ctx.game.economy.grant(runner.ctx.player.userId, GOLD_CURRENCY, 10_000);
+    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "cost", message: expect.stringMatching(/^Upgrade needs \d+ more gold$/) });
+    world().set("keep.gold", 10_000);
     runner.ui.invoke("upgradeTower", { instanceId: id });
     runner.ui.invoke("upgradeTower", { instanceId: id });
-    expect(session.towers.get(id)?.level).toBe(3);
-    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toEqual({ status: "rejected", reason: "max-level" });
+    expect(world().num(`${id}.level`)).toBe(3);
+    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "locked" });
   });
 
-  test("selling an upgraded tower refunds against everything invested", () => {
+  test("selling an upgraded tower refunds a share of its build and its upgrade", () => {
     const id = build(1, 0);
     runner.ui.invoke("upgradeTower", { instanceId: id });
     const before = gold();
     runner.ui.invoke("sellTower", { instanceId: id });
-    expect(gold()).toBe(before + sellValue(archer, 2));
+    expect(gold()).toBe(before + Math.round((archer.cost + Math.round(archer.cost * 0.75)) * 0.7));
   });
 });

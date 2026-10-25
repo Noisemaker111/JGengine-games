@@ -11,7 +11,7 @@ import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
 import type { SaveSlotMeta } from "@jgengine/core/game/saveSlots";
 
 import { BEACON_CREDITS } from "../../credits";
-import { GOLD_CURRENCY } from "../../entities/base/catalog";
+import { keep } from "../../keep";
 import { keepProfile } from "../../thumbs";
 import { beginRun, enterRun, pauseRun, resumeRun, withdrawToTitle } from "../../menu";
 import {
@@ -178,7 +178,7 @@ export function BeaconMenu() {
   const [notice, setNotice] = useState<string | null>(null);
   const recent = beaconSlots.mostRecent();
   const newKeep = keepForNewRun();
-  const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  const gold = keep.of(ctx).num("keep.gold");
 
   useEffect(() => {
     setScreen(root);

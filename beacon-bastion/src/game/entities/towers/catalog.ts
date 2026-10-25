@@ -46,6 +46,7 @@ export const TOWER_CATALOG: Record<string, TowerDef> = {
     label: "Cannon Redoubt",
     description: "Slow, heavy splash damage.",
     cost: 90,
+    buildSeconds: 4,
     range: 7.5,
     damage: 26,
     fireRateHz: 0.7,

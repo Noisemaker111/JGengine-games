@@ -3,9 +3,10 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { content } from "../content";
-import { GOLD_CURRENCY, STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
+import { STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
 import { resetSession, session } from "../session";
 import { setupWorld } from "../world/setup";
+import { keep } from "../keep";
 import {
   BANK_RULE,
   BOONS,
@@ -26,7 +27,7 @@ import {
 } from "./legacy";
 
 let runner: HeadlessRunner;
-const gold = () => runner.ctx.game.economy.balance(runner.ctx.player.userId, GOLD_CURRENCY);
+const gold = () => keep.of(runner.ctx).num("keep.gold");
 
 beforeEach(() => {
   resetSession();
@@ -50,10 +51,8 @@ function finishAt(wave: number, purse: number): void {
     session.encounter.openWave();
     session.encounter.completeWave();
   }
-  const held = gold();
-  if (purse > held) runner.ctx.game.economy.grant(runner.ctx.player.userId, GOLD_CURRENCY, purse - held);
-  if (purse < held) runner.ctx.game.economy.charge(runner.ctx.player.userId, GOLD_CURRENCY, held - purse);
-  session.banked = false;
+  keep.of(runner.ctx).set("keep.gold", purse);
+  keep.of(runner.ctx).set("keep.banked", false);
   finishRun(runner.ctx);
 }
 
@@ -139,7 +138,7 @@ describe("the relic the next defense carries", () => {
 
   test("the pick the result card takes is the relic the next defense opens with", () => {
     finishAt(8, 160);
-    session.gameOver = true;
+    keep.of(runner.ctx).set("keep.fallen", true);
     const banked = legacy.read(runner.ctx);
     const pick = banked.offer[1]!;
     const effect = BOONS.find((boon) => boon.id === pick)!.effect;
@@ -155,7 +154,7 @@ describe("the relic the next defense carries", () => {
 
   test("a defense restarted without a pick keeps the relic it already carried", () => {
     writeLegacy(runner.ctx, carrying("writ"));
-    session.gameOver = true;
+    keep.of(runner.ctx).set("keep.fallen", true);
     runner.ui.invoke("defense.restart", {});
     expect(carriedRelic(legacy.read(runner.ctx))?.id).toBe("writ");
   });

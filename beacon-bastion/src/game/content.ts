@@ -1,6 +1,6 @@
 import type { GameContextContent, GameContextEntityEntry } from "@jgengine/core/runtime/gameContext";
 
-import { BASE_CATALOG_ID, STARTING_LIVES } from "./entities/base/catalog";
+import { BASE_CATALOG_ID } from "./entities/base/catalog";
 import { CREEP_CATALOG } from "./entities/enemies/catalog";
 
 function creepEntry(id: string): GameContextEntityEntry {
@@ -13,12 +13,9 @@ function creepEntry(id: string): GameContextEntityEntry {
   };
 }
 
+/** The keep is scenery the raiders walk to; its lives are a world fact (`keep.lives`), not an entity stat. */
 function baseEntry(): GameContextEntityEntry {
-  return {
-    role: "npc",
-    stats: { lives: { max: STARTING_LIVES } },
-    receive: { leak: { order: ["lives"] } },
-  };
+  return { role: "npc" };
 }
 
 export const content: GameContextContent = {

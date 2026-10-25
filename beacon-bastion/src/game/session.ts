@@ -4,10 +4,6 @@ import type { BossState } from "@jgengine/core/ai/director/boss";
 import type { Encounter } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
 import { createStats, type Stats } from "@jgengine/core/stats/statModifiers";
-import { createWorkQueue, type WorkQueueState } from "@jgengine/core/gameplay";
-
-import type { TowerBuildSpec, TowerReservation } from "./build/construction";
-import { BUILD_PLOTS } from "./world/path";
 import { createEncounter } from "@jgengine/core/ai/director/encounter";
 import { evaluatePressure } from "@jgengine/core/ai/director/pressure";
 
@@ -20,14 +16,6 @@ export interface CreepRuntime {
   speedStats: Stats<"speed">;
 }
 
-export interface TowerRuntime {
-  instanceId: string;
-  catalogId: string;
-  plotId: string;
-  level: number;
-  cooldownSeconds: number;
-}
-
 /** The boss on the field, if it is out: its instance, what it is, phase state, and the stance that phase sets. */
 export interface BossRuntime {
   instanceId: string;
@@ -36,6 +24,10 @@ export interface BossRuntime {
   stance: string;
 }
 
+/**
+ * The real-time half of a defense: the wave director, raiders mid-route and tower aim. Gold, lives,
+ * plots, towers, builds and the run's flags live in the keep's world (`keep.ts`).
+ */
 export interface SessionState {
   /** The authored raider host and how far through it the run is. */
   encounter: Encounter;
@@ -45,50 +37,27 @@ export interface SessionState {
   boss: BossRuntime | null;
   /** Unit ids the open wave sent, pressure additions included, in entry order. */
   openingComposition: string[];
-  buildQueue: WorkQueueState<TowerBuildSpec, TowerReservation>;
   creeps: Map<string, CreepRuntime>;
-  towers: Map<string, TowerRuntime>;
-  plotOccupant: Map<string, string | null>;
+  /** Seconds until each standing tower may fire again: aim state, not keep state. */
+  towerCooldowns: Map<string, number>;
+  /** The tower card picked in the build bar; local to this player's screen. */
   selectedTowerId: string | null;
   /** The placed tower whose sell/upgrade panel is open; set by clicking its plot. */
   inspectedTowerId: string | null;
-  /** The player releases each wave; living raiders may still be on the approach. */
-  waveReady: boolean;
-  waveStarted: boolean;
-  lastWaveBonus: number;
-  /** Every kill bounty this run has paid, for the result card. */
-  bountyEarned: number;
-  /** Set the once a run finishes, so neither a win nor a fall banks twice. */
-  banked: boolean;
-  gameOver: boolean;
-  victory: boolean;
   creepSeq: number;
-  towerSeq: number;
 }
 
 function freshState(): SessionState {
-  const plotOccupant = new Map<string, string | null>();
-  for (const plot of BUILD_PLOTS) plotOccupant.set(plot.id, null);
   return {
     encounter: createEncounter({ definition: ENCOUNTER, seed: DIRECTOR_SEED }),
     pressure: evaluatePressure({ health: 1, progress: 0, elapsed: 0 }),
     boss: null,
     openingComposition: [],
-    buildQueue: createWorkQueue<TowerBuildSpec, TowerReservation>(),
     creeps: new Map(),
-    towers: new Map(),
-    plotOccupant,
+    towerCooldowns: new Map(),
     selectedTowerId: null,
     inspectedTowerId: null,
-    waveReady: true,
-    waveStarted: false,
-    lastWaveBonus: 0,
-    bountyEarned: 0,
-    banked: false,
-    gameOver: false,
-    victory: false,
     creepSeq: 0,
-    towerSeq: 0,
   };
 }
 
@@ -101,11 +70,6 @@ export function resetSession(): void {
 export function nextCreepInstanceId(): string {
   session.creepSeq += 1;
   return `creep-${session.creepSeq}`;
-}
-
-export function nextTowerInstanceId(): string {
-  session.towerSeq += 1;
-  return `tower-${session.towerSeq}`;
 }
 
 export function newSpeedStats(baseSpeed: number): Stats<"speed"> {

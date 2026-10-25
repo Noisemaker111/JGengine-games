@@ -6,92 +6,78 @@ import type { PathFollowState } from "@jgengine/core/nav/pathFollow";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { ClockSnapshot } from "@jgengine/core/time/simClock";
-import type { WorkQueueState } from "@jgengine/core/gameplay";
+import type { WorldFactValue, WorldModelState } from "@jgengine/core/worldModel/worldModel";
 
-import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY } from "./entities/base/catalog";
+import { BASE_CATALOG_ID, BASE_ENTITY_ID } from "./entities/base/catalog";
 import { creepDef } from "./entities/enemies/catalog";
 import { resetProjectiles } from "./combat/pendingProjectiles";
+import { keep, resetKeep, spawnStandingTowers } from "./keep";
 import { newSpeedStats, resetSession, session, type BossRuntime } from "./session";
-import { freshLegacy, readLegacy, relicLoop, upgradeLegacy, writeLegacy } from "./waves/legacy";
+import { freshLegacy, openingGold, openingLives, readLegacy, relicLoop, upgradeLegacy, writeLegacy } from "./waves/legacy";
 import { WARDEN_ID } from "./waves/manifest";
 import type { EncounterState } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
-import type { TowerBuildSpec, TowerReservation } from "./build/construction";
-import { BUILD_PLOTS, KEEP_POINT } from "./world/path";
+import { KEEP_POINT } from "./world/path";
 import { captureKeepThumb, keepProfile } from "./thumbs";
 
 /** The keeps a player can hold. One document per keep, all inside the shared save document. */
 export const KEEP_SLOTS = ["keep", "ward", "beacon"] as const;
 export const KEEP_LABEL: Record<string, string> = { keep: "The Keep", ward: "The Ward", beacon: "The Beacon" };
 
+/** A document written before the keep was a world: its purse, walls and wave flags sat in this section. */
+interface PreWorldFields {
+  gold?: number;
+  lives?: number;
+  waveReady?: boolean;
+  waveStarted?: boolean;
+  lastWaveBonus?: number;
+  bountyEarned?: number;
+  banked?: boolean;
+  gameOver?: boolean;
+  victory?: boolean;
+}
+
 /**
- * One defense run as the save document stores it: the run's clock, purse, keep health, wave director,
- * every raider mid-route and every raised tower. Plain JSON so a document written by one build
- * restores into the next.
+ * The real-time half of a run as the save document stores it: the clock, the wave director, the
+ * Warden and every raider mid-route. Gold, lives, plots, towers and builds are the `world` section.
  */
-export interface DefenseSave {
+export interface DefenseSave extends PreWorldFields {
   clock: ClockSnapshot;
-  gold: number;
-  lives: number;
   encounter: EncounterState;
   pressure: PressurePlan;
   boss: BossRuntime | null;
   openingComposition: string[];
-  waveReady: boolean;
-  waveStarted: boolean;
-  lastWaveBonus: number;
-  /** Kill bounties paid this run. Optional so a document from before bounties still restores. */
-  bountyEarned?: number;
-  /** Whether this run already banked its reward. Optional for the same reason. */
-  banked?: boolean;
-  gameOver: boolean;
-  victory: boolean;
   creepSeq: number;
-  towerSeq: number;
   creeps: { instanceId: string; catalogId: string; path: PathFollowState }[];
-  towers: { instanceId: string; catalogId: string; plotId: string; level: number; cooldownSeconds: number }[];
-  queue: WorkQueueState<TowerBuildSpec, TowerReservation>;
-}
-
-function balance(ctx: GameContext): number {
-  return ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
 }
 
 export function captureDefense(ctx: GameContext): DefenseSave {
   return {
     clock: ctx.time.snapshot(),
-    gold: balance(ctx),
-    lives: ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current ?? 0,
     encounter: session.encounter.snapshot(),
     pressure: { ...session.pressure },
     boss: session.boss === null ? null : { instanceId: session.boss.instanceId, unitId: session.boss.unitId, state: { ...session.boss.state }, stance: session.boss.stance },
     openingComposition: [...session.openingComposition],
-    waveReady: session.waveReady,
-    waveStarted: session.waveStarted,
-    lastWaveBonus: session.lastWaveBonus,
-    bountyEarned: session.bountyEarned,
-    banked: session.banked,
-    gameOver: session.gameOver,
-    victory: session.victory,
     creepSeq: session.creepSeq,
-    towerSeq: session.towerSeq,
     creeps: [...session.creeps.values()].map((creep) => ({
       instanceId: creep.instanceId,
       catalogId: creep.catalogId,
       path: creep.path,
     })),
-    towers: [...session.towers.values()].map((tower) => ({ ...tower })),
-    queue: session.buildQueue,
   };
 }
 
+/** Whether this load restored a keep world, or a pre-world document left the keep fresh. */
+const worldLoaded = perContext(() => ({ restored: false }));
+
 /**
- * Put a stored run back on the live world: the same raiders on the same stretch of route, the same
- * towers and purses. Active frost slows ride on a 1.6 s stat modifier, so they restart from clean.
+ * Put a stored run back on the live world: the same raiders on the same stretch of route. Active frost
+ * slows ride on a 1.6 s stat modifier, so they restart from clean. A pre-world document carries its
+ * purse, walls and wave flags here; they move into the fresh keep, and its towers are not kept.
  */
 export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
   ctx.time.hydrate(save.clock);
-  for (const id of [...session.creeps.keys(), ...session.towers.keys(), BASE_ENTITY_ID]) ctx.scene.entity.despawn(id);
+  for (const id of [...session.creeps.keys(), BASE_ENTITY_ID]) ctx.scene.entity.despawn(id);
   resetSession();
   resetProjectiles();
 
@@ -104,27 +90,10 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
     stance: save.boss.stance,
   };
   session.openingComposition = [...save.openingComposition];
-  session.waveReady = save.waveReady;
-  session.waveStarted = save.waveStarted;
-  session.lastWaveBonus = save.lastWaveBonus;
-  session.bountyEarned = typeof save.bountyEarned === "number" ? save.bountyEarned : 0;
-  session.banked = save.banked === true;
-  session.gameOver = save.gameOver;
-  session.victory = save.victory;
   session.creepSeq = save.creepSeq;
-  session.towerSeq = save.towerSeq;
-  session.buildQueue = save.queue;
 
   ctx.scene.entity.spawn(BASE_CATALOG_ID, { id: BASE_ENTITY_ID, position: KEEP_POINT, role: "prop" });
-  ctx.scene.entity.stats.set(BASE_ENTITY_ID, "lives", { current: save.lives });
-
-  for (const tower of save.towers) {
-    const plot = BUILD_PLOTS.find((candidate) => candidate.id === tower.plotId);
-    if (plot === undefined) continue;
-    ctx.scene.entity.spawn(tower.catalogId, { id: tower.instanceId, position: plot.position, role: "prop" });
-    session.towers.set(tower.instanceId, { ...tower });
-    session.plotOccupant.set(tower.plotId, tower.instanceId);
-  }
+  if (!worldLoaded(ctx).restored) migratePreWorld(ctx, save);
 
   for (const creep of save.creeps) {
     const def = creepDef(creep.catalogId);
@@ -137,10 +106,23 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
       speedStats: newSpeedStats(def.speed),
     });
   }
+}
 
-  const held = balance(ctx);
-  if (held > 0) ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, held);
-  if (save.gold > 0) ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, save.gold);
+function migratePreWorld(ctx: GameContext, save: PreWorldFields): void {
+  const world = keep.of(ctx);
+  const facts: [string, WorldFactValue | undefined][] = [
+    ["keep.gold", save.gold],
+    ["keep.lives", save.lives],
+    ["keep.wave_ready", save.waveReady],
+    ["keep.wave_started", save.waveStarted],
+    ["keep.last_bonus", save.lastWaveBonus],
+    ["keep.bounty_earned", save.bountyEarned],
+    ["keep.banked", save.banked],
+    ["keep.fallen", save.gameOver],
+    ["keep.held", save.victory],
+  ];
+  for (const [key, value] of facts) if (value !== undefined && typeof value === typeof world.fact(key)) world.set(key, value);
+  world.set("keep.wave", session.encounter.view().wave);
 }
 
 const number = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
@@ -153,27 +135,55 @@ export function validDefenseSave(value: unknown): value is DefenseSave {
   const save = value as DefenseSave;
   return (
     typeof save.clock === "object" && save.clock !== null && number(save.clock.now) &&
-    number(save.gold) && number(save.lives) &&
     typeof save.encounter === "object" && save.encounter !== null && Number.isSafeInteger(save.encounter.wave) &&
     typeof save.pressure === "object" && save.pressure !== null && Number.isSafeInteger(save.pressure.tier) &&
-    Array.isArray(save.openingComposition) &&
-    typeof save.waveReady === "boolean" && typeof save.waveStarted === "boolean" &&
-    number(save.lastWaveBonus) && typeof save.gameOver === "boolean" && typeof save.victory === "boolean" &&
-    Number.isSafeInteger(save.creepSeq) && Number.isSafeInteger(save.towerSeq) &&
+    Array.isArray(save.openingComposition) && Number.isSafeInteger(save.creepSeq) &&
     Array.isArray(save.creeps) && save.creeps.every((creep) =>
       typeof creep?.instanceId === "string" && typeof creep.catalogId === "string" &&
       typeof creep.path === "object" && creep.path !== null && waypoint(creep.path.position) && number(creep.path.target) &&
-      number(creep.path.heading) && typeof creep.path.done === "boolean" && number(creep.path.distanceTravelled)) &&
-    Array.isArray(save.towers) && save.towers.every((tower) =>
-      typeof tower?.instanceId === "string" && typeof tower.catalogId === "string" &&
-      typeof tower.plotId === "string" && Number.isSafeInteger(tower.level) && number(tower.cooldownSeconds)) &&
-    typeof save.queue === "object" && save.queue !== null && Array.isArray(save.queue.jobs)
+      number(creep.path.heading) && typeof creep.path.done === "boolean" && number(creep.path.distanceTravelled))
   );
+}
+
+/**
+ * A stored keep world this build can run: facts, a clock and a log, with every tower a kind and plot
+ * this declaration still has. Anything else falls back to a fresh keep instead of a half-built field.
+ */
+export function validWorldSave(value: unknown): value is WorldModelState {
+  if (typeof value !== "object" || value === null) return false;
+  const state = value as WorldModelState;
+  if (!number(state.time) || typeof state.facts !== "object" || state.facts === null || !Array.isArray(state.log)) return false;
+  if (!number(state.facts["keep.gold"]) || !number(state.facts["keep.lives"])) return false;
+  const plots = new Set(Object.keys(keep.def.slots?.plot ?? {}));
+  return Object.values(state.instances ?? {}).every((tower) =>
+    typeof tower === "object" && tower !== null && keep.def.kinds?.[tower.kind] !== undefined &&
+    typeof tower.slot === "string" && plots.has(tower.slot) && typeof tower.ready === "boolean");
 }
 
 const boundSave = perContext(() => ({ save: null as GameSave | null }));
 
-/** The run itself, as one save section: field, purse, director and the Warden. */
+/** The keep's world as one save section: purse, walls, towers and their levels, builds under way. */
+export function worldSystem(ctx: GameContext): GameSaveSystem {
+  const freshKeep = () => {
+    const banked = readLegacy(ctx);
+    resetKeep(ctx, { gold: openingGold(banked), lives: openingLives(banked) });
+    worldLoaded(ctx).restored = false;
+  };
+  return {
+    name: "world",
+    snapshot: () => keep.of(ctx).snapshot(),
+    restore: (section) => {
+      if (!validWorldSave(section)) return freshKeep();
+      for (const tower of keep.of(ctx).instances()) ctx.scene.entity.despawn(tower.id);
+      keep.of(ctx).restore(section);
+      spawnStandingTowers(ctx);
+      worldLoaded(ctx).restored = true;
+    },
+    reset: freshKeep,
+  };
+}
+
+/** The run's real-time half, as one save section: the director, the raiders on the road and the Warden. */
 export function defenseSystem(ctx: GameContext): GameSaveSystem {
   return {
     name: "defense",
@@ -182,7 +192,7 @@ export function defenseSystem(ctx: GameContext): GameSaveSystem {
       if (validDefenseSave(section)) restoreDefense(ctx, section);
     },
     reset: () => {
-      for (const id of [...session.creeps.keys(), ...session.towers.keys()]) ctx.scene.entity.despawn(id);
+      for (const id of session.creeps.keys()) ctx.scene.entity.despawn(id);
       resetSession();
       resetProjectiles();
     },
@@ -233,7 +243,8 @@ export function beaconSave(ctx: GameContext): GameSave {
     slot: KEEP_SLOTS[0],
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
-    systems: [defenseSystem(ctx), legacySystem(ctx), profileSystem()],
+    // The bank first, so a keep with no stored world opens with the purse that bank allows.
+    systems: [legacySystem(ctx), worldSystem(ctx), defenseSystem(ctx), profileSystem()],
   });
   slot.save = save;
   return save;
@@ -259,10 +270,12 @@ export function refreshBeaconSlots(ctx: GameContext): Promise<SaveSlotsRefresh> 
       const defense = document.systems.defense;
       if (!validDefenseSave(defense)) return {};
       const thumb = (document.systems.profile ?? {}) as { commander?: string | null; thumbnail?: string | null };
+      const world = document.systems.world;
+      const facts = validWorldSave(world) ? world.facts : { "keep.gold": defense.gold ?? 0, "keep.lives": defense.lives ?? 0 };
       return {
         ...(typeof thumb.commander === "string" && thumb.commander.length > 0 ? { character: thumb.commander } : {}),
-        gold: defense.gold,
-        lives: defense.lives,
+        gold: Number(facts["keep.gold"] ?? 0),
+        lives: Number(facts["keep.lives"] ?? 0),
         wave: defense.encounter.wave + 1,
         ...(typeof thumb.thumbnail === "string" && thumb.thumbnail.length > 0 ? { thumbnail: thumb.thumbnail } : {}),
       };
