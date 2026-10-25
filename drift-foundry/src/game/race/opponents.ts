@@ -10,10 +10,13 @@ import {
 } from "@jgengine/core/ai/driver";
 import { seededRng, type SeededRng } from "@jgengine/core/random/rng";
 
+import { MAIN_ROUTE } from "@jgengine/core/world/routeCourse";
+
 import { tuningFrom, type KartTuning } from "../parts/build";
 import { partById, type PartIconId } from "../parts/catalog";
 import { ROUTE_GATES } from "../route/gates";
 import { EXIT_Z, RUN_SEED, SPAWN_Z } from "../run/constants";
+import { ROW_SIX_TRACK, type Track } from "../tracks/catalog";
 import { createVehicleController, type VehicleController, type VehiclePose } from "../vehicle/controller";
 
 /**
@@ -41,8 +44,12 @@ export interface RivalDef {
    * barely concedes a lead; the rookie takes the full band, so a bad start is recoverable from.
    */
   band: number;
+  /** Grid slot: `x` metres left of the centreline, `z` run metres past the start line. */
   grid: { x: number; z: number };
-  /** Lateral offset from the corridor centreline at spawn, then at each route gate, then the exit. */
+  /**
+   * Lateral offset from the centreline at spawn, then at each Row Six gate, then the exit. On another
+   * track the same knots are spread evenly down the run and scaled to that road's width.
+   */
   line: readonly number[];
 }
 
@@ -112,11 +119,17 @@ export interface RivalBody {
   speedKmh: number;
   /** Shoved off its line, or backing out of something it ground against. */
   recovering: boolean;
+  /** Run metres along the track and the road height under the kart. */
+  run: number;
+  roadY: number;
 }
 
 export interface OpponentField {
-  /** Advance every rival one tick. `player` is the player's world position, for contact. */
-  tick(dt: number, player: readonly [number, number, number]): void;
+  /**
+   * Advance every rival one tick. `player` is the player's world position, for contact; `playerRun`
+   * their run metres (default: world z, Row Six's run metres); `time` the run clock for timed hazards.
+   */
+  tick(dt: number, player: readonly [number, number, number], playerRun?: number, time?: number): void;
   bodies(): readonly RivalBody[];
   /** Racer id → world position, the map the race state machine reads. */
   positions(): Record<string, readonly [number, number, number]>;
@@ -130,10 +143,26 @@ export interface OpponentField {
 export const RIVAL_ROLLOUT = 24;
 
 /** The authored route with this rival's lateral bias sampled in: spawn, each barricade, the exit. */
-export function rivalLine(def: RivalDef): readonly DrivePathPoint[] {
-  const zs = [SPAWN_Z, ...ROUTE_GATES.map((gate) => gate.atZ), EXIT_Z];
-  const line = zs.map((z, index) => [def.line[index] ?? def.line[def.line.length - 1] ?? 0, z] as const);
-  return [...line, [0, EXIT_Z + RIVAL_ROLLOUT] as const];
+export function rivalLine(def: RivalDef, track: Track = ROW_SIX_TRACK): readonly DrivePathPoint[] {
+  if (track.id === ROW_SIX_TRACK.id) {
+    const zs = [SPAWN_Z, ...ROUTE_GATES.map((gate) => gate.atZ), EXIT_Z];
+    const line = zs.map((z, index) => [def.line[index] ?? def.line[def.line.length - 1] ?? 0, z] as const);
+    return [...line, [0, EXIT_Z + RIVAL_ROLLOUT] as const];
+  }
+  const knots = def.line.length - 1;
+  const scale = Math.min(1, Math.max(0.2, (track.def.halfWidth - 3) / 16));
+  const offset = (progress: number): number => {
+    const run = progress - track.origin;
+    const at = Math.max(0, Math.min(knots, (run / track.exitAt) * knots));
+    const low = Math.floor(at);
+    const high = Math.min(knots, low + 1);
+    return (def.line[low]! + (def.line[high]! - def.line[low]!) * (at - low)) * scale;
+  };
+  const take = track.def.rivalTake[def.id] ?? [];
+  return track.course.line({ take, offset, step: 3 }).filter((point) => {
+    const run = track.locate(point[0], point[1]).progress - track.origin;
+    return run >= SPAWN_Z - 2 && run <= track.exitAt + RIVAL_ROLLOUT;
+  });
 }
 
 /** Where the rival's line sits laterally at `z` - the reference an off-line kart is judged against. */
@@ -164,9 +193,11 @@ interface Rival {
   recoverSeconds: number;
 }
 
-function createRival(def: RivalDef, groundHeightAt: (x: number, z: number) => number, seed: string): Rival {
+function createRival(def: RivalDef, groundHeightAt: (x: number, z: number) => number, seed: string, track: Track): Rival {
   const tuning = tuningFrom(def.parts.map((id) => partById(id)!));
   const profile = difficultyProfile(def.tier);
+  const grid = track.point(MAIN_ROUTE, def.grid.z, def.grid.x);
+  const aim = track.point(MAIN_ROUTE, def.grid.z + def.lookahead, def.grid.x);
   return {
     def,
     tuning,
@@ -181,29 +212,34 @@ function createRival(def: RivalDef, groundHeightAt: (x: number, z: number) => nu
       reverseSeconds: 0.9,
     },
     pace: { ...RIVAL_PACE, scale: def.band },
-    driver: createDriverState(def.grid.x, def.grid.z + def.lookahead),
+    driver: createDriverState(aim.x, aim.z),
     rng: seededRng(`${seed}:rival:${def.id}`),
-    line: rivalLine(def),
-    vehicle: createVehicleController({ position: [def.grid.x, groundHeightAt(def.grid.x, def.grid.z), def.grid.z], heading: 0 }),
-    pose: { position: [def.grid.x, 0, def.grid.z], heading: 0, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false },
+    line: rivalLine(def, track),
+    vehicle: createVehicleController({ position: [grid.x, groundHeightAt(grid.x, grid.z), grid.z], heading: grid.heading }, track),
+    pose: { position: [grid.x, grid.elevation, grid.z], heading: grid.heading, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false, run: def.grid.z, lateral: def.grid.x, route: MAIN_ROUTE, roadY: grid.elevation },
     recoverSeconds: 0,
   };
 }
 
 /** Springs under the nose: a rival hops the ramp it is about to reach, exactly like the HUD cue tells the player to. */
-function rampAhead(pose: VehiclePose): boolean {
-  const gate = ROUTE_GATES.find((entry) => entry.requirement === "jump" && entry.atZ >= pose.position[2]);
+function rampAhead(pose: VehiclePose, track: Track): boolean {
+  const run = pose.run ?? pose.position[2];
+  const route = pose.route ?? MAIN_ROUTE;
+  const gate = track.gates.find((entry) => entry.requirement === "jump" && entry.route === route && entry.atZ >= run);
   if (gate === undefined) return false;
   const lead = Math.max(5, (pose.speedKmh / 3.6) * 0.5);
-  return gate.atZ - pose.position[2] <= lead;
+  return gate.atZ - run <= lead;
 }
 
+/** `others` in track terms - lateral offset and run metres - so a switchback's next leg is never "ahead". */
 function gapToCarAhead(rival: Rival, others: readonly { x: number; z: number }[]): number | null {
   let nearest: number | null = null;
+  const run = rival.pose.run ?? rival.pose.position[2];
+  const lateral = rival.pose.lateral ?? rival.pose.position[0];
   for (const other of others) {
-    const dz = other.z - rival.pose.position[2];
+    const dz = other.z - run;
     if (dz <= 0 || dz > CAR_SIGHT) continue;
-    if (Math.abs(other.x - rival.pose.position[0]) > CONTACT_RADIUS) continue;
+    if (Math.abs(other.x - lateral) > CONTACT_RADIUS) continue;
     if (nearest === null || dz < nearest) nearest = dz;
   }
   return nearest;
@@ -229,11 +265,14 @@ export function createOpponentField(options: {
   seed?: string;
   /** Receives the player's half of a bumper-to-bumper contact, so a shove costs both karts. */
   onPlayerKnock?: (dx: number, dz: number) => void;
+  /** The track the field races; Row Six by default. */
+  track?: Track;
 } = {}): OpponentField {
   const groundHeightAt = options.groundHeightAt ?? (() => 0);
   const defs = options.defs ?? RIVAL_DEFS;
   const seed = options.seed ?? RUN_SEED;
-  let rivals = defs.map((def) => createRival(def, groundHeightAt, seed));
+  const track = options.track ?? ROW_SIX_TRACK;
+  let rivals = defs.map((def) => createRival(def, groundHeightAt, seed, track));
 
   const nudge = (rival: Rival, dx: number, dz: number): void => {
     rival.vehicle.shove(dx, dz);
@@ -242,7 +281,8 @@ export function createOpponentField(options: {
   };
 
   const field: OpponentField = {
-    tick(dt, player) {
+    tick(dt, player, playerRun = player[2], time = 0) {
+      const playerLateral = track.id === ROW_SIX_TRACK.id ? player[0] : track.locate(player[0], player[2]).offset;
       for (const rival of rivals) {
         const target = pathTargetAhead(rival.line, rival.pose.position[0], rival.pose.position[2], rival.def.lookahead);
         const goal = {
@@ -250,10 +290,13 @@ export function createOpponentField(options: {
           z: target?.[1] ?? rival.pose.position[2],
           // The field's catch-up band on the shared goal: the kart stays reachable without ever
           // driving faster than its authored build allows.
-          paceGap: rival.pose.position[2] - player[2],
+          paceGap: (rival.pose.run ?? rival.pose.position[2]) - playerRun,
           paceBand: rival.pace,
         };
-        const others = [{ x: player[0], z: player[2] }, ...rivals.filter((entry) => entry !== rival).map((entry) => ({ x: entry.pose.position[0], z: entry.pose.position[2] }))];
+        const others = [
+          { x: playerLateral, z: playerRun },
+          ...rivals.filter((entry) => entry !== rival).map((entry) => ({ x: entry.pose.lateral ?? entry.pose.position[0], z: entry.pose.run ?? entry.pose.position[2] })),
+        ];
         const step = driveStep(
           rival.driver,
           dt,
@@ -278,7 +321,7 @@ export function createOpponentField(options: {
             handbrake: step.handbrake,
           },
           rival.tuning,
-          { jumpPressed: rampAhead(rival.pose), plowBracing: false },
+          { jumpPressed: rampAhead(rival.pose, track), plowBracing: false, time },
           groundHeightAt,
         );
         if (rival.recoverSeconds > 0) rival.recoverSeconds = Math.max(0, rival.recoverSeconds - dt);
@@ -314,6 +357,8 @@ export function createOpponentField(options: {
         heading: rival.pose.heading,
         speedKmh: rival.pose.speedKmh,
         recovering: rival.recoverSeconds > 0 || rival.driver.reverseRemaining > 0,
+        run: rival.pose.run ?? rival.pose.position[2],
+        roadY: rival.pose.roadY ?? 0,
       }));
     },
     positions() {
@@ -328,7 +373,7 @@ export function createOpponentField(options: {
       return true;
     },
     reset() {
-      rivals = defs.map((def) => createRival(def, groundHeightAt, seed));
+      rivals = defs.map((def) => createRival(def, groundHeightAt, seed, track));
     },
   };
   return field;

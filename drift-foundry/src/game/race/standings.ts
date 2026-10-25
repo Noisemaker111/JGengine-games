@@ -5,12 +5,16 @@ import {
   raceTrack,
   type Checkpoint,
   type LapTimer,
+  type RaceFork,
   type RaceEvent,
   type RaceState,
 } from "@jgengine/core/game/race";
 
+import { MAIN_ROUTE } from "@jgengine/core/world/routeCourse";
+
 import { ROUTE_GATES } from "../route/gates";
 import { CORRIDOR_DRIVE_HALF_WIDTH, EXIT_Z } from "../run/constants";
+import { ROW_SIX_TRACK, type Track } from "../tracks/catalog";
 
 /**
  * Live position, lap and finish for the four karts on the corridor. The ordering, splits, lap
@@ -22,7 +26,7 @@ export const PLAYER_RACER_ID = "player";
 export const RACE_LAPS = 1;
 
 /** One checkpoint volume per barricade plus the finish line: the corridor's authored milestones. */
-const CHECKPOINTS: readonly Checkpoint[] = [
+const ROW_SIX_CHECKPOINTS: readonly Checkpoint[] = [
   ...ROUTE_GATES.map((gate) => ({
     id: gate.id,
     center: [0, 0, gate.atZ] as readonly [number, number, number],
@@ -70,9 +74,20 @@ export interface Standings {
   reset(): void;
 }
 
-export function createStandings(names: Readonly<Record<string, string>>): Standings {
+/**
+ * A track's checkpoint ring: one box per main-line barricade and the finish. The course drops the
+ * marks a shortcut skips and hands back the forks, so a kart is placed fairly down either path.
+ */
+export function trackCheckpoints(track: Track): { checkpoints: readonly Checkpoint[]; forks: readonly RaceFork[] } {
+  if (track.id === ROW_SIX_TRACK.id) return { checkpoints: ROW_SIX_CHECKPOINTS, forks: [] };
+  const at = track.gates.filter((gate) => gate.route === MAIN_ROUTE).map((gate) => gate.atZ + track.origin);
+  return track.course.checkpoints({ at, finish: track.exitAt + track.origin, height: 10 });
+}
+
+/** Racers are placed by their positions with `y` the road height under them (see the session). */
+export function createStandings(names: Readonly<Record<string, string>>, course: Track = ROW_SIX_TRACK): Standings {
   const ids = Object.keys(names);
-  const track = raceTrack({ checkpoints: CHECKPOINTS, laps: RACE_LAPS });
+  const track = raceTrack({ ...trackCheckpoints(course), laps: RACE_LAPS });
   // Every kart must cross before the race closes: the player's own finish ends the run, and the
   // classification behind them is only honest once the field has actually stopped racing for it.
   const timer: LapTimer = createLapTimer();

@@ -85,7 +85,7 @@ export const game = defineGame({
         intensity: 2.6,
         position: [110, 95, -46],
         castShadow: true,
-        // The run is 470m long, so a single ortho frustum drops contact shadows a few seconds in.
+        // A track runs up to 790 m, so a single ortho frustum drops contact shadows a few seconds in.
         cascades: 3,
         shadowMapSize: 1024,
         shadowCameraSize: 64,

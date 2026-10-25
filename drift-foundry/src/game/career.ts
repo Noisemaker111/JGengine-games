@@ -5,7 +5,7 @@ import { createStanding, type StandingState } from "@jgengine/core/progression/s
 import { createUpgradeTree, type UpgradeState } from "@jgengine/core/progression/upgrades";
 import { createMedalBoard, type MedalBoardState } from "@jgengine/core/progression/medalBoard";
 
-import { DEFAULT_EVENT_ID, eventById, MEDAL_BOARD } from "./events/catalog";
+import { DEFAULT_EVENT_ID, eventById, MEDAL_BOARD, YARD_EVENTS } from "./events/catalog";
 
 import { partById, PART_SLOTS, PARTS, type DriftFoundryPartDef, type PartSlotId } from "./parts/catalog";
 
@@ -85,6 +85,24 @@ export interface CareerSave {
   medals: MedalBoardState;
   /** The calendar event the next run races. */
   event: string;
+  /** The track each event ran on when its best was set; a best set on another track is dropped. */
+  courses: Record<string, string>;
+}
+
+/** Every event's track today. Careers saved before the tracks ran every event on Row Six. */
+const eventCourses = (): Record<string, string> => Object.fromEntries(YARD_EVENTS.map((event) => [event.id, event.track]));
+const LEGACY_COURSE = "row-six";
+
+/** Bests kept only for events still on the track they were set on. */
+function sameCourseBests(medals: MedalBoardState, courses: unknown): MedalBoardState {
+  const saved = typeof courses === "object" && courses !== null ? (courses as Record<string, unknown>) : {};
+  const now = eventCourses();
+  if (typeof medals.best !== "object" || medals.best === null) return medals;
+  const best: Record<string, number> = {};
+  for (const [id, value] of Object.entries(medals.best)) {
+    if ((saved[id] ?? LEGACY_COURSE) === now[id]) best[id] = value;
+  }
+  return { ...medals, best };
 }
 
 export const CAREER_KEY = "drift-foundry.career.v1";
@@ -98,6 +116,7 @@ export function newCareer(): CareerSave {
     ladders: { ranks: {} },
     medals: { best: {} },
     event: DEFAULT_EVENT_ID,
+    courses: eventCourses(),
   };
 }
 
@@ -112,8 +131,10 @@ export function readCareer(storage?: CareerStorage): CareerSave {
       standing: validStanding(data.standing) ? data.standing : fresh.standing,
       ladders: validLadders(data.ladders) ? data.ladders : fresh.ladders,
       // A career saved before the calendar has no medals and races the salvage run.
-      medals: createMedalBoard({ ...MEDAL_BOARD, state: typeof data.medals === "object" && data.medals !== null ? data.medals : fresh.medals }).snapshot(),
+      // An event moved to a new track keeps none of its old bests: they were times on another road.
+      medals: createMedalBoard({ ...MEDAL_BOARD, state: typeof data.medals === "object" && data.medals !== null ? sameCourseBests(data.medals, data.courses) : fresh.medals }).snapshot(),
       event: typeof data.event === "string" && eventById(data.event) !== null ? data.event : fresh.event,
+      courses: fresh.courses,
     };
   } catch {
     return newCareer();

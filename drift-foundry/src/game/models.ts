@@ -2,6 +2,7 @@ import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
 import { assets } from "./assets";
 import { buggyModel, ghostKartModel, jumpBarrierModel, jumpCueModel, rivalKartModels, stationModels, upgradeModels } from "./art/models";
+import { trackEntityModels, trackObjectModels } from "./art/trackModels";
 import { COMPACTOR_ENTITY, KART_GHOST_ENTITY, KART_PLAYER_ENTITY } from "./entities/catalog";
 import {
   EXIT_GATE_ARCH,
@@ -365,6 +366,7 @@ export const entityModels: Record<string, ModelConfig> = {
   [KART_PLAYER_ENTITY]: buggyModel,
   [KART_GHOST_ENTITY]: ghostKartModel,
   [COMPACTOR_ENTITY]: COMPACTOR_MODEL,
+  ...trackEntityModels,
 };
 
 export const objectModels: Record<string, ModelConfig> = {
@@ -384,4 +386,5 @@ export const objectModels: Record<string, ModelConfig> = {
   ...stationModels,
   [PICKUP_MARKER]: pickupMarker(),
   [EXIT_GATE_ARCH]: exitGateArch(),
+  ...trackObjectModels,
 };

@@ -3,7 +3,7 @@ import { createSaveSlots } from "@jgengine/core/game/saveSlots";
 import { requestSceneThumbnail } from "@jgengine/shell/render/sceneCaptureRequest";
 
 import { bankOf, DRIVER, readCareer, standingOf } from "./career";
-import { readParkedRun, type ParkedRun } from "./run/progress";
+import { parkedRunMetres, parkedTrack, readParkedRun, type ParkedRun } from "./run/progress";
 import { browserRecordStorage, readRecords, type RecordStorage } from "./run/records";
 import { runSessionStore } from "./run/session";
 
@@ -43,15 +43,15 @@ function cardOf(parked: ParkedRun, storage: RecordStorage | undefined): { name: 
   const frame = readPitFrame(storage);
   const career = readCareer(storage);
   const records = readRecords(storage);
-  const metres = Math.max(0, Math.floor(parked.position[2]));
-  const gate = Math.floor((parked.position[2] / 470) * 100);
+  const metres = Math.floor(parkedRunMetres(parked));
+  const gate = Math.floor((parkedRunMetres(parked) / parkedTrack(parked).exitAt) * 100);
   return {
     name: `Parked at ${metres} m`,
     meta: {
       run: `Run ${readRunNumber(storage)}`,
       clock: `${parked.runTime.toFixed(1)} s`,
       build: `${parked.partIds.length} of 4 parts`,
-      gate: `${gate}% of the corridor`,
+      gate: `${gate}% of ${parkedTrack(parked).label}`,
       credits: `${bankOf(career).banked()} cr`,
       standing: `${standingOf(career).standing(DRIVER, "yard")} / ${standingOf(career).tier(DRIVER, "yard").id}`,
       records: `${records.escapes} escapes / ${records.attempts} runs`,

@@ -14,8 +14,9 @@ and captures the frame the card shows; returning to the pit keeps it until the n
 
 Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the build runs now.
 
-- **Core loop.** Drive from z=4 to the exit at z=470 m through three yards (0–150 canyons, 150–300
-  flats, 300–470 gantry), racing three yard karts. Debris sits within 1.5 m of the centreline with a
+- **Core loop.** Drive to the exit gate down one of six tracks, racing up to three yard karts. Row Six
+  is the original straight corridor (z=4 to the exit at z=470 m through three yards: 0–150 canyons,
+  150–300 flats, 300–470 gantry); the other five are laid by the engine route-course builder. Debris sits within 1.5 m of the centreline with a
   3.2 m collection radius, so driving the corridor collects it; each pickup bolts a part into one of
   four slots. The compactor starts behind you at 5.6 m/s and surges to 10.5 m/s at 26–38 s and
   11.5 m/s at 62–76 s.
@@ -39,18 +40,33 @@ Read from `src/game/{run,parts,route,compactor,vehicle}`. Numbers are what the b
     runs): HOBBS's line tightens 45% and his pace rises 4%, TALLY loses his tow, the crusher starts
     12 m closer, or the night crew brings both surges 6 s earlier and 0.6 m/s harder. Same seed and
     same run count, same sequence.
-  - [x] Calendar. Eight events in `src/game/events/catalog.ts`, each the corridor under other rules,
+  - [x] Tracks. Six layouts in `src/game/tracks/`, each built with `buildRouteCourse`
+    (`@jgengine/core/world/routeCourse`) on rolling yard ground: one shortcut branch, timed or standing
+    hazard spans, its own sky/fog/ground band and props from the JGengine model library.
+    Slag River (690 m, molten channels and slick spill, LADLE BRIDGE shortcut 123–251 m, dusk red-orange),
+    Flooded Quarry (792 m, standing water and a deep pool on the PIT WADE cut 459–576 m, grey rain),
+    Conveyor Maze (760 m, six belts that push with or against you, BELT HALL 103–224 m, night blue),
+    Rail Yard (748 m, two freight crossings on timetables that throw a kart back, SHED CUT 334–489 m,
+    overcast steel), Smelter Climb (716 m, slag vents on a climb, TAPPING FLOOR 596–703 m, furnace red)
+    and Row Six (470 m, the original corridor). A branch gate stops only karts that took the branch;
+    some main-line gates drop shut at a set time, and beating one there leaves it down behind you.
+  - [x] Calendar. Eight events in `src/game/events/catalog.ts`, spread over the six tracks,
     graded bronze/silver/gold on one number by the engine's medal board
     (`@jgengine/core/progression/medalBoard`). Medals are worth 1/2/3 points; tiers open at
-    0 / 4 / 10 / 16 points of 24. Row Six: Salvage Run (finish place), Time Sheet (solo, clock),
-    Scrap Sweep (drops swept). Night Crew: Night Shift (crusher 15 m closer, +3.4 m/s between surges,
-    surges 8 s early and +1.5 m/s), Grudge: HOBBS (him alone at 106% pace on a tight line; margin at
-    the gate). Bare Metal: Bare Metal (garage shut, route salvage only), Crusher Rush (crusher from
-    -15 m at 11.2 m/s, solo). Yard Legend: Foundry Gauntlet (garage shut, night crusher, field at
-    107%). Each medal pays once, the first time it is earned: 60/120/220 cr in Row Six up to
-    200/400/700 cr in the Gauntlet. A scripted straight line takes bronze on the Time Sheet (40.1 s);
-    gold (31.5 s) needs the drops swept and the truck engine swapped in (28.7 s). A 4 s stall is
-    survivable on the Salvage Run and fatal on Night Shift and Crusher Rush.
+    0 / 4 / 10 / 16 points of 24. Row Six tier: Salvage Run on Row Six (finish place), Time Sheet on
+    the Slag River (solo, clock: 66 / 54 / 43.5 s), Scrap Sweep in the Flooded Quarry (drops swept:
+    7 / 10 / 12). Night Crew: Night Shift in the Conveyor Maze (crusher 15 m closer, +3.4 m/s between
+    surges, surges 8 s early and +1.5 m/s; 73 / 63 / 55 s), Grudge: HOBBS in the Rail Yard (him alone
+    at 106% pace on a tight line; margin at the gate −6 / −2 / +1.5 s). Bare Metal: Bare Metal on the
+    Smelter Climb (garage shut, route salvage only; 68 / 61 / 54.5 s), Crusher Rush on Row Six (crusher
+    from -15 m at 11.2 m/s, solo). Yard Legend: Foundry Gauntlet in the Rail Yard (garage shut, night
+    crusher, field at 107%). Medals and ghosts are kept per track: a best set on an event's old track
+    is dropped when the event moves, and ghosts are keyed by track and event. Each medal pays once,
+    the first time it is earned: 60/120/220 cr in Row Six up to 200/400/700 cr in the Gauntlet. Targets
+    are tuned against the scripted course driver (`src/game/testing/courseDriver.ts`): on the Slag
+    River it takes bronze on the plain line (61 s) and gold only through the ladle bridge with the
+    drops swept (40 s). A 4 s stall is survivable on the Salvage Run and fatal on Night Shift and
+    Crusher Rush.
   - [x] Ghost. Timed events record the kart ten times a second on the engine recording buffer; the
     fastest escape on each is saved to `drift-foundry.ghost.v1` and replays as a see-through teal
     kart on the next run, with the tower reading metres ahead of or behind it.

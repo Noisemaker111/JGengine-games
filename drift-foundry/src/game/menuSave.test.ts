@@ -37,7 +37,7 @@ test("the Continue card is the parked run, in the yard's words", () => {
   expect(card?.meta).toMatchObject({
     clock: "11.7 s",
     build: "0 of 4 parts",
-    gate: "13% of the corridor",
+    gate: "13% of Row Six",
     credits: "0 cr",
     thumbnail: "data:image/jpeg;base64,AAAA",
   });

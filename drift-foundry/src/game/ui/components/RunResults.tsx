@@ -11,9 +11,9 @@ export function RunResults({ snapshot, onRestart, onTitle }: { snapshot: Session
   const won = outcome.kind === "won";
   return <div className="df-overlay"><HudSurface className="df-card df-results" role="dialog" aria-label={won ? "Escape results" : "Crushed results"} elevation="modal">
     <div className="df-eyebrow">{won ? "PIT RADIO / SIGNAL RECEIVED" : "PIT RADIO / SIGNAL LOST"}</div>
-    <h1>{won ? "OUT OF" : "ROW SIX"}<br/><em>{won ? "THE YARD" : "CAUGHT YOU"}</em></h1>
+    <h1>{won ? "OUT OF" : snapshot.track.label.toUpperCase()}<br/><em>{won ? "THE YARD" : "CAUGHT YOU"}</em></h1>
     <p>{won ? "The salvage special lives to race another shift." : `Caught in ${outcome.zoneLabel.toLowerCase()}. Watch the next barrier cue and jump on the teal marks.`}</p>
-    <div className="df-result-grid"><div><b>{outcome.place}/{outcome.fieldSize}</b><span>FINISH</span></div><div><b>{outcome.time.toFixed(1)}s</b><span>RUN TIME</span></div><div><b>{won ? "470" : Math.floor(snapshot.pose.position[2])}m</b><span>DISTANCE</span></div><div><b>{snapshot.clearedGateIds.size}/8</b><span>BARRIERS CLEARED</span></div><div><b>{outcome.armorSaves}</b><span>ARMOR SAVES</span></div><div><b>{outcome.carried} cr</b><span>SALVAGE CARRIED</span></div></div>
+    <div className="df-result-grid"><div><b>{outcome.place}/{outcome.fieldSize}</b><span>FINISH</span></div><div><b>{outcome.time.toFixed(1)}s</b><span>RUN TIME</span></div><div><b>{won ? snapshot.track.exitAt : Math.max(0, Math.floor(snapshot.run))}m</b><span>DISTANCE</span></div><div><b>{[...snapshot.clearedGateIds].filter(id => !id.endsWith(":beaten")).length}/{snapshot.track.gates}</b><span>BARRIERS CLEARED</span></div><div><b>{outcome.armorSaves}</b><span>ARMOR SAVES</span></div><div><b>{outcome.carried} cr</b><span>SALVAGE CARRIED</span></div></div>
     <div className="df-result-grid"><div><b>{won ? `×${outcome.lineMultiplier.toFixed(2)}` : "×0.00"}</b><span>{won ? "LINE" : "LINE CUT"}</span></div><div><b>{outcome.banked} cr</b><span>BANKED</span></div><div><b>{outcome.lost} cr</b><span>LOST</span></div><div><b>{snapshot.career.credits} cr</b><span>YARD CREDITS</span></div></div>
     {won && outcome.lineNotes.length > 0 && <p className="df-eyebrow">{outcome.lineNotes.join(" · ")}</p>}
     <div className="df-event" data-medal={outcome.event.medal ?? undefined}>
