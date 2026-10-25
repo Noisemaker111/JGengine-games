@@ -2,20 +2,18 @@
   { "assert": "__jgProbe().inDive === 0 && /rail departure/i.test(document.body.innerText)",
     "note": "arrival: the diver is standing at Marrow's departure rail, not the title card" },
 
-  { "key": "KeyW", "ms": 900,
-    "after": { "is": "__jgProbe().z < 9.5", "timeoutMs": 10000 },
+  { "key": "KeyW", "until": { "is": "__jgProbe().z < 9.5", "timeoutMs": 10000 },
     "note": "walk down the workshop to the Garage anchor" },
 
   { "key": "KeyE", "ms": 120,
     "after": { "is": "__jgProbe().inDive === 1", "timeoutMs": 15000 },
     "note": "take the rail: the world swaps to Bellwether and the air tank starts" },
 
-  { "key": "KeyW", "ms": 760,
-    "after": { "is": "__jgProbe().z < -3.5", "timeoutMs": 10000 },
-    "note": "walk into Bellwether's receiving floor; the rail is behind at z 1.9, so any z below -3.5 is the corridor crossed" },
+  { "key": "KeyW", "until": { "is": "__jgProbe().z < -3.5", "timeoutMs": 10000 },
+    "note": "walk into Bellwether's receiving floor; the rail is behind at z 1.9, so any z below -3.5 is the corridor crossed. Held to arrival: the first vault frames are slow on software GL, so a fixed hold walked too short" },
 
-  { "key": "KeyA", "ms": 620,
-    "after": { "is": "__jgProbe().x < -3.8 && __jgProbe().x > -6", "timeoutMs": 10000 },
+  { "key": "KeyA", "until": { "is": "__jgProbe().x < -3.8", "timeoutMs": 10000 },
+    "after": { "is": "__jgProbe().x < -3.8 && __jgProbe().x > -6", "timeoutMs": 2000 },
     "note": "stand at the receiving spool of wire" },
 
   { "key": "KeyE", "ms": 120,
@@ -25,12 +23,10 @@
   { "key": "KeyS", "ms": 300,
     "note": "hand control back: the search's completion sheet swallows a key hold that starts on the frame it closes" },
 
-  { "key": "KeyD", "ms": 700,
-    "after": { "is": "__jgProbe().x > -1.4", "timeoutMs": 10000 },
+  { "key": "KeyD", "until": { "is": "__jgProbe().x > -1.4", "timeoutMs": 10000 },
     "note": "step back across the receiving floor to the rail's line" },
 
-  { "key": "KeyS", "ms": 1150,
-    "after": { "is": "__jgProbe().z > 1.2", "timeoutMs": 10000 } },
+  { "key": "KeyS", "until": { "is": "__jgProbe().z > 1.2", "timeoutMs": 10000 } },
 
   { "key": "KeyE", "ms": 120,
     "before": { "is": "Math.hypot(__jgProbe().x, __jgProbe().z - 1.9) < 1.9", "timeoutMs": 10000 },
