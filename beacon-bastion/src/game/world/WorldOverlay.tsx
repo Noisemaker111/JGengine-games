@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGameContext } from "@jgengine/react/provider";
 import { useGameStore } from "@jgengine/react/hooks";
 import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
+import { StaticShapeInstances } from "@jgengine/shell/render/staticShapeInstances";
 
 import { bindKeepCapture } from "../thumbs";
 
@@ -14,6 +15,7 @@ import { BUILD_PLOTS, FLANK_POINT_KEY, HAS_FLANK, ROUTES, SPAWN_POINT, groundHei
 
 /** Where the east flank road opens. */
 const FLANK_GATE = ROUTES[FLANK_POINT_KEY]![0]!;
+import { plotShapes } from "./plotShapes";
 import { rangeRingBand } from "./rangeRing";
 
 function BuildPlots() {
@@ -21,33 +23,12 @@ function BuildPlots() {
   const occupied = useGameStore((c) => BUILD_PLOTS.map((plot) => keep.of(c).occupant(plot.id) !== null).join(","));
   const selectedId = session.selectedTowerId;
   const cost = selectedId === null ? 0 : buildCost(selectedId);
-  return (
-    <>
-      {BUILD_PLOTS.map((plot, index) => {
-        if (occupied.split(",")[index] === "true") return null;
-        const affordable = selectedId !== null && gold >= cost;
-        const color = selectedId === null ? "#4a5a44" : affordable ? "#5fbf6a" : "#8a4a4a";
-        return (
-          <group key={plot.id} position={[plot.position[0], plot.position[1], plot.position[2]]}>
-            {/* Prepared stone foundation — an empty plot reads as masonry waiting for a tower. */}
-            <mesh position-y={0.12} receiveShadow castShadow>
-              <cylinderGeometry args={[1.35, 1.5, 0.24, 8]} />
-              <meshStandardMaterial color="#7d766a" roughness={1} />
-            </mesh>
-            <mesh position-y={0.26} rotation={[0, Math.PI / 8, 0]}>
-              <cylinderGeometry args={[1.05, 1.05, 0.06, 8]} />
-              <meshStandardMaterial color="#635c50" roughness={1} />
-            </mesh>
-            {/* Affordability halo */}
-            <mesh position-y={0.31} rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[1.12, 1.44, 24]} />
-              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.45} roughness={0.6} transparent opacity={0.9} />
-            </mesh>
-          </group>
-        );
-      })}
-    </>
-  );
+  const affordable = selectedId !== null && gold >= cost;
+  // Prepared stone foundations - an empty plot reads as masonry waiting for a tower - with a halo
+  // coloured by whether the picked tower is affordable.
+  const color = selectedId === null ? "#4a5a44" : affordable ? "#5fbf6a" : "#8a4a4a";
+  const shapes = useMemo(() => plotShapes(BUILD_PLOTS, occupied.split(",").map((flag) => flag !== "true"), color), [occupied, color]);
+  return <StaticShapeInstances instances={shapes} />;
 }
 
 /** A tower still rising: a timber frame that climbs with the keep's build order, so a timed build reads on the field. */
