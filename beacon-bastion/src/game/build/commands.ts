@@ -2,7 +2,10 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
 import { TOWER_IDS } from "../entities/towers/catalog";
-import { keep, runEnded, sellAction, upgradeAction } from "../keep";
+import { nextAutoTargetPolicy } from "@jgengine/core/scene/autoTarget";
+
+import { castAt } from "../combat/cast";
+import { AIM_POLICIES, aimAction, keep, runEnded, sellAction, towerOptions, towerStats } from "../keep";
 import { nearestPlot } from "../world/path";
 import { session } from "../session";
 
@@ -26,6 +29,7 @@ const refusal = (result: { reason: string; message: string } | null): Refusal | 
  * plot builds the picked tower through `beacon.place`, which pays, reserves the plot and starts the build.
  */
 function rejectBuild(ctx: GameContext, input: BuildPlaceInput): Refusal | null {
+  if (session.armedAbility !== null) return null;
   const plot = nearestPlot(input.point, PLOT_CLICK_RADIUS);
   if (plot === null) return session.inspectedTowerId === null ? { reason: "no-plot" } : null;
   const world = keep.of(ctx);
@@ -37,6 +41,8 @@ function rejectBuild(ctx: GameContext, input: BuildPlaceInput): Refusal | null {
 }
 
 function clickPlot(ctx: GameContext, input: BuildPlaceInput): GameContext {
+  // An armed ability takes the click: the fire falls where the player pointed.
+  if (castAt(ctx, input.point)) return ctx;
   const plot = nearestPlot(input.point, PLOT_CLICK_RADIUS);
   if (plot === null) {
     session.inspectedTowerId = null;
@@ -57,17 +63,36 @@ function targetOf(ctx: GameContext, input: TowerTargetInput | undefined): { id: 
   return tower === null ? null : { id, kind: tower.kind };
 }
 
-/** The keybind path (U / X): the declared upgrade or sale of the inspected tower. */
-function towerAction(actionOf: (kind: string) => string) {
+/**
+ * The upgrade the U key takes: the only step open next. At a fork (two branches offered) the key
+ * refuses, so the player picks a branch on the tower's card instead of the key choosing for them.
+ */
+function upgradeActionFor(ctx: GameContext, id: string, kind: string): string | Refusal {
+  const options = towerOptions(keep.of(ctx), id, kind);
+  if (options.length === 0) return { reason: "max-level", message: "Fully upgraded" };
+  if (options.length > 1) return { reason: "choose-branch", message: "Choose a branch on the tower card" };
+  return options[0]!.action;
+}
+
+/** The aim the tower would switch to next: first, last, strongest, nearest, then round again. */
+function nextAimFor(ctx: GameContext, id: string): string {
+  return aimAction(nextAutoTargetPolicy(towerStats(keep.of(ctx), id).aim, AIM_POLICIES));
+}
+
+/** The keybind path (U / X / T): the declared upgrade, sale or aim change of the inspected tower. */
+function towerAction(actionOf: (ctx: GameContext, id: string, kind: string) => string | Refusal) {
   return {
     validate(ctx: GameContext, input: TowerTargetInput | undefined): Refusal | null {
       const tower = targetOf(ctx, input);
       if (tower === null) return { reason: "no-tower" };
-      return refusal(keep.of(ctx).canAct(actionOf(tower.kind), tower.id));
+      const action = actionOf(ctx, tower.id, tower.kind);
+      if (typeof action !== "string") return action;
+      return refusal(keep.of(ctx).canAct(action, tower.id));
     },
     apply(ctx: GameContext, input: TowerTargetInput | undefined): GameContext {
       const tower = targetOf(ctx, input)!;
-      ctx.game.commands.run("beacon.act", { action: actionOf(tower.kind), target: tower.id });
+      const action = actionOf(ctx, tower.id, tower.kind);
+      if (typeof action === "string") ctx.game.commands.run("beacon.act", { action, target: tower.id });
       return ctx;
     },
   };
@@ -88,8 +113,9 @@ export function registerBuildCommands(ctx: GameContext): void {
     validate: rejectBuild,
     apply: clickPlot,
   });
-  ctx.game.commands.define<TowerTargetInput | undefined>("sellTower", towerAction(sellAction));
-  ctx.game.commands.define<TowerTargetInput | undefined>("upgradeTower", towerAction(upgradeAction));
+  ctx.game.commands.define<TowerTargetInput | undefined>("sellTower", towerAction(() => sellAction()));
+  ctx.game.commands.define<TowerTargetInput | undefined>("upgradeTower", towerAction(upgradeActionFor));
+  ctx.game.commands.define<TowerTargetInput | undefined>("cycleAim", towerAction((state, id) => nextAimFor(state, id)));
   TOWER_IDS.forEach((id, index) => {
     ctx.game.commands.define(`buildTower${index + 1}`, selectTowerCommand(id));
   });

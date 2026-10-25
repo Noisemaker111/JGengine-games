@@ -12,12 +12,15 @@ import { BASE_CATALOG_ID, BASE_ENTITY_ID } from "./entities/base/catalog";
 import { creepDef } from "./entities/enemies/catalog";
 import { resetProjectiles } from "./combat/pendingProjectiles";
 import { keep, resetKeep, spawnStandingTowers } from "./keep";
-import { newSpeedStats, resetSession, session, type BossRuntime } from "./session";
-import { freshLegacy, openingGold, openingLives, readLegacy, relicLoop, upgradeLegacy, writeLegacy } from "./waves/legacy";
+import { newShield, newSpeedStats, resetSession, session, type BossRuntime } from "./session";
+import { freshLegacy, openingKeep, readLegacy, relicLoop, upgradeLegacy, writeLegacy } from "./waves/legacy";
+import { campaign, freshCampaign, readCampaign } from "./campaign";
+import type { AbilityKitState } from "@jgengine/core/combat/abilityKit";
+import type { WaveCountdownState } from "@jgengine/core/ai/director/waveCountdown";
 import { WARDEN_ID } from "./waves/manifest";
 import type { EncounterState } from "@jgengine/core/ai/director/encounter";
 import type { PressurePlan } from "@jgengine/core/ai/director/pressure";
-import { KEEP_POINT } from "./world/path";
+import { KEEP_POINT, ROUTES, SPAWN_POINT_KEY } from "./world/path";
 import { captureKeepThumb, keepProfile } from "./thumbs";
 
 /** The keeps a player can hold. One document per keep, all inside the shared save document. */
@@ -48,7 +51,11 @@ export interface DefenseSave extends PreWorldFields {
   boss: BossRuntime | null;
   openingComposition: string[];
   creepSeq: number;
-  creeps: { instanceId: string; catalogId: string; path: PathFollowState }[];
+  creeps: { instanceId: string; catalogId: string; path: PathFollowState; route?: string; shield?: number; healIn?: number }[];
+  /** The clock to the next wave and what an early call would pay. */
+  countdown?: WaveCountdownState;
+  /** Ability cooldowns. */
+  abilities?: AbilityKitState;
 }
 
 export function captureDefense(ctx: GameContext): DefenseSave {
@@ -63,7 +70,12 @@ export function captureDefense(ctx: GameContext): DefenseSave {
       instanceId: creep.instanceId,
       catalogId: creep.catalogId,
       path: creep.path,
+      route: creep.route,
+      shield: creep.shield?.current() ?? 0,
+      healIn: creep.healIn,
     })),
+    countdown: session.countdown.snapshot(),
+    abilities: session.abilities.state(),
   };
 }
 
@@ -95,15 +107,23 @@ export function restoreDefense(ctx: GameContext, save: DefenseSave): void {
   ctx.scene.entity.spawn(BASE_CATALOG_ID, { id: BASE_ENTITY_ID, position: KEEP_POINT, role: "prop" });
   if (!worldLoaded(ctx).restored) migratePreWorld(ctx, save);
 
+  if (save.countdown !== undefined) session.countdown.restore(save.countdown);
+  if (save.abilities !== undefined) session.abilities.restore(save.abilities);
   for (const creep of save.creeps) {
     const def = creepDef(creep.catalogId);
     ctx.scene.entity.spawn(creep.catalogId, { id: creep.instanceId, position: creep.path.position, role: "npc" });
     ctx.scene.entity.setPose(creep.instanceId, { position: creep.path.position, rotationY: creep.path.heading });
+    const route = typeof creep.route === "string" && ROUTES[creep.route] !== undefined ? creep.route : SPAWN_POINT_KEY;
+    const shield = def.shield === undefined ? null : newShield(ctx, creep.instanceId, def.shield);
+    if (shield !== null) ctx.scene.entity.stats.set(creep.instanceId, "shield", { current: Math.max(0, Math.min(def.shield!.max, creep.shield ?? def.shield!.max)) });
     session.creeps.set(creep.instanceId, {
       instanceId: creep.instanceId,
       catalogId: creep.catalogId,
+      route,
       path: { ...creep.path },
       speedStats: newSpeedStats(def.speed),
+      shield,
+      healIn: creep.healIn ?? def.heals?.everySeconds ?? 0,
     });
   }
 }
@@ -165,8 +185,7 @@ const boundSave = perContext(() => ({ save: null as GameSave | null }));
 /** The keep's world as one save section: purse, walls, towers and their levels, builds under way. */
 export function worldSystem(ctx: GameContext): GameSaveSystem {
   const freshKeep = () => {
-    const banked = readLegacy(ctx);
-    resetKeep(ctx, { gold: openingGold(banked), lives: openingLives(banked) });
+    resetKeep(ctx, openingKeep(ctx));
     worldLoaded(ctx).restored = false;
   };
   return {
@@ -220,6 +239,16 @@ export function profileSystem(): GameSaveSystem {
   };
 }
 
+/** The keep's campaign: its difficulty, best stars and the war council's seats. */
+export function campaignSystem(ctx: GameContext): GameSaveSystem {
+  return {
+    name: "campaign",
+    snapshot: () => campaign.read(ctx),
+    restore: (section) => campaign.write(ctx, readCampaign(section) ?? freshCampaign()),
+    reset: () => campaign.write(ctx, freshCampaign()),
+  };
+}
+
 export function legacySystem(ctx: GameContext): GameSaveSystem {
   return {
     name: "legacy",
@@ -244,7 +273,7 @@ export function beaconSave(ctx: GameContext): GameSave {
     clock: () => ctx.time.now(),
     playtime: () => ctx.time.now(),
     // The bank first, so a keep with no stored world opens with the purse that bank allows.
-    systems: [legacySystem(ctx), worldSystem(ctx), defenseSystem(ctx), profileSystem()],
+    systems: [campaignSystem(ctx), legacySystem(ctx), worldSystem(ctx), defenseSystem(ctx), profileSystem()],
   });
   slot.save = save;
   return save;

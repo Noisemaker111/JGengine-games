@@ -4,7 +4,7 @@ import { attachRefusalNotices } from "@jgengine/core/game/notices";
 
 import { STARTING_GOLD } from "../entities/base/catalog";
 import { TOWER_CATALOG } from "../entities/towers/catalog";
-import { keep, sellValue } from "../keep";
+import { keep, sellValue, towerLevel } from "../keep";
 import { session } from "../session";
 import { advanceKeep, beaconRunner } from "../testing";
 import { BUILD_PLOTS } from "../world/path";
@@ -35,7 +35,7 @@ describe("tower.build on plots", () => {
   test("placing raises the tower entity on the plot and charges its price", () => {
     const id = build(1, 0);
     expect(runner.ctx.scene.entity.get(id)).not.toBeNull();
-    expect(world().num(`${id}.level`)).toBe(1);
+    expect(towerLevel(world(), id)).toBe(1);
     expect(gold()).toBe(STARTING_GOLD - archer.cost);
   });
 
@@ -115,18 +115,34 @@ describe("upgradeTower (keybind)", () => {
     const id = build(1, 0);
     const before = gold();
     runner.ui.invoke("upgradeTower", { instanceId: id });
-    expect(world().num(`${id}.level`)).toBe(2);
+    expect(towerLevel(world(), id)).toBe(2);
     expect(gold()).toBe(before - Math.round(archer.cost * 0.75));
   });
 
-  test("rejects without enough gold and at max level", () => {
+  test("rejects without enough gold, at the fork, and once mastered", () => {
     const id = build(2, 0);
-    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "cost", message: expect.stringMatching(/^Upgrade needs \d+ more gold$/) });
+    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "cost", message: expect.stringMatching(/^Rank II needs \d+ more gold$/) });
     world().set("keep.gold", 10_000);
     runner.ui.invoke("upgradeTower", { instanceId: id });
     runner.ui.invoke("upgradeTower", { instanceId: id });
-    expect(world().num(`${id}.level`)).toBe(3);
-    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "locked" });
+    expect(towerLevel(world(), id)).toBe(3);
+    // The key never picks a path for the player.
+    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "choose-branch" });
+    runner.ui.invoke("beacon.act", { action: "tower_cannon:mortar:1", target: id });
+    runner.ui.invoke("upgradeTower", { instanceId: id });
+    expect(towerLevel(world(), id)).toBe(5);
+    expect(world().num(`${id}.stun_ms`)).toBe(500);
+    expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "max-level" });
+  });
+
+  test("the aim key walks first, last, strongest, nearest and round again", () => {
+    const id = build(1, 0);
+    const aims: string[] = [];
+    for (let index = 0; index < 4; index += 1) {
+      runner.ui.invoke("cycleAim", { instanceId: id });
+      aims.push(String(world().fact(`${id}.aim`)));
+    }
+    expect(aims).toEqual(["last", "strongest", "nearest", "first"]);
   });
 
   test("selling an upgraded tower refunds a share of its build and its upgrade", () => {

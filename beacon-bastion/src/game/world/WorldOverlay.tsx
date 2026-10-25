@@ -10,7 +10,10 @@ import { bindKeepCapture } from "../thumbs";
 import { buildCost, keep, towerStats } from "../keep";
 import { session } from "../session";
 import { activeProjectiles } from "../combat/pendingProjectiles";
-import { BUILD_PLOTS, SPAWN_POINT, groundHeightAt } from "./path";
+import { BUILD_PLOTS, FLANK_POINT_KEY, HAS_FLANK, ROUTES, SPAWN_POINT, groundHeightAt } from "./path";
+
+/** Where the east flank road opens. */
+const FLANK_GATE = ROUTES[FLANK_POINT_KEY]![0]!;
 import { rangeRingBand } from "./rangeRing";
 
 function BuildPlots() {
@@ -128,11 +131,11 @@ function InspectedTower() {
   );
 }
 
-/** Raider gate landmark at the spawn — two rough stone pillars and a dark banner mark where the horde emerges. */
-function SpawnGate() {
-  const [x, y, z] = SPAWN_POINT;
+/** Raider gate landmark at a spawn — two rough stone pillars and a dark banner mark where the horde emerges. */
+function SpawnGate({ at, facing = 0 }: { at: readonly [number, number, number]; facing?: number }) {
+  const [x, y, z] = at;
   return (
-    <group position={[x, y, z]}>
+    <group position={[x, y, z]} rotation={[0, facing, 0]}>
       {[-1.5, 1.5].map((dx) => (
         <mesh key={dx} position={[dx, 1.1, 0]} castShadow receiveShadow>
           <boxGeometry args={[0.7, 2.2, 0.7]} />
@@ -187,7 +190,8 @@ export function BeaconBastionWorldOverlay() {
   return (
     <>
       <SceneCaptureBinding bind={bindKeepCapture} />
-      <SpawnGate />
+      <SpawnGate at={SPAWN_POINT} />
+      {HAS_FLANK ? <SpawnGate at={FLANK_GATE} facing={Math.PI / 2} /> : null}
       <BuildPlots />
       <BuildSites />
       <InspectedTower />

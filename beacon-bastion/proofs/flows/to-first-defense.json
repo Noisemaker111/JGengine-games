@@ -13,9 +13,9 @@
   { "assert": "__jgProbe().creeps > 0 && /wave 1/i.test(document.body.innerText)",
     "note": "arrival: the director put wave 1's raiders on the authored path, so the wave mustered rather than only the click landing" },
 
-  { "assert": "/field clear/i.test(document.body.innerText)",
-    "before": { "is": "/field clear/i.test(document.body.innerText)", "timeoutMs": 180000 },
-    "note": "arrival: every raider walked the approach out - leaked into the keep or killed - so wave 1 finished instead of stalling" },
+  { "assert": "/send wave 2/i.test(document.body.innerText) && /\\+\\d+ gold/i.test(document.body.innerText)",
+    "before": { "is": "/send wave 2/i.test(document.body.innerText)", "timeoutMs": 60000 },
+    "note": "arrival: wave 1 has fully mustered, the horn offers wave 2 early for gold while the clock runs down" },
 
   { "click": "Send wave 2",
     "after": { "is": "/wave 2[^]*\\d+ raiders? left/i.test(document.body.innerText)", "timeoutMs": 20000 },

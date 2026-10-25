@@ -3,7 +3,7 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { content } from "./content";
-import { keep, towersStanding } from "./keep";
+import { keep, towerLevel, towersStanding } from "./keep";
 import { resetSession, session } from "./session";
 import { setupWorld } from "./world/setup";
 import { stageRun, type StageMode } from "./capture";
@@ -27,7 +27,7 @@ function fingerprint(ctx: HeadlessRunner["ctx"]): string {
     .map((creep) => `${creep.catalogId}@${creep.path.position.map((n) => n.toFixed(2)).join(",")}`)
     .sort();
   const world = keep.of(ctx);
-  const towers = world.instances().map((tower) => `${tower.kind}:${world.num(`${tower.id}.level`)}`).sort();
+  const towers = world.instances().map((tower) => `${tower.kind}:${towerLevel(world, tower.id)}`).sort();
   return JSON.stringify({
     wave: session.encounter.view().wave,
     creeps,

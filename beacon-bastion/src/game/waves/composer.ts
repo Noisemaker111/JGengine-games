@@ -1,7 +1,7 @@
 import type { EncounterGroup, EncounterWave } from "@jgengine/core/ai/director/encounter";
 import { seededRng } from "@jgengine/shell/gameKit";
 
-import { SPAWN_POINT_KEY } from "../world/path";
+import { FLANK_POINT_KEY, SPAWN_POINT_KEY } from "../world/path";
 
 /** First wave the composer writes. Everything before it is authored in `manifest.ts`. */
 export const COMPOSE_FROM_WAVE = 7;
@@ -32,11 +32,20 @@ export const SQUAD_PATTERNS: readonly {
   grunts: number;
   brutes: number;
   elites: number;
+  /** Wraiths over the flank road: only towers that hit air answer them. */
+  wraiths?: number;
+  /** Shield-bearers whose ward regrows. */
+  bulwarks?: number;
+  /** Shamans that mend the column. */
+  shamans?: number;
+  /** Hulks that break into bonelings. */
+  hulks?: number;
 }[] = [
-  { id: "line", label: "Iron Line", weight: 3, scouts: 2, grunts: 3, brutes: 1, elites: 1 },
-  { id: "press", label: "Long Press", weight: 3, scouts: 1, grunts: 5, brutes: 0, elites: 2 },
-  { id: "hammer", label: "Hammerfall", weight: 2, scouts: 0, grunts: 3, brutes: 2, elites: 1 },
-  { id: "tide", label: "Ash Tide", weight: 2, scouts: 3, grunts: 2, brutes: 1, elites: 3 },
+  { id: "line", label: "Iron Line", weight: 3, scouts: 2, grunts: 3, brutes: 1, elites: 1, bulwarks: 1 },
+  { id: "press", label: "Long Press", weight: 3, scouts: 1, grunts: 4, brutes: 0, elites: 2, shamans: 1 },
+  { id: "hammer", label: "Hammerfall", weight: 2, scouts: 0, grunts: 3, brutes: 2, elites: 1, hulks: 1 },
+  { id: "tide", label: "Ash Tide", weight: 2, scouts: 3, grunts: 2, brutes: 1, elites: 2, wraiths: 3 },
+  { id: "host", label: "Barrow Host", weight: 2, scouts: 0, grunts: 2, brutes: 0, elites: 1, wraiths: 2, bulwarks: 1, shamans: 1, hulks: 1 },
 ];
 
 /** The wave number's rank inside the composed band: 0 on the first composed wave. */
@@ -103,6 +112,16 @@ export function composeWave(seed: number, wave: number): EncounterWave {
   const brutes = scaleCount(pattern.brutes, rank);
   if (brutes > 0) {
     groups.push({ unit: "raider_brute", entry: SPAWN_POINT_KEY, count: brutes, at: 10, jitterSeconds: 1, escalates: true });
+  }
+  const special: [string, number | undefined, number, string][] = [
+    ["raider_bulwark", pattern.bulwarks, 5, SPAWN_POINT_KEY],
+    ["raider_shaman", pattern.shamans, 7, SPAWN_POINT_KEY],
+    ["raider_wraith", pattern.wraiths, 8, FLANK_POINT_KEY],
+    ["raider_hulk", pattern.hulks, 11, SPAWN_POINT_KEY],
+  ];
+  for (const [unit, count, at, entry] of special) {
+    const scaled = scaleCount(count ?? 0, rank);
+    if (scaled > 0) groups.push({ unit, entry, count: scaled, at, jitterSeconds: 1 });
   }
   if (boss !== null) {
     groups.push({ unit: boss, entry: SPAWN_POINT_KEY, count: 1, at: 12 });

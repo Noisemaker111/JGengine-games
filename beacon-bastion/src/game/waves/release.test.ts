@@ -64,7 +64,8 @@ describe("player released assaults", () => {
     finishRelease();
     const bonus = waveOverlapBonus(runner.ctx);
     expect(bonus).toBeGreaterThan(0);
-    expect(bonus).toBeLessThanOrEqual(20);
+    // The clock pays for the seconds it skips, never past its cap.
+    expect(bonus).toBeLessThanOrEqual(40);
     const before = gold();
     runner.ui.invoke("wave.send", {});
     expect(session.encounter.view().wave).toBe(2);
@@ -125,10 +126,12 @@ describe("player released assaults", () => {
 });
 
 describe("authored encounters on the field", () => {
-  test("the authored act ends on the Warden and elites walk from the second wave", () => {
+  test("the authored act ends on the Warden: flyers from the second wave, elites and the flank from the third", () => {
     expect(AUTHORED_WAVES.length).toBe(6);
-    const elites = AUTHORED_WAVES.map((wave) => wave.groups.some((group) => group.unit === "raider_elite"));
-    expect(elites[1]).toBe(true);
+    const has = (index: number, unit: string) => AUTHORED_WAVES[index]!.groups.some((group) => group.unit === unit);
+    expect(has(1, "raider_wraith")).toBe(true);
+    expect(has(2, "raider_elite")).toBe(true);
+    expect(AUTHORED_WAVES[2]!.groups.some((group) => group.entry === "flank")).toBe(true);
     expect(AUTHORED_WAVES[AUTHORED_WAVES.length - 1]!.groups.filter((group) => group.unit === WARDEN_ID)).toHaveLength(1);
     for (let wave = 0; wave < AUTHORED_WAVES.length - 1; wave += 1) {
       expect(AUTHORED_WAVES[wave]!.groups.some((group) => group.unit === WARDEN_ID)).toBe(false);

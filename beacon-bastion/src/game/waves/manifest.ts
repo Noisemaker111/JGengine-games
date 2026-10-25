@@ -2,7 +2,7 @@ import type { BossPhase } from "@jgengine/core/ai/director/boss";
 import type { EncounterDefinition, EncounterWave } from "@jgengine/core/ai/director/encounter";
 import type { PressureRule } from "@jgengine/core/ai/director/pressure";
 
-import { SPAWN_POINT_KEY } from "../world/path";
+import { FLANK_POINT_KEY, SPAWN_POINT_KEY } from "../world/path";
 import { COMPOSE_FROM_WAVE, composeWaves } from "./composer";
 
 export { COMPOSE_FROM_WAVE } from "./composer";
@@ -29,7 +29,8 @@ export const AUTHORED_WAVES: readonly EncounterWave[] = [
     groups: [
       { unit: "raider_scout", entry: SPAWN_POINT_KEY, count: 5 },
       { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 4, at: 4, escalates: true },
-      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 1, at: 10 },
+      // The first wraiths: a shell can't reach them, so a cannon-only road learns it here.
+      { unit: "raider_wraith", entry: SPAWN_POINT_KEY, count: 3, at: 11 },
     ],
   },
   {
@@ -38,29 +39,35 @@ export const AUTHORED_WAVES: readonly EncounterWave[] = [
     durationSeconds: 22,
     groups: [
       { unit: "raider_scout", entry: SPAWN_POINT_KEY, count: 3 },
-      { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 5, at: 3, escalates: true },
-      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 2, at: 8, escalates: true },
-      { unit: "raider_brute", entry: SPAWN_POINT_KEY, count: 1, at: 14 },
+      { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 4, at: 3, escalates: true },
+      // The flank track opens: a squad that skips most of the main road.
+      { unit: "raider_scout", entry: FLANK_POINT_KEY, count: 3, at: 7 },
+      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 1, at: 9, escalates: true },
+      { unit: "raider_hulk", entry: SPAWN_POINT_KEY, count: 1, at: 14 },
     ],
   },
   {
-    id: "hammer",
-    label: "Hammer",
+    id: "wardens-shield",
+    label: "Shield Wall",
     durationSeconds: 22,
     groups: [
       { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 6, escalates: true },
-      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 3, at: 5, escalates: true },
-      { unit: "raider_brute", entry: SPAWN_POINT_KEY, count: 2, at: 11 },
+      { unit: "raider_bulwark", entry: SPAWN_POINT_KEY, count: 2, at: 5 },
+      { unit: "raider_shaman", entry: SPAWN_POINT_KEY, count: 1, at: 7 },
+      { unit: "raider_wraith", entry: FLANK_POINT_KEY, count: 3, at: 10 },
+      { unit: "raider_brute", entry: SPAWN_POINT_KEY, count: 2, at: 12 },
     ],
   },
   {
     id: "tide",
-    label: "Tide",
+    label: "Barrow Tide",
     durationSeconds: 24,
     groups: [
-      { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 7, escalates: true },
-      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 4, at: 4, escalates: true },
-      { unit: "raider_brute", entry: SPAWN_POINT_KEY, count: 2, at: 9 },
+      { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 6, escalates: true },
+      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 3, at: 4, escalates: true },
+      { unit: "raider_shaman", entry: SPAWN_POINT_KEY, count: 2, at: 6 },
+      { unit: "raider_wraith", entry: FLANK_POINT_KEY, count: 5, at: 8 },
+      { unit: "raider_hulk", entry: SPAWN_POINT_KEY, count: 2, at: 12 },
       { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 2, at: 15, elite: true },
     ],
   },
@@ -70,7 +77,8 @@ export const AUTHORED_WAVES: readonly EncounterWave[] = [
     durationSeconds: 26,
     groups: [
       { unit: "raider_grunt", entry: SPAWN_POINT_KEY, count: 4, escalates: true },
-      { unit: "raider_elite", entry: SPAWN_POINT_KEY, count: 2, at: 4, escalates: true },
+      { unit: "raider_bulwark", entry: SPAWN_POINT_KEY, count: 2, at: 4 },
+      { unit: "raider_wraith", entry: FLANK_POINT_KEY, count: 4, at: 6 },
       { unit: "raider_warden", entry: SPAWN_POINT_KEY, count: 1, at: 10 },
     ],
   },
@@ -103,11 +111,19 @@ export const PRESSURE_RULE: PressureRule = {
   maxTier: 2,
 };
 
+/** One phase's stance: its pace and name, a ward it raises and an escort it calls when the phase opens. */
+export interface BossStance {
+  speedScale: number;
+  label: string;
+  ward?: number;
+  summon?: readonly { unit: string; count: number }[];
+}
+
 export interface BossProfile {
   /** Thresholds and tells, high to low. */
   phases: readonly BossPhase[];
-  /** What each phase looks like on the approach: how fast it walks and what the HUD calls it. */
-  stance: Record<string, { speedScale: number; label: string }>;
+  /** What each phase looks like on the approach: how fast it walks, what the HUD calls it, and what it calls up. */
+  stance: Record<string, BossStance>;
   /** The banner text for a tell. */
   tells: Record<string, string>;
 }
@@ -122,16 +138,17 @@ const WARDEN_PHASES: readonly BossPhase[] = [
   { id: "last-stand", atHealth: 0.25, behaviour: {}, tell: { id: "dig-in", telegraphSeconds: 2.5 } },
 ];
 
-const WARDEN_STANCE: Record<string, { speedScale: number; label: string }> = {
+const WARDEN_STANCE: Record<string, BossStance> = {
   opening: { speedScale: 1, label: "Opening" },
-  enraged: { speedScale: 1.7, label: "Enraged" },
-  "last-stand": { speedScale: 2.3, label: "Last Stand" },
+  // Enraged, the Warden raises a ward that soaks 200 before the blows reach it again.
+  enraged: { speedScale: 1.35, label: "Warded", ward: 200 },
+  "last-stand": { speedScale: 1.8, label: "Last Stand", summon: [{ unit: "raider_bulwark", count: 2 }] },
 };
 
 const WARDEN_TELL_TEXT: Record<string, string> = {
   arrival: "The Warden takes the field",
-  roar: "The Warden roars — it moves faster",
-  "dig-in": "The Warden makes its last stand",
+  roar: "The Warden raises a ward — break it",
+  "dig-in": "The Warden makes its last stand and calls its shield-bearers",
 };
 
 /** The composed boss: slower to anger, faster once it does, and it digs in earlier. */
@@ -141,15 +158,15 @@ const WARLORD_PHASES: readonly BossPhase[] = [
   { id: "last-stand", atHealth: 0.3, behaviour: {}, tell: { id: "dig-in", telegraphSeconds: 2 } },
 ];
 
-const WARLORD_STANCE: Record<string, { speedScale: number; label: string }> = {
+const WARLORD_STANCE: Record<string, BossStance> = {
   opening: { speedScale: 1, label: "Opening" },
-  enraged: { speedScale: 1.5, label: "Bloodied" },
-  "last-stand": { speedScale: 2.1, label: "Cornered" },
+  enraged: { speedScale: 1.35, label: "Bloodied", summon: [{ unit: "raider_grunt", count: 4 }] },
+  "last-stand": { speedScale: 1.8, label: "Cornered", summon: [{ unit: "raider_boneling", count: 5 }] },
 };
 
 const WARLORD_TELL_TEXT: Record<string, string> = {
   arrival: "The Warlord takes the field",
-  roar: "The Warlord is bloodied — it closes faster",
+  roar: "The Warlord is bloodied and calls its guard",
   "dig-in": "The Warlord is cornered — nothing left to lose",
 };
 
