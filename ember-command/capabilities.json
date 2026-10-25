@@ -177,6 +177,10 @@
       "reason": "Gold and lumber move through tuning constants and systems.ts with no recorded reason; adopt the shared transaction ledger.",
       "issue": 137
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of ember-command: a match is won by destroying the enemy base, and map blocks carry no owner or grip."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of ember-command: units receive orders, and none has needs, thoughts or mood."

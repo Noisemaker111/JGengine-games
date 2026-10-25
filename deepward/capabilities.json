@@ -163,6 +163,10 @@
       "kind": "not-applicable",
       "reason": "Traffic is not part of deepward: nothing drives on the station."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of deepward: dives into Bellwether are solo, and no faction holds or pushes on a district."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of deepward: the fitter follows a route and reacts to noise, with no needs, thoughts or mood."

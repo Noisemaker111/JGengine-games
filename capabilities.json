@@ -9471,6 +9471,17 @@
       "intent": "find a Tune panel field by its control name (drive --fill, screen readers)"
     },
     {
+      "id": "turf-war",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/turfWar",
+      "domain": "turf war",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "blocks that change hands between any number of sides, with fronts that push on their own clock"
+    },
+    {
       "id": "tween-number",
       "packages": [
         "@jgengine/react"

@@ -180,6 +180,10 @@
       "kind": "not-applicable",
       "reason": "Transaction ledger is not part of brightway-park: park money is the world fact park.cash, moved by declared costs, flows and ripples, so a transaction ledger would be a second book."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of brightway-park: the park has one owner, and guests never contest any of its ground."
+    },
     "ui-kit-arcade": {
       "kind": "not-applicable",
       "reason": "ui-kit-arcade is another game's look: Brightway Park wears one look, the paper kit recut as Brightway Fair, so the arcade kit never mounts."

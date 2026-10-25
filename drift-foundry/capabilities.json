@@ -185,6 +185,10 @@
       "kind": "not-applicable",
       "reason": "Transaction ledger is not part of drift-foundry: credits already move through the shared career bank, so a transaction ledger would be a second one."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of drift-foundry: yard karts race to a gate, and nobody holds any stretch of the yard."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of drift-foundry: rivals are scripted route runners, not beings with needs or thoughts."

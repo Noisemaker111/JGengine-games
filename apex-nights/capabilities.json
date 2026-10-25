@@ -230,6 +230,10 @@
       "kind": "not-applicable",
       "reason": "Apex Nights has no transaction ledger yet: it is a circuit racing career starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of apex-nights: races run on a closed circuit, and no block of the city is owned or contested."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Apex Nights has no agent loop yet: it is a circuit racing career starter, and nothing in its loop uses utility-brain."

@@ -231,6 +231,10 @@
       "kind": "not-applicable",
       "reason": "Hold the Line has no transaction ledger yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of hold-the-line: the line is held against waves, and no block passes between sides by grip."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Hold the Line has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses utility-brain."

@@ -155,6 +155,11 @@
       "kind": "not-applicable",
       "reason": "Market pricing is not part of harbor-heat: vendors run on the shared shop stock rather than a demand-priced market."
     },
+    "turf-war": {
+      "kind": "debt",
+      "reason": "city.ts builds the Carmine turf by hand: four blocks with owner and grip facts, take triggers and staggered pushes, which is the turf war the engine now owns.",
+      "issue": 256
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Agent loop is not part of harbor-heat: residents run the shared offscreen world, and no needs, thought or mood loop is authored."

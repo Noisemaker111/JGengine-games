@@ -185,6 +185,10 @@
       "kind": "not-applicable",
       "reason": "Transaction ledger is not part of odd-orbit: household money already moves through the shared resource ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of odd-orbit: the station runs shifts for one crew, and no module is fought over by sides."
+    },
     "utility-brain": {
       "kind": "debt",
       "reason": "Beings choose actions from needs in sim/ai.ts inside their own agent loop; adopt the shared utility brain.",

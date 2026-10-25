@@ -243,6 +243,10 @@
       "kind": "not-applicable",
       "reason": "Red Frontier has no transaction ledger yet: it is a colony RTS (select colonists, gather, build, survive raids) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of red-frontier: crew gather nodes and fend off raiders, and no block of the frontier changes owner."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Red Frontier has no agent loop yet: it is a colony RTS (select colonists, gather, build, survive raids) starter, and nothing in its loop uses utility-brain."

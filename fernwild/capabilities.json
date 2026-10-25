@@ -231,6 +231,10 @@
       "kind": "not-applicable",
       "reason": "Fernwild has no transaction ledger yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses transaction-ledger."
     },
+    "turf-war": {
+      "kind": "not-applicable",
+      "reason": "Turf war is not part of fernwild: the survivor gathers and builds alone, and no side claims the woods."
+    },
     "utility-brain": {
       "kind": "not-applicable",
       "reason": "Fernwild has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses utility-brain."
