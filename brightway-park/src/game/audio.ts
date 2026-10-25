@@ -2,6 +2,7 @@ import type { SoundDef } from "@jgengine/core/audio/audioFalloff";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { session } from "./session";
+import { park } from "./park";
 
 /**
  * Procedural cues for the park's bright, friendly moments. Each id is played from the code path
@@ -150,7 +151,8 @@ export function syncAmbience(ctx: GameContext): void {
   if (!session.started) return;
   const previous = seaGains.get(ctx);
   if (previous === undefined) ctx.game.audio.loop("sea", "sea");
-  const audible = !session.gameOver && !ctx.time.isPaused() && !(session.won && !session.winDismissed);
+  const w = park.of(ctx);
+  const audible = w.fact("park.game_over") !== true && !ctx.time.isPaused() && !(w.fact("park.won") === true && w.fact("park.win_dismissed") !== true);
   const gain = audible ? SEA_GAIN : 0;
   seaGains.set(ctx, gain);
   if (gain !== previous) ctx.game.audio.setLoop("sea", { gain });

@@ -10,6 +10,7 @@ import { captureParkThumb, parkProfile } from "../../parkProfile";
 import { parkSlots, refreshParkSlot } from "../../parkSlot";
 import { SCENARIOS } from "../../scenarios";
 import { session } from "../../session";
+import { parkFlags, usePark } from "../usePark";
 
 const PARK_TOKENS = {
   "--jg-accent": "#ffd166",
@@ -41,7 +42,10 @@ export interface ParkMenuProps {
 export function ParkMenu({ settings, onCloseSettings, reducedMotion, onReducedMotion, contrast, onContrast }: ParkMenuProps): ReactNode {
   const { commands } = useGame();
   const clock = useGameClock();
-  useGameStore(() => [session.started, session.day, session.hasSave, session.saveStatus, session.gameOver, session.won, session.winDismissed, session.cash].join("|"));
+  useGameStore(() => [session.started, session.hasSave, session.saveStatus].join("|"));
+  const w = usePark();
+  const day = w.num("park.day");
+  const flags = parkFlags(w);
   const slots = useSaveSlots(parkSlots);
   const [notice, setNotice] = useState<string | null>(null);
   const [name, setName] = useState(parkProfile.name ?? "");
@@ -87,13 +91,13 @@ export function ParkMenu({ settings, onCloseSettings, reducedMotion, onReducedMo
             });
           }
         }}
-        footer={<span>Brightway Park - day {session.day}</span>}
+        footer={<span>Brightway Park - day {day}</span>}
         style={PARK_TOKENS as CSSProperties}
       />
     );
   }
 
-  if (session.gameOver || (session.won && !session.winDismissed)) return null;
+  if (flags.gameOver || flags.ribbon) return null;
 
   return (
     <GameMenu
@@ -103,7 +107,7 @@ export function ParkMenu({ settings, onCloseSettings, reducedMotion, onReducedMo
       logo={{ text: <span>Brightway<br />Park</span>, title: "Brightway Park" }}
       tagline="Turn a quiet coastal fair into a blue ribbon park."
       items={[
-        { id: "continue", label: "Continue", hint: recent === null ? "No park on the board" : `${recent.name ?? "Brightway Park"} - day ${String(recent.meta.day ?? session.day)}`, disabled: recent === null },
+        { id: "continue", label: "Continue", hint: recent === null ? "No park on the board" : `${recent.name ?? "Brightway Park"} - day ${String(recent.meta.day ?? day)}`, disabled: recent === null },
         { id: "new", label: "New day", hint: "Open a fresh park or pick a scenario" },
         { id: "saves", label: "Park saves", hint: recent === null ? "Nothing saved yet" : `Day ${String(recent.meta.day ?? 1)} on the board` },
         { id: "settings", label: "Settings", hint: "Motion, contrast, controls" },
@@ -163,7 +167,7 @@ export function ParkMenu({ settings, onCloseSettings, reducedMotion, onReducedMo
         }
         if (id === "saves") document.querySelector<HTMLButtonElement>("[data-save-slot-load]")?.focus();
       }}
-      footer={<span>Brightway Park - day {session.day}{notice === null ? "" : ` - ${notice}`}</span>}
+      footer={<span>Brightway Park - day {day}{notice === null ? "" : ` - ${notice}`}</span>}
       style={PARK_TOKENS as CSSProperties}
     />
   );

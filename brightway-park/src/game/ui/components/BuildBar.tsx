@@ -12,6 +12,9 @@ import {
 } from "../../objects/catalog";
 import { MILESTONES } from "../../milestones";
 import { session } from "../../session";
+import { countOf } from "../../park";
+import { usePark } from "../usePark";
+import { useGameContext } from "@jgengine/react/provider";
 import { placementHintStore } from "../../build/placementHint";
 import { useStore } from "@jgengine/react/store";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
@@ -25,15 +28,13 @@ function unlockLabel(requires: string): string {
 export function BuildBar({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState<BuildCategory>("ride");
   const { commands } = useGame();
-  const cash = useGameStore(() => session.cash);
+  const w = usePark();
+  const ctx = useGameContext();
+  const cash = w.num("park.cash");
   const selected = useGameStore(() => session.selectedTool);
   const refusal = useStore(placementHintStore);
-  const tracks = useGameStore(() => [...session.placed.values()].filter(obj => obj.catalogId === "track_piece").length);
-  const circuit = coasterCircuit();
-  const unlocked = useGameStore((ctx) =>
-    (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(","),
-  );
-  const unlockedSet = new Set(unlocked.length === 0 ? [] : unlocked.split(","));
+  const tracks = countOf(w, "track_piece");
+  const circuit = coasterCircuit(ctx);
   useEffect(()=>{ if(selected&&BUILDABLES[selected]) setCategory(BUILDABLES[selected]!.category); },[selected]);
 
   const items = Object.values(BUILDABLES).filter((d) => d.category === category);
@@ -68,7 +69,8 @@ export function BuildBar({ onClose }: { onClose: () => void }) {
 
       <HudSurface className="flex max-w-[92vw] flex-wrap justify-center gap-2" role="group" aria-label="Blueprints">
         {items.map((def) => {
-          const locked = def.requires !== undefined && !unlockedSet.has(def.requires);
+          // Locked is the world's word: the kind's `when` reads the park's best rating.
+          const locked = w.canPlace(def.id)?.reason === "locked";
           const affordable = cash >= def.cost;
           const isSelected = selected === def.id;
           const disabled = locked;

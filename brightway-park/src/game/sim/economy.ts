@@ -1,179 +1,89 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
-import {
-  addScheduledRule,
-  advanceLedger,
-  balanceOf,
-  type ResourceLedger,
-  type ResourcePolicy,
-} from "@jgengine/core/economy/resourceLedger";
 
-import { DAY_LENGTH } from "../catalog";
-import { buildableDef } from "../objects/catalog";
-import { session } from "../session";
+import { park, type ParkMetrics } from "../park";
 import { syncAmbience } from "../audio";
 import { closeParkDay } from "../daySession";
-import { claimMilestones, milestoneContents, syncStanding } from "../milestones";
-import { createLoan, loanDay, LOAN_OFFER } from "../loan";
-import { computeMetrics, ratingTarget, type ParkMetrics } from "./rating";
-import { placedList } from "../build/placement";
+import { milestoneContents, milestonesCrossed } from "../milestones";
+import { ratingTarget } from "./rating";
+
+/**
+ * The park's day, on the world. Money moves continuously (the `upkeep_*` flows and the `pay`
+ * ripple), so midnight only restocks the stalls (their `restock_*` action), takes the loan's
+ * instalment (the `loan_due` ripple), files the day's takings and checks the till.
+ */
 
 const BANKRUPT_LIMIT = 3;
 
-/**
- * The nominal `daily-upkeep` cycle carries no amount; the real cost is the live park metrics. Only
- * the upkeep rule is retuned here, so the loan rule's own transaction passes through untouched.
- */
-const dailyUpkeepAmount: ResourcePolicy = (txn, ctx) =>
-  txn.ruleId === "daily-upkeep" ? [{ ...txn, amount: (ctx.vars.upkeep ?? 0) + (ctx.vars.restock ?? 0) }] : [txn];
-
-/** The loan's nightly instalment, read from the loan book rather than from its own rule. */
-const loanPaymentAmount: ResourcePolicy = (txn, ctx) =>
-  txn.ruleId === "loan-payment" ? [{ ...txn, amount: ctx.vars.loanPayment ?? 0 }] : [txn];
-
-/**
- * Settle one day's upkeep, restock and loan instalment through the shared scheduled-transaction
- * ledger. The park balance is re-seeded from live `cash` (absorbing the day's ticket/ride/stall
- * flows) before the scheduled rules debit it, so the ledger stays authoritative for the recurring
- * charges without changing observable cash.
- */
-export function settleDailyUpkeep(
-  ledger: ResourceLedger,
-  cash: number,
-  upkeep: number,
-  restock: number,
-  loanPayment = 0,
-): { ledger: ResourceLedger; cash: number } {
-  const seeded: ResourceLedger = { ...ledger, accounts: { ...ledger.accounts, park: { cash } } };
-  const res = advanceLedger(seeded, seeded.nowSeconds + DAY_LENGTH, {
-    vars: { upkeep, restock, loanPayment },
-    policies: [dailyUpkeepAmount, loanPaymentAmount],
-  });
-  return { ledger: res.ledger, cash: balanceOf(res.ledger, "park", "cash") };
-}
-
-export function currentMetrics(): ParkMetrics {
-  return computeMetrics(placedList());
-}
-
-export function restockCost(): number {
-  let cost = 0;
-  for (const obj of session.placed.values()) {
-    const def = buildableDef(obj.catalogId);
-    if (def.stall === undefined) continue;
-    cost += (def.stall.stock - obj.stock) * def.stall.restock;
-  }
-  return cost;
-}
-
-function restockStalls(): void {
-  for (const obj of session.placed.values()) {
-    const def = buildableDef(obj.catalogId);
-    if (def.stall !== undefined) obj.stock = def.stall.stock;
-  }
-}
-
-/** Take the park's standing loan offer. Returns the cash the ledger adds to the till. */
-export function takeLoan(): number {
-  if (session.loan !== null) return 0;
-  session.loan = createLoan(LOAN_OFFER.principal, LOAN_OFFER.dailyRate, LOAN_OFFER.termDays);
-  session.cash += LOAN_OFFER.principal;
-  // One more scheduled rule in the same ledger, due at this day's next midnight.
-  session.ledger = addScheduledRule(session.ledger, {
-    id: "loan-payment",
-    currency: "cash",
-    amount: 0,
-    everySeconds: DAY_LENGTH,
-    startSeconds: session.day * DAY_LENGTH,
-    source: "park",
-  });
-  return LOAN_OFFER.principal;
-}
-
-/** Pay the loan off early from the till. Returns what was actually paid. */
-export function payOffLoan(): number {
-  if (session.loan === null) return 0;
-  const paid = Math.min(session.cash, session.loan.outstanding);
-  if (paid <= 0) return 0;
-  session.cash -= paid;
-  const outstanding = session.loan.outstanding - paid;
-  session.loan = outstanding > 0 ? { ...session.loan, outstanding } : null;
-  return paid;
-}
-
-export function economyDayTick(ctx: GameContext): void {
-  const metrics = currentMetrics();
-  const restock = restockCost();
-  const instalment = session.loan === null ? null : loanDay(session.loan);
-  const payment = instalment?.payment ?? 0;
-  const total = metrics.dailyUpkeep + restock + payment;
-  const settled = settleDailyUpkeep(session.ledger, session.cash, metrics.dailyUpkeep, restock, payment);
-  session.ledger = settled.ledger;
-  session.cash = settled.cash;
-  restockStalls();
-  if (instalment !== null) {
-    session.loan = instalment.loan;
-    if (instalment.loan === null) {
-      ctx.game.notices.push({ text: "Loan paid off — the park owes nothing", tone: "success" });
-    } else {
-      ctx.game.notices.push({
-        text: `Loan ${payment} paid (${instalment.interest} interest) · ${Math.round(instalment.loan.outstanding)} still owed`,
-        tone: "info",
-      });
+/** Close the day at midnight: restock, the loan, the day's summary, and the bankruptcy count. */
+export function closeDay(ctx: GameContext): void {
+  const w = park.of(ctx);
+  if (w.fact("park.game_over") === true) return;
+  for (const instance of w.instances()) {
+    const restock = `restock_${instance.kind}`;
+    if (w.def.actions?.[restock] !== undefined && w.num(`${instance.id}.sold`) > 0 && w.canAct(restock, instance.id) === null) {
+      w.act(restock, instance.id);
     }
   }
-  session.upkeepYesterday = total;
-  session.revenueYesterday = session.revenueToday;
-  const net = session.revenueYesterday - total;
-  const detail = instalment === null ? "" : " incl. loan";
+  if (w.emit({ kind: "loan_due" }) !== null) {
+    const owed = w.num("park.loan_owed");
+    ctx.game.notices.push({ text: owed > 0 ? `Loan instalment paid · $${Math.round(owed)} still owed` : "Loan paid off — the park owes nothing", tone: owed > 0 ? "info" : "success" });
+  }
+
+  const revenue = w.num("park.revenue_today");
+  const spent = w.num("park.spent_today");
+  const net = revenue - spent;
   ctx.game.notices.push({
-    text: `Day ${session.day}: ${net >= 0 ? "+" : ""}${Math.round(net)} net${detail} (${session.guestsToday} guests)`,
+    text: `Day ${w.num("park.day")}: ${net >= 0 ? "+" : ""}${Math.round(net)} net (${w.num("park.guests_today")} guests)`,
     tone: net >= 0 ? "success" : "warn",
   });
   ctx.game.audio.play("settle");
+  w.change({
+    "park.revenue_yesterday": revenue - w.num("park.revenue_yesterday"),
+    "park.upkeep_yesterday": spent - w.num("park.upkeep_yesterday"),
+    "park.revenue_today": -revenue,
+    "park.spent_today": -spent,
+    "park.guests_today": -w.num("park.guests_today"),
+  });
 
-  if (session.cash < 0) {
-    session.bankruptDays += 1;
-    if (session.bankruptDays >= BANKRUPT_LIMIT) {
-      session.gameOver = true;
-      session.open = false;
+  if (w.num("park.cash") < 0) {
+    w.change({ "park.bankrupt_days": 1 });
+    const days = w.num("park.bankrupt_days");
+    if (days >= BANKRUPT_LIMIT) {
+      w.set("park.game_over", true);
+      w.set("park.open", false);
       ctx.time.pause();
       setGamePhase(ctx, "ended");
       syncAmbience(ctx);
       ctx.game.notices.push({ text: "Bankrupt! The park has closed for good.", tone: "warn" });
       ctx.game.audio.play("bankrupt");
     } else {
-      ctx.game.notices.push({ text: `In the red — ${BANKRUPT_LIMIT - session.bankruptDays} day(s) to recover`, tone: "warn" });
+      ctx.game.notices.push({ text: `In the red — ${BANKRUPT_LIMIT - days} day(s) to recover`, tone: "warn" });
     }
-  } else {
-    session.bankruptDays = 0;
+  } else if (w.num("park.bankrupt_days") > 0) {
+    w.change({ "park.bankrupt_days": -w.num("park.bankrupt_days") });
   }
 
   // The day's boundary is the session loop's: closing it republishes the day number.
   closeParkDay(ctx);
-  session.guestsToday = 0;
-  session.revenueToday = 0;
 }
 
 /**
- * The rating rides on the same standing the milestones read: charging standing to the live rating
- * then claiming the shared gate set is what grants an unlock, so a milestone cannot drift from the
- * number the HUD shows.
+ * The rating eases toward its target; its best-ever value is `park.peak`, which the locked kinds'
+ * `when` reads, so crossing a milestone and the build palette opening are one write.
  */
 export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): void {
-  const target = ratingTarget(metrics, session.happinessAvg, session.guestsToday, session.litter);
-  const ease = 1 - Math.exp(-dt * 0.25);
-  session.rating += (target - session.rating) * ease;
-
-  session.litter = Math.max(0, session.litter - metrics.cleaning * 0.08 * dt);
-
-  syncStanding(session.rating);
-  const granted = ctx.game.unlocks?.list(ctx.player.userId) ?? [];
-  for (const gate of claimMilestones(session.cash, granted)) {
-    ctx.game.unlocks?.grant(ctx.player.userId, gate.unlock);
-    const contents = milestoneContents(gate.unlock);
+  const w = park.of(ctx);
+  const target = ratingTarget(metrics, w.num("park.mood"), w.num("park.guests_today"), w.num("park.litter"));
+  const before = w.num("park.rating");
+  const rating = before + (target - before) * (1 - Math.exp(-dt * 0.25));
+  w.set("park.rating", rating);
+  const peak = w.num("park.peak");
+  if (rating <= peak) return;
+  w.set("park.peak", rating);
+  for (const milestone of milestonesCrossed(peak, rating)) {
     ctx.game.notices.push({
-      text: `Milestone! ${gate.label} — ${contents.length > 0 ? contents.join(" & ") : gate.unlock} now in the build palette`,
+      text: `Milestone! ${milestone.label} — ${milestoneContents(milestone.unlock).join(" & ")} now in the build palette`,
       tone: "success",
     });
     ctx.game.audio.play("milestone");

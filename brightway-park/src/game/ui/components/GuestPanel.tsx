@@ -2,16 +2,16 @@ import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 
-import { buildableDef } from "../../objects/catalog";
+import { useGameContext } from "@jgengine/react/provider";
+
+import { parkObject } from "../../park";
 import { session } from "../../session";
 import { liveAgent } from "../../agents";
 import { guestRidePreference } from "../../sim/rideExperience";
 import { Row } from "./Row";
 
 /** What a guest is doing, read from its own phase/target - the "thought" the window shows. */
-function activity(targetId: string | null, phase: string): string {
-  const obj = targetId === null ? undefined : session.placed.get(targetId);
-  const name = obj === undefined ? null : buildableDef(obj.catalogId).label;
+function activity(name: string | null, phase: string): string {
   if (phase === "leaving") return "Leaving the park";
   if (phase === "riding") return name === null ? "On a ride" : `Riding the ${name}`;
   if (phase === "queued") return name === null ? "In line" : `Waiting in line for the ${name}`;
@@ -23,6 +23,7 @@ function activity(targetId: string | null, phase: string): string {
 /** The guest window: the mood the shared agent loop holds, its needs, and what it is doing. */
 export function GuestPanel({ id }: { id: string }) {
   const { commands } = useGame();
+  const ctx = useGameContext();
   const view = useGameStore(() => {
     const guest = session.guests.get(id);
     if (guest === undefined) return null;
@@ -54,7 +55,7 @@ export function GuestPanel({ id }: { id: string }) {
           <span className="text-[10px] uppercase tracking-wide text-slate-400">Guest - {kind}</span>
         </div>
       </div>
-      <p className="mb-2 text-[11px] leading-snug text-slate-300">{activity(targetId === "" ? null : targetId!, phase!)}</p>
+      <p className="mb-2 text-[11px] leading-snug text-slate-300">{activity(parkObject(ctx, targetId === "" ? null : targetId!)?.def.label ?? null, phase!)}</p>
       <div className="flex flex-col gap-1">
         <Row label="Mood" value={`${moodLabel} ${moodScore}%`} />
         <Row label="Money" value={`$${Math.round(Number(money))}`} />

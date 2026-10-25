@@ -9,10 +9,11 @@ import { refreshParkSlot } from "./parkSlot";
 import { parkFocus } from "./ui/menu/ParkMenu";
 import { session } from "./session";
 import { syncAmbience } from "./audio";
-import { currentMetrics, tickRating } from "./sim/economy";
+import { tickRating } from "./sim/economy";
 import { spawnGuests, tickGuests, tickRidePark } from "./sim/guests";
 import { tickStaff } from "./staff";
-import { tickScenario } from "./scenarios";
+import { park, parkMetrics } from "./park";
+import { breakRide, syncRidePark } from "./rides";
 
 /** What a staged park should look like when the capture takes it. */
 export type StageMode = "full";
@@ -20,11 +21,12 @@ export type StageMode = "full";
 const STEP = 1 / 20;
 
 function updateOpenState(ctx: GameContext): void {
+  const w = park.of(ctx);
   const fraction = ctx.time.calendar().dayFraction;
-  const wantOpen = !session.gameOver && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
-  if (wantOpen === session.open) return;
-  session.open = wantOpen;
-  ctx.game.notices.push({ text: wantOpen ? `Day ${session.day} — gates open!` : "Gates closed for the night", tone: "info" });
+  const wantOpen = w.fact("park.game_over") !== true && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
+  if (wantOpen === (w.fact("park.open") === true)) return;
+  w.set("park.open", wantOpen);
+  ctx.game.notices.push({ text: wantOpen ? `Day ${w.num("park.day")} — gates open!` : "Gates closed for the night", tone: "info" });
   if (wantOpen) ctx.game.audio.play("gates");
 }
 
@@ -34,22 +36,22 @@ function updateOpenState(ctx: GameContext): void {
  */
 export function stepPark(ctx: GameContext, dt: number): void {
   syncAmbience(ctx);
-  if (!session.started || session.gameOver || dt <= 0) return;
+  const w = park.of(ctx);
+  if (!session.started || w.fact("park.game_over") === true || dt <= 0) return;
   updateOpenState(ctx);
-  const metrics = currentMetrics();
+  const metrics = parkMetrics(w);
   // The rides run their own cycles and lines; their boardings, breakdowns and repairs land on
-  // the guests and the till through the sink in `sim/guests`.
+  // the guests and the world through the sink in `sim/guests`.
   tickRidePark(ctx, dt);
   spawnGuests(ctx, dt, metrics.totalAppeal);
   tickStaff(ctx, dt);
   tickGuests(ctx, dt, metrics.tracks);
   tickRating(ctx, dt, metrics);
-  tickScenario(ctx, dt);
-  // The blue ribbon is free play's own goal; a scenario has its own win and fail states.
-  if (session.scenario === null && !session.won && metrics.rides >= 3 && session.rating >= 220 &&
-      session.happinessAvg >= 50 && session.litter <= 40 &&
-      session.day > 1 && session.revenueYesterday >= session.upkeepYesterday) {
-    session.won = true;
+  // The blue ribbon is free play's own goal; a scenario is a world job with its own win and fail.
+  if (w.fact("scenario.id") === "" && w.fact("park.won") !== true && metrics.rides >= 3 && w.num("park.rating") >= 220 &&
+      w.num("park.mood") >= 50 && w.num("park.litter") <= 40 &&
+      w.num("park.day") > 1 && w.num("park.revenue_yesterday") >= w.num("park.upkeep_yesterday")) {
+    w.set("park.won", true);
     ctx.time.pause();
     setGamePhase(ctx, "paused");
     syncAmbience(ctx);
@@ -68,7 +70,7 @@ export function stagePark(ctx: GameContext, mode: StageMode): void {
   // Past the open fraction so the gates, the spawner and the HUD all read "open", not "closed for
   // the night" over a full park.
   advance(ctx, DAY_LENGTH * 0.27);
-  resetPark(ctx, { guests: guestCap(session.rating) });
+  resetPark(ctx, { guests: guestCap(park.of(ctx).num("park.rating")) });
   session.started = true;
   // Let the seeded crowd spread out, board and line up; queues only exist once guests reach a ride.
   advance(ctx, 30);
@@ -76,12 +78,59 @@ export function stagePark(ctx: GameContext, mode: StageMode): void {
 
 function advance(ctx: GameContext, seconds: number): void {
   for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
-    ctx.sim.advance(STEP, (dt) => stepPark(ctx, dt));
+    ctx.sim.advance(STEP, (dt) => {
+      // The world ticks first, as the frame loop runs it: flows, crew orders, the scenario's clock.
+      park.system.update?.(ctx, dt);
+      stepPark(ctx, dt);
+    });
   }
+}
+
+/** Take a ride down now and report it, exactly as the ride sim's own breakdown would. */
+export function forceBreakdown(ctx: GameContext, id: string): boolean {
+  syncRidePark(ctx);
+  if (!breakRide(id)) return false;
+  park.emit(ctx, { kind: "breakdown", by: id });
+  return true;
+}
+
+/** What the drive reads back (`globalThis.__brightway.read()`): the world's numbers, the rides and the crew. */
+export function parkReadout(ctx: GameContext): Record<string, unknown> {
+  const w = park.of(ctx);
+  const metrics = parkMetrics(w);
+  const rides = w.instances().filter((entry) => entry.kind.startsWith("ride_"));
+  return {
+    started: session.started,
+    cash: Math.round(w.num("park.cash")),
+    revenueToday: Math.round(w.num("park.revenue_today")),
+    rating: Math.round(w.num("park.rating") * 10) / 10,
+    mood: Math.round(w.num("park.mood") * 10) / 10,
+    buzz: Math.round(w.num("park.buzz") * 10) / 10,
+    guests: session.guests.size,
+    breakdowns: w.num("park.breakdowns"),
+    rides: metrics.rides,
+    ridesOpen: metrics.ridesOpen,
+    totalAppeal: metrics.totalAppeal,
+    broken: rides.filter((entry) => w.fact(`${entry.id}.broken`) === true).map((entry) => entry.id),
+    rideIds: rides.map((entry) => entry.id),
+    crew: w.orders("crew").map((order) => ({ target: order.target, progress: Math.round(order.progress * 100) / 100, active: order.active })),
+    selected: session.selectedObject,
+    structures: w.instances().length,
+  };
 }
 
 export function registerCaptureCommands(ctx: GameContext): void {
   if (!import.meta.env.DEV) return;
+  (globalThis as { __brightway?: { read(): Record<string, unknown> } }).__brightway = { read: () => parkReadout(ctx) };
+  // The drive's breakdown: the dice would get there, this gets there on cue.
+  ctx.game.commands.define<{ id?: string }>("park.dev.break", {
+    apply(state, input) {
+      const w = park.of(state);
+      const id = input.id ?? w.instances().find((entry) => entry.kind.startsWith("ride_") && w.fact(`${entry.id}.broken`) !== true)?.id;
+      if (id !== undefined) forceBreakdown(state, id);
+      return state;
+    },
+  });
   ctx.game.commands.define<{ mode?: StageMode }>("park.stage", {
     apply(state, input) {
       stagePark(state, input.mode ?? "full");

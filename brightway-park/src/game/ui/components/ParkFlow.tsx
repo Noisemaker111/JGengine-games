@@ -1,10 +1,12 @@
 import { type ReactNode } from "react";
 import { SettingsTrigger, useDialogBehavior } from "@jgengine/react";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
+import { useGameContext } from "@jgengine/react/provider";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 import { session } from "../../session";
-import { SCENARIOS } from "../../scenarios";
+import { scenarioView } from "../../parkReset";
+import { parkFlags, usePark } from "../usePark";
 
 export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:string;children:ReactNode;onClose?:()=>void;blockGameKeys?:boolean}) {
   const ref=useDialogBehavior({open:true,onClose,initialFocus:"root",focusKey:title});
@@ -15,7 +17,9 @@ export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:s
 
 export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion,contrast,onContrast}:{settings:boolean;onCloseSettings:()=>void;reducedMotion:boolean;onReducedMotion:(v:boolean)=>void;contrast:boolean;onContrast:(v:boolean)=>void}) {
   const {commands}=useGame(); const clock=useGameClock();
-  useGameStore(()=>[session.started,session.gameOver,session.won,session.winDismissed,session.hasSave,session.saveStatus,session.scenario?.id??"",session.scenario?.result??"",session.scenario?.reason??""].join("|"));
+  useGameStore(()=>[session.started,session.hasSave,session.saveStatus].join("|"));
+  const w=usePark(); const flags=parkFlags(w);
+  const ctx=useGameContext(); const scenario=scenarioView(ctx);
   const logo=<img className="park-dialog-logo" src={new URL("../../../../public/art/brightway-sign.svg",import.meta.url).href} alt="Brightway Park"/>;
   if(settings) return <ParkDialog title="Park settings" onClose={onCloseSettings} blockGameKeys>
     <div className="park-section-label">MAKE YOURSELF AT HOME</div><h1>Park settings</h1>
@@ -26,19 +30,19 @@ export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion
     <p className="park-save-note">{session.saveStatus}. Saves stay in this browser.</p>
     <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={onCloseSettings}>Back to the park</HudButton>
   </ParkDialog>;
-  if(session.scenario!==null&&session.scenario.result!==null&&session.started) {
-    const won=session.scenario.result==="won";
+  if(scenario!==null&&scenario.result!==null&&session.started) {
+    const won=scenario.result==="won";
     return <ParkDialog title={won?"Scenario complete":"Scenario failed"}>{logo}
       <div className="park-section-label">{won?"BRIGHT DAYS AHEAD":"THE GATES CLOSE"}</div>
       <h1>{won?"Scenario won!":"Scenario failed"}</h1>
-      <p>{won?"You hit the target with the park still standing. The reward is in the till.":session.scenario.reason??"The target slipped away."}</p>
+      <p>{won?"You hit the target with the park still standing. The reward is in the till.":scenario.reason??"The target slipped away."}</p>
       <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.replay",{})}>Play this scenario again · fresh park</HudButton>
       <HudButton className="park-button" onClick={()=>commands.run("park.freeplay",{})}>Keep this park in free play</HudButton>
       <small className="park-save-note">Your award and park are saved.</small>
     </ParkDialog>;
   }
-  if(session.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(session.rating)} stars in {session.day-1} days.</p><p>Next time, keep an eye on nightly upkeep, staff wages and the loan instalment, and give guests somewhere to eat and drink.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.new", {})}>Reopen a new park · archive this save</HudButton></ParkDialog>;
-  if(session.won&&!session.winDismissed) return <ParkDialog title="Blue ribbon awarded">{logo}<div className="park-ribbon">★</div><div className="park-section-label">BRIGHT DAYS AHEAD</div><h1>Your first blue ribbon!</h1><p>Three rides, a profitable day, and a happy, tidy park. Brightway has become a seaside favorite.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.continue", {})}>Keep building in free play</HudButton><small className="park-save-note">Your award and park are saved.</small></ParkDialog>;
+  if(flags.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(w.num("park.peak"))} stars in {w.num("park.day")-1} days.</p><p>Next time, keep an eye on nightly upkeep, staff wages and the loan instalment, and give guests somewhere to eat and drink.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.new", {})}>Reopen a new park · archive this save</HudButton></ParkDialog>;
+  if(flags.ribbon) return <ParkDialog title="Blue ribbon awarded">{logo}<div className="park-ribbon">★</div><div className="park-section-label">BRIGHT DAYS AHEAD</div><h1>Your first blue ribbon!</h1><p>Three rides, a profitable day, and a happy, tidy park. Brightway has become a seaside favorite.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.continue", {})}>Keep building in free play</HudButton><small className="park-save-note">Your award and park are saved.</small></ParkDialog>;
 
   return null;
 }

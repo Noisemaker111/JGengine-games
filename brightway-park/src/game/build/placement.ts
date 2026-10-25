@@ -1,115 +1,43 @@
-import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import type { WorldModel } from "@jgengine/core/worldModel/worldModel";
 
-import { GRID, snapToGrid, withinPark } from "../catalog";
-import { buildableDef, type BuildableDef } from "../objects/catalog";
-import { nextObjectId, session, type PlacedObject } from "../session";
+import { BUILDABLES } from "../objects/catalog";
+import { cellFor, sizeOf } from "../park";
 
-function footprintN(def: BuildableDef): number {
-  return Math.max(1, Math.round(def.footprint / GRID));
-}
+/**
+ * The one placement rule the world cannot declare: coaster track has to touch the station or track
+ * already laid. Everything else - the lot's edge, a taken cell, a locked blueprint, the cash - is the
+ * world's own `canPlace`.
+ */
 
-export function footprintCells(def: BuildableDef, gx: number, gz: number): string[] {
-  const n = footprintN(def);
-  const start = -Math.floor((n - 1) / 2);
-  const cells: string[] = [];
-  for (let i = 0; i < n; i += 1) {
-    for (let j = 0; j < n; j += 1) {
-      cells.push(`${gx + (start + i) * GRID},${gz + (start + j) * GRID}`);
-    }
-  }
-  return cells;
-}
+const RAIL = new Set(["track_piece", "ride_coaster"]);
 
-export function blockCenter(def: BuildableDef, gx: number, gz: number): [number, number] {
-  const n = footprintN(def);
-  const start = -Math.floor((n - 1) / 2);
-  const min = start * GRID;
-  const max = (start + n - 1) * GRID;
-  return [gx + (min + max) / 2, gz + (min + max) / 2];
-}
-
-function neighborsConnected(gx: number, gz: number): boolean {
-  const offsets: readonly [number, number][] = [
-    [GRID, 0],
-    [-GRID, 0],
-    [0, GRID],
-    [0, -GRID],
+/** True when a 1-cell piece at `cell` sits beside the station or a laid piece. */
+export function touchesRail(w: WorldModel, cell: readonly [number, number]): boolean {
+  const neighbours: [number, number][] = [
+    [cell[0] + 1, cell[1]],
+    [cell[0] - 1, cell[1]],
+    [cell[0], cell[1] + 1],
+    [cell[0], cell[1] - 1],
   ];
-  for (const [dx, dz] of offsets) {
-    const occ = session.occupied.get(`${gx + dx},${gz + dz}`);
-    if (occ === undefined) continue;
-    const placed = session.placed.get(occ);
-    if (placed === undefined) continue;
-    if (placed.catalogId === "track_piece" || placed.catalogId === "ride_coaster") return true;
+  for (const instance of w.instances()) {
+    if (!RAIL.has(instance.kind) || instance.cell === null) continue;
+    const n = sizeOf(BUILDABLES[instance.kind]!);
+    const [c0, r0] = instance.cell;
+    if (neighbours.some(([c, r]) => c >= c0 && c < c0 + n && r >= r0 && r < r0 + n)) return true;
   }
   return false;
 }
 
-export interface PlacementCheck {
-  ok: boolean;
-  reason?: string;
-}
+export type PlacementCheck = { ok: true; cell: [number, number] } | { ok: false; reason: string; code: string };
 
-export function canPlace(catalogId: string, x: number, z: number): PlacementCheck {
-  const def = buildableDef(catalogId);
-  const gx = snapToGrid(x);
-  const gz = snapToGrid(z);
-  const cells = footprintCells(def, gx, gz);
-  for (const key of cells) {
-    const [cxRaw, czRaw] = key.split(",");
-    const cx = Number(cxRaw);
-    const cz = Number(czRaw);
-    if (!withinPark(cx, cz)) return { ok: false, reason: "Outside the fence" };
-    if (session.occupied.has(key)) return { ok: false, reason: "Space is taken" };
+/** Can this blueprint go down where the pointer is? The world's answer, then the track rule. */
+export function placementAt(w: WorldModel, kind: string, x: number, z: number): PlacementCheck {
+  if (!Object.hasOwn(BUILDABLES, kind)) return { ok: false, reason: "Unknown blueprint", code: "unknown" };
+  const cell = cellFor(kind, x, z);
+  const refused = w.canPlace(kind, { cell });
+  if (refused !== null) return { ok: false, reason: refused.reason === "blocked" ? "Outside the fence" : refused.message, code: refused.reason };
+  if (BUILDABLES[kind]!.category === "track" && !touchesRail(w, cell)) {
+    return { ok: false, reason: "Track must touch the station or existing track", code: "rail" };
   }
-  if (def.category === "track" && !neighborsConnected(gx, gz)) {
-    return { ok: false, reason: "Track must touch the station or existing track" };
-  }
-  return { ok: true };
-}
-
-export function placeObject(ctx: GameContext, catalogId: string, x: number, z: number): PlacedObject | null {
-  const check = canPlace(catalogId, x, z);
-  if (!check.ok) return null;
-  const def = buildableDef(catalogId);
-  const gx = snapToGrid(x);
-  const gz = snapToGrid(z);
-  const [cx, cz] = blockCenter(def, gx, gz);
-  const id = nextObjectId(catalogId);
-  const placed: PlacedObject = {
-    id,
-    catalogId,
-    x: cx,
-    z: cz,
-    stock: def.stall?.stock ?? 0,
-    soldTotal: 0,
-    occupants: 0,
-  };
-  session.placed.set(id, placed);
-  for (const key of footprintCells(def, gx, gz)) session.occupied.set(key, id);
-  ctx.scene.object.place(catalogId, cx, 0, cz, { instanceId: id });
-  return placed;
-}
-
-export function removeObject(ctx: GameContext, instanceId: string): boolean {
-  const placed = session.placed.get(instanceId);
-  if (placed === undefined) return false;
-  for (const [key, occ] of session.occupied) {
-    if (occ === instanceId) session.occupied.delete(key);
-  }
-  session.placed.delete(instanceId);
-  for (const guest of session.guests.values()) {
-    if (guest.targetId === instanceId) {
-      guest.targetId = null;
-      guest.target = null;
-      guest.phase = "seeking";
-      guest.busy = 0;
-    }
-  }
-  ctx.scene.object.remove(instanceId);
-  return true;
-}
-
-export function placedList(): PlacedObject[] {
-  return Array.from(session.placed.values());
+  return { ok: true, cell };
 }

@@ -2,13 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { hoverRefusal } from "./placementHint";
 
 describe("hoverRefusal", () => {
-  test("names the placement rule before the budget", () => {
-    expect(hoverRefusal({ ok: false, reason: "Space is taken" }, 0, 850)).toBe("Space is taken");
-  });
-  test("names the shortfall when the spot is fine but cash is short", () => {
-    expect(hoverRefusal({ ok: true }, 600, 850)).toBe("Needs $250 more");
+  test("names the world's refusal, cost included", () => {
+    expect(hoverRefusal({ ok: false, reason: "Something is already built there", code: "taken" })).toBe("Something is already built there");
+    expect(hoverRefusal({ ok: false, reason: "Carousel needs $250 more park cash", code: "cost" })).toContain("$250");
   });
   test("is null for a buildable, affordable spot", () => {
-    expect(hoverRefusal({ ok: true }, 900, 850)).toBeNull();
+    expect(hoverRefusal({ ok: true, cell: [0, 0] })).toBeNull();
   });
 });

@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { game } from "../game.config";
-import { loop } from "../loop";
 import { content } from "./content";
 import { guestCap } from "./catalog";
 import { session } from "./session";
 import { stagePark } from "./capture";
+import { park } from "./park";
 
 const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 let records: Map<string, string>;
@@ -31,7 +31,7 @@ afterEach(() => {
 function boot(): HeadlessRunner {
   // A fresh boot has no park save to restore; a replayed state must not depend on the last run's.
   records.clear();
-  const runner = createHeadlessRunner({ definition: game.game, content, loop, maxStepSeconds: 1 });
+  const runner = createHeadlessRunner({ definition: game.game, content, loop: game.game.loop, maxStepSeconds: 1 });
   runner.ui.invoke("park.start");
   return runner;
 }
@@ -46,8 +46,9 @@ describe("staged full-park capture", () => {
   test("fills the turnstiles and puts guests in a line", () => {
     const runner = boot();
     stagePark(runner.ctx, "full");
-    expect(session.open).toBe(true);
-    expect(session.guests.size).toBeGreaterThanOrEqual(guestCap(session.rating));
+    const w = park.of(runner.ctx);
+    expect(w.fact("park.open")).toBe(true);
+    expect(session.guests.size).toBeGreaterThanOrEqual(guestCap(w.num("park.rating")));
     const counted = phases();
     expect(counted.queued ?? 0).toBeGreaterThan(0);
   }, 30_000);

@@ -1,27 +1,16 @@
-import { createGateSet, gateFacts, type GateDef, type GateSet, type GateStatus } from "@jgengine/core/progression/gates";
-import { createStanding, type Standing, type StandingState } from "@jgengine/core/progression/standing";
-
 import { BUILDABLES, BUILD_IDS } from "./objects/catalog";
 
 /**
- * The park's milestones are authored unlock gates (`@jgengine/core/progression/gates`): each one
- * names the unlock it grants and the standing it needs, and the gate set refuses to load while any
- * unlock id resolves to nothing. Standing is the park's own rating track, so a star crossing and a
- * tier crossing are the same number.
+ * The park's milestones: each one names the unlock it grants and the rating that opens it. In the
+ * world a locked structure is a kind whose `when` reads `park.peak`, the best rating the park has
+ * reached, so the build palette's refusal and the milestone are one number that never closes again.
  */
 
-/** The one standing track a park has today: its star rating. */
-export const PARK_TRACK = "park";
-
-/** Who owns the rating: a park is its own actor, not the player's user id. */
-export const PARK_ACTOR = "brightway";
-
 export interface MilestoneDef {
-  /** Stable id used by the gate table and the save. */
   id: string;
   /** Park rating that opens it. */
   rating: number;
-  /** Unlock id granted; a buildable must require it, or the gate set refuses to load. */
+  /** Unlock id a buildable requires; a milestone that opens nothing fails at load. */
   unlock: string;
   label: string;
   blurb: string;
@@ -37,60 +26,13 @@ export const MILESTONES: readonly MilestoneDef[] = [
   { id: "grand_gardens", rating: 760, unlock: "tier_gardens", label: "Grand gardens", blurb: "Sculpted hedges for a headline garden." },
 ];
 
-/**
- * A milestone unlock resolves when a buildable in the palette requires it. This is the catalog the
- * gate set validates against, so an authored reward that unlocks nothing fails at module load.
- */
-export function unlockResolves(unlockId: string): boolean {
-  for (const id of BUILD_IDS) if (BUILDABLES[id]!.requires === unlockId) return true;
-  return false;
-}
-
-/** The buildable a milestone id opens, for a HUD that names what appeared. */
+/** The buildables a milestone opens, for a HUD that names what appeared. */
 export function milestoneContents(unlockId: string): readonly string[] {
-  const labels: string[] = [];
-  for (const id of BUILD_IDS) if (BUILDABLES[id]!.requires === unlockId) labels.push(BUILDABLES[id]!.label);
-  return labels;
+  return BUILD_IDS.filter((id) => BUILDABLES[id]!.requires === unlockId).map((id) => BUILDABLES[id]!.label);
 }
 
-export const MILESTONE_GATES: readonly GateDef[] = MILESTONES.map((milestone) => ({
-  id: milestone.id,
-  unlock: milestone.unlock,
-  label: milestone.label,
-  category: "milestone",
-  requires: { standing: { trackId: PARK_TRACK, min: milestone.rating } },
-}));
-
-/** The park's rating, as standing on one authored track. */
-export const parkStanding: Standing = createStanding({
-  tracks: [{ id: PARK_TRACK, label: "Park rating", initial: 0, min: 0 }],
-});
-
-export const parkGates: GateSet = createGateSet({
-  gates: MILESTONE_GATES,
-  catalog: { has: unlockResolves },
-  standing: parkStanding,
-});
-
-/** A fresh park starts at zero stars and nothing unlocked. */
-export function resetProgression(): void {
-  parkStanding.restore({ records: {} });
-}
-
-/** Move standing to the live rating. The park rating only climbs, so a gate never closes behind you. */
-export function syncStanding(rating: number): void {
-  const current = parkStanding.standing(PARK_ACTOR, PARK_TRACK);
-  if (rating > current) parkStanding.adjust(PARK_ACTOR, PARK_TRACK, rating - current);
-}
-
-/** Every milestone against the park's live facts. */
-export function milestoneStatuses(cash: number): readonly GateStatus[] {
-  return parkGates.status(gateFacts(parkStanding, PARK_ACTOR, { cash }));
-}
-
-/** Milestones met now whose unlock has not been granted yet - the grants for this pass. */
-export function claimMilestones(cash: number, granted: readonly string[]): readonly GateDef[] {
-  return parkGates.claim(gateFacts(parkStanding, PARK_ACTOR, { cash }), granted);
+for (const milestone of MILESTONES) {
+  if (milestoneContents(milestone.unlock).length === 0) throw new Error(`brightway-park: milestone "${milestone.id}" opens nothing`);
 }
 
 /** The first milestone the rating has not reached, or null when all are open. */
@@ -98,4 +40,7 @@ export function nextMilestone(rating: number): MilestoneDef | null {
   return MILESTONES.find((m) => rating < m.rating) ?? null;
 }
 
-export type { StandingState };
+/** Milestones crossed when the park's best rating moves from `before` to `after`. */
+export function milestonesCrossed(before: number, after: number): readonly MilestoneDef[] {
+  return MILESTONES.filter((m) => before < m.rating && after >= m.rating);
+}

@@ -2,6 +2,7 @@
   "adopts": [
     "agents",
     "audio-probe",
+    "game-spec",
     "mission-events",
     "mission-rewards",
     "mission-runtime",
@@ -11,7 +12,8 @@
     "ride-choice",
     "ride-sim",
     "session-loop",
-    "wait-queue"
+    "wait-queue",
+    "world-model"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [
@@ -63,12 +65,12 @@
     },
     "loan-schedule": {
       "kind": "debt",
-      "reason": "The park's loans repay on its own day-by-day schedule; adopt the shared loan book's schedule in minor units.",
+      "reason": "The park has loans: one repays a flat $703 a night from the park world, not a computed schedule; adopt the shared loan book schedule in minor units.",
       "issue": 127
     },
     "loans": {
       "kind": "debt",
-      "reason": "loans are amortised per day in loan.ts while the money moves through the shared ledger; adopt the shared loan book for those loans.",
+      "reason": "The loan is a world action (take $6,000) with a nightly loan_due ripple of a flat $703 for 10 nights; adopt the shared loan book for interest-bearing loans.",
       "issue": 127
     },
     "loot-comparison": {
@@ -133,7 +135,7 @@
     },
     "skill-tree": {
       "kind": "not-applicable",
-      "reason": "Skill tree is not part of brightway-park: unlocks are milestone gates on the park's standing, not a skill tree."
+      "reason": "Skill tree is not part of brightway-park: unlocks are locked kinds whose world condition reads the park's best rating, not a skill tree."
     },
     "squad-combat": {
       "kind": "not-applicable",
@@ -157,7 +159,7 @@
     },
     "transaction-ledger": {
       "kind": "not-applicable",
-      "reason": "Transaction ledger is not part of brightway-park: park money already moves through the shared resource ledger, so a transaction ledger would be a second one."
+      "reason": "Transaction ledger is not part of brightway-park: park money is the world fact park.cash, moved by declared costs, flows and ripples, so a transaction ledger would be a second book."
     },
     "utility-brain": {
       "kind": "not-applicable",

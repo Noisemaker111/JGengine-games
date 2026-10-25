@@ -3,9 +3,9 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { DAY_LENGTH } from "./game/catalog";
-import { session } from "./game/session";
+import { park } from "./game/park";
 import { disposeWorld, setupWorld } from "./game/world/setup";
-import { economyDayTick } from "./game/sim/economy";
+import { closeDay } from "./game/sim/economy";
 import { registerCaptureCommands, stepPark } from "./game/capture";
 import { savePark } from "./game/persistence";
 
@@ -13,9 +13,10 @@ import { savePark } from "./game/persistence";
 function scheduleMidnight(ctx: GameContext): void {
   const midnight = (Math.floor(ctx.time.now() / DAY_LENGTH) + 1) * DAY_LENGTH;
   ctx.time.at(midnight, () => {
-    if (!session.gameOver) economyDayTick(ctx);
+    const over = () => park.of(ctx).fact("park.game_over") === true;
+    if (!over()) closeDay(ctx);
     savePark(ctx);
-    if (!session.gameOver) scheduleMidnight(ctx);
+    if (!over()) scheduleMidnight(ctx);
   });
 }
 

@@ -1,5 +1,3 @@
-export const CASH = "cash";
-
 export const STARTING_CASH = 6000;
 
 export const GRID = 4;
@@ -25,13 +23,5 @@ export function guestCap(rating: number): number {
 
 export function snapToGrid(value: number): number {
   return Math.round(value / GRID) * GRID;
-}
-
-export function withinPark(x: number, z: number): boolean {
-  return Math.abs(x) <= PARK_HALF - GRID && Math.abs(z) <= PARK_HALF - GRID;
-}
-
-export function cellKey(x: number, z: number): string {
-  return `${snapToGrid(x)},${snapToGrid(z)}`;
 }
 

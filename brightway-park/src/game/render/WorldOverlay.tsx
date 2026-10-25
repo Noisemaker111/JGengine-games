@@ -5,10 +5,11 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { pathFollowSeek } from "@jgengine/core/nav/pathFollow";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Group, Mesh, Plane, Raycaster, TextureLoader, Vector2, Vector3 } from "three";
-import { session, type PlacedObject } from "../session";
+import { session } from "../session";
+import { cellCentres, cellFor, park, parkObject, parkObjects, type ParkObject } from "../park";
 import { BUILDABLES } from "../objects/catalog";
 import { coasterCircuit, rideView } from "../rides";
-import { canPlace, footprintCells } from "../build/placement";
+import { placementAt } from "../build/placement";
 import { GRID, snapToGrid } from "../catalog";
 import { traceNative } from "../evidence";
 import { hoverRefusal, placementHintStore } from "../build/placementHint";
@@ -20,8 +21,8 @@ const rotors: Record<string,string> = {
   ride_ferris: new URL("../../../public/art/models/ferris_rotor.glb",import.meta.url).href,
   ride_dropzone: new URL("../../../public/art/models/drop_carriage.glb",import.meta.url).href,
 };
-function RideMotion({object}:{object:PlacedObject}) {
-  const gltf=useLoader(GLTFLoader,rotors[object.catalogId]!);
+function RideMotion({object}:{object:ParkObject}) {
+  const gltf=useLoader(GLTFLoader,rotors[object.kind]!);
   const clock=useGameStore(ctx=>ctx.time);
   const reduced=useGameStore(ctx=>Boolean(ctx.game.store.get("park.reduced-motion")));
   const ref=useRef<Group>(null);
@@ -29,14 +30,14 @@ function RideMotion({object}:{object:PlacedObject}) {
   useFrame(()=>{
     const root=ref.current; if(!root)return;
     const t=reduced?0:clock.now();
-    if(object.catalogId==="ride_carousel") root.rotation.y=t*.25;
-    if(object.catalogId==="ride_ferris") {
+    if(object.kind==="ride_carousel") root.rotation.y=t*.25;
+    if(object.kind==="ride_ferris") {
       root.rotation.z=t*.09;
       scene.traverse(n=>{if(n.name.startsWith("Cabin_"))n.rotation.z=-root.rotation.z;});
     }
-    if(object.catalogId==="ride_dropzone") {const phase=(t%12)/12;root.position.y=1+(phase<.8?phase/.8:Math.pow((1-phase)/.2,3))*8.5;}
+    if(object.kind==="ride_dropzone") {const phase=(t%12)/12;root.position.y=1+(phase<.8?phase/.8:Math.pow((1-phase)/.2,3))*8.5;}
   });
-  return <group userData={{jgObjectId:object.id}} position={[object.x,object.catalogId==="ride_ferris"?6:0,object.z]}><group ref={ref}><primitive object={scene}/></group></group>;
+  return <group userData={{jgObjectId:object.id}} position={[object.x,object.kind==="ride_ferris"?6:0,object.z]}><group ref={ref}><primitive object={scene}/></group></group>;
 }
 const trainModel = new URL("../../../public/art/models/coaster_train.glb", import.meta.url).href;
 
@@ -45,7 +46,7 @@ const trainModel = new URL("../../../public/art/models/coaster_train.glb", impor
  * ride sim's own cycle reports, so it leaves the station, runs the ring and is back at the platform
  * when the lap the track measured is over.
  */
-function CoasterTrain({object,circuit}:{object:PlacedObject;circuit:ReturnType<typeof coasterCircuit>}) {
+function CoasterTrain({object,circuit}:{object:ParkObject;circuit:ReturnType<typeof coasterCircuit>}) {
   const gltf=useLoader(GLTFLoader,trainModel);
   const ref=useRef<Group>(null);
   const reduced=useGameStore(ctx=>Boolean(ctx.game.store.get("park.reduced-motion")));
@@ -86,7 +87,7 @@ function Fence() {
 function Blueprint() {
   const {gl,camera}=useThree(); const ctx=useGameContext(); const [hover,setHover]=useState<[number,number]|null>(null);
   const selected=useGameStore(()=>session.selectedTool);
-  useGameStore(()=>`${session.placed.size}:${session.cash}`);
+  useGameStore(c=>park.store.read(c));
   useEffect(()=>{
     const ray=new Raycaster(),plane=new Plane(new Vector3(0,1,0),0),hit=new Vector3();
     const move=(e:PointerEvent)=>{
@@ -103,12 +104,14 @@ function Blueprint() {
     return()=>{gl.domElement.removeEventListener("pointermove",move);gl.domElement.removeEventListener("pointerleave",leave);gl.domElement.removeEventListener("pointerdown",inspect);};
   },[gl,camera]);
   const def=selected?BUILDABLES[selected]:null;
-  const refusal=def&&hover?hoverRefusal(canPlace(def.id,...hover),session.cash,def.cost):null;
+  const check=def&&hover?placementAt(park.of(ctx),def.id,...hover):null;
+  const refusal=check===null?null:hoverRefusal(check);
   useEffect(()=>{if(placementHintStore.read(ctx)!==refusal)placementHintStore.write(ctx,refusal);return()=>{if(placementHintStore.read(ctx)!==null)placementHintStore.write(ctx,null);};},[ctx,refusal]);
   if(!def||!hover)return null;
   const valid=refusal===null;
   const color=valid?"#7cf3c8":"#ef7059";
-  return <group>{footprintCells(def,...hover).map(key=>{const [x,z]=key.split(",").map(Number);return <mesh key={key} position={[x!,.22,z!]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><planeGeometry args={[GRID-.12,GRID-.12]}/><meshBasicMaterial color={color} transparent opacity={.4} depthWrite={false}/></mesh>;})}</group>;
+  const centres=cellCentres(def.id,cellFor(def.id,...hover));
+  return <group>{centres.map(([x,z])=>{const key=`${x},${z}`;return <mesh key={key} position={[x,.22,z]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><planeGeometry args={[GRID-.12,GRID-.12]}/><meshBasicMaterial color={color} transparent opacity={.4} depthWrite={false}/></mesh>;})}</group>;
 }
 export function BrightwayParkWorldOverlay() {
   return (
@@ -120,14 +123,15 @@ export function BrightwayParkWorldOverlay() {
 }
 
 function OverlayBodies() {
+  const ctx=useGameContext();
   const selection=useGameStore(()=>session.selectedObject);
-  const placed=useGameStore(()=>[...session.placed.keys()].join("|"));
-  const circuit=useMemo(()=>coasterCircuit(),[placed]);
-  const obj=selection?session.placed.get(selection):null;
+  const objects=useGameStore(c=>parkObjects(c));
+  const circuit=useMemo(()=>coasterCircuit(ctx),[ctx,objects]);
+  const obj=parkObject(ctx,selection);
   return <group><Fence/><Blueprint/>
-    {[...session.placed.values()].filter(o=>rotors[o.catalogId]).map(o=><RideMotion key={o.id} object={o}/>)}
-    {[...session.placed.values()].filter(o=>o.catalogId==="ride_coaster").map(o=><CoasterTrain key={o.id} object={o} circuit={circuit}/>)}
-    {obj&&<mesh position={[obj.x,.23,obj.z]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><ringGeometry args={[Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65),Math.max(2,BUILDABLES[obj.catalogId]!.footprint*.65)+.18,48]}/><meshBasicMaterial color="#edbc5c"/></mesh>}
+    {objects.filter(o=>rotors[o.kind]).map(o=><RideMotion key={o.id} object={o}/>)}
+    {objects.filter(o=>o.kind==="ride_coaster").map(o=><CoasterTrain key={o.id} object={o} circuit={circuit}/>)}
+    {obj&&<mesh position={[obj.x,.23,obj.z]} rotation={[-Math.PI/2,0,0]} raycast={()=>{}}><ringGeometry args={[Math.max(2,obj.def.footprint*.65),Math.max(2,obj.def.footprint*.65)+.18,48]}/><meshBasicMaterial color="#edbc5c"/></mesh>}
   </group>;
 }
 

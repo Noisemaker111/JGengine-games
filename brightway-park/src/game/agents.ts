@@ -9,10 +9,12 @@ import type { NeedDefinition } from "@jgengine/core/sim/needs";
 import { rideAppeal, rideQueueCostWeight, type RideTaste } from "@jgengine/core/sim/rides";
 
 import { CLOSE_FRACTION, DAY_LENGTH, ENTRANCE, OPEN_FRACTION } from "./catalog";
-import { buildableDef } from "./objects/catalog";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
+
 import { guestRidePreference } from "./sim/rideExperience";
-import { ridePrice, rideView } from "./rides";
-import { session, type GuestState, type PlacedObject, type StaffState } from "./session";
+import { rideView } from "./rides";
+import { park, parkObjects, ridePrice, stockOf, type ParkObject } from "./park";
+import { session, type GuestState, type StaffState } from "./session";
 
 /**
  * The park's own content for the shared agent loop: what a visitor needs, what it can do, and the
@@ -135,6 +137,7 @@ const MIDWAY: AgentTarget = { option: "wander", target: "midway" };
  * the ride's ticket become one cost, priced against this guest's own queue tolerance.
  */
 export function guestTargets(
+  ctx: GameContext,
   guest: GuestState,
   tracks: number,
   at: readonly [number, number, number],
@@ -142,21 +145,22 @@ export function guestTargets(
   const targets: AgentTarget[] = [];
   const taste = guestTaste(guest.kind);
   const queueWeight = rideQueueCostWeight(taste);
-  for (const obj of session.placed.values()) {
-    const def = buildableDef(obj.catalogId);
+  const w = park.of(ctx);
+  for (const obj of parkObjects(ctx)) {
+    const def = obj.def;
     const distance = Math.hypot(obj.x - at[0], obj.z - at[2]);
     if (def.stall !== undefined) {
-      if (obj.stock <= 0 || guest.money < def.stall.price) continue;
+      if (stockOf(w, obj) <= 0 || guest.money < def.stall.price) continue;
       targets.push({
         option: def.stall.need,
         target: obj.id,
-        cost: distance * WALK_COST + obj.occupants * QUEUE_COST,
+        cost: distance * WALK_COST + (session.occupants.get(obj.id) ?? 0) * QUEUE_COST,
         fallback: MIDWAY,
       });
       continue;
     }
     if (def.ride === undefined) continue;
-    const price = ridePrice(obj.catalogId);
+    const price = ridePrice(w, obj.kind);
     if (guest.money < price) continue;
     const view = rideView(obj.id);
     if (view === null) continue;
@@ -176,7 +180,7 @@ export function guestTargets(
 }
 
 /** What a ride gives a guest in fun, from its live ratings and that guest's taste. */
-export function rideFun(kind: string, obj: PlacedObject): number {
+export function rideFun(kind: string, obj: ParkObject): number {
   const view = rideView(obj.id);
   if (view === null) return 0;
   return 12 * rideAppeal(view.ratings, guestTaste(kind)) - 4;
@@ -189,7 +193,7 @@ export function liveAgent(id: string): Agent | null {
 
 /** The park's mood aggregate: the mean of every guest's own mood, which is what the rating reads. */
 export function parkMood(): number {
-  if (session.guests.size === 0) return session.happinessAvg;
+  if (session.guests.size === 0) return 55;
   let total = 0;
   for (const guest of session.guests.values()) {
     const agent = agents.get(guest.id);
@@ -212,7 +216,7 @@ const STAFF_BEAT_STEPS = 8;
 const STAFF_POST_SECONDS = 6;
 
 /** The ring a janitor walks around its post - authored by the post, not by a route file. */
-export function staffBeat(post: PlacedObject): { place: string; x: number; z: number }[] {
+export function staffBeat(post: ParkObject): { place: string; x: number; z: number }[] {
   const points: { place: string; x: number; z: number }[] = [];
   for (let i = 0; i < STAFF_BEAT_STEPS; i += 1) {
     const angle = (i / STAFF_BEAT_STEPS) * Math.PI * 2;
@@ -230,7 +234,7 @@ export function staffId(postId: string): string {
 }
 
 /** One janitor per post: the same agent factory, with a work beat instead of a need to chase. */
-export function createStaffAgent(post: PlacedObject, rng: () => number): Agent {
+export function createStaffAgent(post: ParkObject, rng: () => number): Agent {
   const beat = staffBeat(post).map((point) => point.place);
   return trackAgent(
     createAgent({
@@ -266,7 +270,7 @@ export function createStaffAgent(post: PlacedObject, rng: () => number): Agent {
   );
 }
 
-export function staffAgentOf(state: StaffState, post: PlacedObject, rng: () => number): Agent {
+export function staffAgentOf(state: StaffState, post: ParkObject, rng: () => number): Agent {
   const existing = agents.get(state.id);
   if (existing !== undefined) return existing;
   const agent = createStaffAgent(post, rng);
