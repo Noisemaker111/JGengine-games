@@ -1,49 +1,48 @@
-import { type ReactNode } from "react";
-import { SettingsTrigger, useDialogBehavior } from "@jgengine/react";
-import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
+import { useRef } from "react";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
-import { session } from "../../session";
+import { KitBanner, KitResultScreen } from "@jgengine/react/kitFlow";
+
+import { park } from "../../park";
 import { scenarioView } from "../../parkReset";
+import { scenarioDef } from "../../scenarios";
+import { session } from "../../session";
 import { parkFlags, usePark } from "../usePark";
 
-export function ParkDialog({title,children,onClose,blockGameKeys=false}:{title:string;children:ReactNode;onClose?:()=>void;blockGameKeys?:boolean}) {
-  const ref=useDialogBehavior({open:true,onClose,initialFocus:"root",focusKey:title});
-  return <div className="park-modal-scrim" onPointerDown={e=>e.stopPropagation()}><HudSurface ref={ref} tabIndex={-1} className="park-dialog park-surface" role="dialog" aria-modal="true" aria-label={title} elevation="modal" onKeyDown={e=>{
-    if(blockGameKeys)e.stopPropagation();
-  }}>{children}</HudSurface></div>;
+/** A result screen is up: the scenario ended, the park went bankrupt, or the blue ribbon landed. */
+export function resultOpen(ctx: GameContext): boolean {
+  const flags = parkFlags(park.of(ctx));
+  return session.started && (flags.gameOver || flags.ribbon || scenarioView(ctx)?.result != null);
 }
+const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString()}`;
 
-export function ParkFlow({settings,onCloseSettings,reducedMotion,onReducedMotion,contrast,onContrast}:{settings:boolean;onCloseSettings:()=>void;reducedMotion:boolean;onReducedMotion:(v:boolean)=>void;contrast:boolean;onContrast:(v:boolean)=>void}) {
-  const {commands}=useGame(); const clock=useGameClock();
-  useGameStore(()=>[session.started,session.hasSave,session.saveStatus].join("|"));
-  const w=usePark(); const flags=parkFlags(w);
-  const ctx=useGameContext(); const scenario=scenarioView(ctx);
-  const logo=<img className="park-dialog-logo" src={new URL("../../../../public/art/brightway-sign.svg",import.meta.url).href} alt="Brightway Park"/>;
-  if(settings) return <ParkDialog title="Park settings" onClose={onCloseSettings} blockGameKeys>
-    <div className="park-section-label">MAKE YOURSELF AT HOME</div><h1>Park settings</h1>
-    <label className="park-setting"><span><strong>Reduce motion</strong><small>Still ride mechanisms and gentle UI transitions.</small></span><input type="checkbox" checked={reducedMotion} onChange={e=>onReducedMotion(e.target.checked)}/></label>
-    <label className="park-setting"><span><strong>Stronger HUD contrast</strong><small>Solid panels for clear labels over the park.</small></span><input type="checkbox" checked={contrast} onChange={e=>onContrast(e.target.checked)}/></label>
-    <div className="park-help"><strong>Make your way around</strong><p>WASD / arrow keys pan · Q / E rotate · scroll to zoom. Build with the catalog, then click an empty plot. Right-click or X cancels. P pauses.</p><p>1 carousel · 2 coaster · 3 track · 4 food · 5 tree · 6 path. On small or touch screens, hold the camera arrows to pan or rotate and use ＋ / − to zoom. Choose a blueprint and tap an empty plot to build.</p><p>Click a ride to set its ticket, see its line and service it before it breaks.</p></div>
-    <div className="park-settings-host"><span>Rendering, sound & input</span><SettingsTrigger className="park-button"/></div>
-    <p className="park-save-note">{session.saveStatus}. Saves stay in this browser.</p>
-    <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={onCloseSettings}>Back to the park</HudButton>
-  </ParkDialog>;
-  if(scenario!==null&&scenario.result!==null&&session.started) {
-    const won=scenario.result==="won";
-    return <ParkDialog title={won?"Scenario complete":"Scenario failed"}>{logo}
-      <div className="park-section-label">{won?"BRIGHT DAYS AHEAD":"THE GATES CLOSE"}</div>
-      <h1>{won?"Scenario won!":"Scenario failed"}</h1>
-      <p>{won?"You hit the target with the park still standing. The reward is in the till.":scenario.reason??"The target slipped away."}</p>
-      <HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.replay",{})}>Play this scenario again · fresh park</HudButton>
-      <HudButton className="park-button" onClick={()=>commands.run("park.freeplay",{})}>Keep this park in free play</HudButton>
-      <small className="park-save-note">Your award and park are saved.</small>
-    </ParkDialog>;
-  }
-  if(flags.gameOver) return <ParkDialog title="Park bankrupt">{logo}<div className="park-section-label">THE LIGHTS GO DOWN</div><h1>A season to learn from</h1><p>Three days in debt have closed the gates. Your park reached {Math.round(w.num("park.peak"))} stars in {w.num("park.day")-1} days.</p><p>Next time, keep an eye on nightly upkeep, staff wages and the loan instalment, and give guests somewhere to eat and drink.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.new", {})}>Reopen a new park · archive this save</HudButton></ParkDialog>;
-  if(flags.ribbon) return <ParkDialog title="Blue ribbon awarded">{logo}<div className="park-ribbon">★</div><div className="park-section-label">BRIGHT DAYS AHEAD</div><h1>Your first blue ribbon!</h1><p>Three rides, a profitable day, and a happy, tidy park. Brightway has become a seaside favorite.</p><HudButton variant="primary" cue="confirm" className="park-button primary" onClick={()=>commands.run("park.continue", {})}>Keep building in free play</HudButton><small className="park-save-note">Your award and park are saved.</small></ParkDialog>;
-
-  return null;
+/** The park's moments: a banner when the gates open or close, and the end-of-run screens. Read from the world. */
+export function ParkFlow() {
+  const { commands } = useGame();
+  const ctx = useGameContext();
+  const w = usePark(), flags = parkFlags(w);
+  const started = useGameStore(() => session.started);
+  const guests = useGameStore(() => session.guests.size);
+  const scenario = scenarioView(ctx), id = w.fact("scenario.id"), def = typeof id === "string" ? scenarioDef(id) : null;
+  const scenarioWon = scenario?.result === "won", reward = def?.mission.rewards?.economy?.cash ?? 0;
+  const open = w.fact("park.open") === true, day = w.num("park.day"), cash = w.num("park.cash"), rating = w.num("park.rating");
+  // The night after closing still belongs to that day: the banner must not re-fire at midnight.
+  const openDay = useRef(day);
+  if (open) openDay.current = day;
+  const tally = [{ label: "Park funds", value: money(cash) }, { label: "Rating", value: `★ ${Math.round(rating)}` }, { label: "Guests in the park", value: guests }];
+  return <>
+    <KitBanner cue={started && !resultOpen(ctx) ? `${open}-${openDay.current}` : null} initial title={`Day ${openDay.current} · Gates ${open ? "open" : "closed"}`}
+      subtitle={!open ? `Takings ${money(w.num("park.revenue_today"))}` : scenario?.title ?? (day > 1 ? `Yesterday ${money(w.num("park.revenue_yesterday") - w.num("park.upkeep_yesterday"))} net` : "Welcome to Brightway")} />
+    <KitResultScreen open={started && scenario?.result != null} tone={scenarioWon ? "good" : "bad"} eyebrow={scenario?.title} title={scenarioWon ? "Scenario won!" : "Scenario failed"}
+      summary={scenarioWon ? `You hit the target with the park still standing${reward > 0 ? `: ${money(reward)} is in the till` : ""}.` : scenario?.reason ?? "The target slipped away."}
+      stats={[{ label: "Takings", value: money(scenario?.revenue ?? 0) }, { label: "Visitors", value: scenario?.visitors ?? 0 }, ...tally.slice(0, 2)]}
+      actions={[{ id: "replay", label: "Play it again", primary: true }, { id: "free", label: "Keep this park" }]} onAction={(action) => commands.run(action === "replay" ? "park.replay" : "park.freeplay", {})} />
+    <KitResultScreen open={started && flags.gameOver} tone="bad" eyebrow="The lights go down" title="Park bankrupt"
+      summary={`Three days in debt closed the gates after ${day - 1} days. Next time watch the nightly bills, the loan and give guests food and drink.`}
+      stats={tally.slice(0, 2)} actions={[{ id: "new", label: "Open a new park" }]} onAction={() => commands.run("park.new", {})} />
+    <KitResultScreen open={started && flags.ribbon && !flags.gameOver} tone="good" eyebrow="Bright days ahead" title="Blue ribbon!"
+      summary="Three rides, a profitable day and a happy, tidy park: Brightway is a seaside favourite. Your park is saved." stats={tally}
+      actions={[{ id: "continue", label: "Keep building" }]} onAction={() => commands.run("park.continue", {})} />
+  </>;
 }
-

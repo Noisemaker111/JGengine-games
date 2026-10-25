@@ -1,99 +1,90 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
 import { useGameContext } from "@jgengine/react/provider";
+import { KitObjective } from "@jgengine/react/kitFlow";
+import { KitButton, KitMeter, KitPanel } from "@jgengine/react/uiKitRoot";
+import type { KitTone } from "@jgengine/react/uiKit";
+
 import { guestCap } from "../../catalog";
-import { session } from "../../session";
 import { LOAN, parkMetrics } from "../../park";
-import { rideBoard } from "../../rides";
 import { scenarioView } from "../../parkReset";
+import { rideBoard } from "../../rides";
+import { scenarioDef } from "../../scenarios";
+import { session } from "../../session";
 import { nextMilestone, nextStepText } from "../nextStep";
 import { usePark } from "../usePark";
+import { Rows } from "./Inspector";
 
-/** A countdown in the units a park manager thinks in: days and hours on the clock. */
-function countdown(seconds: number | null): string {
-  if (seconds === null) return "";
-  const day = 150;
-  const days = Math.floor(seconds / day);
-  const hours = Math.floor(((seconds % day) / day) * 24);
-  return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
+const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString()}`;
+const tone = (value: number, good: number, warn: number): KitTone => (value >= good ? "good" : value >= warn ? "warn" : "bad");
+
+/** The park at a glance: funds, crowd and rating up front; mood and tidiness as meters that warn. Every number is the world's. */
+export function ParkStatus() {
+  const w = usePark();
+  const guests = useGameStore(() => session.guests.size);
+  const clock = useGameStore((ctx) => { const c = ctx.time.calendar(); return `${String(c.hour).padStart(2, "0")}:${String(c.minute).padStart(2, "0")}`; });
+  const m = parkMetrics(w);
+  const cash = w.num("park.cash"), rating = w.num("park.rating"), mood = w.num("park.mood"), clean = 100 - w.num("park.litter");
+  const open = w.fact("park.open") === true, down = m.rides - m.ridesOpen;
+  return (
+    <KitPanel className="bw-status" eyebrow={`Day ${w.num("park.day")} · ${clock} · ${open ? "Gates open" : "After hours"}`} title={money(cash)} tone={cash < 0 ? "bad" : undefined} aside={`★ ${Math.round(rating)}`}>
+      <div className="bw-line"><span>{guests} / {guestCap(rating)} guests</span>{down > 0 ? <b data-bad="">{down} {down === 1 ? "ride" : "rides"} down</b> : null}</div>
+      <KitMeter size="sm" label="Mood" value={mood} max={100} readout={`${Math.round(mood)}%`} tone={tone(mood, 50, 35)} />
+      <KitMeter size="sm" label="Clean" value={clean} max={100} readout={`${Math.round(clean)}%`} tone={tone(clean, 60, 40)} />
+    </KitPanel>
+  );
 }
 
-/** The park's numbers, every one read from the world (`park.of(ctx)`); buttons run `brightway.act`. */
-export function ParkDashboard() {
-  useGameStore(() => session.guests.size);
+/** The one card that says what to do next: the first unmet goal, the checklist, and a hint when stuck. */
+export function ParkGoal() {
   const w = usePark();
   const ctx = useGameContext();
-  const { commands } = useGame();
-  const act = (action: string) => commands.run("brightway.act", { action });
-  const calendar = useGameStore((c) => `${String(c.time.calendar().hour).padStart(2, "0")}:${String(c.time.calendar().minute).padStart(2, "0")}`);
-  const m = parkMetrics(w);
-  const rating = w.num("park.rating");
-  const peak = w.num("park.peak");
-  const mood = w.num("park.mood");
-  const litter = w.num("park.litter");
-  const cash = w.num("park.cash");
-  const day = w.num("park.day");
-  const open = w.fact("park.open") === true;
-  const won = w.fact("park.won") === true;
-  const next = nextMilestone(peak);
-  const nextStep = nextStepText(peak);
-  const net = w.num("park.revenue_yesterday") - w.num("park.upkeep_yesterday");
-  const rides = rideBoard();
-  const scenario = scenarioView(ctx);
-  const owed = w.num("park.loan_owed");
-  return <>
-    <HudSurface className="park-header park-surface" as="header">
-      <div className="park-wordmark"><img src={new URL("../../../../public/art/brightway-sign.svg", import.meta.url).href} alt="Brightway Park" /><span>A little seaside. A lot of possibility.</span></div>
-      <div className="park-status"><span className={open ? "park-open" : "park-closed"}>{open ? "GATES OPEN" : "AFTER HOURS"}</span><strong>Day {day} · {calendar}</strong></div>
-    </HudSurface>
-    <HudSurface className="park-stats park-surface" as="section" aria-label="Park statistics">
-      <Stat label="Park funds" value={`$${Math.round(cash).toLocaleString()}`} tone={cash < 0 ? "bad" : "good"} />
-      <Stat label="Park rating" value={`${Math.round(rating)} ★`} tone="gold" />
-      <Stat label="Visitors" value={`${session.guests.size} / ${guestCap(rating)}`} />
-      <Stat label="Guest mood" value={`${Math.round(mood)}%`} tone={mood < 50 ? "bad" : "good"} />
-      <Stat label="Cleanliness" value={`${Math.round(100 - litter)}%`} tone={litter > 40 ? "bad" : "good"} />
-      <Stat label="Rides" value={m.rides === 0 ? "none" : `${m.ridesOpen}/${m.rides} up`} tone={m.ridesOpen < m.rides ? "bad" : ""} />
-      <div className="park-ticket"><span>Entry ticket</span><div><HudButton size="icon" aria-label="Lower ticket price" onClick={() => act("ticket_down")}>−</HudButton><strong>${w.num("park.ticket")}</strong><HudButton size="icon" aria-label="Raise ticket price" onClick={() => act("ticket_up")}>+</HudButton></div></div>
-    </HudSurface>
-    <HudSurface className="park-objectives park-surface" as="aside" aria-label="Park goals">
-      {scenario !== null ? <>
-        <div className="park-section-label">SCENARIO · {scenario.title.toUpperCase()}</div>
-        <h2>{scenario.goal}</h2>
-        <div className="park-goals">
-          <Goal done={scenario.result === "won"} label={`Takings · $${Math.round(scenario.revenue)}`} />
-          <Goal done={scenario.result === "won"} label={`Visitors · ${scenario.visitors}`} />
-          <Goal done={scenario.cash > 0} label={`Till · $${Math.round(scenario.cash)}`} />
-        </div>
-        <div className="park-unlock"><span>{scenario.result === "failed" ? `Failed — ${scenario.reason ?? "the goal slipped away"}` : scenario.result === "won" ? "Scenario complete" : countdown(scenario.remaining)}</span>
-          {scenario.remaining !== null && scenario.duration !== null && scenario.result === null ? <progress max={scenario.duration} value={scenario.duration - scenario.remaining} /> : null}
-        </div>
-      </> : <>
-        <div className="park-section-label">{won ? "BLUE RIBBON PARK" : "YOUR FIRST BLUE RIBBON"}</div>
-        <h2>{won ? "Keep the good days rolling" : "Build a fair worth coming back to"}</h2>
-        <div className="park-goals">
-          <Goal done={m.rides >= 3} label={`Three rides · ${m.rides}/3`} />
-          <Goal done={rating >= 220} label={`Rating · ${Math.round(rating)}/220`} />
-          <Goal done={day > 1 && net >= 0} label={day > 1 ? `Last day net · ${net < 0 ? "−" : "+"}$${Math.abs(Math.round(net))}` : "Finish a profitable day"} />
-          <Goal done={mood >= 50 && litter <= 40} label="Happy 50%+ · clean 60%+" />
-        </div>
-        <p>{litter > 25 ? "Hire a janitor before litter takes over." : m.stalls < 3 ? "Add refreshments to keep visitors smiling." : "Mix gentle rides and thrills: families and thrill seekers want different days out."}</p>
-        {next && nextStep && <div className="park-unlock"><span>{nextStep}</span><progress max={next.rating} value={peak} /></div>}
-      </>}
-      <div className="park-ledger">
-        <span>Rides &amp; shops upkeep</span><strong>${m.facilitiesUpkeep}/day</strong>
-        <span>Staff wages</span><strong>${m.wages}/day</strong>
-        <span>Today’s sales</span><strong>${Math.round(w.num("park.revenue_today"))}</strong>
-        {rides.rides > 0 && <><span>Ride lines</span><strong>{rides.queued} waiting</strong></>}
-        {owed > 0 && <><span>Loan owed</span><strong>${Math.round(owed)} · {Math.ceil(owed / LOAN.payment)}d</strong></>}
-      </div>
-      <div className="park-finance">
-        {owed <= 0
-          ? <HudButton size="sm" variant="ghost" onClick={() => act("take_loan")} aria-label="Take a park loan">Take a ${LOAN.principal.toLocaleString()} loan · ${LOAN.payment}/night × {LOAN.nights}</HudButton>
-          : <HudButton size="sm" variant="ghost" onClick={() => act("repay_loan")} aria-label="Pay the loan down">Pay an instalment early · ${LOAN.payment}</HudButton>}
-      </div>
-    </HudSurface>
-  </>;
+  const m = parkMetrics(w), scenario = scenarioView(ctx);
+  const rating = w.num("park.rating"), peak = w.num("park.peak"), mood = w.num("park.mood"), litter = w.num("park.litter"), day = w.num("park.day");
+  const net = w.num("park.revenue_yesterday") - w.num("park.upkeep_yesterday"), won = w.fact("park.won") === true;
+  if (scenario !== null) {
+    const id = w.fact("scenario.id");
+    const when = (typeof id === "string" ? scenarioDef(id) : null)?.mission.objectives[0]?.branches?.find((b) => b.to === "done")?.when;
+    const target = Array.isArray(when) ? when[0] : when;
+    const goal = target?.atLeast ?? 0, fact = target?.fact ?? "park.scenario_revenue";
+    const isMoney = fact === "park.scenario_revenue";
+    const have = isMoney ? money(w.num(fact)) : fact === "park.rating" ? `★ ${Math.round(w.num(fact))}` : `${w.num(fact)}`;
+    return <KitObjective className="bw-goal" eyebrow={`Scenario · ${scenario.title}`} title={scenario.goal}
+      steps={[{ id: "target", label: `${have} of ${isMoney ? money(goal) : goal}`, done: scenario.result === "won" }, { id: "till", label: `Till ${money(scenario.cash)}`, done: scenario.cash > 0 }]}
+      deadline={scenario.remaining !== null && scenario.duration !== null ? { remaining: scenario.remaining, total: scenario.duration } : undefined}
+      hint="Cheaper tickets and more rides pull a bigger crowd." progressKey={`${Math.round(scenario.visitors / 5)}`} />;
+  }
+  const steps = [
+    { id: "rides", label: `Three rides · ${Math.min(m.rides, 3)}/3`, done: m.rides >= 3, next: "Build a third ride" },
+    { id: "rating", label: `Rating · ${Math.round(rating)}/220`, done: rating >= 220, next: "Raise the rating to 220" },
+    { id: "profit", label: day > 1 ? `Last day ${net < 0 ? "lost" : "made"} ${money(Math.abs(net))}` : "Finish a profitable day", done: day > 1 && net >= 0, next: "Finish a day in profit" },
+    { id: "happy", label: "Happy 50%+ · clean 60%+", done: mood >= 50 && litter <= 40, next: "Cheer guests up and tidy the paths" },
+  ];
+  const next = steps.find((s) => !s.done);
+  const hint = litter > 25 ? "Litter is piling up: hire a janitor from Staff." : m.stalls < 3 ? "Hungry guests turn grumpy: add food and drink from Shops." : m.rides < 3 ? "Open Rides in the build palette and place one on an empty plot." : nextStepText(peak) ?? "Mix gentle rides and thrills: families and thrill seekers want different days out.";
+  return <KitObjective className="bw-goal" eyebrow={won ? "Blue ribbon park" : "Your first blue ribbon"} title={won ? "Keep the good days rolling" : next?.next ?? "Hold it until midnight"}
+    steps={won ? undefined : steps} hint={hint} progressKey={steps.filter((s) => s.done).length} />;
 }
-function Stat({ label, value, tone = "" }: { label: string; value: string; tone?: string }) { return <div className={`park-stat ${tone}`}><span>{label}</span><strong>{value}</strong></div>; }
-function Goal({ done, label }: { done: boolean; label: string }) { return <div className={done ? "park-goal complete" : "park-goal"}><span aria-hidden>{done ? "✓" : "○"}</span>{label}</div>; }
+
+/** The ledger, the gate price, the loan and the next unlock: open when the player asks for them. Buttons run `brightway.act`. */
+export function ParkBooks({ onClose }: { onClose: () => void }) {
+  const { commands } = useGame();
+  const w = usePark();
+  useGameStore(() => session.guests.size);
+  const act = (action: string) => commands.run("brightway.act", { action });
+  const m = parkMetrics(w), peak = w.num("park.peak"), next = nextMilestone(peak), rides = rideBoard();
+  const owed = w.num("park.loan_owed");
+  return (
+    <KitPanel variant="card" eyebrow="The office" title="Park books" aside={<KitButton variant="ghost" size="sm" cue="close" aria-label="Close park books" onClick={onClose}>✕</KitButton>}
+      footer={owed <= 0
+        ? <KitButton size="sm" aria-label="Take a park loan" onClick={() => act("take_loan")}>Take a {money(LOAN.principal)} loan · {money(LOAN.payment)}/night × {LOAN.nights}</KitButton>
+        : <KitButton size="sm" aria-label="Pay the loan down" onClick={() => act("repay_loan")}>Pay an instalment early · {money(LOAN.payment)}</KitButton>}>
+      <div className="bw-line"><span>Entry ticket</span><span className="bw-stepper">
+        <KitButton size="sm" aria-label="Lower ticket price" onClick={() => act("ticket_down")}>−</KitButton><b>${w.num("park.ticket")}</b>
+        <KitButton size="sm" aria-label="Raise ticket price" onClick={() => act("ticket_up")}>+</KitButton></span></div>
+      <Rows rows={[["Today’s sales", money(w.num("park.revenue_today"))], ["Rides & shops upkeep", `${money(m.facilitiesUpkeep)} / day`], ["Staff wages", `${money(m.wages)} / day`],
+        ...(rides.rides > 0 ? [["Ride lines", `${rides.queued} waiting`] as [string, string]] : []),
+        ...(owed > 0 ? [["Loan owed", `${money(owed)} · ${Math.ceil(owed / LOAN.payment)} nights`] as [string, string]] : [])]} />
+      {next !== null ? <KitMeter size="sm" label={`Next: ${next.label}`} value={peak} max={next.rating} readout={`★ ${Math.round(peak)} / ${next.rating}`} /> : null}
+    </KitPanel>
+  );
+}

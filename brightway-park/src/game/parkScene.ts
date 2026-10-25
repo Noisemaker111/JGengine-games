@@ -82,11 +82,9 @@ export function scenarioEnded(ctx: GameContext, event: WorldJobEvent): void {
   if (event.kind === "job-failed") {
     w.set("scenario.result", "failed");
     w.set("scenario.reason", event.reason);
-    ctx.game.notices.push({ text: `Scenario failed: ${event.reason}`, tone: "warn" });
     ctx.game.audio.play("bankrupt");
   } else {
     w.set("scenario.result", "won");
-    ctx.game.notices.push({ text: "Scenario won! The reward is in the till", tone: "success" });
     ctx.game.audio.play("ribbon");
   }
   ctx.time.pause();

@@ -32,11 +32,7 @@ export function closeDay(ctx: GameContext): void {
 
   const revenue = w.num("park.revenue_today");
   const spent = w.num("park.spent_today");
-  const net = revenue - spent;
-  ctx.game.notices.push({
-    text: `Day ${w.num("park.day")}: ${net >= 0 ? "+" : ""}${Math.round(net)} net (${w.num("park.guests_today")} guests)`,
-    tone: net >= 0 ? "success" : "warn",
-  });
+  // The day's net shows on the next gate-open banner; no toast for it.
   ctx.game.audio.play("settle");
   w.change({
     "park.revenue_yesterday": revenue - w.num("park.revenue_yesterday"),
@@ -55,7 +51,6 @@ export function closeDay(ctx: GameContext): void {
       ctx.time.pause();
       setGamePhase(ctx, "ended");
       syncAmbience(ctx);
-      ctx.game.notices.push({ text: "Bankrupt! The park has closed for good.", tone: "warn" });
       ctx.game.audio.play("bankrupt");
     } else {
       ctx.game.notices.push({ text: `In the red — ${BANKRUPT_LIMIT - days} day(s) to recover`, tone: "warn" });
@@ -82,10 +77,8 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
   if (rating <= peak) return;
   w.set("park.peak", rating);
   for (const milestone of milestonesCrossed(peak, rating)) {
-    ctx.game.notices.push({
-      text: `Milestone! ${milestone.label} — ${milestoneContents(milestone.unlock).join(" & ")} now in the build palette`,
-      tone: "success",
-    });
+    const contents = milestoneContents(milestone.unlock);
+    ctx.game.notices.push({ text: `Unlocked ${contents.length > 0 ? contents.join(" & ") : milestone.label}`, tone: "success" });
     ctx.game.audio.play("milestone");
   }
 }

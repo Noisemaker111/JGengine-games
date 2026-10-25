@@ -49,6 +49,8 @@ function announceCircuit(ctx: GameContext): void {
     : { text: `Coaster track at ${Math.round(circuit.length)} m — the loop is still open`, tone: "info" });
 }
 
+const LAID_IN_RUNS: ReadonlySet<string> = new Set(["track", "path", "scenery"]);
+
 /** Build at the pointer: the park's track rule, then the world's own `brightway.place`. */
 function tryBuild(ctx: GameContext, input: PointerInput): void {
   const kind = session.selectedTool;
@@ -66,6 +68,8 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   if (ctx.game.commands.run("brightway.place", { kind, cell: check.cell }).status !== "applied") return;
   const placed = w.instances().find((instance) => !before.has(instance.id));
   const def = BUILDABLES[kind]!;
+  // A ride, stall or hire is placed once; track, paths and scenery are laid in runs and stay picked.
+  if (!LAID_IN_RUNS.has(def.category)) session.selectedTool = null;
   ctx.game.notices.push({ text: `${def.label} built · -$${def.cost}`, tone: "success" });
   if (kind === "track_piece" || kind === "ride_coaster") announceCircuit(ctx);
   const at = placed?.position;

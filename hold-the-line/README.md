@@ -1,0 +1,25 @@
+# Hold the Line
+
+Scavenge by day. Fortify by dusk. Live through the night. Made with `bun run new-game` from: "zombie survival: scavenge by day, fortify your safehouse, nights get harder". Start it with `bun run dev:hold-the-line` from the repository root.
+
+## Design checklist
+
+Every word, cost and model below lives in `src/game/idea.ts`; places live in `src/editor.scene.json`.
+
+- **Core loop.** Search supply crates for scrap, Strip wrecked cars for scrap, Rummage trash cans for food, Siphon oil drums for scrap;
+  build barricade, lookout, garden bed on the grid around the safehouse;
+  every 75 seconds a night comes from the lairs and goes for your walls, you and the safehouse.
+- **Progression.**
+  - [x] Waves grow: 3 attackers on the first, three more each time, and biters from night 1, runners from night 3, brutes from night 5.
+  - [x] Buildings level up to 3 (E on a building); a level-3 lookout hits three times as hard.
+  - [x] Stray dog can be won over and fight beside you.
+  - [x] A 4-beat story from Mara ends after 7 nights held.
+- **Failure states.** The safehouse has 1500 health; when it falls the run ends and you retry from the last dawn's save. You respawn 4 seconds after going down.
+- **Minute 5 -> hour 5.** At 5:00 two nights are held behind a few barricade and scrap is the limit. Later nights bring bigger attackers, so levelled buildings and allies decide whether the safehouse stands.
+- **References it is chasing.**
+  - *7 Days to Die* - feel: scavenging by day for a defence that has to hold at night.
+  - *ARK: Survival Evolved* - feel: gathering by hand into a camp that grows; tamed creatures that fight for you.
+  - *They Are Billions* - density: a wave that is many bodies at once against walls you placed.
+- **Gap to target.** One map, three building types, and attackers that only walk at you; no crafting tree or day-night sky yet.
+
+Loop proof: hold-the-line-loop

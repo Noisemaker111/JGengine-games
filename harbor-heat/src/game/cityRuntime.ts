@@ -7,7 +7,11 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import { createWorldModel, type WorldEvent, type WorldModel, type WorldModelState } from "@jgengine/core/worldModel/worldModel";
 import { editorLayers } from "../editorLayers";
 import { earn } from "./cash";
-import { city, CITY_PLAYER } from "./city";
+import { city, CITY_PLAYER, TURF } from "./city";
+import { raidLost, raidStarted, registerFronts, startRaidOnFirstFront, tickFronts } from "./city/fronts";
+import { crewPush, registerStreet, tickCover, tickReckless, tickStreetCrews } from "./city/street";
+import { registerGarage } from "./city/garage";
+import { safehouseStore } from "./commands";
 import { handrollOf, raceStore } from "./handroll";
 import { CRED_BY_JOB, grantCred } from "./progression/cred";
 import { convoyRunners } from "./runState";
@@ -29,6 +33,23 @@ interface CityRuntime {
   pending: MissionWorldEvent[];
   cicadaWrecked: boolean;
   panicking: boolean;
+  /** Whether the Protection job has set up its raid yet. */
+  protectionStaged: boolean;
+}
+
+/** Hours HHPD and the crews count as night: the clubs fill, the crews double up. */
+export const isNight = (hour: number) => hour >= 20 || hour < 6;
+
+/**
+ * Facts the game computes and the world only reads. `turf.held` is read straight off the saved facts,
+ * not through the model, so it never asks itself.
+ */
+function liveFacts(ctx: GameContext) {
+  const hour = ctx.time.calendar().hour;
+  const facts = worldStore.peek(ctx)?.facts;
+  let held = 0;
+  for (const id of TURF) if ((facts?.[`${id}.owner`] ?? city.places?.[id]?.owner) === "player") held += 1;
+  return { "clock.hour": hour, "clock.night": isNight(hour), "police.stars": handrollOf(ctx).wanted().stars, "turf.held": held };
 }
 
 function groundedMarkers(ctx: GameContext) {
@@ -52,10 +73,17 @@ const runtimes = perContext((ctx: GameContext): CityRuntime => ({
     onOutput: (name, amount) => {
       if (name === "heat") handrollOf(ctx).addHeat(ctx, amount);
     },
+    live: () => liveFacts(ctx),
+    hooks: {
+      crewPush: (call) => crewPush(ctx, call),
+      raidStarted: (call) => raidStarted(ctx, call),
+      raidLost: (call) => raidLost(ctx, call),
+    },
   }),
   pending: [],
   cicadaWrecked: false,
   panicking: false,
+  protectionStaged: false,
 }));
 
 /** The city's world model for this context. */
@@ -82,6 +110,9 @@ export function fearAt(ctx: GameContext, x: number, z: number): number {
 export function registerCity(ctx: GameContext): void {
   const runtime = runtimes(ctx);
   registerCityDev(ctx);
+  registerFronts(ctx);
+  registerStreet(ctx);
+  registerGarage(ctx);
   ctx.game.events.on("entity.died", (event) => {
     const { catalogId, instanceId, position } = event as { catalogId: string; instanceId: string; position: [number, number, number] };
     runtime.pending.push({ kind: "kill", target: catalogId });
@@ -105,6 +136,7 @@ export function registerCity(ctx: GameContext): void {
     apply(state, input) {
       if (cityOf(state).startJob(input.id) === null) return;
       runtimes(state).cicadaWrecked = false;
+      runtimes(state).protectionStaged = false;
       state.game.dialogue?.close();
       phoneStore.write(state, false);
       state.game.feedback.cue("objective", cityOf(state).job(input.id)?.title ?? "Job started");
@@ -155,6 +187,16 @@ function registerCityDev(ctx: GameContext): void {
       cityOf(state).set(input.key, input.value);
     },
   });
+  ctx.game.commands.define<Record<string, never>>("city.dev.abandon", {
+    apply(state) {
+      failActiveJob(state);
+    },
+  });
+  ctx.game.commands.define<{ amount: number }>("city.dev.cash", {
+    apply(state, input) {
+      earn(state, input.amount, "reconcile", "dev");
+    },
+  });
   ctx.game.commands.define<Record<string, never>>("city.dev.pickup", {
     apply(state) {
       const me = state.scene.entity.get(state.player.userId);
@@ -180,6 +222,14 @@ function registerCityDev(ctx: GameContext): void {
         place: player === null ? null : world.placeAt(player[0], player[2]),
         panicking: runtimes(ctx).panicking,
         stars: handrollOf(ctx).wanted().stars,
+        hidden: handrollOf(ctx).hidden(),
+        heat: Math.round(handrollOf(ctx).wanted().heat),
+        clock: { hour: world.fact("clock.hour"), night: world.fact("clock.night") },
+        turf: Object.fromEntries(TURF.map((id) => [id, { owner: world.fact(`${id}.owner`), grip: Math.round(world.num(`${id}.grip`)) }])),
+        fronts: Object.fromEntries(world.instances("front").map((front) => [front.slot ?? front.id, { id: front.id, raid: world.fact(`${front.id}.raid`), hit: world.fact(`${front.id}.hit`), clock: Math.ceil(world.num(`${front.id}.raid_clock`)) }])),
+        takings: Math.floor(world.num("fronts.takings")),
+        repelled: world.num("fronts.repelled"),
+        crews: ctx.scene.entity.list().filter((entity) => entity.id.startsWith("crew_") || entity.id.startsWith("raider_")).map((entity) => entity.id),
       };
     },
   };
@@ -222,6 +272,12 @@ function stageJob(ctx: GameContext, dt: number): void {
       const z = KINGPIN_POS[2] + 8;
       ctx.scene.entity.spawn("ganger_enforcer", { id: `sal_guard_${i}`, position: [x, ctx.world.groundHeightAt(x, z), z], role: "npc" });
     }
+  }
+  if (view.missionId === "protection" && !runtimes(ctx).protectionStaged) {
+    // The job is the raid: count only raids broken from here, and start one on the player's front.
+    cityOf(ctx).set("fronts.repelled", 0);
+    runtimes(ctx).protectionStaged = startRaidOnFirstFront(ctx);
+    if (!runtimes(ctx).protectionStaged) ctx.game.notices.push({ text: "You need an open front for Sal to hit. Buy or reopen one.", tone: "warn" });
   }
   if (view.missionId === "hot_wheels" && view.objectiveId !== "deliver" && ctx.scene.entity.get(CICADA_STAGE_ID) === null) {
     const [x, , z] = CICADA_STAGE_POS;
@@ -275,8 +331,22 @@ export function tickCity(ctx: GameContext, dt: number): void {
       ctx.game.notices.push({ text: `Job failed: ${event.reason} See the giver to retry.`, tone: "warn" });
     }
   }
+  for (const id of result.fired ?? []) {
+    const [verb, place] = id.split("_");
+    const label = place === undefined ? "" : (city.places?.[place]?.label ?? place);
+    if (verb === "take") {
+      ctx.game.notices.push({ text: `${label} is yours. Its corners pay you protection now.`, tone: "success" });
+      ctx.game.feedback.cue("objective", `Took ${label}`);
+    } else if (verb === "lose") {
+      ctx.game.notices.push({ text: `The Carmines took ${label} back.`, tone: "warn" });
+    }
+  }
   stageJob(ctx, dt);
   tickPanic(ctx, runtime);
+  tickFronts(ctx);
+  tickStreetCrews(ctx);
+  tickReckless(ctx);
+  tickCover(ctx, safehouseStore.read(ctx) === true);
 }
 
 /** Carmine soldiers notice you from further away the angrier their crew is. */

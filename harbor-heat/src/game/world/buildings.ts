@@ -15,8 +15,7 @@ export interface BuildingSpec {
 }
 
 export const BUILDING_SPECS: readonly BuildingSpec[] = [
-  { id: "bld_glass_blue", facade: "facade/glass-blue", zones: ["core"] },
-  { id: "bld_glass_mirror", facade: "facade/glass-mirror", zones: ["core"] },
+  { id: "bld_glass_curtain", facade: "facade/glass-curtain", zones: ["core"] },
   { id: "bld_brick_grey", facade: "facade/brick-grey", zones: ["core", "commercial", "industrial"] },
   { id: "bld_brick_red", facade: "facade/brick-red", zones: ["commercial", "residential", "industrial"] },
   { id: "bld_brick_brown", facade: "facade/brick-brown", zones: ["commercial", "residential"] },

@@ -140,6 +140,7 @@ describe("park saves and real command boundaries", () => {
     expect(w.fact("park.game_over")).toBe(true);
     expect(live.ctx.time.isPaused()).toBe(true);
     live.ui.invoke("pickCarousel");
-    expect(session.selectedTool).toBe("staff_janitor");
+    // The janitor was placed once, so placement ended; the refused pick did not start a new one.
+    expect(session.selectedTool).toBeNull();
   });
 });

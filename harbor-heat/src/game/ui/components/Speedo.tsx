@@ -1,37 +1,33 @@
 import { formatSpeed } from "@jgengine/core/format/speed";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { useGameStore } from "@jgengine/react/hooks";
-import { useStore } from "@jgengine/react/store";
-import { drivingStore, handrollOf } from "../../handroll";
+import { KitActionPrompt, KitPanel } from "@jgengine/react/uiKitRoot";
 import { vehicleById } from "../../entities/vehicles/catalog";
+import { drivingStore, handrollOf } from "../../handroll";
 
+function speedoView(ctx: GameContext) {
+  const id = drivingStore.read(ctx);
+  if (id == null) return null;
+  const t = handrollOf(ctx).telemetry();
+  const name = ctx.scene.entity.get(id)?.name;
+  const air = t.mode !== "aircraft" ? null : t.stalled ? "Stalling: lower the nose" : `${Math.round(t.altitude)} m up`;
+  return { label: (name === undefined ? undefined : vehicleById(name)?.label) ?? "Vehicle", kmh: formatSpeed(t.speedMs, { unit: "kmh", decimals: 0, showUnit: false }), air, stalled: t.stalled, vtol: t.mode === "aircraft" && t.vtol };
+}
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Only while driving: the car, its speed, and how to get out. */
 export function Speedo() {
-  const drivingId = useStore(drivingStore, (value) => value ?? null);
-  const vehicleName = useGameStore((ctx) => {
-    const id = drivingStore.read(ctx);
-    if (id === null || id === undefined) return null;
-    return ctx.scene.entity.get(id)?.name ?? null;
-  });
-  const telemetry = useGameStore((ctx) => handrollOf(ctx).telemetry());
-  if (drivingId === null) return null;
-  const label = vehicleName !== null ? (vehicleById(vehicleName)?.label ?? "Vehicle") : "Vehicle";
-  const kmh = formatSpeed(telemetry.speedMs, { unit: "kmh", decimals: 0, showUnit: false });
+  const view = useGameStore(speedoView, same);
+  if (view === null) return null;
   return (
-    <div className="flex items-end gap-2">
-      <div className="-skew-x-12 border-2 border-black bg-[#12141a]/90 px-3 py-1 shadow-[3px_3px_0_#000]">
-        <span className="text-3xl font-black tabular-nums text-[#ffb020]">{kmh}</span>
-        <span className="ml-1 text-xs font-black uppercase text-[#cfd6de]">km/h</span>
-      </div>
-      <div className="flex max-w-72 flex-col gap-1">
-        <div className="-skew-x-6 border-2 border-black bg-[#33c1b1] px-2 py-0.5 text-[11px] font-black uppercase text-black">
-          {label} · {telemetry.mode === "ground" ? `G${telemetry.gear} · ${Math.round(telemetry.rpm)} RPM` : `${Math.round(telemetry.altitude)}m · ${telemetry.verticalSpeed >= 0 ? "+" : ""}${telemetry.verticalSpeed.toFixed(1)} m/s`}
-        </div>
-        {telemetry.mode === "aircraft" ? (
-          <div className={`-skew-x-6 border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase ${telemetry.stalled ? "bg-[#ff4d4d] text-white" : "bg-[#12141a]/90 text-[#cfd6de]"}`}>
-            {telemetry.stalled ? "STALL · LOWER NOSE" : telemetry.vtol ? "VTOL · V TO TRANSITION" : "W/S PITCH · A/D ROLL · Z/C YAW · ↑/↓ POWER"}
-          </div>
-        ) : null}
-        <div className="text-right text-[9px] font-black uppercase text-white/70">F to exit</div>
-      </div>
+    <div style={{ display: "grid", gap: 12, justifyItems: "end" }}>
+      <KitPanel variant="hud" tone={view.stalled ? "bad" : "neutral"} title={view.label} style={{ minWidth: 150 }}>
+        <span style={{ font: "400 calc(30px * var(--kit-text)) / 1 var(--kit-font-display)" }}>{view.kmh}</span> km/h
+        {view.air === null ? null : <div>{view.air}</div>}
+      </KitPanel>
+      {view.vtol ? <KitActionPrompt action="flightVectorToggle" label="Switch to wings" /> : null}
+      <KitActionPrompt action="exitVehicle" label="Get out" />
     </div>
   );
 }

@@ -88,7 +88,6 @@ export function beginScenario(ctx: GameContext, id: string): boolean {
   setGamePhase(ctx, "playing");
   ctx.time.play();
   syncAmbience(ctx);
-  ctx.game.notices.push({ text: `${scenario.title} — ${scenario.goal}`, tone: "info" });
   savePark(ctx);
   return true;
 }

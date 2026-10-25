@@ -4,7 +4,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import { patrol } from "@jgengine/core/scene/behaviors";
 import type { Waypoint } from "@jgengine/core/nav/pathFollow";
 import type { EntityColliderSet } from "@jgengine/core/scene/colliders";
-import { cityLots, tuneCityLayout, type CityLayout } from "@jgengine/core/world/cityLayout";
+import { cityLots, cityRoadWidth, tuneCityLayout, type CityLayout } from "@jgengine/core/world/cityLayout";
 import { placeAuthoredObjectsFromDocument } from "@jgengine/core/world/authoredObjects";
 import { nearestOnPath } from "@jgengine/core/world/roads";
 import { furnitureSpots, parkingSpots, sidewalkPoint } from "@jgengine/core/world/streets";
@@ -14,6 +14,7 @@ import { buildingsForZone } from "./buildings";
 import { cityLayout, LOT_ROADS, roadSource, zoneAt } from "./cityLayout";
 import { PALM_IDS } from "./models";
 import {
+  BOUNTY_SPOTS,
   BRIEFCASE_POS,
   AUTHORED_VEHICLE_SPAWNS,
   districtAt,
@@ -145,6 +146,10 @@ export interface BuildingFootprintXZ {
   x: number;
   z: number;
   rotationY: number;
+  /** Half the lot's width along its street, metres. */
+  halfW: number;
+  /** Half the lot's depth back from its street, metres. */
+  halfD: number;
 }
 
 /** A grounded box body spanning a scaled unit block: the building's real walls, not the 1 m model. */
@@ -203,7 +208,7 @@ function placeBuildings(ctx: GameContext, layout: CityLayout, ids: string[]): Bu
     const id = ctx.scene.object.place(spec.id, x, y, z, { rotation: lot.rotationY, visual: { scale: size } });
     ctx.scene.object.setColliders(id, blockColliders(size));
     ids.push(id);
-    placed.push({ x, z, rotationY: lot.rotationY });
+    placed.push({ x, z, rotationY: lot.rotationY, halfW: w / 2, halfD: d / 2 });
     if (lot.driveway !== undefined) {
       const [dx, dz] = lot.driveway.center;
       const drive = ctx.scene.object.place("obj_driveway", dx, ctx.world.groundHeightAt(dx, dz) - 0.02, dz, {
@@ -304,11 +309,97 @@ function placeStreetFurniture(ctx: GameContext, layout: CityLayout, ids: string[
   }
 }
 
-/** Everything the city layout decides: buildings, driveways and street furniture. */
+/** The open square at Mainsail's bounty marker; its dressing keeps this radius clear for the fight. */
+const PLAZA_CLEAR = 5;
+/** How far from the marker the square's dressing reaches. */
+const PLAZA_REACH = 24;
+/** Candidate spots are a grid this many metres apart. */
+const PLAZA_GRID = 2;
+
+/**
+ * The square's furniture, biggest first so the trees claim room before the benches: how many of each,
+ * how far a piece keeps from roads and walls (a 25 m jacaranda crown needs more than a bench), how
+ * far apart two of the same piece stand, the ground it covers itself, and how far out from the
+ * marker it may sit.
+ */
+const PLAZA_PIECES: readonly { prop: string; count: number; margin: number; spacing: number; footprint: number; minRadius: number }[] = [
+  { prop: "obj_shade_tree", count: 2, margin: 2, spacing: 16, footprint: 1.5, minRadius: 11 },
+  { prop: "obj_streetlight", count: 4, margin: 0.8, spacing: 9, footprint: 0.4, minRadius: 8 },
+  { prop: "obj_hedge", count: 6, margin: 0.8, spacing: 4, footprint: 1, minRadius: 14 },
+  { prop: "obj_patio", count: 6, margin: 1.2, spacing: 3.2, footprint: 1, minRadius: 8 },
+  { prop: "obj_picnic", count: 2, margin: 1.5, spacing: 4.5, footprint: 1.8, minRadius: 10 },
+  { prop: "obj_bench", count: 6, margin: 0.8, spacing: 3, footprint: 1.1, minRadius: 6 },
+  { prop: "obj_planter", count: 10, margin: 0.6, spacing: 2.4, footprint: 0.4, minRadius: 6 },
+  { prop: "obj_trashcan", count: 3, margin: 0.5, spacing: 3, footprint: 0.4, minRadius: 6 },
+  { prop: "obj_dog", count: 1, margin: 0.5, spacing: 1.5, footprint: 0.5, minRadius: 6 },
+];
+/** Walking room kept between two different pieces, metres. */
+const PLAZA_AISLE = 0.8;
+
+/** Whether a point is clear of every road's kerb-to-sidewalk edge and every placed lot, by `margin` metres. */
+function plazaClear(layout: CityLayout, boxes: readonly BuildingFootprintXZ[], x: number, z: number, margin: number): boolean {
+  for (const road of LOT_ROADS) {
+    const near = nearestOnPath(road.path, x, z);
+    if (near !== null && near.distance < cityRoadWidth(layout, road.roadClass) / 2 + layout.sidewalkWidth + margin) return false;
+  }
+  for (const box of boxes) {
+    const c = Math.cos(box.rotationY);
+    const s = Math.sin(box.rotationY);
+    const dx = x - box.x;
+    const dz = z - box.z;
+    const lx = dx * c - dz * s;
+    const lz = dx * s + dz * c;
+    if (Math.abs(lx) < box.halfW + margin && Math.abs(lz) < box.halfD + margin) return false;
+  }
+  return true;
+}
+
+/**
+ * Furnish Mainsail's square around its bounty marker: shade trees, lamps, a hedge line, café sets,
+ * picnic tables, benches facing the middle, planters and a dog by a bench. Pieces take spots on a
+ * grid that skip anything the layout's roads, sidewalks or lots now cover, so a slider re-lay keeps
+ * the square furnished but never on the street. The middle stays open for the bounty fight.
+ */
+function dressPlaza(ctx: GameContext, layout: CityLayout, boxes: readonly BuildingFootprintXZ[], ids: string[]): void {
+  const plaza = BOUNTY_SPOTS.find((spot) => spot.id === "bounty_plaza");
+  if (plaza === undefined) return;
+  const [cx, , cz] = plaza.position;
+  const rng = seededRng("harbor-heat-plaza");
+  const spots: { x: number; z: number; radius: number; order: number }[] = [];
+  for (let gx = -PLAZA_REACH; gx <= PLAZA_REACH; gx += PLAZA_GRID) {
+    for (let gz = -PLAZA_REACH; gz <= PLAZA_REACH; gz += PLAZA_GRID) {
+      const radius = Math.hypot(gx, gz);
+      if (radius >= PLAZA_CLEAR && radius <= PLAZA_REACH) spots.push({ x: cx + gx, z: cz + gz, radius, order: rng() });
+    }
+  }
+  spots.sort((a, b) => a.order - b.order);
+  const placed: { x: number; z: number; prop: string; spacing: number; footprint: number }[] = [];
+  for (const piece of PLAZA_PIECES) {
+    let left = piece.count;
+    for (const spot of spots) {
+      if (left === 0) break;
+      if (spot.radius < piece.minRadius || !plazaClear(layout, boxes, spot.x, spot.z, piece.margin)) continue;
+      const crowded = placed.some((other) => {
+        const gap = other.prop === piece.prop ? piece.spacing : other.footprint + piece.footprint + PLAZA_AISLE;
+        return Math.hypot(other.x - spot.x, other.z - spot.z) < gap;
+      });
+      if (crowded) continue;
+      placed.push({ x: spot.x, z: spot.z, prop: piece.prop, spacing: piece.spacing, footprint: piece.footprint });
+      left -= 1;
+      // Seats and the dog face the square's middle; the rest take a turn of their own.
+      const seat = piece.prop === "obj_bench" || piece.prop === "obj_dog" || piece.prop === "obj_patio";
+      const rotation = seat ? Math.atan2(cx - spot.x, cz - spot.z) : rng() * Math.PI * 2;
+      ids.push(ctx.scene.object.place(piece.prop, spot.x, ctx.world.groundHeightAt(spot.x, spot.z), spot.z, { rotation }));
+    }
+  }
+}
+
+/** Everything the city layout decides: buildings, driveways, street furniture and the plaza. */
 function layCity(ctx: GameContext, layout: CityLayout): { ids: string[]; buildings: BuildingFootprintXZ[] } {
   const ids: string[] = [];
   const buildings = placeBuildings(ctx, layout, ids);
   placeStreetFurniture(ctx, layout, ids);
+  dressPlaza(ctx, layout, buildings, ids);
   return { ids, buildings };
 }
 
@@ -316,7 +407,20 @@ function layCity(ctx: GameContext, layout: CityLayout): { ids: string[]; buildin
  * Lay the city and keep it laid: the layout's sliders (Tune tab, `?debug=1`) re-lay the buildings,
  * driveways and furniture on every change, while the shell redraws the streets from `roadSource`.
  */
-const cityRelay = perContext(() => ({ stop: null as (() => void) | null }));
+const cityRelay = perContext(() => ({
+  stop: null as (() => void) | null,
+  listeners: new Set<(buildings: readonly BuildingFootprintXZ[]) => void>(),
+}));
+
+/**
+ * Hear every slider re-lay of this context's city with the lots it now has, so systems built on the
+ * blocks (resident walking routes) rebuild with them. Returns the unsubscribe.
+ */
+export function onCityRelaid(ctx: GameContext, listener: (buildings: readonly BuildingFootprintXZ[]) => void): () => void {
+  const relay = cityRelay(ctx);
+  relay.listeners.add(listener);
+  return () => relay.listeners.delete(listener);
+}
 
 function setupCity(ctx: GameContext): readonly BuildingFootprintXZ[] {
   tuneCityLayout(cityLayout);
@@ -326,6 +430,7 @@ function setupCity(ctx: GameContext): readonly BuildingFootprintXZ[] {
   relay.stop = cityLayout.subscribe(() => {
     for (const id of laid.ids) ctx.scene.object.remove(id);
     laid = layCity(ctx, cityLayout.get());
+    for (const listener of relay.listeners) listener(laid.buildings);
   });
   return laid.buildings;
 }
@@ -335,6 +440,7 @@ export function disposeWorld(ctx: GameContext): void {
   const relay = cityRelay(ctx);
   relay.stop?.();
   relay.stop = null;
+  relay.listeners.clear();
 }
 
 export function setupWorld(ctx: GameContext): readonly BuildingFootprintXZ[] {

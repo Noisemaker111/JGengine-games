@@ -1,6 +1,6 @@
 { "steps": [
-  { "assert": "document.body.innerText.includes('GATES OPEN')",
-    "before": { "is": "document.body.innerText.includes('GATES OPEN')", "timeoutMs": 30000 },
+  { "assert": "/gates open/i.test(document.body.innerText)",
+    "before": { "is": "/gates open/i.test(document.body.innerText)", "timeoutMs": 30000 },
     "note": "arrival: the park day is running and the gate is open, not a title card" },
 
   { "key": "Digit1", "ms": 80, "note": "the palette's carousel hotkey" },
@@ -16,6 +16,7 @@
     "note": "arrival: a guest path is on the ground, the park's own notice confirming the placement" },
 
   { "assert": "__jgProbe().guests > 0", "note": "arrival: guests are inside the park, from the live guest sim" },
+  { "key": "KeyL", "ms": 80, "note": "open the park books, where the day's ledger lives" },
   { "assert": "(() => { const m = /Today.{0,2}s sales\\s*\\$([\\d,]+)/.exec(document.body.innerText); return m === null ? -1 : Number(m[1].replace(/,/g, '')); })() > 0",
     "note": "economy: the tills took money today, the same ledger the midnight bill reads" }
 ] }

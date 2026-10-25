@@ -1,61 +1,36 @@
-import { useEntityStat, useGame, useInventory, usePlayer } from "@jgengine/react/hooks";
-import { useStore } from "@jgengine/react/store";
 import { iconForItemId } from "@jgengine/react/gameIcons";
+import { useEntityStat, useGame, useInventory, usePlayer } from "@jgengine/react/hooks";
 import { IconTreatment, schoolForItem } from "@jgengine/react/iconTreatment";
-import { HudThemeRoot } from "@jgengine/react/hudThemeRoot";
+import { actionGlyph, useInputDevice } from "@jgengine/react/inputDevice";
+import { useStore } from "@jgengine/react/store";
+import { KitButton } from "@jgengine/react/uiKitRoot";
 import { slotStore } from "../../commands";
-import { AMMO_STAT_IDS, weaponById } from "../../items/weapons/catalog";
 import { ITEM_LABELS } from "../../content";
-import { hotbarTheme } from "../theme";
+import { AMMO_STAT_IDS, weaponById } from "../../items/weapons/catalog";
+import { keybinds } from "../../keybinds";
 
+/** What you carry: filled slots only, the held one pressed in, tappable on touch. */
 export function Hotbar() {
   const { userId } = usePlayer();
   const { commands } = useGame();
+  const device = useInputDevice();
   const slots = useInventory("hotbar");
   const selected = useStore(slotStore, (v) => v ?? 0);
-  const ammo9 = useEntityStat(userId, "ammo_9mm");
-  const ammoShell = useEntityStat(userId, "ammo_shell");
-
+  const ammo = { ammo_9mm: useEntityStat(userId, "ammo_9mm")?.current, ammo_shell: useEntityStat(userId, "ammo_shell")?.current };
   return (
-    <HudThemeRoot theme={hotbarTheme}>
-    <div className="flex items-end gap-2">
-      {[0, 1, 2, 3].map((index) => {
-        const slot = slots[index];
-        const itemId = slot?.itemId ?? null;
-        const weapon = itemId !== null ? weaponById(itemId) : undefined;
-        const ammoStat = weapon !== undefined && weapon.ammo !== "none" ? AMMO_STAT_IDS[weapon.ammo] : null;
-        const ammoValue = ammoStat === "ammo_9mm" ? ammo9?.current : ammoStat === "ammo_shell" ? ammoShell?.current : null;
-        const active = index === selected;
+    <div style={{ display: "flex", gap: 12 }}>
+      {slots.slice(0, 4).map((slot, index) => {
+        const itemId = slot?.itemId;
+        if (itemId == null) return null;
+        const weapon = weaponById(itemId);
+        const rounds = weapon === undefined || weapon.ammo === "none" ? undefined : ammo[AMMO_STAT_IDS[weapon.ammo] as keyof typeof ammo];
+        const action = `selectSlot${index + 1}`;
         return (
-          // Tappable so touch play switches weapons from the cards themselves — the on-screen
-          // dock hides the four selectSlot buttons (#1370).
-          <div
-            key={index}
-            role="button"
-            tabIndex={-1}
-            onPointerDown={() => commands.run(`selectSlot${index + 1}`, {})}
-            className={`w-24 -skew-x-6 cursor-pointer select-none border-2 border-black px-2 py-1 shadow-[3px_3px_0_#000] ${
-              active ? "bg-[#ffb020] text-black" : "bg-[#12141a]/85 text-[#cfd6de]"
-            }`}
-          >
-            <div className="flex items-center justify-between text-[10px] font-black">
-              <span>{index + 1}</span>
-              {ammoValue !== null && ammoValue !== undefined ? <span className="tabular-nums">{ammoValue}</span> : null}
-            </div>
-            <div className="my-1 flex justify-center">
-              {itemId !== null ? (
-                <IconTreatment icon={iconForItemId(itemId) ?? "gun"} school={schoolForItem(itemId)} size={34} />
-              ) : (
-                <div className="h-[34px]" />
-              )}
-            </div>
-            <div className="truncate text-[11px] font-black uppercase leading-tight">
-              {itemId !== null ? (ITEM_LABELS[itemId] ?? itemId) : "—"}
-            </div>
-          </div>
+          <KitButton key={index} size="sm" variant={index === selected ? "primary" : "secondary"} pressed={index === selected} icon={<IconTreatment icon={iconForItemId(itemId) ?? "gun"} school={schoolForItem(itemId)} size={22} />} glyph={device === "touch" ? undefined : (actionGlyph(keybinds, action, device) ?? undefined)} onClick={() => commands.run(action, {})}>
+            {ITEM_LABELS[itemId] ?? itemId}{rounds === undefined ? "" : ` · ${rounds}`}
+          </KitButton>
         );
       })}
     </div>
-    </HudThemeRoot>
   );
 }

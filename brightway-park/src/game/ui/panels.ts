@@ -1,16 +1,12 @@
 import type { PanelDef } from "@jgengine/core/ui/panelModel";
 
 /**
- * The park's toggleable windows, declared once for the engine's `usePanels` manager
- * (`@jgengine/react/panels`) so the hotkey, the close key and the open/closed state all come
- * from the shared panel model instead of a local keydown listener.
- *
- * The build palette starts open — that is the park's opening state — and `KeyB` toggles it;
- * ESC closes it. The park keeps its own bottom-bar layout and renders it from the manager.
+ * The park's toggleable windows on the engine's `usePanels` manager: the build palette starts open
+ * (B toggles it) and the park books open on request (L); ESC closes the top one.
  */
 export const PARK_PANELS: readonly PanelDef[] = [
-  { id: "build", title: "Build palette", hotkey: "KeyB", initial: true, closable: true },
+  { id: "build", title: "Build palette", hotkey: "KeyB", initial: true },
+  { id: "books", title: "Park books", hotkey: "KeyL" },
 ];
 
-/** The panel id the build palette renders under. */
 export const BUILD_PANEL = "build";

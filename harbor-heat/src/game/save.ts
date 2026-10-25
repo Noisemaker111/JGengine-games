@@ -64,6 +64,7 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
     reason: "Contraband loaded in the parcel is carried by the run section, not the profile.",
   },
   "harbor.safehouse": { kind: "world-snapshot", reason: "Durable ownership the shell's world snapshot already keeps." },
+  "harbor.stored": { kind: "world-snapshot", reason: "Cars parked in Sunset Motors' bay are durable profile progress." },
   "harbor.bestRace": { kind: "world-snapshot", reason: "A durable lap record the world snapshot already keeps." },
   "harbor.stashes": { kind: "world-snapshot", reason: "Which stashes are claimed is durable profile progress." },
   "harbor.bounty": { kind: "world-snapshot", reason: "The bounty board's progress is durable profile progress." },

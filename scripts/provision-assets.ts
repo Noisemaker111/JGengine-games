@@ -64,7 +64,8 @@ for (const game of gameDirs(only)) {
     if (result.status !== 0) failed = true;
   }
   for (const entry of MODEL_LIBRARY ?? []) {
-    if (entry.origin.provider !== "polyhaven" || !text.includes(`"${entry.name}"`)) continue;
+    // Generated models are committed by the game itself; every other provider is pulled from its source.
+    if (entry.origin.provider === "generated" || !text.includes(`"${entry.name}"`)) continue;
     if (isPopulated(join(gameDir, "public", "models", "library", ...entry.name.split("/")))) continue;
     console.log(`${game}: pulling library model ${entry.name}`);
     const result = spawnSync("bun", [join(assetsDir, "dist/cli/pull.js"), "pull", `model:${entry.name}`, "--dir", join(gameDir, "public")], {

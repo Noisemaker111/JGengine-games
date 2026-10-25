@@ -588,6 +588,103 @@
       "label": "Ocean overlook"
     },
     {
+      "id": "front_lounge",
+      "kind": "front",
+      "position": {
+        "x": 60,
+        "y": 0,
+        "z": -62
+      },
+      "label": "Neon Lounge",
+      "meta": {
+        "business": "lounge",
+        "price": 3000
+      }
+    },
+    {
+      "id": "front_arcade",
+      "kind": "front",
+      "position": {
+        "x": -200,
+        "y": 0,
+        "z": -90
+      },
+      "label": "Boardwalk Arcade",
+      "meta": {
+        "business": "arcade",
+        "price": 2200
+      }
+    },
+    {
+      "id": "front_carwash",
+      "kind": "front",
+      "position": {
+        "x": 118,
+        "y": 0,
+        "z": 170
+      },
+      "label": "Pier Three car wash",
+      "meta": {
+        "business": "carwash",
+        "price": 4500
+      }
+    },
+    {
+      "id": "front_motel",
+      "kind": "front",
+      "position": {
+        "x": 100,
+        "y": 0,
+        "z": -212
+      },
+      "label": "Villa Row motel",
+      "meta": {
+        "business": "motel",
+        "price": 6500
+      }
+    },
+    {
+      "id": "hideout_motors",
+      "kind": "hideout",
+      "position": {
+        "x": -68,
+        "y": 0,
+        "z": 116
+      },
+      "label": "Sunset Motors bay",
+      "meta": {
+        "radius": 10
+      }
+    },
+    {
+      "id": "hideout_bungalow",
+      "kind": "hideout",
+      "position": {
+        "x": 48,
+        "y": 0,
+        "z": -222
+      },
+      "label": "Palmview Bungalow garage",
+      "meta": {
+        "radius": 8,
+        "needs": "safehouse"
+      }
+    },
+    {
+      "id": "hideout_carwash",
+      "kind": "hideout",
+      "position": {
+        "x": 118,
+        "y": 0,
+        "z": 170
+      },
+      "label": "Pier Three wash bay",
+      "meta": {
+        "radius": 9,
+        "needs": "front_carwash"
+      }
+    },
+    {
       "id": "d03_obj_palm_tall_1",
       "kind": "prop",
       "position": {

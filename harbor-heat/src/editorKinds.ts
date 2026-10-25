@@ -67,3 +67,33 @@ export const RESIDENT_PLACE_KIND = definePlaceableMarkerKind({
   category: "Harbor Heat",
   accent: "#e8a14a",
 });
+
+/**
+ * A business lot the player can buy as a front. `meta.business` names the city kind it becomes and
+ * `meta.price` what it costs; the city's `fronts` slot of the same id stands here.
+ */
+export const FRONT_KIND = definePlaceableMarkerKind({
+  kind: "front",
+  label: "Business front",
+  category: "Harbor Heat",
+  accent: "#ff5fa2",
+  fields: [
+    { type: "text", key: "business", label: "City kind", default: "lounge" },
+    { type: "number", key: "price", label: "Price ($)", default: 3000, min: 0, step: 100 },
+  ],
+});
+
+/**
+ * Cover HHPD can't see into: a garage bay, a wash bay, a safehouse garage. Standing inside one runs
+ * the cold trail faster; `meta.needs` names what the player must own first (`safehouse` or a front slot).
+ */
+export const HIDEOUT_KIND = definePlaceableMarkerKind({
+  kind: "hideout",
+  label: "Hideout",
+  category: "Harbor Heat",
+  accent: "#3b4a5c",
+  fields: [
+    { type: "number", key: "radius", label: "Radius (m)", default: 9, min: 2, step: 0.5 },
+    { type: "text", key: "needs", label: "Needs owned", default: "" },
+  ],
+});

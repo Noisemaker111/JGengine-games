@@ -27,8 +27,7 @@ const SURFACE_MATERIALS = [
   "ambientcg-facade018a",
   "ambientcg-facade019a",
   "ambientcg-facade020a",
-  "ambientcg-facade001",
-  "ambientcg-facade005",
+  "ambientcg-facade006",
 ] as const;
 
 /** Every pack this game ships — credits are generated from it, so it cannot drift. */

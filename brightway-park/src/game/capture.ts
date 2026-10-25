@@ -26,7 +26,6 @@ function updateOpenState(ctx: GameContext): void {
   const wantOpen = w.fact("park.game_over") !== true && fraction >= OPEN_FRACTION && fraction <= CLOSE_FRACTION;
   if (wantOpen === (w.fact("park.open") === true)) return;
   w.set("park.open", wantOpen);
-  ctx.game.notices.push({ text: wantOpen ? `Day ${w.num("park.day")} — gates open!` : "Gates closed for the night", tone: "info" });
   if (wantOpen) ctx.game.audio.play("gates");
 }
 
