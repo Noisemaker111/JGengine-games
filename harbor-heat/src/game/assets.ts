@@ -20,8 +20,14 @@ const MODEL_SOURCES = [
  */
 const GROUND_MATERIAL = "ambientcg-ground025";
 
+/**
+ * The scans behind the library surfaces the streets and facades name (`asphalt/dry`,
+ * `concrete/smooth`, `plaster/interior`), listed by source id so provisioning pulls them.
+ */
+const SURFACE_MATERIALS = ["ambientcg-asphalt003", "ambientcg-concrete006", "ambientcg-plaster001"] as const;
+
 /** Every pack this game ships — credits are generated from it, so it cannot drift. */
-export const ASSET_SOURCE_IDS: readonly string[] = [...MODEL_SOURCES, GROUND_MATERIAL];
+export const ASSET_SOURCE_IDS: readonly string[] = [...MODEL_SOURCES, GROUND_MATERIAL, ...SURFACE_MATERIALS];
 
 export const assets: AssetCatalog = buildCatalog({
   basePath: "/models",

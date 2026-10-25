@@ -36,7 +36,7 @@ export const game = defineGame({
   notices: { cap: 6, ttlMs: 7000 },
   hudTheme: parkTheme,
   look: "cinematic",
-  mood: "bright",
+  mood: "day",
   capture: {
     play: ["park.start"],
     // `full-park` stages the day a reviewer asks about: gates open, the authored starter park at

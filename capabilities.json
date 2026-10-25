@@ -4657,6 +4657,17 @@
       "intent": "carry a named library material's response into authored overrides"
     },
     {
+      "id": "library-surface-scan",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/catalogs/materialLibrary",
+      "domain": "catalogs",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "put a named scanned material on roads, terrain or kit models in one call"
+    },
+    {
       "id": "library-terrain-material",
       "packages": [
         "@jgengine/assets"

@@ -10,12 +10,20 @@ import {
   type EnvironmentWorldFeature,
   type TerrainMaterialRegion,
 } from "@jgengine/core/world/features";
+import { librarySurfaceScan } from "@jgengine/assets/catalogs/materialLibrary";
 import { editorLayers } from "./editorLayers";
 import { GROUND_MAPS } from "./game/assets";
 import { DISTRICTS, ROADS, SHORE_X, WORLD_D, WORLD_W } from "./game/world/districts";
 
 /** The sky the scene document authors; the day/night cycle runs on it. */
 const authoredSky = skyFromDocument(editorLayers);
+
+/** Scanned asphalt, concrete paving and gutters; the sidewalk keeps its sand tone and takes the grain. */
+const STREET_SURFACES = {
+  road: librarySurfaceScan("asphalt/dry"),
+  sidewalk: librarySurfaceScan("concrete/smooth", { tint: 0 }),
+  curb: librarySurfaceScan("concrete/smooth", { tint: 0 }),
+};
 
 export const streets = ROADS.map((segment) =>
   road({
@@ -25,6 +33,7 @@ export const streets = ROADS.map((segment) =>
     markingColor: "#f6cf4a",
     elevation: segment.from[0] === segment.to[0] ? 0.08 : 0.16,
     sidewalk: { width: 4.2, color: "#cdc6b6" },
+    materials: STREET_SURFACES,
   }),
 );
 
