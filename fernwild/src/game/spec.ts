@@ -3,7 +3,7 @@ import { calm, type WorldActionDecl, type WorldChanges, type WorldJobDecl, type 
 
 import { editorLayers } from "../editorLayers";
 import { idea } from "./idea";
-import type { StructureWord } from "./ideaShape";
+import type { StructureWord } from "./kindShape";
 import { campGrid, herdMarkers, nodeMarkers } from "./places";
 import { onDawn, onFallen, onVictory, repairTarget, spawnWave, tameTarget } from "./waves";
 

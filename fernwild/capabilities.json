@@ -17,6 +17,10 @@
     "game-pause-menu",
     "game-spec",
     "game-system",
+    "hud-canvas",
+    "hud-frame",
+    "hud-layout",
+    "hud-panel",
     "hud-ticker",
     "kit-action-glyph",
     "kit-action-prompt",
@@ -53,199 +57,199 @@
   "declines": {
     "agents": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no agent loop yet: it is a hunt-defence survival starter, and nothing in its loop uses agents."
+      "reason": "Fernwild has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses agents."
     },
     "audio-probe": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no audio mix yet: it is a hunt-defence survival starter, and nothing in its loop uses audio-probe."
+      "reason": "Fernwild has no audio mix yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses audio-probe."
     },
     "cover-field": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no cover yet: it is a hunt-defence survival starter, and nothing in its loop uses cover-field."
+      "reason": "Fernwild has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-field."
     },
     "cover-points-from-solids": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no cover yet: it is a hunt-defence survival starter, and nothing in its loop uses cover-points-from-solids."
+      "reason": "Fernwild has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-points-from-solids."
     },
     "cover-points-near": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no cover yet: it is a hunt-defence survival starter, and nothing in its loop uses cover-points-near."
+      "reason": "Fernwild has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-points-near."
     },
     "cover-score": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no cover yet: it is a hunt-defence survival starter, and nothing in its loop uses cover-score."
+      "reason": "Fernwild has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-score."
     },
     "cover-select": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no cover yet: it is a hunt-defence survival starter, and nothing in its loop uses cover-select."
+      "reason": "Fernwild has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-select."
     },
     "damage-runtime": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no damage table yet: it is a hunt-defence survival starter, and nothing in its loop uses damage-runtime."
+      "reason": "Fernwild has no damage table yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses damage-runtime."
     },
     "damage-target-unknown": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no damage table yet: it is a hunt-defence survival starter, and nothing in its loop uses damage-target-unknown."
+      "reason": "Fernwild has no damage table yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses damage-target-unknown."
     },
     "equipment-slot-inventory": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no equipment slots yet: it is a hunt-defence survival starter, and nothing in its loop uses equipment-slot-inventory."
+      "reason": "Fernwild has no equipment slots yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses equipment-slot-inventory."
     },
     "game-save": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no save document yet: it is a hunt-defence survival starter, and nothing in its loop uses game-save."
+      "reason": "Fernwild has no save document yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses game-save."
     },
     "game-save-digest": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no save document yet: it is a hunt-defence survival starter, and nothing in its loop uses game-save-digest."
+      "reason": "Fernwild has no save document yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses game-save-digest."
     },
     "loan-schedule": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loans yet: it is a hunt-defence survival starter, and nothing in its loop uses loan-schedule."
+      "reason": "Fernwild has no loans yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loan-schedule."
     },
     "loans": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loans yet: it is a hunt-defence survival starter, and nothing in its loop uses loans."
+      "reason": "Fernwild has no loans yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loans."
     },
     "loot-comparison": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loot rolling yet: it is a hunt-defence survival starter, and nothing in its loop uses loot-comparison."
+      "reason": "Fernwild has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-comparison."
     },
     "loot-generation": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loot rolling yet: it is a hunt-defence survival starter, and nothing in its loop uses loot-generation."
+      "reason": "Fernwild has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-generation."
     },
     "loot-roller": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loot rolling yet: it is a hunt-defence survival starter, and nothing in its loop uses loot-roller."
+      "reason": "Fernwild has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-roller."
     },
     "loot-score": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loot rolling yet: it is a hunt-defence survival starter, and nothing in its loop uses loot-score."
+      "reason": "Fernwild has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-score."
     },
     "loot-validation": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no loot rolling yet: it is a hunt-defence survival starter, and nothing in its loop uses loot-validation."
+      "reason": "Fernwild has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-validation."
     },
     "mission-events": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no mission runtime yet: it is a hunt-defence survival starter, and nothing in its loop uses mission-events."
+      "reason": "Fernwild has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-events."
     },
     "mission-rewards": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no mission runtime yet: it is a hunt-defence survival starter, and nothing in its loop uses mission-rewards."
+      "reason": "Fernwild has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-rewards."
     },
     "mission-runtime": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no mission runtime yet: it is a hunt-defence survival starter, and nothing in its loop uses mission-runtime."
+      "reason": "Fernwild has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-runtime."
     },
     "mission-validation": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no mission runtime yet: it is a hunt-defence survival starter, and nothing in its loop uses mission-validation."
+      "reason": "Fernwild has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-validation."
     },
     "nav-crowd": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no navigation yet: it is a hunt-defence survival starter, and nothing in its loop uses nav-crowd."
+      "reason": "Fernwild has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses nav-crowd."
     },
     "nav-runtime": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no navigation yet: it is a hunt-defence survival starter, and nothing in its loop uses nav-runtime."
+      "reason": "Fernwild has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses nav-runtime."
     },
     "navmesh-from-scene": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no navigation yet: it is a hunt-defence survival starter, and nothing in its loop uses navmesh-from-scene."
+      "reason": "Fernwild has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses navmesh-from-scene."
     },
     "near-agents": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no agent loop yet: it is a hunt-defence survival starter, and nothing in its loop uses near-agents."
+      "reason": "Fernwild has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses near-agents."
     },
     "offscreen-world": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no offscreen simulation yet: it is a hunt-defence survival starter, and nothing in its loop uses offscreen-world."
+      "reason": "Fernwild has no offscreen simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses offscreen-world."
     },
     "perception-service": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no perception yet: it is a hunt-defence survival starter, and nothing in its loop uses perception-service."
+      "reason": "Fernwild has no perception yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses perception-service."
     },
     "police-response": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no police heat yet: it is a hunt-defence survival starter, and nothing in its loop uses police-response."
+      "reason": "Fernwild has no police heat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses police-response."
     },
     "police-roads": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no police heat yet: it is a hunt-defence survival starter, and nothing in its loop uses police-roads."
+      "reason": "Fernwild has no police heat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses police-roads."
     },
     "ride-appeal": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no ride simulation yet: it is a hunt-defence survival starter, and nothing in its loop uses ride-appeal."
+      "reason": "Fernwild has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-appeal."
     },
     "ride-choice": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no ride simulation yet: it is a hunt-defence survival starter, and nothing in its loop uses ride-choice."
+      "reason": "Fernwild has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-choice."
     },
     "ride-sim": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no ride simulation yet: it is a hunt-defence survival starter, and nothing in its loop uses ride-sim."
+      "reason": "Fernwild has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-sim."
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no run yet: it is a hunt-defence survival starter, and nothing in its loop uses run-loop."
+      "reason": "Fernwild has no run yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses run-loop."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no crowd steering yet: it is a hunt-defence survival starter, and nothing in its loop uses rvo-avoidance."
+      "reason": "Fernwild has no crowd steering yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses rvo-avoidance."
     },
     "session-loop": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no run yet: it is a hunt-defence survival starter, and nothing in its loop uses session-loop."
+      "reason": "Fernwild has no run yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses session-loop."
     },
     "skill-tree": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no skill tree yet: it is a hunt-defence survival starter, and nothing in its loop uses skill-tree."
+      "reason": "Fernwild has no skill tree yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses skill-tree."
     },
     "squad-combat": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no squad combat yet: it is a hunt-defence survival starter, and nothing in its loop uses squad-combat."
+      "reason": "Fernwild has no squad combat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses squad-combat."
     },
     "status-runtime": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no status effects yet: it is a hunt-defence survival starter, and nothing in its loop uses status-runtime."
+      "reason": "Fernwild has no status effects yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses status-runtime."
     },
     "status-unknown": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no status effects yet: it is a hunt-defence survival starter, and nothing in its loop uses status-unknown."
+      "reason": "Fernwild has no status effects yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses status-unknown."
     },
     "supply-demand-pricing": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no market pricing yet: it is a hunt-defence survival starter, and nothing in its loop uses supply-demand-pricing."
+      "reason": "Fernwild has no market pricing yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses supply-demand-pricing."
     },
     "traffic": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no traffic yet: it is a hunt-defence survival starter, and nothing in its loop uses traffic."
+      "reason": "Fernwild has no traffic yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses traffic."
     },
     "transaction-ledger": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no transaction ledger yet: it is a hunt-defence survival starter, and nothing in its loop uses transaction-ledger."
+      "reason": "Fernwild has no transaction ledger yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses transaction-ledger."
     },
     "utility-brain": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no agent loop yet: it is a hunt-defence survival starter, and nothing in its loop uses utility-brain."
+      "reason": "Fernwild has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses utility-brain."
     },
     "vehicle-damage": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no vehicle damage yet: it is a hunt-defence survival starter, and nothing in its loop uses vehicle-damage."
+      "reason": "Fernwild has no vehicle damage yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses vehicle-damage."
     },
     "visitor-population": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no park population yet: it is a hunt-defence survival starter, and nothing in its loop uses visitor-population."
+      "reason": "Fernwild has no park population yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses visitor-population."
     },
     "wait-queue": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no queue yet: it is a hunt-defence survival starter, and nothing in its loop uses wait-queue."
+      "reason": "Fernwild has no queue yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses wait-queue."
     },
     "weapon-system": {
       "kind": "not-applicable",
-      "reason": "Fernwild has no weapon runtime yet: it is a hunt-defence survival starter, and nothing in its loop uses weapon-system."
+      "reason": "Fernwild has no weapon runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses weapon-system."
     }
   }
 }

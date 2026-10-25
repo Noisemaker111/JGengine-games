@@ -159,10 +159,11 @@ export function lake(layout: Layout, entry: { id: string; at: Spot; radius: numb
     id: entry.id,
     kind: "water",
     shape: "box",
-    center: { x: entry.at.x, y: entry.level - 1, z: entry.at.z },
-    halfExtents: { x: Math.round(sx), y: 1, z: Math.round(sz) },
+    // A 4 m deep box: the bed is carved its full depth below the shore, so the water reads deep.
+    center: { x: entry.at.x, y: entry.level - 2, z: entry.at.z },
+    halfExtents: { x: Math.round(sx), y: 2, z: Math.round(sz) },
     label: entry.label ?? "Lake",
-    meta: { color: water.color, shallowColor: water.shallow, waveHeight: 0.08, foam: 1.6, opacity: 0.86 },
+    meta: { color: water.color, shallowColor: water.shallow, waveHeight: 0.08, foam: 1.6, opacity: 0.92 },
   });
   layout.pad(`${entry.id}-shore`, entry.at, Math.max(sx, sz) + 10, entry.level + 0.5, 22);
   layout.take(entry.at, Math.max(sx, sz) + 6);
