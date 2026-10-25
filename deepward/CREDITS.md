@@ -33,3 +33,44 @@ records bounds, embedded maps, skins and the idle/walk/windup clips. The models
 are reproducible through `build-original-fitter.py`. Original tileable station
 enamel and mineral floor grain/grease maps are under `surfaces`, with their own
 hash manifest and `build-original-surfaces.py` source.
+
+## Interior pass (2026-10)
+
+The floor interiors (`src/game/interiorLook.ts`, `interiorPlan.ts`) use CC0-1.0
+PBR scans from ambientCG (https://ambientcg.com) and CC0-1.0 prop models from
+Poly Haven (https://polyhaven.com), pulled through the JGengine asset library by
+`bun run provision deepward`. Trims, pipes, cables, stains and wall lamps are
+derived from the authored rooms by the engine interior dressing kit.
+
+Materials:
+
+- Painted metal (ambientcg-paintedmetal006) by ambientCG (CC0-1.0)
+- Chipped paint (ambientcg-paintedmetal002) by ambientCG (CC0-1.0)
+- Bare steel (ambientcg-metal007) by ambientCG (CC0-1.0)
+- Corrugated steel (ambientcg-corrugatedsteel009) by ambientCG (CC0-1.0)
+- Diamond plate (ambientcg-diamondplate005a) by ambientCG (CC0-1.0)
+- Rusted metal (ambientcg-rust007) by ambientCG (CC0-1.0)
+- Steel plate (ambientcg-metalplates001) by ambientCG (CC0-1.0)
+- Smooth concrete (ambientcg-concrete006) by ambientCG (CC0-1.0)
+- Poured concrete (ambientcg-concrete013) by ambientCG (CC0-1.0)
+- Rough concrete (ambientcg-concrete025) by ambientCG (CC0-1.0)
+- Ceramic tile (ambientcg-tiles007) by ambientCG (CC0-1.0)
+- Rock face (ambientcg-rock022) by ambientCG (CC0-1.0)
+- Terrazzo (ambientcg-terrazzo005) by ambientCG (CC0-1.0)
+
+Models:
+
+- Worn metal rack by Luca B (CC0-1.0) https://polyhaven.com/a/worn_metal_rack
+- Plastic stacking crate by Pacific Penguin (CC0-1.0) https://polyhaven.com/a/plastic_crate_03
+- Wooden shipping crate by James Ray Cock, Jurita Burger (CC0-1.0) https://polyhaven.com/a/wooden_crate_02
+- Hand truck by Mutanzom3D (CC0-1.0) https://polyhaven.com/a/hand_truck
+- Rolling tool chest by Yann Kervran, John Hutcheson (CC0-1.0) https://polyhaven.com/a/metal_tool_chest
+- Fire extinguisher by UM JOORIN (CC0-1.0) https://polyhaven.com/a/korean_fire_extinguisher_01
+- Wall power box by Rico Cilliers, Yann Kervran (CC0-1.0) https://polyhaven.com/a/power_box_01
+- Military air compressor by Brian Speight (CC0-1.0) https://polyhaven.com/a/old_military_compressor
+- Propane tank by Slinc (CC0-1.0) https://polyhaven.com/a/propane_tank
+- Military supply crate by Jack Mava (CC0-1.0) https://polyhaven.com/a/old_military_crate
+- Steel drum barrel by Jorge Camacho (CC0-1.0) https://polyhaven.com/a/Barrel_01
+- Metal jerrycan by Sean Buckley (CC0-1.0) https://polyhaven.com/a/metal_jerrycan
+- Portable generator by James Ray Cock (CC0-1.0) https://polyhaven.com/a/portable_generator
+- Ammo box by DanKit (CC0-1.0) https://polyhaven.com/a/ammo_box

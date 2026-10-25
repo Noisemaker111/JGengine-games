@@ -55,6 +55,21 @@ function Supplies({ place, dive }: { place: Place; dive: Dive }) {
     </group>;
   })}</>;
 }
+/** A pressure suit left on its service stand: plinth and pole, a tapered torso, brass collar and a domed helmet with a dark visor. */
+function SuitStand({ color }: { color: string }) {
+  return <>
+    <IndustrialBox at={[0, 0.05, 0]} size={[0.9, 0.1, 0.9]} color={C.panel} surface="steel" />
+    <IndustrialCylinder at={[0, 0.45, 0]} radius={0.05} length={0.8} color={C.steel} surface="steel" />
+    <IndustrialCylinder at={[0, 0.72, 0]} radius={0.17} tip={0.22} length={0.36} color={color} surface="rubber" />
+    <IndustrialCylinder at={[0, 1.16, 0]} radius={0.24} tip={0.31} length={0.62} color={color} surface="printed" />
+    <IndustrialBox at={[0, 1.48, 0]} size={[0.8, 0.14, 0.36]} color={color} surface="printed" />
+    {[-1, 1].map(side => <IndustrialCylinder key={side} at={[side * 0.44, 1.12, 0]} radius={0.075} length={0.62} color={color} surface="rubber" />)}
+    <IndustrialBox at={[0, 1.18, -0.22]} size={[0.42, 0.5, 0.14]} color={C.steel} surface="steel" />
+    <mesh position={[0, 1.6, 0]} rotation-x={Math.PI / 2} castShadow><torusGeometry args={[0.2, 0.045, 8, 24]} /><meshStandardMaterial color={C.brass} roughness={0.38} metalness={0.8} /></mesh>
+    <mesh position={[0, 1.82, 0]} castShadow><sphereGeometry args={[0.25, 20, 14]} /><meshStandardMaterial color={C.brass} roughness={0.42} metalness={0.75} /></mesh>
+    <mesh position={[0, 1.83, 0.13]} scale={[1, 0.8, 0.6]}><sphereGeometry args={[0.17, 18, 12]} /><meshStandardMaterial color="#0c1a1e" roughness={0.08} metalness={0.2} /></mesh>
+  </>;
+}
 /** Wrecks, suits, logs and the relay: what the scanner reads. A scanned one goes dark. */
 function Fragments({ place, deep }: { place: Place; deep: Deep }) {
   return <>{FRAGMENTS.filter(fragment => fragment.place === place).map(fragment => {
@@ -69,9 +84,7 @@ function Fragments({ place, deep }: { place: Place; deep: Deep }) {
         <IndustrialBox at={[0, 0.55, 0]} size={[0.6, 1.1, 0.4]} color={C.wall} />
         <IndustrialBox at={[0, 1.0, 0.21]} size={[0.44, 0.3, 0.02]} color={done ? C.panel : C.amber} emission={done ? 0 : 0.9} />
       </> : fragment.entry === "seal2" || fragment.entry === "seal3" ? <>
-        <IndustrialCylinder at={[0, 0.85, 0]} radius={0.28} length={1.3} color={fragment.entry === "seal3" ? "#6d6080" : "#9fb3b8"} surface="printed" />
-        <mesh position={[0, 1.7, 0]}><sphereGeometry args={[0.24, 12, 10]} /><meshStandardMaterial color="#193a40" roughness={0.2} /></mesh>
-        <IndustrialBox at={[0, 0.03, 0]} size={[0.9, 0.06, 0.9]} color={C.panel} />
+        <SuitStand color={fragment.entry === "seal3" ? "#6d6080" : "#9fb3b8"} />
       </> : <>
         <IndustrialBox at={[0, 0.3, 0]} size={[1.8, 0.5, 1.1]} turn={[0.08, 0.5, 0.12]} color={C.steel} surface="steel" />
         <IndustrialBox at={[0.3, 0.75, 0.1]} size={[0.6, 0.5, 0.7]} turn={[0.3, 0.2, -0.2]} color={C.brass} surface="brass" />
@@ -217,11 +230,13 @@ export function MarrowBays({ world }: { world: WorldModel }) {
  * Each floor's air: fog closes in and the ambient light drops the deeper you go. The shell owns the
  * lights and fog; this only retunes them when the floor changes.
  */
+const STRATA_FILL = 0.5;
 export function StratumAtmosphere({ place }: { place: Place }) {
   const { scene } = useThree();
   useEffect(() => {
     const fog = place === "home" ? { color: C.black, near: 24, far: 75 } : STRATA[place].fog;
-    const ambient = place === "home" ? 1 : STRATA[place].ambient / STRATA.vault.ambient;
+    // Below Marrow the fill drops by half again, so the lamps, not the ambient, shape each room.
+    const ambient = place === "home" ? 1 : STRATA[place].ambient / STRATA.vault.ambient * STRATA_FILL;
     if (scene.fog instanceof Fog) { scene.fog.color.set(fog.color); scene.fog.near = fog.near; scene.fog.far = fog.far; }
     if (scene.background instanceof Color) scene.background.set(place === "home" || place === "vault" ? C.black : fog.color);
     scene.traverse((object: Object3D) => {
@@ -237,7 +252,7 @@ export function StratumAtmosphere({ place }: { place: Place }) {
 export function Headlamp({ on }: { on: boolean }) {
   const ref = useRef<SpotLight>(null);
   const { scene } = useThree();
-  useEffect(() => { const light = ref.current; if (light === null) return; scene.add(light.target); return () => { scene.remove(light.target); }; }, [scene]);
+  useEffect(() => { const light = ref.current; if (light === null) return; light.userData.haze = false; scene.add(light.target); return () => { scene.remove(light.target); }; }, [scene]);
   useFrame(({ camera }) => {
     const light = ref.current;
     if (light === null) return;
