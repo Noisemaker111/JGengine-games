@@ -1,5 +1,6 @@
 import type { AgentSnapshot } from "@jgengine/core/agents/agent";
 import type { Thought, ThoughtTally } from "./sim/thoughts";
+import type { BuildStep } from "./build/undo";
 
 /**
  * What the park keeps outside its world: the walking guests and janitors (agents with bodies), what
@@ -46,6 +47,10 @@ export interface Session {
   /** Quarter turns the next build faces (Z turns it). */
   rotation: number;
   selectedObject: string | null;
+  /** Where the current left-button drag started (a world x/z), set by the overlay on pointer-down. */
+  dragFrom: [number, number] | null;
+  /** The builder's undo list, newest last (`build/undo.ts`). */
+  undo: BuildStep[];
   guests: Map<string, GuestState>;
   staff: Map<string, StaffState>;
   /** Guests heading for or at each stall this tick - a crowd the next guest prices in. Rebuilt every tick. */
@@ -64,6 +69,8 @@ function freshSession(): Session {
     selectedTool: null,
     rotation: 0,
     selectedObject: null,
+    dragFrom: null,
+    undo: [],
     guests: new Map(),
     staff: new Map(),
     occupants: new Map(),

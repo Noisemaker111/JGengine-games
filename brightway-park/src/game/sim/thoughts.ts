@@ -73,6 +73,9 @@ export function think(guest: GuestState, id: ThoughtId, text: string, now: numbe
   const list = guest.thoughts ?? (guest.thoughts = []);
   const last = list.find((thought) => thought.id === id);
   if (last !== undefined && now - last.at < REPEAT_SECONDS) return;
+  // The same thought again moves to the top rather than filling the window with copies.
+  const same = list.findIndex((thought) => thought.id === id && thought.text === text);
+  if (same >= 0) list.splice(same, 1);
   list.unshift({ id, text, at: now });
   if (list.length > KEEP) list.length = KEEP;
 }

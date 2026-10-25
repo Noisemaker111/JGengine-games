@@ -26,8 +26,6 @@ function accessReason(ctx: GameContext, id: string): string | null {
 /** Blueprints laid as a line when the pointer is dragged: press on the first cell, let go on the last. */
 export const LINE_KINDS: ReadonlySet<string> = new Set(["path_walk", "path_queue"]);
 
-/** Where the current drag started (a world point), set by the overlay on pointer-down. */
-let dragFrom: [number, number] | null = null;
 
 export type PointerInput = Pick<PointerHit, "point" | "entity" | "object">;
 
@@ -132,8 +130,8 @@ function tryBuild(ctx: GameContext, input: PointerInput): void {
   if (kind === null || !canBuild(ctx, kind)) return;
   if (!Array.isArray(input.point) || input.point.length !== 3 || !input.point.every(Number.isFinite)) return;
   const [x, , z] = input.point;
-  const from = dragFrom;
-  dragFrom = null;
+  const from = session.dragFrom;
+  session.dragFrom = null;
   if (isLandTool(kind)) {
     shapeArea(ctx, kind, from ?? [x, z], [x, z]);
     return;
@@ -280,7 +278,7 @@ export function registerBuildCommands(ctx: GameContext): void {
   // The overlay marks where a left-button press began; the click that ends it lays the line or area.
   ctx.game.commands.define<{ point: [number, number] | null }>("build.dragFrom", {
     apply(_state, input) {
-      dragFrom = input.point === null || !input.point.every(Number.isFinite) ? null : [input.point[0], input.point[1]];
+      session.dragFrom = input.point === null || !input.point.every(Number.isFinite) ? null : [input.point[0], input.point[1]];
     },
   });
 

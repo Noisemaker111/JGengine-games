@@ -2,6 +2,7 @@ import type { WorldModel } from "@jgengine/core/worldModel/worldModel";
 
 import { BUILDABLES } from "../objects/catalog";
 import { setLevel } from "./terrain";
+import { session } from "../session";
 
 /**
  * The builder's undo: the last few things the player did to the lot, newest last. Undoing a build
@@ -14,23 +15,24 @@ export type BuildStep =
   | { type: "land"; cells: { col: number; row: number; level: number }[]; cost: number };
 
 const LIMIT = 30;
-const steps: BuildStep[] = [];
+// The run's own undo list lives on the session, so a new park starts with none.
+const steps = (): BuildStep[] => session.undo;
 
 export function recordStep(step: BuildStep): void {
-  steps.push(step);
-  if (steps.length > LIMIT) steps.shift();
+  steps().push(step);
+  if (steps().length > LIMIT) steps().shift();
 }
 
 export function clearUndo(): void {
-  steps.length = 0;
+  steps().length = 0;
 }
 
 export function canUndo(): boolean {
-  return steps.length > 0;
+  return steps().length > 0;
 }
 
 export function lastStep(): BuildStep | null {
-  return steps.at(-1) ?? null;
+  return steps().at(-1) ?? null;
 }
 
 /**
@@ -43,7 +45,7 @@ export function undoStep(
   place: (kind: string, cell: [number, number], rot: number) => string | null,
   remove: (id: string) => boolean,
 ): string | null {
-  const step = steps.pop();
+  const step = steps().pop();
   if (step === undefined) return null;
   if (step.type === "place") {
     const before = w.num("park.cash");
