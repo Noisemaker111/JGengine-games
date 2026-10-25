@@ -1,9 +1,11 @@
-import { HudCanvas, HudPanel, SettingsTrigger, useHudLayout } from "@jgengine/react";
+import { useState } from "react";
+import { HudCanvas, HudPanel, useDisplayProfile, useHudLayout } from "@jgengine/react";
+import { useGameFonts } from "@jgengine/react/gameFonts";
 import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { itemNameById } from "../content";
 import { DamageVignette, HitMarker, LevelUpBurst } from "./components/Feedback";
-import { CashPlate, CreditBadge, MissionTracker } from "./components/Mission";
+import { CashPlate, MissionTracker } from "./components/Mission";
 import { ReserveOverlay, VendorPanel } from "./components/Overlays";
 import { CharacterSelect, TalentsPanel } from "./components/Talents";
 import { ScrapMenu } from "./menu/ScrapMenu";
@@ -12,12 +14,25 @@ import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
 import { BlackMarketPanel, EchoBox, CoresPlate, TravelPanel, ReactorEnding, ZoneBanner } from "./components/World";
 import { Operations } from "./components/Operations";
 import { FieldGearPanel } from "./components/FieldGearPanel";
+import { GAME_FONTS } from "../../art/fonts/fonts";
+import { useHostilesNear } from "./fiction/useHostilesNear";
+import { OverlayHostContext } from "./fiction/OverlayHost";
 
+/**
+ * The reclaimer’s rig: everything the HUD shows is a piece of salvaged kit at the edge of the view.
+ * The wrist unit, the magazine counter and the weapon cartridges sit along the foot; the contract
+ * and mission log hang top-left; the wallet counters and the pause key top-right. Each piece dims
+ * when nothing on it is changing and comes back the moment it does.
+ */
 export function GameUI() {
+  useGameFonts(GAME_FONTS);
   const layout = useHudLayout({ storageKey: "scrap-signal" });
+  const profile = useDisplayProfile();
+  const combat = useHostilesNear();
+  const [overlay, setOverlay] = useState<HTMLElement | null>(null);
   return (
-    <>
-    <HudCanvas layout={layout} className="z-20 font-sans text-stone-100">
+    <OverlayHostContext.Provider value={overlay}>
+    <HudCanvas layout={layout} className={`ss-hud ${profile.compact ? "compact" : ""}`}>
       <Operations />
       <HudPanel id="missions" anchor="left" compact="keep" interactive={false}>
         <MissionTracker />
@@ -25,10 +40,6 @@ export function GameUI() {
 
       <HudPanel id="field-loot" anchor="left" order={1} compact="keep" interactive={true}>
         <FieldGearPanel />
-      </HudPanel>
-
-      <HudPanel id="settings" anchor="top-right" order={-1} compact="keep" interactive={false}>
-        <SettingsTrigger className="pointer-events-auto flex h-8 w-8 items-center justify-center border border-stone-600/60 bg-black/70 text-base text-stone-300 transition hover:bg-stone-800 hover:text-amber-200" />
       </HudPanel>
 
       <HudPanel id="cash" anchor="top-right" order={0} compact="keep" interactive={false}>
@@ -50,14 +61,14 @@ export function GameUI() {
       <HudPanel id="loot-toasts" anchor="top-right" order={3} compact="hide" interactive={false}>
         <ToastStack
           action="loot.granted"
-          className="flex flex-col items-end gap-1.5"
+          className="ss-toasts"
           renderToast={(entry) => {
             const text = lootDropsOf(entry.data)
               .map((drop) => `+${drop.count} ${drop.item !== undefined ? itemNameById(drop.item) : "$"}`)
               .join("   ");
             if (text === "") return null;
             return (
-              <div className="scrap-plate bg-black/70 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-amber-200">
+              <div className="ss-toast">
                 {text}
               </div>
             );
@@ -65,24 +76,22 @@ export function GameUI() {
         />
       </HudPanel>
 
-      <HudPanel id="credit" anchor="top" order={0} compact="hide" interactive={false}>
-        <CreditBadge />
-      </HudPanel>
-
       <HudPanel id="item-card" anchor="right" compact="hide" interactive={false}>
         <ItemCard />
       </HudPanel>
 
-      <HudPanel id="vitals" anchor="bottom-left" order={0} compact="keep" interactive={false}>
-        <VitalsPlate />
+      {/* On a phone the touch dock owns the foot of the screen: the wrist unit moves up to the
+          top-left corner and the cartridges stack over the magazine counter. */}
+      <HudPanel id="vitals" anchor={profile.compact ? "top-left" : "bottom-left"} order={profile.compact ? -1 : 0} compact="keep" interactive={false}>
+        <VitalsPlate combat={combat} />
       </HudPanel>
 
-      <HudPanel id="hotbar" anchor="bottom" order={0} compact="keep" interactive={false}>
-        <Hotbar />
+      <HudPanel id="hotbar" anchor={profile.compact ? "bottom-right" : "bottom"} order={profile.compact ? 1 : 0} compact="keep" interactive={false}>
+        <Hotbar combat={combat} />
       </HudPanel>
 
       <HudPanel id="ammo" anchor="bottom-right" compact="keep" interactive={false}>
-        <AmmoPlate />
+        <AmmoPlate combat={combat} />
       </HudPanel>
 
       <HitMarker />
@@ -95,14 +104,10 @@ export function GameUI() {
       <ReactorEnding />
       <LevelUpBurst />
     </HudCanvas>
+    <div ref={setOverlay} className="ss-overlay-host" />
     {/* The menu block is behind a flag until its overlay stops shifting under the pointer; the
         game keeps its long-standing roster screen while the flag is off. */}
     {import.meta.env.VITE_SCRAP_MENU === "1" ? <ScrapMenu /> : <CharacterSelect />}
-    </>
+    </OverlayHostContext.Provider>
   );
 }
-
-
-
-
-

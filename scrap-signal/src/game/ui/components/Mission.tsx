@@ -1,34 +1,27 @@
+import { GameIcon, type GameIconName } from "@jgengine/react/gameIcons";
+import { HudFade } from "@jgengine/react/hudFade";
 import { useCurrency, useGame, useQuestJournal } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { quests } from "../../quests/catalog";
 import { FERRALON } from "../../palette";
 import { enemies } from "../../entities/enemies/catalog";
 import { mastReadoutStore } from "../../mast";
+import { Plate, Stamp } from "../fiction/kit";
 
-/** The Mast Watch contract's live objective, timer and outcome — one card above the quest journal. */
+/** The Mast Watch contract’s live objective, timer and outcome, as the first entry on the log. */
 function MastCard() {
   const mast = useStore(mastReadoutStore, (value) => value);
   const { commands } = useGame();
   if (mast === null) return null;
   const active = mast.status === "active";
   return (
-    <div className="border-l-4 border-teal-300 bg-black/60 px-3 py-2">
-      <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-teal-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-        <span>{mast.title}</span>
-        <span className="tabular-nums text-stone-300">{mast.step}/{mast.steps}</span>
-      </div>
-      <p className="text-[13px] leading-snug text-stone-300">
-        {active ? mast.label : mast.outcome === "done" ? "Mast held. $450 + 2 cores paid." : (mast.reason ?? "Contract failed.")}
-      </p>
+    <div className="ss-log-entry mast">
+      <div className="ss-log-title"><span>{mast.title}</span><em>{mast.step}/{mast.steps}</em></div>
+      <p>{active ? mast.label : mast.outcome === "done" ? "Mast held. $450 + 2 cores paid." : (mast.reason ?? "Contract failed.")}</p>
       {active ? (
-        <div className="flex justify-between text-[13px] font-semibold tabular-nums text-stone-200">
-          <span>{mast.count > 0 ? `${mast.counted} / ${mast.count}` : "signal"}</span>
-          <span>{mast.remaining === null ? "" : `${Math.ceil(mast.remaining)}s`}</span>
-        </div>
+        <div className="ss-log-goal"><span>{mast.count > 0 ? `${mast.counted} / ${mast.count}` : "signal"}</span><em>{mast.remaining === null ? "" : `${Math.ceil(mast.remaining)}s`}</em></div>
       ) : (
-        <button type="button" className="pointer-events-auto mt-1 text-[11px] font-black uppercase tracking-widest text-amber-300" onClick={() => commands.run("mast.dismiss", {})}>
-          Dismiss contract
-        </button>
+        <button type="button" className="ss-log-dismiss" onClick={() => commands.run("mast.dismiss", {})}>Dismiss contract</button>
       )}
     </div>
   );
@@ -46,65 +39,63 @@ export function splitTrackedQuests<T>(active: readonly T[]): { primary: T | unde
 export function MissionTracker() {
   const journal = useQuestJournal();
   const active = journal.filter((entry) => entry.status === "active");
-  if (active.length === 0) {
-    return (
-      <div className="flex max-w-[17rem] flex-col gap-2">
-        <MastCard />
-        <div className="max-w-[16rem] border-l-4 border-amber-400 bg-black/60 px-3 py-2 text-[13px] font-bold uppercase tracking-wider text-stone-300">
-          All missions complete — Ferralon is (briefly) quiet
-        </div>
-      </div>
-    );
-  }
+  const progress = active.map((entry) => `${entry.questId}:${entry.objectives.map((o) => o.progress).join(",")}`);
   const { primary, others } = splitTrackedQuests(active);
   const primaryDef = quests.find((quest) => quest.id === primary?.questId);
   return (
-    <div className="flex max-w-[17rem] flex-col gap-2">
-      <MastCard />
-      {primary !== undefined && primaryDef !== undefined ? (
-        <div key={primary.questId} className="border-l-4 border-amber-400 bg-black/60 px-3 py-2">
-          <div className="text-xs font-black uppercase tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-            {primaryDef.title}
+    <HudFade watch={progress} dimTo={0.5} idleMs={9000}>
+      <div className="ss-log">
+        <div className="ss-log-head"><Stamp tone="amber">Mission log</Stamp></div>
+        <MastCard />
+        {active.length === 0 ? (
+          <div className="ss-log-entry"><p>All missions complete · Ferralon is (briefly) quiet</p></div>
+        ) : null}
+        {primary !== undefined && primaryDef !== undefined ? (
+          <div key={primary.questId} className="ss-log-entry">
+            <div className="ss-log-title"><span>{primaryDef.title}</span></div>
+            <p>{primaryDef.description}</p>
+            {primary.objectives.map((objective) => {
+              const done = objective.progress >= objective.count;
+              return (
+                <div key={objective.id} className={`ss-log-goal ${done ? "done" : ""}`}>
+                  <span>{done ? "✓" : "▸"} Defeat {enemies.find((enemy) => enemy.id === primaryDef.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
+                  <em>{Math.min(objective.progress, objective.count)} / {objective.count}</em>
+                </div>
+              );
+            })}
           </div>
-          <p className="mb-1 text-[13px] leading-snug text-stone-300">{primaryDef.description}</p>
-          {primary.objectives.map((objective) => (
-            <div key={objective.id} className="flex justify-between text-[13px] font-semibold text-stone-200">
-              <span>Defeat {enemies.find((enemy) => enemy.id === primaryDef.objectives.find((goal) => goal.id === objective.id)?.target)?.name ?? "hostiles"}</span>
-              <span className="tabular-nums">
-                {Math.min(objective.progress, objective.count)} / {objective.count}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {others.length > 0 ? (
-        <div className="flex flex-col gap-1 border-l-4 border-amber-400/60 bg-black/50 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wider text-amber-200/80">
-          {others.map((entry) => {
-            const def = quests.find((quest) => quest.id === entry.questId);
-            return def === undefined ? null : <span key={entry.questId}>+ {def.title}</span>;
-          })}
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+        {others.length > 0 ? (
+          <div className="ss-log-others">
+            {others.map((entry) => {
+              const def = quests.find((quest) => quest.id === entry.questId);
+              return def === undefined ? null : <span key={entry.questId}>+ {def.title}</span>;
+            })}
+          </div>
+        ) : null}
+      </div>
+    </HudFade>
   );
 }
 
+/** The wallet counter: a coin stamp and a mechanical digit window on the rig’s shoulder. */
 export function CashPlate() {
   const cash = useCurrency("cash");
+  return <Counter icon="coin" value={cash} color={FERRALON.hudXp} label="Cash" />;
+}
+
+/** A small carbon counter with an odometer window, shared by the cash and cores readouts. */
+export function Counter({ icon, value, color, label }: { icon: GameIconName; value: number; color: string; label: string }) {
   return (
-    <div className="flex skew-x-[-8deg] items-baseline gap-1 border-2 border-black/80 bg-black/70 px-3 py-1">
-      <span className="text-sm font-black" style={{ color: FERRALON.hudXp }}>
-        $
-      </span>
-      <span className="text-lg font-black tabular-nums text-stone-50">{cash}</span>
-    </div>
+    <HudFade watch={[value]} dimTo={0.5} idleMs={6000}>
+      <Plate material="carbon" cut="notch" depth={7} rim="#4a3b29" padding="0" className="ss-counter" title={label} aria-label={`${label} ${value}`}>
+        <span className="ss-counter-icon" style={{ color }}><GameIcon name={icon} size={15} /></span>
+        <span className="ss-counter-digits">{String(value).padStart(4, "0")}</span>
+      </Plate>
+    </HudFade>
   );
 }
 
 export function CreditBadge() {
-  return (
-    <div className="pointer-events-auto flex items-center gap-1.5 rounded-sm bg-black/50 px-2 py-0.5 text-[11px] font-black uppercase tracking-[0.3em] text-stone-300">
-      SCRAP SIGNAL
-    </div>
-  );
+  return <span className="ss-credit">Scrap Signal</span>;
 }

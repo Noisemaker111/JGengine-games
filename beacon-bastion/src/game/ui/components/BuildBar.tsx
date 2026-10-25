@@ -1,8 +1,8 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
-import { AbilitySlotButton } from "@/components/ui/ability-slot";
-import { HudLabel } from "@/components/ui/hud-label";
+import { GameFrame } from "@jgengine/react/gameFrame";
 import { GameIcon } from "@jgengine/react/gameIcons";
+import { HudFade } from "@jgengine/react/hudFade";
 import { actionLabel } from "@jgengine/core/input/actionBindings";
 
 import { buildPrompt } from "../../build/prompt";
@@ -11,7 +11,13 @@ import { TOWER_IDS, towerDef } from "../../entities/towers/catalog";
 import { keybinds } from "../../keybinds";
 import { buildCost, keep } from "../../keep";
 import { session } from "../../session";
+import { FIRE } from "../theme";
 
+/**
+ * The builder's rack along the bottom edge: one timber plaque per tower with its glyph, its price
+ * on a coin and the key that picks it. A plaque the purse cannot cover goes dark and its price
+ * turns red; the chosen one is lit by the beacon. The rack steps back between decisions.
+ */
 export function BuildBar() {
   const { commands } = useGame();
   const gameCtx = useGameContext();
@@ -20,70 +26,53 @@ export function BuildBar() {
   const selectedAffordable = selected !== null && gold >= buildCost(selected);
   // Builds under way, from the keep's build queue: what is rising and how far along it is.
   const building = useGameStore((ctx) =>
-    keep.of(ctx).orders("build").map((order) => `Raising ${order.label} ${Math.round(order.progress * 100)}%`).join(" · "),
+    keep.of(ctx).orders("build").map((order) => `${order.label} ${Math.round(order.progress * 100)}%`).join(" · "),
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <HudLabel>{buildPrompt(selected !== null, selectedAffordable)}</HudLabel>
-      {building.length > 0 ? <HudLabel>{building}</HudLabel> : null}
-      <div style={{ display: "flex", gap: 10 }}>
-        {TOWER_IDS.map((id, index) => {
-          const def = towerDef(id, editorLayers);
-          const cost = buildCost(id);
-          const affordable = gold >= cost;
-          const isSelected = selected === id;
-          return (
-            <div
-              key={id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                padding: 3,
-                borderRadius: 4,
-                boxShadow: isSelected ? `0 0 0 2px var(--jg-accent)` : "none",
-              }}
-            >
-              <AbilitySlotButton
-                icon={<GameIcon name={def.icon} size={26} />}
-                label={def.label}
-                cost={`${cost}g`}
-                keybind={actionLabel(keybinds, `buildTower${index + 1}`) ?? undefined}
-                state={affordable ? "ready" : "noResource"}
-                size={50}
-                onActivate={() => {
+    <HudFade watch={[gold, selected, building]} hold={selected !== null || building.length > 0} dimTo={0.55} idleMs={6000}>
+      <div className="bb-rack">
+        <span className="bb-rack-prompt">{building.length > 0 ? `Raising ${building}` : buildPrompt(selected !== null, selectedAffordable)}</span>
+        <div className="bb-rack-row">
+          {TOWER_IDS.map((id, index) => {
+            const def = towerDef(id, editorLayers);
+            const cost = buildCost(id);
+            const affordable = gold >= cost;
+            const isSelected = selected === id;
+            const key = actionLabel(keybinds, `buildTower${index + 1}`);
+            return (
+              <GameFrame
+                key={id}
+                as="button"
+                material="wood"
+                cut="notch"
+                depth={10}
+                padding="8px 10px 7px"
+                tint={affordable ? undefined : "#3f2a1a"}
+                edge={isSelected ? FIRE : undefined}
+                glow={isSelected ? "rgba(255,160,60,0.7)" : undefined}
+                className="bb-plaque"
+                data-state={isSelected ? "chosen" : affordable ? "ready" : "short"}
+                aria-label={`${def.label}, ${cost} gold`}
+                aria-pressed={isSelected}
+                onClick={() => {
                   commands.run(`buildTower${index + 1}`, {});
-                  // The card is already greyed when unaffordable; pressing it anyway plays the denied cue.
+                  // The plaque is already dark when unaffordable; pressing it anyway plays the denied cue.
                   if (!affordable) gameCtx.game.audio.play("denied");
                 }}
-              />
-              <span
-                style={{
-                  fontFamily: "var(--jg-font-numeric)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: affordable ? "var(--jg-text)" : "var(--jg-danger)",
-                }}
               >
-                {cost}g
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--jg-font-display)",
-                  fontSize: 11,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--jg-text)",
-                }}
-              >
-                {def.label}
-              </span>
-            </div>
-          );
-        })}
+                {key === null ? null : <span className="bb-plaque-key">{key}</span>}
+                <GameIcon name={def.icon} size={30} color={affordable ? "#fff3df" : "#a8927a"} />
+                <span className="bb-plaque-name">{def.label}</span>
+                <span className="bb-plaque-cost" data-short={affordable ? undefined : ""}>
+                  <GameIcon name="coin" size={12} color={affordable ? "#f6cf5a" : "#e0624a"} />
+                  {cost}
+                </span>
+              </GameFrame>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </HudFade>
   );
 }

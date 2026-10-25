@@ -4,20 +4,21 @@ import { SettingsTrigger, useBrowserSuspension } from "@jgengine/react";
 import { useSettings } from "@jgengine/react/settings";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
+import { GameIcon, type GameIconName } from "@jgengine/react/gameIcons";
+import { useGameFonts } from "@jgengine/react/gameFonts";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { runSessionStore, type RunSession, type SessionSnapshot } from "../run/session";
 import { ROUTE_GATES } from "../route/gates";
 import { PICKUPS } from "../run/pickups";
-import { partById, PART_SLOTS } from "../parts/catalog";
+import { partById } from "../parts/catalog";
 import { claimedChange } from "../parts/build";
 import { driveInputStore } from "../run/store";
 import { FoundryMenu } from "./menu/FoundryMenu";
 import { RunResults } from "./components/RunResults";
-import { PartIcon } from "./components/PartIcon";
 import { launchCue } from "./launchCue";
+import { BuildRack, CrusherBar, DashTab, GateSign, RouteRule, SalvageTag, TimingTower, Tach } from "./DashHud";
+import { GAME_FONTS } from "../../art/fonts/fonts";
 
 const toSnapshot = (session: RunSession | undefined): SessionSnapshot | null => session?.snapshot() ?? null;
 function publishSession(ctx: GameContext, session: RunSession) {
@@ -27,6 +28,7 @@ function publishSession(ctx: GameContext, session: RunSession) {
 }
 
 export function GameUI() {
+  useGameFonts(GAME_FONTS);
   const snapshot = useStore(runSessionStore, toSnapshot);
   const session = useStore(runSessionStore);
   const drive = useStore(driveInputStore);
@@ -80,30 +82,36 @@ export function GameUI() {
   const offeredPart = decisionPickup ? partById(decisionPickup.partId) : null;
   const replacing = offeredPart ? snapshot.installed[offeredPart.slot] : null;
   const deliberateSwap = offeredPart !== null && replacing !== null && (offeredPart.slot === "engine" || offeredPart.slot === "frame");
-  const touch = (action: string, label: string) => <HudButton aria-label={label} onPointerDown={e => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); drive?.press(action); }} onPointerUp={() => drive?.release(action)} onPointerCancel={() => drive?.release(action)} onLostPointerCapture={() => drive?.release(action)}>{label}</HudButton>;
+  const touch = (action: string, label: string, icon: GameIconName | null, kind: string) => <button type="button" className="fd-pad" data-kind={kind} aria-label={label} onPointerDown={e => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); drive?.press(action); }} onPointerUp={() => drive?.release(action)} onPointerCancel={() => drive?.release(action)} onLostPointerCapture={() => drive?.release(action)}>{icon === null ? null : <GameIcon name={icon} size={kind === "steer" ? 30 : 20} />}{kind === "steer" ? null : <span>{label}</span>}</button>;
+  const blocked = snapshot.pose.blockedByGate;
+  const call = launchCue(snapshot) ?? (blocked ? snapshot.tuning.jumpPower > 0 && nextGate?.requirement === "jump" ? "JUMP TO CLEAR THE STACK" : "MISSING ROUTE PART" : jumpNow ? "JUMP NOW - SPACE" : nextGate?.requirement === "jump" ? "JUMP ON THE TEAL MARKS" : nextGate ? "KEEP THE PLOW POINTED FORWARD" : "BRING IT HOME");
+  const signTone = jumpNow ? "launch" : blocked ? "stop" : !nextGate ? "home" : nextGate.requirement === "jump" ? "jump" : "plow";
+  const speedDelta = offeredPart && replacing ? (claimedChange(offeredPart, "topSpeed") - claimedChange(replacing, "topSpeed")) * 3.6 : 0;
   return <>
     <FoundryMenu snapshot={snapshot} session={session} publish={() => publishSession(ctx, session)}/>
-    <div className="df-ui" ref={uiRef}>
+    <div className="fd-ui" ref={uiRef}>
     {snapshot.phase === "running" && <>
-      <header className="df-hud-top">
-        <HudSurface className="df-plate df-location" interactive={false}><span className="df-eyebrow">ROW SIX / {snapshot.zone.label}</span><b>{snapshot.runTime.toFixed(1)}<small> SEC</small></b></HudSurface>
-        <HudSurface className={`df-plate df-gap ${snapshot.compactorGap < 22 ? "df-danger" : ""}`} interactive={false}><span>COMPACTOR <b>{Math.max(0, Math.round(snapshot.compactorGap))}m</b> BEHIND</span><div className="df-gap-track"><i style={{width: `${Math.min(100, Math.max(0, snapshot.compactorGap / 60 * 100))}%`}}/></div></HudSurface>
-        <HudSurface className="df-plate df-place" interactive={false}>
-          <span className="df-eyebrow">LAP {snapshot.race.lap}/{snapshot.race.laps} - {snapshot.race.lapTime.toFixed(1)}s</span>
-          <b>{snapshot.race.place}<small> / {snapshot.race.total}</small><em>POSITION</em></b>
-          <div className="df-place-field">{snapshot.race.standings.map(entry => <span key={entry.id} className={entry.id === "player" ? "df-you" : ""}><i>{entry.place}</i>{entry.name}</span>)}</div>
-        </HudSurface>
-        <nav><HudButton onClick={togglePause} aria-label="Pause run">PAUSE <kbd>P</kbd></HudButton><SettingsTrigger className="df-button" label="Settings">?</SettingsTrigger></nav>
-      </header>
-      <HudSurface className={`df-gate-cue df-plate ${jumpNow ? "df-launch" : ""}`} as="aside" interactive={false}>
-        <span className="df-eyebrow">{nextGate ? `NEXT ${nextGate.requirement === "jump" ? "JUMP STACK" : "PLOW WALL"}` : "EXIT GATE"} / {Math.ceil(Math.max(0, distance))}m</span>
-        <b>{launchCue(snapshot) ?? (snapshot.pose.blockedByGate ? snapshot.tuning.jumpPower > 0 && nextGate?.requirement === "jump" ? "JUMP TO CLEAR THE STACK" : "MISSING ROUTE PART" : jumpNow ? "JUMP NOW - SPACE" : nextGate?.requirement === "jump" ? "JUMP ON THE TEAL MARKS" : nextGate ? "KEEP THE PLOW POINTED FORWARD" : "BRING IT HOME")}</b>
-        <span>{nextGate?.label ?? "470m escape line"}</span>
-      </HudSurface>
-      <aside className="df-build"><HudSurface padding={0}><details><summary>YOUR BUILD - {Object.values(snapshot.installed).filter(Boolean).length}/4</summary><div>{PART_SLOTS.map(slot => <span key={slot}><PartIcon partId={snapshot.installed[slot]?.id ?? null}/><span><small>{slot.toUpperCase()}</small>{snapshot.installed[slot]?.label ?? "Empty"}</span></span>)}</div></details></HudSurface></aside>
-      <footer className="df-hud-bottom"><HudSurface className="df-plate df-speed" interactive={false}><b>{Math.round(snapshot.pose.speedKmh)}</b><span>KM/H</span><small>{snapshot.pose.airborne ? "AIRBORNE" : snapshot.damage.some((zone) => zone.stage > 0) ? "FRONT END BENT" : snapshot.armorSaveArmed ? "ARMOR ARMED" : "SALVAGE SPECIAL"}</small></HudSurface><HudSurface className="df-plate df-route" interactive={false}><span>{snapshot.clearedGateIds.size}/8 BARRIERS <b>{Math.min(100, Math.floor(snapshot.pose.position[2] / 470 * 100))}%</b></span><div><i style={{width: `${Math.min(100, snapshot.pose.position[2] / 470 * 100)}%`}}/></div><small>{nextPickup ? `NEXT SALVAGE - ${partById(nextPickup.partId)?.label} - ${Math.max(0, Math.round(nextPickup.position[2] - snapshot.pose.position[2]))}m` : "ALL SALVAGE PASSED - EXIT AHEAD"} - <b>{snapshot.salvageAtRisk} cr AT RISK</b></small></HudSurface></footer>
-      {deliberateSwap && offeredPart && replacing && decisionPickup && decisionPickup.position[2] - snapshot.pose.position[2] < 60 && <HudSurface className="df-salvage-choice df-plate" as="aside" aria-label="Salvage decision" interactive={false}><strong>{Math.round(Math.max(0, decisionPickup.position[2] - snapshot.pose.position[2]))}m - {offeredPart.label} or keep {replacing.label}?</strong><p>{offeredPart.blurb}</p><p>Speed {claimedChange(offeredPart, "topSpeed") - claimedChange(replacing, "topSpeed") > 0 ? "+" : ""}{((claimedChange(offeredPart, "topSpeed") - claimedChange(replacing, "topSpeed")) * 3.6).toFixed(0)} km/h - steering {(claimedChange(offeredPart, "turnRate") - claimedChange(replacing, "turnRate")).toFixed(1)}</p>{offeredPart.slot === "frame" && (offeredPart.grants?.armor ?? 0) > 0 && <p>{snapshot.armorSaveArmed ? "Crusher protection already armed: this swap adds no extra save." : "This swap restores protection against one crusher clip."}</p>}<b>Hold E / SWAP while passing to install. Pass freely to keep your build.</b></HudSurface>}
-      <div className="df-touch"><div>{touch("steerLeft", "?")}{touch("steerRight", "?")}{touch("brake", "BRAKE")}</div><div>{touch("salvageSwap", "SWAP")}{touch("plowBrace", "BRACE")}{touch("jumpHop", "JUMP")}{touch("throttle", "GO")}</div></div>
+      <TimingTower race={snapshot.race}/>
+      <GateSign eyebrow={`${nextGate ? `NEXT ${nextGate.requirement === "jump" ? "JUMP STACK" : "PLOW WALL"}` : "EXIT GATE"} / ${Math.ceil(Math.max(0, distance))}m`} call={call} sub={nextGate?.label ?? "470m escape line"} tone={signTone}/>
+      <nav className="fd-dash-rail" aria-label="Run">
+        <DashTab icon="pause" label="Pause run" keyCap="P" onPress={togglePause}/>
+        <SettingsTrigger className="fd-gear" label="Settings"><span className="fd-gear-face"><GameIcon name="gear" size={17} color="#f2c230"/></span></SettingsTrigger>
+      </nav>
+      <BuildRack installed={snapshot.installed}/>
+      {deliberateSwap && offeredPart && replacing && decisionPickup && decisionPickup.position[2] - snapshot.pose.position[2] < 60 && <SalvageTag>
+        <span className="fd-tag-head"><b>{Math.round(Math.max(0, decisionPickup.position[2] - snapshot.pose.position[2]))}m</b> {offeredPart.slot}</span>
+        <strong>{offeredPart.label} or keep {replacing.label}?</strong>
+        <p className="fd-tag-blurb">{offeredPart.blurb}</p>
+        <p className="fd-tag-delta">Speed {speedDelta > 0 ? "+" : ""}{speedDelta.toFixed(0)} km/h · steering {(claimedChange(offeredPart, "turnRate") - claimedChange(replacing, "turnRate")).toFixed(1)}</p>
+        {offeredPart.slot === "frame" && (offeredPart.grants?.armor ?? 0) > 0 && <p>{snapshot.armorSaveArmed ? "Crusher protection already armed: this swap adds no extra save." : "This swap restores protection against one crusher clip."}</p>}
+        <b className="fd-tag-how"><kbd>E</kbd> hold to swap while passing · pass freely to keep</b>
+      </SalvageTag>}
+      <div className="fd-dash">
+        <Tach kmh={snapshot.pose.speedKmh} redline={snapshot.tuning.topSpeed * 3.6} airborne={snapshot.pose.airborne} bent={snapshot.damage.some((zone) => zone.stage > 0)} armor={snapshot.armorSaveArmed}/>
+      </div>
+      <CrusherBar gap={snapshot.compactorGap} surge={snapshot.compactorSurge !== null}/>
+      <RouteRule z={snapshot.pose.position[2]} cleared={snapshot.clearedGateIds} atRisk={snapshot.salvageAtRisk} next={nextPickup ? `NEXT SALVAGE · ${partById(nextPickup.partId)?.label} · ${Math.max(0, Math.round(nextPickup.position[2] - snapshot.pose.position[2]))}m` : "ALL SALVAGE PASSED · EXIT AHEAD"}/>
+      <div className="fd-touch"><div className="fd-touch-steer">{touch("steerLeft", "Steer left", "arrowLeft", "steer")}{touch("steerRight", "Steer right", "arrowRight", "steer")}</div><div className="fd-touch-act">{touch("jumpHop", "JUMP", "jump", "act")}{touch("salvageSwap", "SWAP", "swap", "act")}{touch("plowBrace", "BRACE", "shield", "act")}{touch("brake", "BRAKE", null, "brake")}{touch("throttle", "GO", null, "go")}</div></div>
     </>}
     {(snapshot.phase === "won" || snapshot.phase === "crushed") && <RunResults snapshot={snapshot} onRestart={() => commands.run("restart", {})} onTitle={returnToTitle}/>}
     </div>

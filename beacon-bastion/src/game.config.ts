@@ -1,5 +1,4 @@
 import { defineGame } from "@jgengine/shell/gameKit";
-import { HUD_THEME_PRESETS } from "@jgengine/react/hudTheme";
 
 import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
@@ -11,6 +10,7 @@ import { keybinds } from "./game/keybinds";
 import { entityModels, scatterModels } from "./game/models";
 import { systems } from "./game/systems";
 import { GameUI } from "./game/ui/GameUI";
+import { beaconTheme } from "./game/ui/theme";
 import { BeaconBastionWorldOverlay } from "./game/world/WorldOverlay";
 import { loop } from "./loop";
 import { physics, world } from "./world";
@@ -26,7 +26,14 @@ export const game = defineGame({
   // A refused build/upgrade reaches the player as a deny notice; its cue is the keep's own "denied" knock.
   audio: { sounds: BEACON_SOUNDS, uiCues: { deny: BEACON_SOUNDS.denied! } },
   notices: { cap: 3 },
-  hudTheme: HUD_THEME_PRESETS.fieldkit,
+  // The keep's own theme: beacon-fire accent, soot timber surfaces, Cinzel and Alegreya Sans.
+  hudTheme: beaconTheme,
+  // The phone HUD is laid out for 390x844 in style.css, so it draws at its own size instead of the
+  // desktop layout shrunk to 0.4.
+  hudFit: { mobile: { designSize: { width: 390, height: 844 }, minScale: 1, maxScale: 1 } },
+  // Every action already has a control on the HUD itself (the rack's plaques, the mason's tablet), so
+  // the derived touch buttons would only repeat them over the field.
+  touch: { hidden: ["buildTower1", "buildTower2", "buildTower3", "upgradeTower", "sellTower"] },
   systems,
   loop,
   GameUI,

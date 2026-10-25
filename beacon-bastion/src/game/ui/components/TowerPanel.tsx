@@ -1,23 +1,16 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { actionLabel } from "@jgengine/core/input/actionBindings";
-import { KeybindBadge } from "@/components/ui/keybind-badge";
-import { HudButton } from "@jgengine/react/hudButton";
-import { HudSurface } from "@jgengine/react/hudSurface";
+import { GameFrame } from "@jgengine/react/gameFrame";
+import { GameIcon } from "@jgengine/react/gameIcons";
 
 import { goldCost, keep, MAX_TOWER_LEVEL, sellAction, sellValue, towerStats, upgradeAction } from "../../keep";
 import { keybinds } from "../../keybinds";
 import { session } from "../../session";
 
-const statStyle = {
-  fontFamily: "var(--jg-font-numeric)",
-  fontSize: 12,
-  color: "var(--jg-text-dim)",
-} as const;
-
 /**
- * The inspected tower, read from the keep's world: its level and numbers are facts the upgrade wrote,
- * and its buttons run the declared upgrade and sale (or cancel a build still rising).
+ * The inspected tower's mason's tablet, read from the keep's world: its level as carved pips, its
+ * numbers beside their glyphs, and the declared upgrade and sale (or cancelling a build still rising).
  */
 export function TowerPanel() {
   const { commands } = useGame();
@@ -44,12 +37,16 @@ export function TowerPanel() {
 
   if (!tower.ready) {
     return (
-      <HudSurface data-jg="tower-panel" title={tower.label} padding="10px 12px" style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 200 }}>
-        <span style={statStyle}>{`Raising · ${Math.round(view.progress * 100)}%`}</span>
-        <HudButton size="sm" variant="ghost" onClick={() => commands.run("beacon.remove", { id: tower.id })}>
+      <GameFrame material="stone" tint="#57524a" cut="chamfer" depth={12} padding="12px 16px" className="bb-mason" data-jg="tower-panel">
+        <h3 className="bb-mason-name">{tower.label}</h3>
+        <span className="bb-mason-rising">
+          <span style={{ width: `${Math.round(view.progress * 100)}%` }} />
+        </span>
+        <span className="bb-mason-stat">{`Raising · ${Math.round(view.progress * 100)}%`}</span>
+        <GameFrame as="button" material="wood" cut="notch" depth={8} padding="6px 14px" className="bb-small-plank" onClick={() => commands.run("beacon.remove", { id: tower.id })}>
           Cancel build
-        </HudButton>
-      </HudSurface>
+        </GameFrame>
+      </GameFrame>
     );
   }
 
@@ -59,24 +56,39 @@ export function TowerPanel() {
   const sellKey = actionLabel(keybinds, "sellTower");
 
   return (
-    <HudSurface
-      data-jg="tower-panel"
-      title={tower.label}
-      aside={<span style={{ ...statStyle, color: "var(--jg-accent)" }}>Level {stats.level} / {MAX_TOWER_LEVEL}</span>}
-      padding="10px 12px"
-      style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 200 }}
-    >
-      <div style={{ display: "grid", gridTemplateColumns: "auto auto", columnGap: 14, rowGap: 2 }}>
-        <span style={statStyle}>Damage {Math.round(stats.damage)}</span>
-        <span style={statStyle}>Range {stats.range.toFixed(1)}</span>
-        <span style={statStyle}>Rate {stats.fireRateHz.toFixed(2)}/s</span>
-        {stats.splashRadius > 0 ? <span style={statStyle}>Splash {stats.splashRadius.toFixed(1)}</span> : null}
+    <GameFrame material="stone" tint="#57524a" cut="chamfer" depth={12} padding="12px 16px 14px" className="bb-mason" data-jg="tower-panel">
+      <h3 className="bb-mason-name">{tower.label}</h3>
+      <span className="bb-pips" aria-label={`Level ${stats.level} of ${MAX_TOWER_LEVEL}`}>
+        {Array.from({ length: MAX_TOWER_LEVEL }, (_, index) => (
+          <i key={index} data-lit={index < stats.level ? "" : undefined} />
+        ))}
+      </span>
+      <div className="bb-mason-stats">
+        <span className="bb-mason-stat">
+          <GameIcon name="sword" size={14} /> {Math.round(stats.damage)}
+        </span>
+        <span className="bb-mason-stat">
+          <GameIcon name="crosshairIcon" size={14} /> {stats.range.toFixed(1)}
+        </span>
+        <span className="bb-mason-stat">
+          <GameIcon name="hourglass" size={14} /> {stats.fireRateHz.toFixed(2)}/s
+        </span>
+        {stats.splashRadius > 0 ? (
+          <span className="bb-mason-stat">
+            <GameIcon name="bomb" size={14} /> {stats.splashRadius.toFixed(1)}
+          </span>
+        ) : null}
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <HudButton
-          size="sm"
-          variant={canUpgrade ? "primary" : "ghost"}
+      <div className="bb-mason-acts">
+        <GameFrame
+          as="button"
+          material="wood"
+          cut="notch"
+          depth={8}
+          padding="6px 12px"
+          className="bb-small-plank"
           aria-disabled={!canUpgrade}
+          data-dim={canUpgrade ? undefined : ""}
           cue={canUpgrade ? "confirm" : undefined}
           onClick={() => {
             // A refused upgrade still runs the command, so its "needs N more gold" reaches the notice feed.
@@ -84,14 +96,28 @@ export function TowerPanel() {
             else commands.run("beacon.act", { action: upgradeAction(tower.kind), target: tower.id });
           }}
         >
-          {atCap ? "Max level" : `Upgrade ${view.upgradeCost}g`}
-          {atCap || upgradeKey === null ? null : <KeybindBadge label={upgradeKey} size="sm" />}
-        </HudButton>
-        <HudButton size="sm" variant="danger" onClick={() => commands.run("beacon.act", { action: sellAction(tower.kind), target: tower.id })}>
-          {`Sell ${view.refund}g`}
-          {sellKey === null ? null : <KeybindBadge label={sellKey} size="sm" />}
-        </HudButton>
+          {atCap ? "Max level" : (
+            <>
+              <GameIcon name="arrowUp" size={13} /> {view.upgradeCost}
+            </>
+          )}
+          {atCap || upgradeKey === null ? null : <kbd>{upgradeKey}</kbd>}
+        </GameFrame>
+        <GameFrame
+          as="button"
+          material="enamel"
+          tint="#6e1f14"
+          edge="#250804"
+          cut="notch"
+          depth={8}
+          padding="6px 12px"
+          className="bb-small-plank"
+          onClick={() => commands.run("beacon.act", { action: sellAction(tower.kind), target: tower.id })}
+        >
+          {`Sell ${view.refund}`}
+          {sellKey === null ? null : <kbd>{sellKey}</kbd>}
+        </GameFrame>
       </div>
-    </HudSurface>
+    </GameFrame>
   );
 }

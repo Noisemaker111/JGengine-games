@@ -10,6 +10,7 @@ import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
 import { GameUI } from "./game/ui/GameUI";
 import { driftTheme } from "./game/ui/theme";
+import { foundryKit } from "./game/ui/menu/foundryKit";
 import { lifecycle, onInit, onNewPlayer, onTick } from "./loop";
 import { physics, world } from "./world";
 
@@ -30,6 +31,8 @@ export const game = defineGame({
   // Hands the live corridor frame to the card Continue opens.
   WorldOverlay: () => createElement(SceneCaptureBinding, {}),
   hudTheme: driftTheme,
+  // The pit wall: stencilled steel menu plates and the pit sheet on a clipboard for every pane.
+  uiKit: foundryKit,
   // One salvage call at a time, above the speed/route plates, like the old pit-radio toast.
   notices: { placement: "bottom", cap: 1 },
   // This run uses its own held throttle/jump pad alongside the branded HUD.
