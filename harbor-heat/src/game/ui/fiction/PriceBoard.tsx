@@ -38,7 +38,7 @@ export interface BoardSection {
 }
 
 /** Which shop the board hangs in: the gun counter's felt letter board, or the car lot's enamel sign. */
-export type BoardLook = "pawn" | "lot";
+export type BoardLook = "pawn" | "lot" | "house";
 
 /** Why a row can't be bought right now, or null when it can. */
 export function rowBlock(row: BoardRow, cash: number, cred: number): "owned" | "cred" | "cash" | null {
@@ -102,7 +102,7 @@ export function PriceBoard({ look, kicker, title, sub, sections, cash, cred, onL
   }, [nav.activeId]);
   return (
     <div className={`hh-counter ${compact ? "compact" : ""}`} data-look={look} role="presentation">
-      <GameFrame material={look === "pawn" ? "wood" : "enamel"} tint={look === "pawn" ? "#5b3a22" : "#14505c"} cut={look === "pawn" ? "box" : "chamfer"} depth={14} edge={look === "pawn" ? "#2a170b" : HH.cream} edgeWidth={look === "pawn" ? 3 : 3} padding="0" className="hh-board" role="dialog" aria-label={title}>
+      <GameFrame material={look === "pawn" ? "wood" : "enamel"} tint={look === "pawn" ? "#5b3a22" : look === "house" ? "#2c5a3c" : "#14505c"} cut={look === "pawn" ? "box" : "chamfer"} depth={14} edge={look === "pawn" ? "#2a170b" : HH.cream} edgeWidth={look === "pawn" ? 3 : 3} padding="0" className="hh-board" role="dialog" aria-label={title}>
         <header className="hh-board-head">
           <span className="hh-board-kicker">{kicker}</span>
           <h2 className="hh-board-title">{title}</h2>
@@ -131,7 +131,7 @@ export function PriceBoard({ look, kicker, title, sub, sections, cash, cred, onL
                         {row.count === undefined || row.count <= 0 ? null : <em className="hh-board-count">×{row.count}</em>}
                       </span>
                       <span className="hh-board-dots" aria-hidden="true" />
-                      <span className="hh-board-price">{money(row.price)}</span>
+                      <span className="hh-board-price">{row.price <= 0 ? "Free" : money(row.price)}</span>
                       {row.line === undefined ? null : <small className="hh-board-line">{row.line}</small>}
                       {block === "owned" ? <i className="hh-board-stamp">Owned</i> : null}
                       {block === "cred" ? <i className="hh-board-tape">Cred {row.gate}</i> : null}
@@ -185,5 +185,5 @@ function whyLine(row: BoardRow | null, cash: number, cred: number): string {
   if (block === "owned") return `${row.name}: already yours.`;
   if (block === "cred") return `Nobody here sells that to a cred ${cred} courier. Come back at cred ${row.gate}.`;
   if (block === "cash") return `${money(row.price - cash)} short for the ${row.name}.`;
-  return `${row.name} for ${money(row.price)}. Enter to buy.`;
+  return row.price <= 0 ? `${row.name}. Enter.` : `${row.name} for ${money(row.price)}. Enter to buy.`;
 }

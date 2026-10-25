@@ -10,6 +10,8 @@ import { registerGigs } from "./jobs/gigs";
 import { buyNightMarket } from "./items/nightMarket";
 import { buyFromShop, earn, spend } from "./cash";
 import { stealCar } from "./city/garage";
+import { awayStore, passTime, secondsUntilMorning } from "./away";
+import { buyUpgrade, upgradeById, upgradeRank } from "./progression/upgrades";
 
 export const shopStore = defineStore<string | undefined>("harbor.shop", undefined);
 export const garageStore = defineStore<boolean | undefined>("harbor.garage", undefined);
@@ -22,6 +24,8 @@ export const continueStore = defineStore<boolean | undefined>("harbor.continue",
 export const SHOP_OPENS = 8;
 export const SHOP_CLOSES = 22;
 export const safehouseStore = defineStore<boolean | undefined>("harbor.safehouse", undefined);
+/** Whether the bungalow's board is open. */
+export const houseStore = defineStore<boolean | undefined>("harbor.house", undefined);
 /** Best Ocean Loop time in seconds — persisted; beating it pays a bonus. */
 export const bestRaceStore = defineStore<number | undefined>("harbor.bestRace", undefined);
 
@@ -265,11 +269,64 @@ export function registerCommands(ctx: GameContext): void {
   ctx.game.commands.define("safehouse.rest", {
     apply(state) {
       if (safehouseStore.read(state) !== true) return;
-      const health = state.scene.entity.stats.get(state.player.userId, "health");
-      if (health === null) return;
-      state.scene.entity.stats.set(state.player.userId, "health", { current: health.max });
+      houseStore.write(state, true);
+    },
+  });
+
+  ctx.game.commands.define("house.close", {
+    apply(state) {
+      houseStore.clear(state);
+    },
+  });
+
+  ctx.game.commands.define("safehouse.patch", {
+    apply(state) {
+      if (safehouseStore.read(state) !== true) return;
+      restUp(state);
       state.game.notices.push({ text: "Rested at the bungalow — back to full health. Progress saved.", tone: "success" });
       void state.game.save?.checkpoint();
+    },
+  });
+
+  ctx.game.commands.define("safehouse.sleep", {
+    validate(state) {
+      if (safehouseStore.read(state) !== true) return { reason: "no-house", message: "You need a bed of your own." };
+      if (handrollOf(state).wanted().stars > 0) return { reason: "hot", message: "Nobody sleeps with HHPD on the street. Lose the heat first." };
+      return null;
+    },
+    apply(state) {
+      houseStore.clear(state);
+      restUp(state);
+      passTime(state, secondsUntilMorning(state), "sleep");
+      void state.game.save?.checkpoint();
+    },
+  });
+
+  ctx.game.commands.define("away.dismiss", {
+    apply(state) {
+      awayStore.clear(state);
+    },
+  });
+
+  ctx.game.commands.define<{ id: string }>("upgrade.buy", {
+    validate(state, input) {
+      const node = upgradeById(input.id);
+      if (node === undefined) return { reason: "unknown", message: "Nobody sells that." };
+      if (node.shop === "house" && safehouseStore.read(state) !== true) return { reason: "no-house", message: "Buy the bungalow first." };
+      return null;
+    },
+    apply(state, input) {
+      const node = upgradeById(input.id);
+      if (node === undefined) return;
+      const result = buyUpgrade(state, input.id, (cost) => spend(state, cost, "upgrade-purchase", input.id));
+      if (!result.ok) {
+        const text = result.reason === "max-rank" ? `${node.label} is maxed out.` : result.reason === "insufficient-funds" ? "Not enough cash." : "Not available yet.";
+        state.game.notices.push({ text, tone: "deny" });
+        return;
+      }
+      if (node.shop === "garage") handrollOf(state).retuneOwnedCars(state);
+      const rank = upgradeRank(state, input.id);
+      state.game.notices.push({ text: `${node.label}${(node.maxRank ?? 1) > 1 ? ` ${rank}` : ""}: ${node.lines[rank - 1] ?? "installed"}.`, tone: "success" });
     },
   });
 
@@ -294,4 +351,18 @@ export function registerCommands(ctx: GameContext): void {
       },
     });
   }
+}
+
+/** A night in the bungalow: full health, and whatever its rooms stock. */
+function restUp(ctx: GameContext): void {
+  const me = ctx.player.userId;
+  const health = ctx.scene.entity.stats.get(me, "health");
+  if (health !== null) ctx.scene.entity.stats.set(me, "health", { current: health.max });
+  if (upgradeRank(ctx, "house_locker") > 0) {
+    for (const stat of ["ammo_9mm", "ammo_shell"]) {
+      const ammo = ctx.scene.entity.stats.get(me, stat);
+      if (ammo !== null) ctx.scene.entity.stats.set(me, stat, { current: ammo.max });
+    }
+  }
+  if (upgradeRank(ctx, "house_med") > 0 && ctx.player.inventory.count("backpack", "medkit_street") < 1) ctx.player.inventory.put("backpack", "medkit_street", 1);
 }

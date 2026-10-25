@@ -80,7 +80,13 @@ export function ReceiptScreen({ slip, onAction }: { slip: Slip; onAction: (id: s
           <em className="hh-tabloid-kicker">{slip.stamp}</em>
           <h2>{slip.title}</h2>
           <p>{slip.summary}</p>
-          <i className="hh-tabloid-photo" aria-hidden="true" />
+          {slip.lines === undefined || slip.lines.length === 0 ? <i className="hh-tabloid-photo" aria-hidden="true" /> : (
+            <dl className="hh-tabloid-lines">
+              {slip.lines.map((line) => (
+                <div key={line.label}><dt>{line.label}</dt><dd>{line.value}</dd></div>
+              ))}
+            </dl>
+          )}
         </GameFrame>
       )}
       <nav className="hh-slip-actions" aria-label="What next" {...nav.containerProps}>

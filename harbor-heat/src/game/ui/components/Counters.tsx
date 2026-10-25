@@ -3,7 +3,9 @@ import { runDialogueChoice, useOpenDialogueId, type DialogueDef } from "@jgengin
 import { useCurrency, useEntityStat, useGame, useGameStore, useInventory, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { cityOf } from "../../cityRuntime";
-import { bestRaceStore, garageStore, shopStore } from "../../commands";
+import { bestRaceStore, garageStore, houseStore, shopStore } from "../../commands";
+import { UPGRADES, upgradesStore, type UpgradeShop } from "../../progression/upgrades";
+import type { BoardRow } from "../fiction/PriceBoard";
 import { ITEM_LABELS } from "../../content";
 import { VEHICLES, type VehicleDef } from "../../entities/vehicles/catalog";
 import { wantedStore } from "../../handroll";
@@ -40,8 +42,32 @@ export function conversation(ctx: GameContext, dialogueId: string): DialogueDef 
 }
 
 /** Whose face a contact's portrait is shot from: their own cast body, else their crew's. */
-const PORTRAITS: Record<string, string> = { marco: "contact_marco", sal: "kingpin_sal", rita: "ped_city", dee: "cop_patrol" };
-const CREW_PORTRAITS: Record<string, string> = { carmine: "ganger_dock", hhpd: "cop_patrol", locals: "ped_city" };
+const PORTRAITS: Record<string, string> = { marco: "contact_marco", sal: "kingpin_sal", rita: "ped_city", dee: "cop_patrol", inez: "contact_inez" };
+const CREW_PORTRAITS: Record<string, string> = { carmine: "ganger_dock", riptide: "riptide_soldier", hhpd: "cop_patrol", locals: "ped_city" };
+
+const NO_RANKS: Readonly<Record<string, number>> = {};
+const ROMAN = ["", "I", "II", "III", "IV"];
+
+/** One shop's upgrades as board rows: the next rank's price and what it does, stamped owned once maxed. */
+function useUpgradeRows(shop: UpgradeShop): BoardRow[] {
+  const { commands } = useGame();
+  const ranks = useStore(upgradesStore, (state) => state?.ranks ?? NO_RANKS);
+  return UPGRADES.filter((node) => node.shop === shop).map((node) => {
+    const rank = ranks[node.id] ?? 0;
+    const max = node.maxRank ?? 1;
+    const maxed = rank >= max;
+    const cost = node.cost.kind === "steps" ? (node.cost.values[Math.min(rank + 1, max)] ?? 0) : 0;
+    return {
+      id: `upgrade:${node.id}`,
+      name: node.label,
+      tag: max > 1 ? `${ROMAN[Math.min(rank + (maxed ? 0 : 1), max)]}/${ROMAN[max]}` : undefined,
+      line: maxed ? node.lines[max - 1] : node.lines[rank],
+      price: cost,
+      owned: maxed,
+      pick: () => commands.run("upgrade.buy", { id: node.id }),
+    };
+  });
+}
 
 function speakerOf(ctx: GameContext, dialogueId: string): Speaker | null {
   const id = dialogueId.slice("person:".length);
@@ -94,6 +120,7 @@ function GunCounter() {
   const stars = useStore(wantedStore, (wanted) => wanted?.stars ?? 0);
   const hotbar = useInventory("hotbar");
   const backpack = useInventory("backpack");
+  const workRows = useUpgradeRows("guns");
   const sections: BoardSection[] = [
     {
       id: "market",
@@ -112,6 +139,12 @@ function GunCounter() {
       rows: KIT.map((item) => ({ id: item.id, name: ITEM_LABELS[item.id] ?? item.label, line: gearLine(item), price: item.trade?.buy?.cash ?? 0, gate: CRED_GATES[item.id], count: countIn(backpack, item.id), pick: () => commands.run("shop.buy", { item: item.id }) })),
     },
     {
+      id: "work",
+      title: "Gunsmith's bench",
+      note: "every gun you carry",
+      rows: workRows,
+    },
+    {
       id: "under",
       title: "Under the counter",
       note: "HHPD takes cash",
@@ -127,13 +160,42 @@ function CarLot() {
   const cash = useCurrency("cash");
   const cred = useEntityStat(usePlayer().userId, "level")?.current ?? 1;
   const bestLap = useStore(bestRaceStore, (v) => v);
+  const modRows = useUpgradeRows("garage");
   const sections: BoardSection[] = [{
     id: "lot",
     title: "On the lot",
     note: "delivered to the bay out front",
     rows: CARS.map((car) => ({ id: car.id, name: car.label, line: carLine(car), price: car.price, gate: CRED_GATES[car.id], pick: () => commands.run("garage.buy", { vehicle: car.id }) })),
+  }, {
+    id: "mods",
+    title: "Rita's bay",
+    note: "fitted to every car you own",
+    rows: modRows,
   }];
   return <PriceBoard look="lot" kicker="Rita Salgado · used & fast" title="Sunset Motors" sub="Every car runs. Most of them are clean." sections={sections} cash={cash} cred={cred} onLeave={() => commands.run("garage.close", {})} aside={bestLap === undefined ? null : `Ocean Loop record on the wall: ${bestLap.toFixed(1)} s`} />;
+}
+
+/** Palmview Bungalow: the bed, the rooms you have fitted, and the wire room's line to the safe. */
+function House() {
+  const { commands } = useGame();
+  const cash = useCurrency("cash");
+  const cred = useEntityStat(usePlayer().userId, "level")?.current ?? 1;
+  const roomRows = useUpgradeRows("house");
+  const wired = useStore(upgradesStore, (state) => (state?.ranks.house_wire ?? 0) > 0);
+  const takings = useGameStore((ctx) => Math.floor(cityOf(ctx).num("fronts.takings")));
+  const sections: BoardSection[] = [
+    {
+      id: "rest",
+      title: "Home",
+      rows: [
+        { id: "sleep", name: "Sleep till morning", line: "The city keeps moving while you sleep", price: 0, pick: () => commands.run("safehouse.sleep", {}) },
+        { id: "patch", name: "Patch up and save", line: "Back to full health", price: 0, pick: () => commands.run("safehouse.patch", {}) },
+        ...(wired && takings > 0 ? [{ id: "wire", name: "Call in the takings", line: `${takings.toLocaleString("en-US")} waiting in the fronts' safe`, price: 0, pick: () => commands.run("front.collect", {}) }] : []),
+      ],
+    },
+    { id: "rooms", title: "Fit out the place", note: "one of each", rows: roomRows },
+  ];
+  return <PriceBoard look="house" kicker="Palmview · your place" title="The Bungalow" sub="Yours. Locks on the inside." sections={sections} cash={cash} cred={cred} onLeave={() => commands.run("house.close", {})} />;
 }
 
 function Talk({ dialogue, dialogueId }: { dialogue: DialogueDef; dialogueId: string }) {
@@ -150,9 +212,11 @@ export function Counters() {
   const dialogueId = useOpenDialogueId();
   const shop = useStore(shopStore, (v) => v ?? null);
   const garage = useStore(garageStore, (v) => v === true);
+  const house = useStore(houseStore, (v) => v === true);
   const dialogue = useGameStore((ctx) => (dialogueId === null ? null : conversation(ctx, dialogueId)), (a, b) => a?.id === b?.id);
   if (dialogue !== null && dialogueId !== null) return <Talk dialogue={dialogue} dialogueId={dialogueId} />;
   if (shop !== null) return <GunCounter />;
   if (garage) return <CarLot />;
+  if (house) return <House />;
   return null;
 }

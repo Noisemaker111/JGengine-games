@@ -3,6 +3,7 @@ import { useGame } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
+import { awayStore } from "../../away";
 import { startedStore } from "../../commands";
 import { courierStore, DELIVERY_ROUTES, RUSH_BOND, type CourierState } from "../../jobs/courier";
 import { saveHarborState } from "../../save";
@@ -53,6 +54,7 @@ export function SessionUI() {
   const session = useStore(sessionStore, (value) => value);
   const started = useStore(startedStore, (value) => value === true);
   const courier = useStore(courierStore, (value) => value);
+  const away = useStore(awayStore, (value) => value ?? null);
   useEffect(() => {
     // A restored snapshot can reset transient stores while the settings provider stays open.
     if (session.settings !== settings.isOpen) commands.run("session.settings", { open: settings.isOpen });
@@ -67,7 +69,18 @@ export function SessionUI() {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [commands, started, session.paused, settings.isOpen]);
-  if (!started || session.notice === "" || session.paused || settings.isOpen) return null;
+  if (!started || session.paused || settings.isOpen) return null;
+  if (session.notice === "" && away !== null) {
+    // The morning paper after a night's sleep or a Continue: what the city did without you.
+    return (
+      <ReceiptScreen
+        key={away.title}
+        slip={{ kind: "tabloid", tone: "warn", stamp: away.kind === "sleep" ? "Morning edition" : "While you were out", title: away.title, summary: away.summary, lines: away.lines, actions: [{ id: "roam", label: "Back to it", primary: true }] }}
+        onAction={() => commands.run("away.dismiss", {})}
+      />
+    );
+  }
+  if (session.notice === "") return null;
   const dismiss = session.notice === "courier" ? "courier.dismiss" : "session.dismiss";
   return (
     <ReceiptScreen

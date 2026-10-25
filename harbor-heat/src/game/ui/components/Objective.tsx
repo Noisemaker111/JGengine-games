@@ -129,7 +129,7 @@ function goalOf(ctx: GameContext, at: XZ): Goal {
 function promptLabel(id: string): string {
   if (id.startsWith("enter:")) return "Get in";
   if (id.startsWith("race:")) return `Race ${RACE_ROUTES.find((r) => `race:${r.id}` === id)?.label ?? "the streets"} · $${RACE_ENTRY_FEE}`;
-  const labels: Record<string, string> = { "shop:ammunation": "Browse Ammu-Isle", "garage:dealer": "Browse Sunset Motors", "safehouse:buy": `Buy Palmview Bungalow · $${SAFEHOUSE_PRICE.toLocaleString()}`, "safehouse:rest": "Rest at the bungalow", "courier:accept": "Take standard parcel", "courier:deliver": "Hand over the parcel" };
+  const labels: Record<string, string> = { "shop:ammunation": "Browse Ammu-Isle", "garage:dealer": "Browse Sunset Motors", "safehouse:buy": `Buy Palmview Bungalow · $${SAFEHOUSE_PRICE.toLocaleString()}`, "safehouse:rest": "Step inside the bungalow", "courier:accept": "Take standard parcel", "courier:deliver": "Hand over the parcel" };
   if (id.startsWith("talk:")) return `Talk to ${city.people?.[id.slice(5)]?.name ?? "them"}`;
   if (id.startsWith("job:")) return `Start ${city.jobs?.[id.slice(4)]?.title ?? "the job"}`;
   return labels[id] ?? "Talk";
