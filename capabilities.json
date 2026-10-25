@@ -1366,6 +1366,39 @@
       "intent": "compose a deterministic city — street network, blocks, street-fronting plots of varied size — from one seed"
     },
     {
+      "id": "city-layout-sliders",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/world/cityLayout",
+      "domain": "world",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "live dev-runner sliders for every city layout number"
+    },
+    {
+      "id": "city-layout-store",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/world/cityLayout",
+      "domain": "world",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a city layout a game sets once and sliders change live"
+    },
+    {
+      "id": "city-lots",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/world/cityLayout",
+      "domain": "world",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "lay zoned building lots, corners and driveways from one city layout"
+    },
+    {
       "id": "client-side",
       "packages": [
         "@jgengine/core"
@@ -3524,6 +3557,17 @@
       "intent": "hash a save document's state for a determinism test or a diff"
     },
     {
+      "id": "game-spec",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/gameSpec",
+      "domain": "worldModel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a whole game as one declaration the engine runs, with named code hooks for the rest"
+    },
+    {
       "id": "game-system",
       "packages": [
         "@jgengine/core"
@@ -4789,6 +4833,17 @@
       "intent": "paint a building part from a named library material"
     },
     {
+      "id": "library-model",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/catalogs/modelLibrary",
+      "domain": "catalogs",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "draw a realistic library model at real size with its near and far LOD"
+    },
+    {
       "id": "library-surface-parameters",
       "packages": [
         "@jgengine/assets"
@@ -5669,6 +5724,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "clone a loaded model for independent styling and animation"
+    },
+    {
+      "id": "model-library",
+      "packages": [
+        "@jgengine/assets"
+      ],
+      "module": "@jgengine/assets/catalogs/modelLibrary",
+      "domain": "catalogs",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "ask for a realistic licensed model by what it is (\"street lamp\", \"office desk\")"
     },
     {
       "id": "model-load-idle",
@@ -7529,6 +7595,17 @@
       "intent": "slot grid pane for the game menu — Continue newest, per-slot cards, keyboard navigation"
     },
     {
+      "id": "scaled-object-model",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/world/WorldScene",
+      "domain": "world",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "stretch one placement of a catalog model with visual.scale"
+    },
+    {
       "id": "scatter-coverage",
       "packages": [
         "@jgengine/core"
@@ -9086,6 +9163,17 @@
       "intent": "event-conditioned effects with declarative predicates, lifetimes, and stacking"
     },
     {
+      "id": "tune-control-labels",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/devtools/TunePanel",
+      "domain": "devtools",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "find a Tune panel field by its control name (drive --fill, screen readers)"
+    },
+    {
       "id": "tween-number",
       "packages": [
         "@jgengine/react"
@@ -10206,7 +10294,7 @@
       "domain": "worldModel",
       "gameFacing": false,
       "probe": null,
-      "intent": "declare a fact that calms back toward its resting value over time"
+      "intent": "one declarative world of people, places, factions, things, jobs and ripples"
     },
     {
       "id": "world-object-highlights",

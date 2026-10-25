@@ -4,38 +4,25 @@ import {
   environment,
   ocean,
   rain,
-  road,
   sky,
   terrain,
   type EnvironmentWorldFeature,
   type TerrainMaterialRegion,
 } from "@jgengine/core/world/features";
-import { librarySurfaceScan } from "@jgengine/assets/catalogs/materialLibrary";
 import { editorLayers } from "./editorLayers";
 import { GROUND_MAPS } from "./game/assets";
+import { roadSource } from "./game/world/cityLayout";
 import { DISTRICTS, ROADS, SHORE_X, WORLD_D, WORLD_W } from "./game/world/districts";
 
 /** The sky the scene document authors; the day/night cycle runs on it. */
 const authoredSky = skyFromDocument(editorLayers);
 
-/** Scanned asphalt, concrete paving and gutters; the sidewalk keeps its sand tone and takes the grain. */
-const STREET_SURFACES = {
-  road: librarySurfaceScan("asphalt/dry"),
-  sidewalk: librarySurfaceScan("concrete/smooth", { tint: 0 }),
-  curb: librarySurfaceScan("concrete/smooth", { tint: 0 }),
-};
-
-export const streets = ROADS.map((segment) =>
-  road({
-    path: [segment.from, segment.to],
-    width: segment.width,
-    color: "#33363f",
-    markingColor: "#f6cf4a",
-    elevation: segment.from[0] === segment.to[0] ? 0.08 : 0.16,
-    sidewalk: { width: 4.2, color: "#cdc6b6" },
-    materials: STREET_SURFACES,
-  }),
-);
+/**
+ * The streets at boot. Their widths, kerbs and sidewalks come from the one layout block in
+ * `game/world/cityLayout.ts`; `roadSource` below keeps the drawn streets in step when a layout slider
+ * moves.
+ */
+export const streets = roadSource.initial;
 
 /**
  * Region order is paint order — later entries win overlaps. Districts wash first, streets lay
@@ -161,6 +148,7 @@ export const world: EnvironmentWorldFeature = environment({
     opacity: 0.32,
   }),
   roads: streets,
+  roadSource,
   water: [
     ocean({
       // Reaches past the terrain's waterline so the sea meets the beach instead of stopping short

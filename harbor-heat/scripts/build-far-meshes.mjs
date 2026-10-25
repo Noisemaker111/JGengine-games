@@ -1,4 +1,4 @@
-// Builds the far-detail ("level 2") meshes Harbor Heat draws past 60 m: a decimated palm and planter.
+// Builds the far-detail ("level 2") meshes Harbor Heat draws past 60 m: a decimated palm.
 // Reads the source GLBs and writes tracked far GLBs, so the art can be regenerated:
 //
 //   bun run provision harbor-heat && node scripts/build-far-meshes.mjs
@@ -45,12 +45,6 @@ const MODELS = [
   // 1,010 triangles keeps the palm's worst-case silhouette at 95% of the full mesh across eight
   // yaws and all three street heights; 673 measured 80.6%, a visibly notched trunk at 60 m.
   { name: "mainsail-palm", src: "src/art/mainsail-palm.glb", out: "src/art/mainsail-palm-far.glb", triangles: 1000 },
-  {
-    name: "planter",
-    src: "public/models/quaternius-stylized-nature/Bush_Common_Flowers.glb",
-    out: "src/art/planter-far.glb",
-    triangles: 620,
-  },
 ];
 
 const COMPONENT = { 5120: [Int8Array, 1], 5121: [Uint8Array, 1], 5122: [Int16Array, 2], 5123: [Uint16Array, 2], 5125: [Uint32Array, 4], 5126: [Float32Array, 4] };
