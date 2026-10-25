@@ -118,6 +118,28 @@ export function reset(): void {
     }
   });
 
+  test("a queue drained by due time is a scheduler; a bill carrying a due date is data", () => {
+    const pad = (source: string): string => {
+      const lines: string[] = [source];
+      for (let index = codeLines(source); index < MIN_SYSTEM_LINES; index += 1) lines.push(`export const pad${index} = ${index};`);
+      return lines.join("\n");
+    };
+    const queue = "const timers: { dueAt: number; run(): void }[] = [];\nexport function tick(now: number): void {\n  while (timers[0] && timers[0].dueAt <= now) timers.shift()!.run();\n}\n";
+    expect(engineSeams("odd-orbit/src/game/timers.ts", pad(queue)).map((seam) => seam.name)).toEqual(["scheduler"]);
+    const bill = "export interface Bill { amount: number; dueAt: number }\nexport const isOverdue = (bill: Bill, now: number): boolean => now > bill.dueAt;\nexport const byDue = (bills: Bill[]): Bill[] => [...bills].sort((a, b) => a.dueAt - b.dueAt);\n";
+    expect(engineSeams("llmville/packages/game/src/economy/billing.ts", pad(bill))).toEqual([]);
+  });
+
+  test("a union of UI statuses set through React state is not a state machine", () => {
+    const pad = (source: string): string => {
+      const lines: string[] = [source];
+      for (let index = codeLines(source); index < MIN_SYSTEM_LINES; index += 1) lines.push(`export const pad${index} = ${index};`);
+      return lines.join("\n");
+    };
+    const ui = 'type CopyState = "idle" | "copied" | "failed";\ntype SendState = "idle" | "sending" | "sent";\nexport function Panel() {\n  const [copyState, setCopyState] = useState<CopyState>("idle");\n  return copyState === "copied" ? null : null;\n}\n';
+    expect(engineSeams("llmville/src/runtime/components/ErrorScreen.tsx", pad(ui))).toEqual([]);
+  });
+
   test("the same system in a test file is a test, not a second engine", () => {
     expect(engineSeams("ember-command/src/game/missionPhase.test.ts", STATE_MACHINE)).toEqual([]);
   });
