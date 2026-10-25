@@ -4,28 +4,25 @@ import { MILESTONES } from "../milestones";
 import { nextMilestone, nextStepText } from "./nextStep";
 
 describe("objective next step", () => {
-  test("starts with the first milestone at 60 rating", () => {
-    expect(nextMilestone(0)?.unlock).toBe("tier_flowers");
-    expect(nextStepText(0)).toBe(
-      "Raise rating to 60 ★ — add scenery and keep guests happy to unlock Flower Bed & Lamp Post",
-    );
+  test("starts with the first award", () => {
+    expect(nextMilestone(0)?.id).toBe("tidy_start");
+    expect(nextStepText(0)).toBe("Reach a 250 ★ rating for the Promising Newcomer award ($500)");
   });
 
-  test("a rating exactly on a milestone moves on to the next one", () => {
-    expect(nextMilestone(60)?.rating).toBe(120);
-    expect(nextStepText(60)).toContain("unlock Drinks Kiosk & Fountain");
+  test("a rating exactly on an award moves on to the next one", () => {
+    expect(nextMilestone(250)?.rating).toBe(400);
   });
 
-  test("text is actionable: names the target rating and the content that appears", () => {
-    for (const m of MILESTONES.slice(0, -1)) {
-      const text = nextStepText(m.rating - 1);
-      expect(text).toStartWith("Raise rating to ");
+  test("text names the target rating, the award and its prize", () => {
+    for (const m of MILESTONES) {
+      const text = nextStepText(m.rating - 1)!;
       expect(text).toContain(`${m.rating} ★`);
-      expect(text).toContain("unlock ");
+      expect(text).toContain(m.label);
+      expect(text).toContain(`$${m.prize.toLocaleString()}`);
     }
   });
 
-  test("returns null once every milestone is unlocked", () => {
+  test("returns null once every award is won", () => {
     const top = MILESTONES[MILESTONES.length - 1]!;
     expect(nextMilestone(top.rating)).toBeNull();
     expect(nextStepText(top.rating + 100)).toBeNull();

@@ -1,16 +1,16 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { setGamePhase } from "@jgengine/core/game/gamePhase";
 
-import { park, type ParkMetrics } from "../park";
+import { LOAN, park, type ParkMetrics } from "../park";
 import { syncAmbience } from "../audio";
 import { closeParkDay } from "../daySession";
-import { milestoneContents, milestonesCrossed } from "../milestones";
+import { milestonesCrossed } from "../milestones";
 import { ratingTarget } from "./rating";
 
 /**
  * The park's day, on the world. Money moves continuously (the `upkeep_*` flows and the `pay`
- * ripple), so midnight only restocks the stalls (their `restock_*` action), takes the loan's
- * instalment (the `loan_due` ripple), files the day's takings and checks the till.
+ * ripple), so midnight only restocks the stalls (their `restock_*` action), charges the loan's
+ * interest (the `interest` ripple), files the day's takings and checks the till.
  */
 
 const BANKRUPT_LIMIT = 3;
@@ -25,9 +25,10 @@ export function closeDay(ctx: GameContext): void {
       w.act(restock, instance.id);
     }
   }
-  if (w.emit({ kind: "loan_due" }) !== null) {
-    const owed = w.num("park.loan_owed");
-    ctx.game.notices.push({ text: owed > 0 ? `Loan instalment paid · $${Math.round(owed)} still owed` : "Loan paid off — the park owes nothing", tone: owed > 0 ? "info" : "success" });
+  const owed = w.num("park.loan_owed");
+  const interest = Math.round(owed * LOAN.dailyRate);
+  if (interest > 0 && w.emit({ kind: "interest", scale: interest }) !== null) {
+    ctx.game.notices.push({ text: `Loan interest: $${interest} on $${Math.round(owed).toLocaleString()} owed`, tone: "info" });
   }
 
   const revenue = w.num("park.revenue_today");
@@ -63,13 +64,10 @@ export function closeDay(ctx: GameContext): void {
   closeParkDay(ctx);
 }
 
-/**
- * The rating eases toward its target; its best-ever value is `park.peak`, which the locked kinds'
- * `when` reads, so crossing a milestone and the build palette opening are one write.
- */
+/** The rating eases toward its target; its best-ever value is `park.peak`, and each award crossed pays once. */
 export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): void {
   const w = park.of(ctx);
-  const target = ratingTarget(metrics, w.num("park.mood"), w.num("park.guests_today"), w.num("park.litter"));
+  const target = ratingTarget(metrics, w.num("park.mood"), w.num("park.guests_today"), w.num("park.litter"), w.num("park.complaints"));
   const before = w.num("park.rating");
   const rating = before + (target - before) * (1 - Math.exp(-dt * 0.25));
   w.set("park.rating", rating);
@@ -77,8 +75,8 @@ export function tickRating(ctx: GameContext, dt: number, metrics: ParkMetrics): 
   if (rating <= peak) return;
   w.set("park.peak", rating);
   for (const milestone of milestonesCrossed(peak, rating)) {
-    const contents = milestoneContents(milestone.unlock);
-    ctx.game.notices.push({ text: `Unlocked ${contents.length > 0 ? contents.join(" & ") : milestone.label}`, tone: "success" });
+    w.emit({ kind: "award", scale: milestone.prize });
+    ctx.game.notices.push({ text: `Award! ${milestone.label} — $${milestone.prize.toLocaleString()} prize`, tone: "success" });
     ctx.game.audio.play("milestone");
   }
 }

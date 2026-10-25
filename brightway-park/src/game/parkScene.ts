@@ -3,11 +3,13 @@ import { setGamePhase } from "@jgengine/core/game/gamePhase";
 import type { WorldInstanceView, WorldJobEvent, WorldModel } from "@jgengine/core/worldModel/worldModel";
 
 import { BUILDABLES } from "./objects/catalog";
-import { park, repairAction } from "./park";
+import { park, rethemeRides, repairAction } from "./park";
 import { fixRide, leaveRide, serviceRide } from "./rides";
 import { session } from "./session";
 import { syncAmbience } from "./audio";
 import { savePark } from "./persistence";
+import { connectPark, relinkPark } from "./build/links";
+import { groundAt } from "./build/terrain";
 
 /**
  * Where the park's declaration meets the screen: a built structure is placed in the scene, a removed
@@ -17,17 +19,31 @@ import { savePark } from "./persistence";
 
 export function spawnObject(ctx: GameContext, instance: WorldInstanceView): void {
   if (instance.position === null) return;
-  ctx.scene.object.place(instance.kind, instance.position[0], 0, instance.position[1], { instanceId: instance.id, onExisting: "keep" });
+  const w = park.of(ctx);
+  const rotation = (w.num(`${instance.id}.rot`) * Math.PI) / 2;
+  const y = groundAt(w, instance.position[0], instance.position[1]);
+  ctx.scene.object.place(instance.kind, instance.position[0], y, instance.position[1], { instanceId: instance.id, onExisting: "keep", rotation });
+  rethemeRides(ctx);
+  relinkPark(ctx);
 }
 
 /** Every structure the world holds goes on screen: after a load, a reset or a replicated world. */
 export function spawnAll(ctx: GameContext): void {
-  for (const instance of park.of(ctx).instances()) spawnObject(ctx, instance);
+  const w = park.of(ctx);
+  // A park laid out before rides needed entrances and exits gets them, free, the first time it opens.
+  if (w.num("park.netv") < 1) {
+    connectPark(ctx, { free: true });
+    w.set("park.netv", 1);
+  }
+  for (const instance of w.instances()) spawnObject(ctx, instance);
+  relinkPark(ctx);
 }
 
 /** The world removed a structure (`brightway.remove`, refund already in the till): it leaves the scene. */
 export function despawnObject(ctx: GameContext, id: string, refund = 0): void {
   ctx.scene.object.remove(id);
+  rethemeRides(ctx);
+  relinkPark(ctx);
   ctx.game.notices.push({ text: refund > 0 ? `Demolished — $${Math.round(refund).toLocaleString()} refunded` : "Demolished", tone: "info" });
   ctx.game.audio.play("sell");
   if (session.selectedObject === id) session.selectedObject = null;

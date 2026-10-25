@@ -30,7 +30,7 @@ export function boats() {
   for (const [x, z] of [[2.8, -3.2], [3.4, -2.6], [-3.8, .4], [1.2, -4.2], [-1, 1.2]]) flat(g, ellipse(.35, .35, 8, x, z), .17, P.leaf);
   // jetty at +Z
   box(g, [1.6, .14, 4.4], P.wood, [.8, .42, 1.9]); for (let z = 0; z < 4.4; z += .3) box(g, [1.6, .03, .05], P.darkwood, [.8, .5, z]);
-  for (const x of [.05, 1.55]) for (let z = .2; z < 4.2; z += 1.3) cyl(g, .08, .6, P.darkwood, [x, .25, z], .08, 6);
+  for (const x of [.05, 1.55]) for (let z = .2; z < 4.2; z += 1.3) cyl(g, .08, .6, P.darkwood, [x, .3, z], .08, 6);
   railing(g, [[1.55, -.2], [1.55, 4.1]], .49, P.cream, .8);
   // boat hire hut
   const H = group(g, [-2.6, 0, 4.4]);
@@ -105,13 +105,13 @@ export function rapids() {
   for (let i = 0; i < n; i++) {
     const p = pts[i], q = pts[(i + 1) % n], t = q.clone().sub(p).normalize(), s = V(t.z, 0, -t.x);
     if (i % 2 === 0) for (const k of [1.55, -1.55]) segBox(g, p.clone().addScaledVector(s, k).add(V(0, .12, 0)), q.clone().addScaledVector(s, k).add(V(0, .12, 0)), .25, .3, P.rock, Y, .1);
-    if (i % 4 === 0) { const k = (rnd() - .5) * 2.4, r = .2 + rnd() * .35; if (!(p.z > 4.5 && Math.abs(p.x) < 4)) ball(g, r, rnd() > .5 ? P.rock : P.grey, [p.x + s.x * k, r * .5, p.z + s.z * k], 0).scale.set(1, .7, 1); }
-    if (i % 3 === 1) { const k = (i % 2 ? 1 : -1) * (1.7 + rnd() * .4); const x = p.x + s.x * k, z = p.z + s.z * k; const rr = .3 + rnd() * .4; if (Math.abs(x) < 7.6 - rr && Math.abs(z) < 7.6 - rr) ball(g, rr, P.rock, [x, rr * .6, z], 0); }
+    if (i % 4 === 0) { const k = (rnd() - .5) * 2.4, r = .2 + rnd() * .35; if (!(p.z > 4.5 && Math.abs(p.x) < 4)) ball(g, r, rnd() > .5 ? P.rock : P.grey, [p.x + s.x * k, r * .7, p.z + s.z * k], 0).scale.set(1, .7, 1); }
+    if (i % 3 === 1) { const k = (i % 2 ? 1 : -1) * (1.7 + rnd() * .4); const x = p.x + s.x * k, z = p.z + s.z * k; const rr = .3 + rnd() * .4; if (Math.abs(x) < 7.6 - rr && Math.abs(z) < 7.6 - rr) ball(g, rr, P.rock, [x, rr * .92, z], 0); }
     if (i % 5 === 2) ball(g, .3, P.foam, [p.x + s.x * (rnd() - .5) * 1.6, .3, p.z + s.z * (rnd() - .5) * 1.6], 0).scale.set(1.6, .25, 1);
   }
   // waterfall mound in the middle
-  for (const [x, y, z, r] of [[0, .9, -.6, 1.6], [-1.2, .7, .5, 1.1], [1.2, .6, .4, 1.0], [.2, 2.0, -1.0, 1.0], [-.6, 2.6, -1.3, .7]]) ball(g, r, P.rock, [x, y, z], 1).scale.set(1, .8, 1);
-  segBox(g, V(.2, 2.6, -.4), V(.6, .3, 1.6), .9, .08, P.waterEdge); ball(g, .5, P.foam, [.6, .45, 1.7], 1).scale.set(1.5, .4, 1);
+  for (const [x, y, z, r] of [[0, 1.28, -.6, 1.6], [-1.2, .88, .5, 1.1], [1.2, .8, .4, 1.0], [.2, 2.2, -1.0, 1.0], [-.6, 2.8, -1.3, .7]]) ball(g, r, P.rock, [x, y, z], 1).scale.set(1, .8, 1);
+  segBox(g, V(.2, 2.9, -.4), V(.6, .3, 1.8), .9, .08, P.waterEdge); ball(g, .5, P.foam, [.6, .45, 1.7], 1).scale.set(1.5, .4, 1);
   tree(g, -1.2, -1.6, .8); shrub(g, 1.7, -1.4, .6);
   // station on +Z
   deckRect(g, 7.4, 1.0, .45, 0, 7.2); railing(g, [[-3.6, 7.65], [3.6, 7.65]], .45, P.cream, .9);
@@ -131,27 +131,24 @@ function splashBoat(c) {
 }
 export function splash() {
   const g = new T.Group();
-  const ctrl = [[4.0, .55, 6.0], [-2.6, .55, 6.0], [-5.4, .6, 5.0], [-6.2, .9, 2.2], [-6.2, 8.0, -4.0], [-5.0, 8.4, -6.4], [-1, 8.4, -6.6], [3.4, 8.4, -6.4], [5.6, 8.3, -4.8], [5.8, 8.0, -3.4], [5.8, .7, 2.4], [5.6, .5, 3.9], [5.4, .55, 5.6]];
+  const ctrl = [[4.0, .55, 6.0], [-2.6, .55, 6.0], [-5.4, .6, 5.0], [-6.2, .9, 2.2], [-6.2, 8.0, -4.0], [-5.0, 8.4, -6.3], [-2.4, 8.4, -6.4], [-.8, 8.0, -5.2], [3.6, .7, 1.8], [5.0, .5, 3.6], [5.4, .55, 5.4]];
   const pts = spline(ctrl, .35);
   const { F, lens } = trough(g, pts, 2.0, { bottom: P.cream, side: P.cream, trim: P.teal, post: P.teal, postR: .1, supportEvery: 4, wall: .65 });
   for (let i = 0; i < pts.length; i++) { const p = pts[i]; if (p.x < -5.7 && p.y > 1.2 && p.y < 7.8 && i % 2 === 0) box(g, [.3, .05, .22], P.ink, [p.x, p.y + .08, p.z]); }
   // tall landing tower at the crest
-  for (const [x, z] of [[-6.6, -6.9], [-4.0, -6.9], [-6.6, -5.0]]) beam(g, [x, 0, z], [x, 8.3, z], .14, P.teal, 6);
-  box(g, [3.2, .2, 2.6], P.cream, [-5.3, 8.2, -6.0]); bulbLine(g, [-6.8, 8.9, -7.2], [-3.8, 8.9, -7.2], 10);
-  pennant(g, -6.6, 9.9, -6.9, P.coral, 1.6); pennant(g, -4.0, 9.9, -6.9, P.gold, 1.6);
+  pennant(g, -6.9, 9.8, -5.6, P.coral, 1.6); pennant(g, -3.6, 9.8, -7.3, P.gold, 1.6); bulbLine(g, [-7.1, 9.1, -4.4], [-7.1, 9.1, -1.2], 8);
   // big splash pool at the foot of the drop
-  const pl = [[3.2, 1.0], [7.6, 1.0], [7.6, 5.0], [3.2, 5.0]];
-  slab(g, [[3.0, .8], [7.8, .8], [7.8, 5.2], [3.0, 5.2]], 0, .3, P.stone, [pl]); pool(g, pl, .32, 1.0); flat(g, pl, .1, P.waterEdge);
-  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI; ball(g, .35 + (i % 3) * .15, P.foam, [5.8 + Math.cos(a) * 1.4, .9 + Math.sin(a) * 1.6, 3.3 + (i % 2) * .3], 0); }
+  const pl = [[1.6, -.4], [7.4, -.4], [7.4, 4.6], [1.6, 4.6]];
+  slab(g, [[1.4, -.6], [7.6, -.6], [7.6, 4.8], [1.4, 4.8]], 0, .3, P.stone, [pl]); flat(g, pl, .1, P.waterEdge); flat(g, [[1.9, -.1], [7.1, -.1], [7.1, 4.3], [1.9, 4.3]], .32, P.water);
+  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI; ball(g, .35 + (i % 3) * .15, P.foam, [3.9 + Math.cos(a) * 1.5, .9 + Math.sin(a) * 1.7, 2.4 + (i % 2) * .4], 0); }
   // viewing bridge over the pool
-  segBox(g, V(3.0, 1.6, 4.6), V(7.6, 1.6, 4.6), 1.0, .14, P.wood); railing(g, [[3.0, 4.15], [7.6, 4.15]], 1.6, P.cream, .9);
-  for (const x of [3.1, 7.5]) beam(g, [x, 0, 4.6], [x, 1.6, 4.6], .1, P.teal);
+  segBox(g, V(1.6, 1.7, 4.1), V(7.4, 1.7, 4.1), 1.0, .14, P.wood); railing(g, [[1.6, 3.65], [7.4, 3.65]], 1.7, P.cream, .9);
+  for (const x of [1.7, 7.3]) beam(g, [x, 0, 4.1], [x, 1.7, 4.1], .1, P.teal);
   // station
   deckRect(g, 6.6, .75, .55, .7, 7.37); railing(g, [[-2.5, 7.65], [3.9, 7.65]], .55, P.cream, .9);
   for (const x of [-2.4, .7, 3.8]) for (const z of [4.8, 7.6]) beam(g, [x, .55, z], [x, 3.3, z], .1, P.teal);
   box(g, [7.0, .2, 3.1], P.blue, [.7, 3.35, 6.2]); for (let i = 0; i < 9; i++) box(g, [.42, .08, 3.2], i % 2 ? P.cream : P.coral, [-2.66 + i * .84, 3.5, 6.2]);
   signBoard(g, [.7, 4.0, 6.8], 3, .65, P.teal, { stripe: P.gold });
-  for (const d of [.04, .5]) splashBoat(onPath(g, F, lens, d * lens.total, 0));
-  splashBoat(onPath(g, F, lens, .835 * lens.total, 0));
+  for (const d of [.04, .3, .69]) splashBoat(onPath(g, F, lens, d * lens.total, 0));
   return g;
 }

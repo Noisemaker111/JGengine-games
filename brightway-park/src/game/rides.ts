@@ -11,7 +11,7 @@ import {
 } from "@jgengine/core/sim/rides";
 import { DEFAULT_QUEUE_SEED_SERVICE_SECONDS, DEFAULT_QUEUE_WINDOW } from "@jgengine/core/sim/queue";
 
-import { parkObjects, type ParkObject } from "./park";
+import { park as parkSpec, parkObjects, type ParkObject } from "./park";
 import { buildCoasterCircuit, type CoasterCircuit, type TrackPoint } from "./coaster/circuit";
 
 /**
@@ -44,23 +44,29 @@ export function trackPieces(ctx: GameContext): number {
   return parkObjects(ctx).filter((obj) => obj.kind === "track_piece").length;
 }
 
-/** A ride's three ratings: a coaster's come from its circuit, a flat ride's from its own data. */
-export function rideRatings(obj: ParkObject, circuit: CoasterCircuit): RideRatings {
+/** Scenery in reach lifts a ride's excitement by up to this much at the theme cap. */
+const THEME_EXCITEMENT = 0.25;
+
+/**
+ * A ride's three ratings on the 0-10 scale: a coaster's come from its circuit, a flat ride's from its
+ * own data; the charm of scenery in reach (`<id>.theme`) lifts the excitement of either.
+ */
+export function rideRatings(obj: ParkObject, circuit: CoasterCircuit, theme = 0): RideRatings {
   const ride = obj.def.ride;
   if (ride === undefined) return { excitement: 0, intensity: 0, nausea: 0 };
-  if (obj.kind === "ride_coaster") return { excitement: circuit.excitement, intensity: circuit.intensity, nausea: circuit.nausea };
-  return { excitement: obj.def.appeal, intensity: ride.thrill, nausea: 2 };
+  const base = obj.kind === "ride_coaster" ? { excitement: circuit.excitement, intensity: circuit.intensity, nausea: circuit.nausea } : { excitement: ride.excitement, intensity: ride.intensity, nausea: ride.nausea };
+  return { ...base, excitement: Math.round((base.excitement + theme * THEME_EXCITEMENT) * 10) / 10 };
 }
 
 /** One placed ride as the shared sim's data. */
-export function rideDefinition(obj: ParkObject, circuit: CoasterCircuit): RideDefinition {
+export function rideDefinition(obj: ParkObject, circuit: CoasterCircuit, theme = 0): RideDefinition {
   const ride = obj.def.ride;
   if (ride === undefined) throw new Error(`brightway-park: "${obj.kind}" is not a ride`);
   // A coaster's lap is the track's own length at the track's own pace, so laying rail changes the ride.
   const rideSeconds = obj.kind === "ride_coaster" && circuit.closed ? Math.max(4, circuit.lapSeconds) : ride.rideSeconds;
   return {
     id: obj.id,
-    ratings: rideRatings(obj, circuit),
+    ratings: rideRatings(obj, circuit, theme),
     capacity: ride.capacity,
     loadSeconds: ride.loadSeconds,
     rideSeconds,
@@ -71,7 +77,8 @@ export function rideDefinition(obj: ParkObject, circuit: CoasterCircuit): RideDe
 
 function desiredDefinitions(ctx: GameContext): RideDefinition[] {
   const circuit = coasterCircuit(ctx);
-  return parkObjects(ctx).filter((obj) => obj.def.ride !== undefined).map((obj) => rideDefinition(obj, circuit));
+  const w = parkSpec.of(ctx);
+  return parkObjects(ctx).filter((obj) => obj.def.ride !== undefined).map((obj) => rideDefinition(obj, circuit, w.num(`${obj.id}.theme`)));
 }
 
 function definitionKey(definitions: readonly RideDefinition[]): string {
@@ -142,6 +149,8 @@ export function fixRide(rideId: string): void {
   if (entry === undefined || entry.phase !== "broken") return;
   entry.phase = "idle";
   entry.timer = 0;
+  // A repair is a full overhaul: the wear curve starts again from new.
+  entry.wear = 0;
   system.restore(snapshot);
 }
 

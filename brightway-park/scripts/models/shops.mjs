@@ -210,7 +210,7 @@ export function staffMechanic() {
 export function staffEntertainer() {
   const g = new T.Group(), fur = P.cream, patch = P.ink;
   for (const x of [-.15, .15]) { box(g, [.26, .7, .3], patch, [x, .4, 0]); box(g, [.3, .14, .4], P.coral, [x, .07, .05]); }
-  const body = ball(g, .45, P.coral, [0, 1.05, 0], 1); body.scale.set(1, 1.1, .85); ball(g, .3, fur, [0, 1.0, .2], 1).scale.set(1, 1.2, .6);
+  const body = ball(g, .45, P.coral, [0, 1.05, 0], 1); body.scale.set(1, 1.1, .85); ball(g, .3, fur, [0, 1.0, .3], 1).scale.set(1, 1.2, .55);
   for (const x of [-.46, .46]) { beam(g, [x, 1.3, 0], [x * 1.25, .85, .1], .12, patch); ball(g, .13, patch, [x * 1.27, .78, .1], 0); }
   ball(g, .48, fur, [0, 1.85, 0], 1);
   for (const x of [-.32, .32]) { ball(g, .15, patch, [x, 2.25, -.02], 1); ball(g, .12, patch, [x * .5, 1.92, .4], 0).scale.set(1, 1.3, .5); ball(g, .045, P.white, [x * .5, 1.94, .45], 0); }

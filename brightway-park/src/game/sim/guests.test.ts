@@ -10,6 +10,9 @@ import { cellFor, freshWorld, park, placeFree } from "../park";
 import { tickStaff } from "../staff";
 import { joinRide, resetRides, syncRidePark } from "../rides";
 import { seedGuests, tickGuests } from "./guests";
+import { BUILDABLES } from "../objects/catalog";
+import { staffCover } from "../staff";
+import { tallyThoughts, think } from "./thoughts";
 
 function context() {
   const ctx = createGameContext({
@@ -26,6 +29,8 @@ function context() {
 function put(ctx: ReturnType<typeof context>, kind: string, x: number, z: number): string {
   const id = placeFree(park.of(ctx), kind, cellFor(kind, x, z));
   if (id === null) throw new Error(`could not place ${kind}`);
+  // Joined to the paths: these tests are about the ride and the guests, not the network.
+  if (park.of(ctx).fact(`${id}.closed`) === true) park.of(ctx).set(`${id}.closed`, false);
   return id;
 }
 
@@ -133,7 +138,7 @@ describe("brightway-park guest agents", () => {
     expect(busy.cost!).toBeGreaterThan(empty.cost!);
   });
 
-  test("a janitor walks the beat its post authored", () => {
+  test("a handyman walks the beat inside its patrol area", () => {
     const ctx = context();
     put(ctx, "staff_janitor", 12, -12);
     ctx.time.hydrate({ ...ctx.time.snapshot(), now: 60, paused: true });
@@ -146,7 +151,37 @@ describe("brightway-park guest agents", () => {
     for (let i = 0; i < 40; i += 1) tickStaff(ctx, 0.1);
     const moved = ctx.scene.entity.get(staff.id)!.position;
     expect(Math.hypot(moved[0] - start[0], moved[2] - start[2])).toBeGreaterThan(0.5);
-    expect(Math.hypot(moved[0] - 12, moved[2] + 12)).toBeLessThanOrEqual(7);
+    expect(Math.hypot(moved[0] - 12, moved[2] + 12)).toBeLessThanOrEqual(BUILDABLES.staff_janitor!.staff!.patrol);
+  });
+
+  test("each hire covers its own patrol area, and the player can widen it", () => {
+    const ctx = context();
+    const post = put(ctx, "staff_entertainer", 0, 0);
+    tickStaff(ctx, 0.1);
+    const w = park.of(ctx);
+    const placed = w.instance(post)!.position!;
+    const radius = BUILDABLES.staff_entertainer!.staff!.patrol;
+    expect(staffCover(ctx, placed[0] + radius - 1, placed[1]).has("entertainer")).toBe(true);
+    expect(staffCover(ctx, placed[0] + radius + 3, placed[1]).has("entertainer")).toBe(false);
+    w.act("patrol_wider_staff_entertainer", post);
+    expect(staffCover(ctx, placed[0] + radius + 3, placed[1]).has("entertainer")).toBe(true);
+  });
+
+  test("guests say what is wrong, and the park counts the complaints", () => {
+    const ctx = context();
+    seedGuests(ctx, 4);
+    const [a, b, c] = [...session.guests.values()];
+    think(a!, "too_expensive", "I'm not paying $9 for the Burger Stall", 10);
+    think(b!, "queue_long", "The queue for the Carousel is too long", 10);
+    think(c!, "great_ride", "The Carousel was great!", 10);
+    // The same thought is not repeated within a few seconds.
+    think(a!, "too_expensive", "again", 12);
+    expect(a!.thoughts!.length).toBe(1);
+    const tally = tallyThoughts(session.guests.values(), 12);
+    expect(tally.complaintShare).toBeCloseTo(0.5, 5);
+    expect(tally.top.map((entry) => entry.id).sort()).toEqual(["great_ride", "queue_long", "too_expensive"]);
+    // Old thoughts stop counting.
+    expect(tallyThoughts(session.guests.values(), 200).complaintShare).toBe(0);
   });
 
   test("demolishing the post sends its janitor home", () => {

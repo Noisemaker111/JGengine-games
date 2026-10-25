@@ -10,6 +10,7 @@ import { scenarioView } from "../../parkReset";
 import { rideBoard } from "../../rides";
 import { scenarioDef } from "../../scenarios";
 import { session } from "../../session";
+import { BLUE_RIBBON } from "../../milestones";
 import { nextMilestone, nextStepText } from "../nextStep";
 import { usePark } from "../usePark";
 import { Rows } from "./Inspector";
@@ -25,11 +26,16 @@ export function ParkStatus() {
   const m = parkMetrics(w);
   const cash = w.num("park.cash"), rating = w.num("park.rating"), mood = w.num("park.mood"), clean = 100 - w.num("park.litter");
   const open = w.fact("park.open") === true, down = m.rides - m.ridesOpen;
+  // What the crowd is thinking most, freshest first: complaints in the warning colour.
+  const said = useGameStore(() => session.thoughts.top.slice(0, 3).map((t) => `${t.label}:${t.count}:${t.complaint ? 1 : 0}`).join("|"));
   return (
     <KitPanel className="bw-status" eyebrow={`Day ${w.num("park.day")} · ${clock} · ${open ? "Gates open" : "After hours"}`} title={money(cash)} tone={cash < 0 ? "bad" : undefined} aside={`★ ${Math.round(rating)}`}>
       <div className="bw-line"><span>{guests} / {guestCap(rating)} guests</span>{down > 0 ? <b data-bad="">{down} {down === 1 ? "ride" : "rides"} down</b> : null}</div>
       <KitMeter size="sm" label="Mood" value={mood} max={100} readout={`${Math.round(mood)}%`} tone={tone(mood, 50, 35)} />
       <KitMeter size="sm" label="Clean" value={clean} max={100} readout={`${Math.round(clean)}%`} tone={tone(clean, 60, 40)} />
+      {said ? <ul className="bw-said" aria-label="What guests are saying">
+        {said.split("|").map((entry) => { const [label, count, complaint] = entry.split(":"); return <li key={label} data-bad={complaint === "1" ? "" : undefined}>“{label}” <b>{count}</b></li>; })}
+      </ul> : null}
     </KitPanel>
   );
 }
@@ -54,18 +60,18 @@ export function ParkGoal() {
       hint="Cheaper tickets and more rides pull a bigger crowd." progressKey={`${Math.round(scenario.visitors / 5)}`} />;
   }
   const steps = [
-    { id: "rides", label: `Three rides · ${Math.min(m.rides, 3)}/3`, done: m.rides >= 3, next: "Build a third ride" },
-    { id: "rating", label: `Rating · ${Math.round(rating)}/220`, done: rating >= 220, next: "Raise the rating to 220" },
+    { id: "rides", label: `${BLUE_RIBBON.rides} rides · ${Math.min(m.rides, BLUE_RIBBON.rides)}/${BLUE_RIBBON.rides}`, done: m.rides >= BLUE_RIBBON.rides, next: `Build up to ${BLUE_RIBBON.rides} rides` },
+    { id: "rating", label: `Rating · ${Math.round(rating)}/${BLUE_RIBBON.rating}`, done: rating >= BLUE_RIBBON.rating, next: `Raise the rating to ${BLUE_RIBBON.rating}` },
     { id: "profit", label: day > 1 ? `Last day ${net < 0 ? "lost" : "made"} ${money(Math.abs(net))}` : "Finish a profitable day", done: day > 1 && net >= 0, next: "Finish a day in profit" },
-    { id: "happy", label: "Happy 50%+ · clean 60%+", done: mood >= 50 && litter <= 40, next: "Cheer guests up and tidy the paths" },
+    { id: "happy", label: `Happy ${BLUE_RIBBON.mood}%+ · clean ${100 - BLUE_RIBBON.litter}%+`, done: mood >= BLUE_RIBBON.mood && litter <= BLUE_RIBBON.litter, next: "Cheer guests up and tidy the paths" },
   ];
   const next = steps.find((s) => !s.done);
-  const hint = litter > 25 ? "Litter is piling up: hire a janitor from Staff." : m.stalls < 3 ? "Hungry guests turn grumpy: add food and drink from Shops." : m.rides < 3 ? "Open Rides in the build palette and place one on an empty plot." : nextStepText(peak) ?? "Mix gentle rides and thrills: families and thrill seekers want different days out.";
+  const hint = litter > 25 ? "Litter is piling up: hire a handyman from Staff." : m.stalls < 3 ? "Hungry guests turn grumpy: add food and drink from Shops." : m.rides < 3 ? "Open Rides in the build palette and place one on an empty plot." : nextStepText(peak) ?? "Mix gentle rides and thrills: families and thrill seekers want different days out.";
   return <KitObjective className="bw-goal" eyebrow={won ? "Blue ribbon park" : "Your first blue ribbon"} title={won ? "Keep the good days rolling" : next?.next ?? "Hold it until midnight"}
     steps={won ? undefined : steps} hint={hint} progressKey={steps.filter((s) => s.done).length} />;
 }
 
-/** The ledger, the gate price, the loan and the next unlock: open when the player asks for them. Buttons run `brightway.act`. */
+/** The ledger, the gate price, the bank and the next award: open when the player asks for them. Buttons run `brightway.act`. */
 export function ParkBooks({ onClose }: { onClose: () => void }) {
   const { commands } = useGame();
   const w = usePark();
@@ -75,16 +81,17 @@ export function ParkBooks({ onClose }: { onClose: () => void }) {
   const owed = w.num("park.loan_owed");
   return (
     <KitPanel variant="card" eyebrow="The office" title="Park books" aside={<KitButton variant="ghost" size="sm" cue="close" aria-label="Close park books" onClick={onClose}>✕</KitButton>}
-      footer={owed <= 0
-        ? <KitButton size="sm" aria-label="Take a park loan" onClick={() => act("take_loan")}>Take a {money(LOAN.principal)} loan · {money(LOAN.payment)}/night × {LOAN.nights}</KitButton>
-        : <KitButton size="sm" aria-label="Pay the loan down" onClick={() => act("repay_loan")}>Pay an instalment early · {money(LOAN.payment)}</KitButton>}>
+      footer={<>
+        <KitButton size="sm" aria-label="Borrow from the bank" disabled={owed > LOAN.max - LOAN.step} onClick={() => act("take_loan")}>Borrow {money(LOAN.step)}</KitButton>
+        <KitButton size="sm" aria-label="Repay the bank" disabled={owed < LOAN.step} onClick={() => act("repay_loan")}>Repay {money(LOAN.step)}</KitButton>
+      </>}>
       <div className="bw-line"><span>Entry ticket</span><span className="bw-stepper">
         <KitButton size="sm" aria-label="Lower ticket price" onClick={() => act("ticket_down")}>−</KitButton><b>${w.num("park.ticket")}</b>
         <KitButton size="sm" aria-label="Raise ticket price" onClick={() => act("ticket_up")}>+</KitButton></span></div>
       <Rows rows={[["Today’s sales", money(w.num("park.revenue_today"))], ["Rides & shops upkeep", `${money(m.facilitiesUpkeep)} / day`], ["Staff wages", `${money(m.wages)} / day`],
         ...(rides.rides > 0 ? [["Ride lines", `${rides.queued} waiting`] as [string, string]] : []),
-        ...(owed > 0 ? [["Loan owed", `${money(owed)} · ${Math.ceil(owed / LOAN.payment)} nights`] as [string, string]] : [])]} />
-      {next !== null ? <KitMeter size="sm" label={`Next: ${next.label}`} value={peak} max={next.rating} readout={`★ ${Math.round(peak)} / ${next.rating}`} /> : null}
+        ["Loan owed", owed > 0 ? `${money(owed)} of ${money(LOAN.max)} · ${money(owed * LOAN.dailyRate)}/night interest` : `none · up to ${money(LOAN.max)}`]]} />
+      {next !== null ? <KitMeter size="sm" label={`Next award: ${next.label} · ${money(next.prize)}`} value={peak} max={next.rating} readout={`★ ${Math.round(peak)} / ${next.rating}`} /> : null}
     </KitPanel>
   );
 }

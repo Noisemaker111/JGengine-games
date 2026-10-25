@@ -11,9 +11,10 @@ import {
 } from "@jgengine/core/worldModel/worldModel";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { DAY_LENGTH, GRID, PARK_HALF, STARTING_CASH, snapToGrid } from "./catalog";
-import { BUILDABLES, BUILD_IDS, type BuildableDef } from "./objects/catalog";
-import { MILESTONES } from "./milestones";
+import { DAY_LENGTH, GRID, STARTING_CASH, snapToGrid } from "./catalog";
+import { LOT, sizeOf } from "./lot";
+import { FLAT_LAND, LAND_FACT } from "./build/terrain";
+import { BUILDABLES, BUILD_IDS, THEME_CAP, type BuildableDef } from "./objects/catalog";
 import { SCENARIOS } from "./scenarios";
 import { despawnObject, dispatchCrew, landed, scenarioEnded, spawnObject } from "./parkScene";
 
@@ -28,18 +29,15 @@ import { despawnObject, dispatchCrew, landed, scenarioEnded, spawnObject } from 
  * ride sim), the coaster circuit, and the rating's blend of mood, crowd and litter.
  */
 
-/** The lot: 29 x 29 cells of 4 m, cell [0, 0]'s corner at (-58, -58), the fence just outside. */
-export const LOT = { cols: 29, rows: 29, cell: GRID, origin: [-(PARK_HALF - 2), -(PARK_HALF - 2)] as const };
+export { LOT, sizeOf };
 
-/** A nightly loan instalment, and the loan the park can take: $6,000 now, ten of these back. */
-export const LOAN = { principal: 6000, nights: 10, payment: 703 } as const;
+/**
+ * The bank: the park opens owing `start`, may borrow up to `max` in steps of `step`, and pays
+ * `dailyRate` interest on what it owes every midnight.
+ */
+export const LOAN = { start: 10_000, max: 25_000, step: 1_000, dailyRate: 0.008 } as const;
 
 const ride = (def: BuildableDef) => def.ride !== undefined;
-
-/** Cells a side of a structure covers on the lot. */
-export function sizeOf(def: BuildableDef): number {
-  return Math.max(1, Math.round(def.footprint / GRID));
-}
 
 /** The lot cell a structure's corner sits on when the pointer lands at (x, z): the footprint centres on it. */
 export function cellFor(kind: string, x: number, z: number): [number, number] {
@@ -60,17 +58,24 @@ export function cellCentres(kind: string, cell: readonly [number, number]): [num
   return out;
 }
 
-function unlockRating(requires: string | undefined): number | null {
-  if (requires === undefined) return null;
-  const milestone = MILESTONES.find((entry) => entry.unlock === requires);
-  if (milestone === undefined) throw new Error(`brightway-park: "${requires}" is no milestone's unlock`);
-  return milestone.rating;
-}
+/** The fact a lab topic sets when it is done; a kind with research is locked until then. */
+export const researched = (kind: string): string => `research.${kind}`;
 
 function kindOf(def: BuildableDef): WorldKindDecl {
-  const rating = unlockRating(def.requires);
-  const facts: Record<string, WorldFactsDecl[string]> = { appeal: def.appeal };
-  if (def.ride !== undefined) facts.broken = false;
+  // `rot`: the quarter turns it was built facing.
+  const facts: Record<string, WorldFactsDecl[string]> = { appeal: def.appeal, rot: 0 };
+  // A ride or shop no path reaches (or a ride with no entrance or exit) is shut: `closed`, until the
+  // network says otherwise when it opens.
+  if (def.ride !== undefined || def.stall !== undefined) facts.closed = true;
+  if (def.ride !== undefined) {
+    facts.broken = false;
+    // Charm from scenery in reach, which the park adds to the ride's appeal and excitement.
+    facts.theme = 0;
+  }
+  if (def.staff !== undefined) {
+    // The patrol area's radius in metres, around the post.
+    facts.patrol = { value: def.staff.patrol, min: PATROL.min, max: PATROL.max };
+  }
   if (def.stall !== undefined) {
     facts.sold = { value: 0, min: 0, max: def.stall.stock };
     facts.sold_total = 0;
@@ -83,8 +88,18 @@ function kindOf(def: BuildableDef): WorldKindDecl {
     cost: { "park.cash": -def.cost },
     refund: 0.5,
     facts,
-    ...(rating === null ? {} : { when: { "park.peak": { atLeast: rating } } }),
+    ...(def.research === undefined ? {} : { when: { [researched(def.id)]: true }, refuse: `Research the ${def.label} in the lab first` }),
     ...(def.id === "ride_coaster" ? { limit: 1 } : {}),
+  };
+}
+
+/** How far a patrol area reaches, and the step the inspector widens or narrows it by. */
+export const PATROL = { min: 8, max: 40, step: 4 } as const;
+
+function staffActions(def: BuildableDef): Record<string, WorldActionDecl> {
+  return {
+    [`patrol_wider_${def.id}`]: { label: `Widen the ${def.label}'s patrol`, on: def.id, effect: { patrol: PATROL.step } },
+    [`patrol_narrower_${def.id}`]: { label: `Narrow the ${def.label}'s patrol`, on: def.id, effect: { patrol: -PATROL.step } },
   };
 }
 
@@ -99,6 +114,7 @@ function rideActions(def: BuildableDef): Record<string, WorldActionDecl> {
     when,
     whenTarget: { broken: true },
     cost: { "park.cash": -ride.breakdown.repairCost },
+    world: { "park.spent_today": ride.breakdown.repairCost },
     takes,
     queue: "crew",
     effect: { broken: false },
@@ -113,6 +129,7 @@ function rideActions(def: BuildableDef): Record<string, WorldActionDecl> {
       on: def.id,
       whenTarget: { broken: false },
       cost: { "park.cash": -ride.breakdown.serviceCost },
+      world: { "park.spent_today": ride.breakdown.serviceCost },
       note: "Serviced the {target}: its wear is cleared.",
     },
     [`price_up_${def.id}`]: { label: `Raise the ${def.label} ticket`, world: { [`price.${def.id}`]: 1 } },
@@ -123,6 +140,8 @@ function rideActions(def: BuildableDef): Record<string, WorldActionDecl> {
 function stallActions(def: BuildableDef): Record<string, WorldActionDecl> {
   const stall = def.stall!;
   return {
+    [`price_up_${def.id}`]: { label: `Raise the ${def.label} price`, world: { [`price.${def.id}`]: 1 } },
+    [`price_down_${def.id}`]: { label: `Lower the ${def.label} price`, world: { [`price.${def.id}`]: -1 } },
     // Scaled by what sold since the last restock: an untouched stall restocks for nothing.
     [`restock_${def.id}`]: {
       label: `Restock ${def.label}`,
@@ -140,43 +159,73 @@ const actions: Record<string, WorldActionDecl> = {
   ticket_up: { label: "Raise the entry ticket", world: { "park.ticket": 1 } },
   ticket_down: { label: "Lower the entry ticket", world: { "park.ticket": -1 } },
   take_loan: {
-    label: `Take a $${LOAN.principal.toLocaleString()} loan`,
-    when: { "park.loan_owed": { atMost: 0 } },
-    world: { "park.cash": LOAN.principal, "park.loan_owed": LOAN.payment * LOAN.nights },
-    note: `Loan taken: +$${LOAN.principal.toLocaleString()}, repaid $${LOAN.payment} a night for ${LOAN.nights} nights`,
+    label: `Borrow $${LOAN.step.toLocaleString()}`,
+    when: { "park.loan_owed": { atMost: LOAN.max - LOAN.step } },
+    refuse: `The bank won't lend more than $${LOAN.max.toLocaleString()}`,
+    world: { "park.cash": LOAN.step, "park.loan_owed": LOAN.step },
+    note: `Borrowed $${LOAN.step.toLocaleString()} from the bank`,
   },
   repay_loan: {
-    label: "Pay a loan instalment early",
-    when: { "park.loan_owed": { atLeast: 1 } },
-    cost: { "park.cash": -LOAN.payment },
-    world: { "park.loan_owed": -LOAN.payment },
-    note: `Paid $${LOAN.payment} off the loan`,
+    label: `Repay $${LOAN.step.toLocaleString()}`,
+    when: { "park.loan_owed": { atLeast: LOAN.step } },
+    refuse: "The park owes the bank nothing",
+    cost: { "park.cash": -LOAN.step },
+    world: { "park.loan_owed": -LOAN.step },
+    note: `Paid $${LOAN.step.toLocaleString()} back to the bank`,
   },
 };
+
+/**
+ * The lab: each topic is an action that costs its fee up front, waits its time in the `lab` queue
+ * and sets `research.<kind>`; the topic before it in its family must be done first.
+ */
+function researchAction(def: BuildableDef): WorldActionDecl {
+  const research = def.research!;
+  const after = research.after;
+  return {
+    label: `Research ${def.label}`,
+    when: { [researched(def.id)]: false, ...(after === undefined || BUILDABLES[after]?.research === undefined ? {} : { [researched(after)]: true }) },
+    refuse: after === undefined ? `${def.label} is already researched` : `Research the ${BUILDABLES[after]!.label} first`,
+    cost: { "park.cash": -research.cost },
+    takes: research.seconds,
+    queue: "lab",
+    world: { [researched(def.id)]: true, "park.spent_today": research.cost },
+    note: `Research complete: the ${def.label} can now be built`,
+  };
+}
 const totals: Record<string, WorldTotalDecl> = {
   // Across every kind by its category tag: the dashboard's counts.
   "park.rides": { of: "ride" },
-  "park.rides_open": { of: "ride", where: { broken: false } },
+  "park.rides_open": { of: "ride", where: { broken: false, closed: false } },
   "park.stalls": { of: "stall" },
 };
 const flows: Record<string, WorldFlowDecl> = {
   // Every guest drops a little litter; every janitor post sweeps it up.
-  litter: { to: "park.litter", from: "park.guests", rate: 0.01 },
+  litter: { to: "park.litter", from: "park.guests", rate: 0.006 },
   sweep: { to: "park.litter", from: "n.staff_janitor", rate: -(BUILDABLES.staff_janitor!.staff!.cleaning * 0.08) },
 };
-const prices: Record<string, WorldFactsDecl[string]> = {};
+// The ground's height levels, a digit a cell; and which version of the path rules the park was laid under.
+const prices: Record<string, WorldFactsDecl[string]> = { [LAND_FACT]: FLAT_LAND, "park.netv": 0 };
 
 for (const id of BUILD_IDS) {
   const def = BUILDABLES[id]!;
   kinds[id] = kindOf(def);
   totals[`n.${id}`] = { of: id };
-  // A broken ride draws no one: its appeal drops out of the park's until the crew is done.
-  totals[`appeal.${id}`] = { of: id, sum: "appeal", ...(ride(def) ? { where: { broken: false } } : {}) };
+  // A broken or shut ride draws no one: its appeal drops out of the park's until it runs again.
+  totals[`appeal.${id}`] = { of: id, sum: "appeal", ...(ride(def) ? { where: { broken: false, closed: false } } : def.stall !== undefined ? { where: { closed: false } } : {}) };
   if (def.ride !== undefined) {
     prices[`price.${id}`] = { value: def.ride.price, min: 0, max: 20 };
     Object.assign(actions, rideActions(def));
   }
-  if (def.stall !== undefined) Object.assign(actions, stallActions(def));
+  if (def.stall !== undefined) {
+    prices[`price.${id}`] = { value: def.stall.price, min: 0, max: 20 };
+    Object.assign(actions, stallActions(def));
+  }
+  if (def.staff !== undefined) Object.assign(actions, staffActions(def));
+  if (def.research !== undefined) {
+    prices[researched(id)] = false;
+    actions[`research_${id}`] = researchAction(def);
+  }
   if (def.upkeep > 0) {
     // Upkeep and wages run by the second through the day, and the day's bill keeps count.
     flows[`upkeep_${id}`] = { to: "park.cash", from: `n.${id}`, rate: -def.upkeep / DAY_LENGTH };
@@ -201,10 +250,12 @@ export const park = defineGameSpec({
           // What the crowd is saying right now: a breakdown sours it, it settles back on its own.
           buzz: calm(0, 0.5, { min: -40, max: 40 }),
           rating: 0,
-          // The best rating the park has reached: milestones open on it and never close again.
+          // The best rating the park has reached: each award is paid once, the first time it is crossed.
           peak: 0,
           litter: { value: 0, min: 0, max: 100 },
-          ticket: { value: 18, min: 4, max: 60 },
+          // Share of the crowd (0-1) whose latest thought is a complaint; the rating reads it.
+          complaints: 0,
+          ticket: { value: 8, min: 0, max: 40 },
           guests: { value: 0, min: 0 },
           guests_today: 0,
           revenue_today: 0,
@@ -214,11 +265,13 @@ export const park = defineGameSpec({
           breakdowns: 0,
           day: 1,
           open: false,
-          loan_owed: { value: 0, min: 0 },
+          loan_owed: { value: LOAN.start, min: 0 },
           bankrupt_days: 0,
           game_over: false,
           won: false,
           win_dismissed: false,
+          interest_paid: 0,
+          price_complaints: 0,
           scenario_visitors: 0,
           scenario_revenue: 0,
         },
@@ -230,7 +283,7 @@ export const park = defineGameSpec({
     actions,
     totals,
     flows,
-    queues: { crew: { lanes: 2 } },
+    queues: { crew: { lanes: 2 }, lab: { lanes: 1, capacity: 4 } },
     ripples: {
       // A guest through the turnstile; the ticket is paid with `pay`.
       admit: { world: { "park.guests": 1, "park.guests_today": 1, "park.scenario_visitors": 1 } },
@@ -239,11 +292,15 @@ export const park = defineGameSpec({
       leave: { world: { "park.guests": -1 } },
       breakdown: { world: { "park.buzz": -15, "park.breakdowns": 1 }, note: "A ride broke down - the crowd groans", hook: "dispatch_crew" },
       repaired: { world: { "park.buzz": 6 } },
-      loan_due: {
+      // Midnight's interest on the loan, scaled by what it comes to.
+      interest: {
         when: { "park.loan_owed": { atLeast: 1 } },
-        world: { "park.cash": -LOAN.payment, "park.loan_owed": -LOAN.payment, "park.spent_today": LOAN.payment },
-        note: `Loan instalment paid: $${LOAN.payment}`,
+        world: { "park.cash": -1, "park.spent_today": 1, "park.interest_paid": 1 },
       },
+      // A rating award, scaled by its prize.
+      award: { world: { "park.cash": 1 } },
+      // A guest who wanted something but wouldn't pay the price.
+      refused_price: { world: { "park.price_complaints": 1 } },
     },
     jobs,
   },
@@ -308,7 +365,56 @@ export function stockOf(w: WorldModel, obj: ParkObject): number {
 /** What the park sets for a ride's ticket. */
 export const ridePrice = (w: WorldModel, kind: string): number => w.num(`price.${kind}`);
 
+/** What the park charges for one item at a shop. */
+export const stallPrice = (w: WorldModel, kind: string): number => w.num(`price.${kind}`);
+
+/** A guest pays up to this much over what they think a thing is worth before refusing it. */
+export const PRICE_TOLERANCE = 1.25;
+
+/** What a guest thinks a ride is worth: its excitement, scenery charm included. */
+export function rideValue(excitement: number): number {
+  return Math.round((0.6 + excitement * 0.55) * 10) / 10;
+}
+
+/** Most a guest will pay for a ride or an item before saying it's too expensive. */
+export function fairPrice(w: WorldModel, obj: ParkObject, excitement: number): number {
+  if (obj.def.stall !== undefined) return obj.def.stall.value * PRICE_TOLERANCE;
+  return rideValue(excitement) * PRICE_TOLERANCE;
+}
+
+/**
+ * Scenery charms the rides in its reach: each ride's `theme` is the bonus of every scenery piece
+ * within that piece's radius (measured to the ride's edge), capped, and its appeal is its own plus
+ * that charm. Run after anything is built or removed.
+ */
+export function rethemeRides(ctx: GameContext): void {
+  const w = park.of(ctx);
+  const objects = parkObjects(ctx);
+  const scenery = objects.filter((obj) => obj.def.theme !== undefined);
+  for (const obj of objects) {
+    if (obj.def.ride === undefined) continue;
+    let theme = 0;
+    for (const deco of scenery) {
+      const reach = deco.def.theme!.radius + obj.def.footprint / 2;
+      if (Math.hypot(deco.x - obj.x, deco.z - obj.z) <= reach) theme += deco.def.theme!.bonus;
+    }
+    theme = Math.round(Math.min(THEME_CAP, theme) * 10) / 10;
+    if (w.num(`${obj.id}.theme`) !== theme) {
+      w.set(`${obj.id}.theme`, theme);
+      w.set(`${obj.id}.appeal`, Math.round((obj.def.appeal + theme) * 10) / 10);
+    }
+  }
+}
+
 /** The repair the park's crew runs on this ride now: quicker once a mechanic bay stands. */
+/** A staff post's patrol radius in metres. */
+export function patrolRadius(w: WorldModel, postId: string): number {
+  return w.num(`${postId}.patrol`);
+}
+
+/** Every placed ride. */
+export const rideObjects = (ctx: GameContext): readonly ParkObject[] => parkObjects(ctx).filter((obj) => obj.def.ride !== undefined);
+
 export const repairAction = (w: WorldModel, kind: string): string => (countOf(w, "staff_mechanic") > 0 ? `quickfix_${kind}` : `repair_${kind}`);
 
 /** The park as the dashboard and the rating read it: sums over every kind's totals. */

@@ -2,7 +2,8 @@
 
 The seaside fairground models, visitor figures, entrance sign and UI in this game
 are original artwork authored for Brightway Park. `scripts/author-models.mjs`
-reproduces the twenty-three GLB meshes in `public/art/models/` using native geometry.
+reproduces the eighty GLB meshes in `public/art/models/` (rides, moving ride parts, coaster track pieces,
+shops, facilities, scenery, paths and people) and `motion.json` using native geometry; the kit is in `scripts/models/`.
 No third-party models are embedded in those meshes.
 
 The existing published asset catalogs remain configured for editor compatibility.

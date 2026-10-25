@@ -4,6 +4,8 @@ import { game } from "../game.config";
 import { content } from "./content";
 import { DAY_LENGTH } from "./catalog";
 import { session } from "./session";
+import { BUILDABLES } from "./objects/catalog";
+import { MILESTONES } from "./milestones";
 import { park } from "./park";
 import { archiveSave, decodeSave, SAVE_KEY, snapshotPark, STORE_POLICY } from "./persistence";
 import { closeDay } from "./sim/economy";
@@ -37,14 +39,14 @@ describe("park saves and real command boundaries", () => {
     first.ui.invoke("pickCarousel");
     expect(session.selectedTool).toBeNull();
     first.ui.invoke("park.start");
-    // The drop tower opens at a 540 rating: the world refuses it as locked.
+    // The drop tower is a lab topic: the world refuses it as locked.
     first.ui.invoke("build.select", { id: "ride_dropzone" });
     expect(session.selectedTool).toBeNull();
     first.ui.invoke("pickCarousel");
     const w = park.of(first.ctx);
     const cash = w.num("park.cash");
     first.ui.invoke("park.pointer", { point: [-40, 0, -40], object: null, entity: null });
-    expect(w.num("park.cash")).toBe(cash - 850);
+    expect(w.num("park.cash")).toBe(cash - BUILDABLES.ride_carousel!.cost);
     const built = w.instances().at(-1)!;
     expect(built.kind).toBe("ride_carousel");
     // A second carousel on the same spot is refused: the cell is taken.
@@ -60,7 +62,7 @@ describe("park saves and real command boundaries", () => {
     expect(second.ctx.rng()).toBe(nextRandom);
     expect(session.started).toBe(false);
     expect(session.hasSave).toBe(true);
-    expect(v.num("park.ticket")).toBe(21);
+    expect(v.num("park.ticket")).toBe(11);
     expect(v.instance(built.id)).toEqual(built);
     expect(v.canPlace("deco_tree", { cell: built.cell! })?.reason).toBe("taken");
     expect(snapshotPark(second.ctx).guests).toEqual(saved.guests);
@@ -68,7 +70,7 @@ describe("park saves and real command boundaries", () => {
     expect(second.ctx.time.isPaused()).toBe(true);
     second.ui.invoke("park.start");
     second.ui.invoke("brightway.remove", { id: built.id });
-    expect(v.num("park.cash")).toBe(saved.world.facts["park.cash"] as number + 425);
+    expect(v.num("park.cash")).toBe(saved.world.facts["park.cash"] as number + BUILDABLES.ride_carousel!.cost / 2);
     expect(v.canPlace("deco_tree", { cell: built.cell! })?.reason).not.toBe("taken");
   });
 
@@ -121,20 +123,22 @@ describe("park saves and real command boundaries", () => {
     expect(decodeSave(records.get(SAVE_KEY)!)).not.toBeNull();
   });
 
-  test("a playable starter expansion earns the award; three debt settlements end play", () => {
+  test("a playable starter expansion climbs the rating; three debt settlements end play", () => {
     const live = runner();
     live.ui.invoke("park.start");
     live.ui.invoke("pickCarousel");
     live.ui.invoke("park.pointer", { point: [-40, 0, -40], object: null, entity: null });
+    // A new ride opens once its entrance, queue, exit and paths join it to the park.
+    live.ui.invoke("build.connect", { id: park.of(live.ctx).instances("ride_carousel").at(-1)!.id });
     live.ui.invoke("build.clear");
     live.ui.invoke("build.select", { id: "staff_janitor" });
     live.ui.invoke("park.pointer", { point: [-36, 0, -28], object: null, entity: null });
     // Advance a finite season through the actual loop, without forcing award stats.
     for (let frame = 0; frame < 450; frame++) live.step(1);
     const w = park.of(live.ctx);
-    expect(w.fact("park.won")).toBe(true);
-    expect(live.ctx.time.isPaused()).toBe(true);
-    live.ui.invoke("park.continue");
+    // The first award is a goal for real building, not for one carousel: the climb is what shows here.
+    expect(w.num("park.peak")).toBeGreaterThan(180);
+    expect(w.num("park.peak")).toBeLessThan(MILESTONES[0]!.rating);
     w.change({ "park.cash": -100_000 - w.num("park.cash") });
     for (let day = 0; day < 3; day++) closeDay(live.ctx);
     expect(w.fact("park.game_over")).toBe(true);
@@ -142,5 +146,6 @@ describe("park saves and real command boundaries", () => {
     live.ui.invoke("pickCarousel");
     // The janitor was placed once, so placement ended; the refused pick did not start a new one.
     expect(session.selectedTool).toBeNull();
-  });
+  // Several simulated days of a full park: about 4 s locally, more on a CI runner.
+  }, 30_000);
 });

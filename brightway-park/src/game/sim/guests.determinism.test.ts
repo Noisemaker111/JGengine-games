@@ -47,8 +47,8 @@ describe("guest generation is reproducible (#1581)", () => {
 
   test("generated needs stay inside their authored ranges", () => {
     for (const guest of seedInto("park-seed-3")) {
-      expect(guest.money).toBeGreaterThanOrEqual(30_000);
-      expect(guest.money).toBeLessThanOrEqual(80_000);
+      expect(guest.money).toBeGreaterThanOrEqual(20_000);
+      expect(guest.money).toBeLessThanOrEqual(60_000);
       for (const [need, value] of Object.entries(guest.needs)) {
         expect(value).toBeGreaterThanOrEqual(0);
         expect(value).toBeLessThanOrEqual(100_000);

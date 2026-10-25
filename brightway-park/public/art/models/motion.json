@@ -60,7 +60,7 @@
       0
     ],
     "speed": 0.12,
-    "amplitude": 0.7
+    "amplitude": 0.75
   },
   "ride_topspin": {
     "model": "ride_topspin_motion",

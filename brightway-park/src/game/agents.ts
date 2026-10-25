@@ -13,7 +13,7 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { guestRidePreference } from "./sim/rideExperience";
 import { rideView } from "./rides";
-import { park, parkObjects, ridePrice, stockOf, type ParkObject } from "./park";
+import { park, parkObjects, ridePrice, stallPrice, stockOf, type ParkObject } from "./park";
 import { session, type GuestState, type StaffState } from "./session";
 
 /**
@@ -26,6 +26,12 @@ export const GUEST_NEEDS: readonly NeedDefinition[] = [
   { id: "fun", max: 100, min: 0, rate: 0.45, start: 70 },
   { id: "souvenir", max: 100, min: 0, rate: 0.05, start: 90 },
   { id: "energy", max: 100, min: 0, rate: 0.08, start: 88 },
+  // Eating and drinking empty this one faster; toilets fill it back.
+  { id: "toilet", max: 100, min: 0, rate: 0.12, start: 90 },
+  // Knowing the way: drains as a guest wanders a big park; a map from the information kiosk fills it.
+  { id: "info", max: 100, min: 0, rate: 0.04, start: 95 },
+  // A settled stomach: wild rides knock it down, it settles back on its own, first aid fixes it.
+  { id: "nausea", max: 100, min: 0, rate: -0.15, start: 100 },
 ];
 
 /**
@@ -45,6 +51,9 @@ export const GUEST_OPTIONS = [
   // A ride is the park's headline: a bored guest should want it more than a stroll.
   { id: "ride", base: 0.55, terms: [needTerm("fun", 1)] },
   { id: "energy", base: 0.05, terms: [needTerm("energy")] },
+  { id: "toilet", terms: [needTerm("toilet", 1.3)] },
+  { id: "info", base: 0.02, terms: [needTerm("info", 0.7)] },
+  { id: "nausea", terms: [needTerm("nausea", 1.2)] },
   { id: "wander", base: 0.15 },
 ];
 
@@ -105,6 +114,9 @@ export function createGuestAgent(
           { need: "fun", weight: 2.5 },
           { need: "souvenir", weight: 0.4 },
           { need: "energy", weight: 0.6 },
+          { need: "toilet", weight: 1.4 },
+          { need: "info", weight: 0.6 },
+          { need: "nausea", weight: 1.4 },
         ],
       },
       switchMargin: 0.08,
@@ -148,13 +160,16 @@ export function guestTargets(
   const w = park.of(ctx);
   for (const obj of parkObjects(ctx)) {
     const def = obj.def;
+    // Nobody heads for a ride or shop the paths don't reach.
+    if (w.fact(`${obj.id}.closed`) === true) continue;
     const distance = Math.hypot(obj.x - at[0], obj.z - at[2]);
     if (def.stall !== undefined) {
-      if (stockOf(w, obj) <= 0 || guest.money < def.stall.price) continue;
+      const price = stallPrice(w, obj.kind);
+      if (stockOf(w, obj) <= 0 || guest.money < price) continue;
       targets.push({
         option: def.stall.need,
         target: obj.id,
-        cost: distance * WALK_COST + (session.occupants.get(obj.id) ?? 0) * QUEUE_COST,
+        cost: distance * WALK_COST + (session.occupants.get(obj.id) ?? 0) * QUEUE_COST + price * PRICE_COST,
         fallback: MIDWAY,
       });
       continue;
@@ -175,6 +190,8 @@ export function guestTargets(
       fallback: MIDWAY,
     });
   }
+  // The shared agent takes the first target of the option its brain picks, so the cheapest goes first.
+  targets.sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0));
   targets.push(MIDWAY);
   return targets;
 }
@@ -212,18 +229,21 @@ export function gatePoint(): readonly [number, number, number] {
 }
 
 const STAFF_BEAT_RADIUS = 6;
+/** The lot's walkable half-width: a beat point never leaves the fence. */
+const BEAT_LIMIT = 56;
 const STAFF_BEAT_STEPS = 8;
 const STAFF_POST_SECONDS = 6;
 
 /** The ring a janitor walks around its post - authored by the post, not by a route file. */
-export function staffBeat(post: ParkObject): { place: string; x: number; z: number }[] {
+export function staffBeat(post: ParkObject, radius = STAFF_BEAT_RADIUS): { place: string; x: number; z: number }[] {
   const points: { place: string; x: number; z: number }[] = [];
   for (let i = 0; i < STAFF_BEAT_STEPS; i += 1) {
     const angle = (i / STAFF_BEAT_STEPS) * Math.PI * 2;
     points.push({
       place: `${post.id}:${i}`,
-      x: post.x + Math.cos(angle) * STAFF_BEAT_RADIUS,
-      z: post.z + Math.sin(angle) * STAFF_BEAT_RADIUS,
+      // Alternate an outer and an inner ring so the whole patrol area gets walked.
+      x: Math.max(-BEAT_LIMIT, Math.min(BEAT_LIMIT, post.x + Math.cos(angle) * radius * (i % 2 === 0 ? 0.8 : 0.4))),
+      z: Math.max(-BEAT_LIMIT, Math.min(BEAT_LIMIT, post.z + Math.sin(angle) * radius * (i % 2 === 0 ? 0.8 : 0.4))),
     });
   }
   return points;

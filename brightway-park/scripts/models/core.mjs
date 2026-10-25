@@ -15,6 +15,8 @@ export const P = {
 export const Y = new T.Vector3(0, 1, 0);
 export const V = (x = 0, y = 0, z = 0) => new T.Vector3(x, y, z);
 export const smooth = s => s * s * (3 - 2 * s);
+// Sideways offset through a loop: zero (with zero slope) at entry and exit, opposite signs where the track crosses itself.
+export const loopShift = th => -(1 - Math.cos(th)) / 2 * (th / Math.PI - 1);
 
 // ---- materials ----------------------------------------------------------
 const materials = new Map();
@@ -289,7 +291,7 @@ export class Turtle {
     const n = Math.ceil(Math.PI * 2 * R * 1.2 / this.step);
     for (let i = 1; i <= n; i++) {
       const th = i / n * Math.PI * 2, along = c * th + a * Math.sin(th), y = R * (1 - Math.cos(th));
-      this.pts.push(s0.clone().addScaledVector(d, along).addScaledVector(S, lat * Math.sin(th)).add(V(0, y, 0)));
+      this.pts.push(s0.clone().addScaledVector(d, along).addScaledVector(S, lat * 3.7 * loopShift(th)).add(V(0, y, 0)));
       this.ups.push(d.clone().multiplyScalar(-R * Math.sin(th)).add(V(0, c + a * Math.cos(th), 0)).normalize());
     }
     this.p = this.pts.at(-1).clone(); return this;
