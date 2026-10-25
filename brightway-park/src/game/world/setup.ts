@@ -19,7 +19,12 @@ export { seedPlacements, type SeedPlacement } from "../parkReset";
 export function setupWorld(ctx: GameContext): void {
   resetPark(ctx, { seed: false });
   registerBuildCommands(ctx);
-  if (!restorePark(ctx)) resetPark(ctx);
+  if (!restorePark(ctx)) {
+    // No save, or one from an older build: a new park, keeping the line that says why.
+    const status = session.saveStatus;
+    resetPark(ctx);
+    session.saveStatus = status;
+  }
   ctx.time.pause();
   if (typeof localStorage !== "undefined") {
     try { ctx.game.store.set("park.reduced-motion",localStorage.getItem("brightway-park.reduced-motion")==="true"); } catch { /* Browser storage may be disabled. */ }

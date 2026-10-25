@@ -9,13 +9,15 @@ with `bun run dev:beacon-bastion` from the repository root.
 Read from `src/game/{waves,entities,combat,build,world}`. Every number below is what the build does now.
 
 - **Core loop.** 150 starting gold buys an Archer Post (50), a Frost Spire (70) or a Cannon Redoubt
-  (90) onto one of nine plots. You press **Send wave** yourself; raiders walk the one authored path and
+  (90, which takes 4 s to rise) onto one of nine plots. The keep, its plots, towers, purse and walls
+  are one engine world spec (`src/game/keep.ts`), shared by every player in co-op. You press **Send wave** yourself; raiders walk the one authored path and
   leak 1 life each (2 for a Brute) into the 20-life keep. A kill pays the raider's weight times the wave
   curve (Scout 4 to the Warlord's 140 at wave 1); releasing a wave with raiders still alive pays 2 gold
   per survivor, capped at 20.
 - **Progression — four systems.**
-  - [x] Tower tiers 1–3. An upgrade costs 75% of base cost × current level (Archer 38 then 75 gold) and
-    adds 50% damage, 0.5 range and 15% fire rate per step; selling returns 70% of everything spent.
+  - [x] Tower tiers 1–3. An upgrade costs 75% of base cost × current level (Archer 38 then 76 gold) and
+    adds 50% damage, 0.5 range and 15% fire rate per step; selling returns 70% of the build price per
+    level reached (Archer 35 / 70 / 105).
   - [x] Purse. Bounties plus the overlap bonus are the only income, so a leak costs gold as well as a
     life. There is no passive trickle.
   - [x] Bounty ladder. Kill pay is the raider's weight × `1 + 0.25 × (wave − 1)`, capped at ×4, so the

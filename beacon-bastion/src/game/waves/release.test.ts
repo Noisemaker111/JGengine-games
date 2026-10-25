@@ -4,9 +4,10 @@ import { gamePhase } from "@jgengine/core/game/gamePhase";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 import { expandWave } from "@jgengine/core/ai/director/encounter";
 import { content } from "../content";
-import { BASE_CATALOG_ID, BASE_ENTITY_ID, GOLD_CURRENCY, STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
+import { BASE_ENTITY_ID, STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
 import { resetSession, session } from "../session";
 import { setupWorld } from "../world/setup";
+import { keep } from "../keep";
 import { readPressure, tickWaves, waveOverlapBonus } from "./director";
 import { legacy, openingGold, openingLives } from "./legacy";
 import { DIRECTOR_SEED, AUTHORED_WAVES, ENCOUNTER, PRESSURE_RULE, TOTAL_WAVES, WARDEN_ID, bossProfile } from "./manifest";
@@ -14,7 +15,7 @@ import { DIRECTOR_SEED, AUTHORED_WAVES, ENCOUNTER, PRESSURE_RULE, TOTAL_WAVES, W
 const wardenProfile = bossProfile(WARDEN_ID)!;
 
 let runner: HeadlessRunner;
-const gold = () => runner.ctx.game.economy.balance(runner.ctx.player.userId, GOLD_CURRENCY);
+const gold = () => keep.of(runner.ctx).num("keep.gold");
 beforeEach(() => {
   resetSession();
   runner = createHeadlessRunner({ definition: defineGameDefinition({ name: "Beacon release", multiplayer: "off" }), content, loop: { onInit: setupWorld, onNewPlayer() {} } });
@@ -25,13 +26,13 @@ const waveDuration = (index: number) => ENCOUNTER.waves[index]!.durationSeconds 
 function finishRelease(wave = 0): void {
   runner.ui.invoke("wave.send", {});
   for (let elapsed = 0; elapsed < waveDuration(wave); elapsed += 0.5) tickWaves(runner.ctx, 0.5);
-  expect(session.waveReady).toBe(true);
+  expect((keep.of(runner.ctx).fact("keep.wave_ready") === true)).toBe(true);
 }
 
 /** Reach the Warden's authored wave without playing five releases. */
 function reachWarden(): void {
   session.encounter.openWave(AUTHORED_WAVES.length - 1, session.pressure);
-  session.waveReady = false;
+  keep.of(runner.ctx).set("keep.wave_ready", false);
   tickWaves(runner.ctx, 10.5);
 }
 
@@ -61,19 +62,19 @@ describe("player released assaults", () => {
 
   test("overlapping a live assault pays a bounded bounty once, waiting for clearance pays none", () => {
     finishRelease();
-    const bonus = waveOverlapBonus();
+    const bonus = waveOverlapBonus(runner.ctx);
     expect(bonus).toBeGreaterThan(0);
     expect(bonus).toBeLessThanOrEqual(20);
     const before = gold();
     runner.ui.invoke("wave.send", {});
     expect(session.encounter.view().wave).toBe(2);
     expect(gold()).toBe(before + bonus);
-    session.waveReady = true;
+    keep.of(runner.ctx).set("keep.wave_ready", true);
     for (const id of session.creeps.keys()) runner.ctx.scene.entity.despawn(id);
     session.creeps.clear();
     const cleared = gold();
     runner.ui.invoke("wave.send", {});
-    expect(session.lastWaveBonus).toBe(0);
+    expect(keep.of(runner.ctx).num("keep.last_bonus")).toBe(0);
     expect(gold()).toBe(cleared);
   });
 
@@ -89,33 +90,33 @@ describe("player released assaults", () => {
       }
     }
     tickWaves(runner.ctx, 0.1);
-    expect(session.victory).toBe(true);
+    expect((keep.of(runner.ctx).fact("keep.held") === true)).toBe(true);
     expect(gamePhase(runner.ctx)).toBe("ended");
     const banked = legacy.read(runner.ctx);
     expect(banked.run.completed).toBe(1);
     expect(banked.bankedGold).toBeGreaterThan(0);
     expect(banked.offer).toHaveLength(3);
     runner.ui.invoke("defense.restart", {});
-    expect(session.victory).toBe(false);
+    expect((keep.of(runner.ctx).fact("keep.held") === true)).toBe(false);
     expect(session.encounter.view().done).toBe(false);
-    expect(session.waveReady).toBe(true);
+    expect((keep.of(runner.ctx).fact("keep.wave_ready") === true)).toBe(true);
     // The next defense opens on the bank the last one left, not the flat starting purse.
     expect(gold()).toBe(openingGold(banked));
     expect(gold()).toBeGreaterThan(STARTING_GOLD);
   });
 
   test("defeat retry restores lives, purse and preparation, without duplicating kill rewards", () => {
-    runner.ctx.game.economy.charge(runner.ctx.player.userId, GOLD_CURRENCY, 30);
-    runner.ctx.game.events.emit("entity.died", { instanceId: BASE_ENTITY_ID, catalogId: BASE_CATALOG_ID, reason: { kind: "environment", source: "test" }, position: [0, 0, 0] });
+    keep.of(runner.ctx).change({ "keep.gold": -30 });
+    keep.emit(runner.ctx, { kind: "leak", scale: keep.of(runner.ctx).num("keep.lives") });
     expect(gamePhase(runner.ctx)).toBe("ended");
     runner.ui.invoke("defense.restart", {});
     expect(gamePhase(runner.ctx)).toBe("playing");
-    expect(session.waveReady).toBe(true);
-    expect(session.gameOver).toBe(false);
+    expect((keep.of(runner.ctx).fact("keep.wave_ready") === true)).toBe(true);
+    expect((keep.of(runner.ctx).fact("keep.fallen") === true)).toBe(false);
     expect(session.encounter.view().wave).toBe(1);
     expect(gold()).toBe(openingGold(legacy.read(runner.ctx)));
-    expect(runner.ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current).toBe(openingLives(legacy.read(runner.ctx)));
-    expect(runner.ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives")?.current).toBeGreaterThanOrEqual(STARTING_LIVES);
+    expect(keep.of(runner.ctx).num("keep.lives")).toBe(openingLives(legacy.read(runner.ctx)));
+    expect(keep.of(runner.ctx).num("keep.lives")).toBeGreaterThanOrEqual(STARTING_LIVES);
     const before = gold();
     runner.ctx.game.events.emit("entity.died", { instanceId: "one-scout", catalogId: "raider_scout", reason: { kind: "environment", source: "test" }, position: [0, 0, 0] });
     expect(gold() - before).toBe(4);
@@ -139,7 +140,7 @@ describe("authored encounters on the field", () => {
     expect(PRESSURE_RULE.maxTier).toBe(2);
     session.encounter.openWave(TOTAL_WAVES - 1);
     const full = readPressure(runner.ctx);
-    runner.ctx.scene.entity.stats.set(BASE_ENTITY_ID, "lives", { current: 2, max: STARTING_LIVES, min: 0 });
+    keep.of(runner.ctx).set("keep.lives", 2);
     const hurt = readPressure(runner.ctx);
     expect(full.tier).toBeGreaterThan(0);
     expect(hurt.tier).toBeLessThan(full.tier);

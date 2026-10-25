@@ -3,15 +3,15 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createHeadlessRunner, type HeadlessRunner } from "@jgengine/core/runtime/headlessRunner";
 
 import { content } from "../content";
-import { GOLD_CURRENCY } from "../entities/base/catalog";
 import { CREEP_CATALOG } from "../entities/enemies/catalog";
 import { resetSession, session } from "../session";
 import { setupWorld } from "../world/setup";
+import { keep } from "../keep";
 import { BOUNTY_RULE, bountyReadout, bountyScale, killBounty } from "./bounty";
 import { carriedRelic, chooseRelic, drawRelics, freshLegacy, legacy, writeLegacy, type LegacyState } from "./legacy";
 
 let runner: HeadlessRunner;
-const gold = () => runner.ctx.game.economy.balance(runner.ctx.player.userId, GOLD_CURRENCY);
+const gold = () => keep.of(runner.ctx).num("keep.gold");
 beforeEach(() => {
   resetSession();
   runner = createHeadlessRunner({
@@ -65,7 +65,7 @@ describe("the bounty on the live field", () => {
     });
     const firstPay = gold() - opening;
     expect(firstPay).toBe(4);
-    expect(session.bountyEarned).toBe(firstPay);
+    expect(keep.of(runner.ctx).num("keep.bounty_earned")).toBe(firstPay);
 
     for (let wave = 0; wave < 5; wave += 1) {
       session.encounter.openWave();
@@ -82,7 +82,7 @@ describe("the bounty on the live field", () => {
     const latePay = gold() - later;
     expect(latePay).toBeGreaterThan(firstPay);
     expect(latePay).toBe(killBounty("raider_scout", 6));
-    expect(session.bountyEarned).toBe(firstPay + latePay);
+    expect(keep.of(runner.ctx).num("keep.bounty_earned")).toBe(firstPay + latePay);
   });
 
   test("a carried relic raises the pay without changing the wave curve", () => {

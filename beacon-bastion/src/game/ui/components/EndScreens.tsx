@@ -1,8 +1,8 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { ResultsScreen } from "@/components/ui/results-screen";
 
-import { GOLD_CURRENCY } from "../../entities/base/catalog";
-import { currentWaveNumber, session } from "../../session";
+import { keep } from "../../keep";
+import { currentWaveNumber } from "../../session";
 import { bountyReadout } from "../../waves/bounty";
 import { boonDef, carriedRelic, legacy, relicBountyScale } from "../../waves/legacy";
 import { TOTAL_WAVES } from "../../waves/manifest";
@@ -13,14 +13,15 @@ import { TOTAL_WAVES } from "../../waves/manifest";
  */
 export function EndScreens() {
   const { commands } = useGame();
-  const gameOver = useGameStore(() => session.gameOver);
-  const victory = useGameStore(() => session.victory);
+  const gameOver = useGameStore((ctx) => keep.of(ctx).fact("keep.fallen") === true);
+  const victory = useGameStore((ctx) => keep.of(ctx).fact("keep.held") === true);
+  const bountyEarned = useGameStore((ctx) => keep.of(ctx).num("keep.bounty_earned"));
   const account = useGameStore((ctx) => legacy.read(ctx));
 
   if (!gameOver && !victory) return null;
 
   const wave = Math.max(1, Math.min(TOTAL_WAVES, currentWaveNumber()));
-  const readout = bountyReadout(wave, session.bountyEarned, relicBountyScale(account));
+  const readout = bountyReadout(wave, bountyEarned, relicBountyScale(account));
   const relic = carriedRelic(account);
   const entries = [
     ...account.offer.map((id) => {

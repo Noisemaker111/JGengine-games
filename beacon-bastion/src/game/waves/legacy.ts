@@ -5,8 +5,9 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { seededRng } from "@jgengine/shell/gameKit";
 
-import { GOLD_CURRENCY, STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
-import { currentWaveNumber, session } from "../session";
+import { STARTING_GOLD, STARTING_LIVES } from "../entities/base/catalog";
+import { keep } from "../keep";
+import { currentWaveNumber } from "../session";
 import { DIRECTOR_SEED, TOTAL_WAVES } from "./manifest";
 
 export interface BoonEffect {
@@ -117,15 +118,16 @@ export function drawRelics(seed: string, count: number = BANK_RULE.offerCount): 
 /**
  * Bank a finished defense: the engine loop prices what the purse banks and draws the change the next
  * defense opens with, while the keep adds the waves it held, caps what its vault holds, and deals the
- * three relics the player picks from. Guarded by `session.banked`, so a win and a death in the same
+ * three relics the player picks from. Guarded by the keep's `banked` fact, so a win and a death in the same
  * frame bank once.
  */
 export function finishRun(ctx: GameContext): void {
-  if (session.banked) return;
-  session.banked = true;
+  const world = keep.of(ctx);
+  if (world.fact("keep.banked") === true) return;
+  world.set("keep.banked", true);
   const loop = relicLoop(ctx);
   const wave = Math.max(1, Math.min(TOTAL_WAVES, currentWaveNumber()));
-  loop.carry(ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
+  loop.carry(world.num("keep.gold"));
   const settlement = loop.settle("banked", BANK_RULE.share);
   const previous = legacy.read(ctx);
   legacy.write(ctx, {

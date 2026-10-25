@@ -1,6 +1,11 @@
 import { createSaveSlots } from "@jgengine/core/game/saveSlots";
 import { formatSavePlaytime } from "@jgengine/core/game/saveSlotIndex";
-import { decodeSave, SAVE_KEY } from "./persistence";
+import { decodeSave, SAVE_KEY, type ParkSave } from "./persistence";
+
+const num = (save: ParkSave, key: string): number => {
+  const value = save.world.facts[key];
+  return typeof value === "number" ? value : 0;
+};
 import { parkProfile } from "./parkProfile";
 
 export { bindParkCapture, captureParkThumb, parkProfile } from "./parkProfile";
@@ -31,9 +36,9 @@ export function refreshParkSlot(): void {
     name: save.parkName ?? "Brightway Park",
     savedAt: Date.now(),
     meta: {
-      day: save.stats.day,
-      guests: Math.round(save.stats.guestsToday),
-      cash: `$${Math.round(save.stats.cash).toLocaleString()}`,
+      day: num(save, "park.day"),
+      guests: Math.round(num(save, "park.guests_today")),
+      cash: `$${Math.round(num(save, "park.cash")).toLocaleString()}`,
       playtime: formatSavePlaytime(playtime),
       ...(typeof save.thumbnail === "string" && save.thumbnail.length > 0 ? { thumbnail: save.thumbnail } : {}),
     },

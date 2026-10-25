@@ -1,15 +1,11 @@
 import { useGame, useGameStore } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { actionLabel } from "@jgengine/core/input/actionBindings";
-import { HudLabel } from "@/components/ui/hud-label";
 import { KeybindBadge } from "@/components/ui/keybind-badge";
 import { HudButton } from "@jgengine/react/hudButton";
 import { HudSurface } from "@jgengine/react/hudSurface";
 
-import { GOLD_CURRENCY } from "../../entities/base/catalog";
-import { editorLayers } from "../../../editorLayers";
-import { towerDef } from "../../entities/towers/catalog";
-import { MAX_TOWER_LEVEL, sellValue, towerStats, upgradeCost } from "../../entities/towers/progression";
+import { goldCost, keep, MAX_TOWER_LEVEL, sellAction, sellValue, towerStats, upgradeAction } from "../../keep";
 import { keybinds } from "../../keybinds";
 import { session } from "../../session";
 
@@ -19,28 +15,54 @@ const statStyle = {
   color: "var(--jg-text-dim)",
 } as const;
 
+/**
+ * The inspected tower, read from the keep's world: its level and numbers are facts the upgrade wrote,
+ * and its buttons run the declared upgrade and sale (or cancel a build still rising).
+ */
 export function TowerPanel() {
   const { commands } = useGame();
   const gameCtx = useGameContext();
-  const gold = useGameStore((ctx) => ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY));
   const inspectedId = useGameStore(() => session.inspectedTowerId);
-  const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
-  const tower = inspectedId === null ? undefined : session.towers.get(inspectedId);
-  if (tower === undefined || level === 0) return null;
+  const view = useGameStore((ctx) => {
+    if (inspectedId === null) return null;
+    const world = keep.of(ctx);
+    const tower = world.instance(inspectedId);
+    if (tower === null) return null;
+    const order = world.orders("build").find((entry) => entry.target === tower.id);
+    const upgrade = upgradeAction(tower.kind);
+    return {
+      tower,
+      stats: towerStats(world, tower.id),
+      progress: order?.progress ?? 1,
+      upgradeCost: goldCost(world, upgrade, tower.id),
+      upgradeRefusal: world.canAct(upgrade, tower.id),
+      refund: sellValue(world, tower.id, tower.kind),
+    };
+  });
+  if (inspectedId === null || view === null) return null;
+  const { tower, stats } = view;
 
-  const def = towerDef(tower.catalogId, editorLayers);
-  const stats = towerStats(def, tower.level);
-  const cost = upgradeCost(def, tower.level);
-  const refund = sellValue(def, tower.level);
-  const canUpgrade = cost !== null && gold >= cost;
+  if (!tower.ready) {
+    return (
+      <HudSurface data-jg="tower-panel" title={tower.label} padding="10px 12px" style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 200 }}>
+        <span style={statStyle}>{`Raising · ${Math.round(view.progress * 100)}%`}</span>
+        <HudButton size="sm" variant="ghost" onClick={() => commands.run("beacon.remove", { id: tower.id })}>
+          Cancel build
+        </HudButton>
+      </HudSurface>
+    );
+  }
+
+  const atCap = stats.level >= MAX_TOWER_LEVEL;
+  const canUpgrade = view.upgradeRefusal === null;
   const upgradeKey = actionLabel(keybinds, "upgradeTower");
   const sellKey = actionLabel(keybinds, "sellTower");
 
   return (
     <HudSurface
       data-jg="tower-panel"
-      title={def.label}
-      aside={<span style={{ ...statStyle, color: "var(--jg-accent)" }}>Level {tower.level} / {MAX_TOWER_LEVEL}</span>}
+      title={tower.label}
+      aside={<span style={{ ...statStyle, color: "var(--jg-accent)" }}>Level {stats.level} / {MAX_TOWER_LEVEL}</span>}
       padding="10px 12px"
       style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 200 }}
     >
@@ -57,15 +79,16 @@ export function TowerPanel() {
           aria-disabled={!canUpgrade}
           cue={canUpgrade ? "confirm" : undefined}
           onClick={() => {
-            if (canUpgrade) commands.run("upgradeTower", { instanceId: tower.instanceId });
-            else gameCtx.game.audio.play("denied");
+            // A refused upgrade still runs the command, so its "needs N more gold" reaches the notice feed.
+            if (atCap) gameCtx.game.audio.play("denied");
+            else commands.run("beacon.act", { action: upgradeAction(tower.kind), target: tower.id });
           }}
         >
-          {cost === null ? "Max level" : `Upgrade ${cost}g`}
-          {cost === null || upgradeKey === null ? null : <KeybindBadge label={upgradeKey} size="sm" />}
+          {atCap ? "Max level" : `Upgrade ${view.upgradeCost}g`}
+          {atCap || upgradeKey === null ? null : <KeybindBadge label={upgradeKey} size="sm" />}
         </HudButton>
-        <HudButton size="sm" variant="danger" onClick={() => commands.run("sellTower", { instanceId: tower.instanceId })}>
-          {`Sell ${refund}g`}
+        <HudButton size="sm" variant="danger" onClick={() => commands.run("beacon.act", { action: sellAction(tower.kind), target: tower.id })}>
+          {`Sell ${view.refund}g`}
           {sellKey === null ? null : <KeybindBadge label={sellKey} size="sm" />}
         </HudButton>
       </div>

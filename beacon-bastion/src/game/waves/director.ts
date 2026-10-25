@@ -5,7 +5,6 @@ import { advanceBoss, createBossState } from "@jgengine/core/ai/director/boss";
 import { evaluatePressure, type PressurePlan } from "@jgengine/core/ai/director/pressure";
 import { advancePathFollow, createPathFollow } from "@jgengine/core/nav/pathFollow";
 
-import { BASE_ENTITY_ID, GOLD_CURRENCY } from "../entities/base/catalog";
 import { creepDef } from "../entities/enemies/catalog";
 import { gameClockMs, session, nextCreepInstanceId, newSpeedStats } from "../session";
 import {
@@ -15,19 +14,21 @@ import {
 } from "./manifest";
 import { KEEP_POINT, PATH_WAYPOINTS } from "../world/path";
 import { finishRun } from "./legacy";
+import { keep, runEnded } from "../keep";
 
-const LEAK_EFFECT = "leak";
-
-export function waveOverlapBonus(): number {
+/** Gold an early release pays: 2 per raider still on the road, capped at 20. */
+export function waveOverlapBonus(ctx: GameContext): number {
+  const world = keep.of(ctx);
   const done = session.encounter.view().done;
-  return session.waveStarted && session.waveReady && !done
+  return world.fact("keep.wave_started") === true && world.fact("keep.wave_ready") === true && !done
     ? Math.min(20, session.creeps.size * 2) : 0;
 }
 
 /** What the director sees about the player right now: keep health, waves cleared, time on the clock. */
 export function readPressure(ctx: GameContext): PressurePlan {
-  const lives = ctx.scene.entity.stats.get(BASE_ENTITY_ID, "lives");
-  const health = lives === null || lives.max <= 0 ? 1 : Math.max(0, lives.current) / lives.max;
+  const world = keep.of(ctx);
+  const max = world.num("keep.lives_max");
+  const health = max <= 0 ? 1 : Math.max(0, world.num("keep.lives")) / max;
   const cleared = Math.max(0, session.encounter.view().wave - 1);
   return evaluatePressure(
     { health, progress: cleared / TOTAL_WAVES, elapsed: ctx.time.now() },
@@ -35,26 +36,32 @@ export function readPressure(ctx: GameContext): PressurePlan {
   );
 }
 
+/** Whether the player may release the next wave right now. */
+export function canSendWave(ctx: GameContext): boolean {
+  const world = keep.of(ctx);
+  return world.fact("keep.wave_ready") === true && !runEnded(world) && !session.encounter.view().done;
+}
+
 export function sendWave(ctx: GameContext): void {
-  const view = session.encounter.view();
-  if (!session.waveReady || session.gameOver || session.victory || view.done) return;
-  const bonus = waveOverlapBonus();
-  if (session.waveStarted) session.encounter.completeWave();
+  if (!canSendWave(ctx)) return;
+  const world = keep.of(ctx);
+  const bonus = waveOverlapBonus(ctx);
+  if (world.fact("keep.wave_started") === true) session.encounter.completeWave();
   session.pressure = readPressure(ctx);
   session.openingComposition = session.encounter
     .openWave(undefined, session.pressure)
     .map((order) => order.unit);
-  session.waveStarted = true;
-  session.waveReady = false;
-  session.lastWaveBonus = bonus;
-  if (bonus > 0) ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, bonus);
+  world.set("keep.wave_started", true);
+  world.set("keep.wave_ready", false);
+  world.set("keep.wave", session.encounter.view().wave);
+  world.set("keep.last_bonus", bonus);
+  if (bonus > 0) keep.emit(ctx, { kind: "overlap_bonus", scale: bonus });
   ctx.game.audio.play("wave");
 }
 
 export function registerWaveCommands(ctx: GameContext): void {
   ctx.game.commands.define("wave.send", {
-    validate: () => session.waveReady && !session.encounter.view().done && !session.gameOver && !session.victory
-      ? null : { reason: "wave-not-ready" },
+    validate: (state) => (canSendWave(state) ? null : { reason: "wave-not-ready" }),
     apply: state => { sendWave(state); return state; },
   });
 }
@@ -82,13 +89,8 @@ function spawnCreep(ctx: GameContext, order: EncounterOrder): void {
 }
 
 function leakCreep(ctx: GameContext, instanceId: string, catalogId: string): void {
-  const def = creepDef(catalogId);
-  ctx.scene.entity.effect({
-    from: instanceId,
-    to: BASE_ENTITY_ID,
-    effect: LEAK_EFFECT,
-    via: { amount: def.leak },
-  });
+  // A leak is a world ripple: the keep loses the raider's leak in lives, and its hook ends a fallen run.
+  keep.emit(ctx, { kind: "leak", scale: creepDef(catalogId).leak });
   ctx.scene.entity.despawn(instanceId);
   session.creeps.delete(instanceId);
   if (session.boss?.instanceId === instanceId) session.boss = null;
@@ -123,13 +125,14 @@ function tickBoss(ctx: GameContext, dt: number): void {
 }
 
 export function tickWaves(ctx: GameContext, dt: number): void {
-  if (session.gameOver) return;
+  const world = keep.of(ctx);
+  if (world.fact("keep.fallen") === true) return;
 
   const view = session.encounter.view();
-  if (!session.waveReady && !view.done) {
+  if (world.fact("keep.wave_ready") !== true && !view.done) {
     for (const order of session.encounter.update(dt)) spawnCreep(ctx, order);
     if (session.encounter.view().ready) {
-      session.waveReady = true;
+      world.set("keep.wave_ready", true);
       if (session.encounter.view().wave >= TOTAL_WAVES) session.encounter.completeWave();
     }
     tickBoss(ctx, dt);
@@ -144,8 +147,8 @@ export function tickWaves(ctx: GameContext, dt: number): void {
     if (next.done) leakCreep(ctx, creep.instanceId, creep.catalogId);
   }
 
-  if (session.encounter.view().done && session.creeps.size === 0 && !session.victory && !session.gameOver) {
-    session.victory = true;
+  if (session.encounter.view().done && session.creeps.size === 0 && !runEnded(world)) {
+    world.set("keep.held", true);
     finishRun(ctx);
     setGamePhase(ctx, "ended");
     ctx.game.audio.play("victory");

@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { ContinuePane, CreditsPane, SaveSlotsPane } from "@jgengine/react/gameMenuSaves";
 import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
 import { useGame, useGameClock, useGameStore } from "@jgengine/react/hooks";
+import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 import { KitButton } from "@jgengine/react/uiKitRoot";
@@ -11,6 +12,7 @@ import { parkSlots, refreshParkSlot } from "../../parkSlot";
 import { SCENARIOS } from "../../scenarios";
 import { session } from "../../session";
 import { resultOpen } from "../components/ParkFlow";
+import { parkFlags, usePark } from "../usePark";
 
 /** Capture-only focus request: a shot declares which verb it wants highlighted. */
 export const parkFocus: { id: string | null } = { id: null };
@@ -27,7 +29,11 @@ export interface ParkMenuProps {
 export function ParkMenu({ reducedMotion, onReducedMotion }: ParkMenuProps): ReactNode {
   const { commands } = useGame();
   const clock = useGameClock();
-  useGameStore(() => [session.started, session.day, session.hasSave, session.saveStatus, session.gameOver, session.won, session.winDismissed, session.cash].join("|"));
+  useGameStore(() => [session.started, session.hasSave, session.saveStatus].join("|"));
+  const ctx = useGameContext();
+  const w = usePark();
+  const day = w.num("park.day");
+  const flags = parkFlags(w);
   const slots = useSaveSlots(parkSlots);
   const [notice, setNotice] = useState<string | null>(null);
   const [name, setName] = useState(parkProfile.name ?? "");
@@ -36,10 +42,10 @@ export function ParkMenu({ reducedMotion, onReducedMotion }: ParkMenuProps): Rea
   const settings = <ParkSettings reducedMotion={reducedMotion} onReducedMotion={onReducedMotion} />;
 
   if (session.started) {
-    if (!clock.paused || resultOpen()) return null;
+    if (!clock.paused || resultOpen(ctx)) return null;
     return (
       <GamePauseMenu open label="The midway can wait" onResume={() => commands.run("pauseToggle", {})} eyebrow="The midway can wait" logo={LOGO} style={TOKENS}
-        tagline="Your visitors and finances are paused." footer={<span>Brightway Park · day {session.day}</span>}
+        tagline="Your visitors and finances are paused." footer={<span>Brightway Park · day {day}</span>}
         items={[{ id: "resume", label: "Resume the park" }, { id: "save", label: "Save the park", hint: session.saveStatus }, { id: "settings", label: "Park settings" }, { id: "help", label: "How to play" }]}
         detail={(id) => id === "settings" ? settings : id === "help" ? <Help /> : id === "save" ? <p>{notice ?? "Saving keeps the day, the guests and the books as they stand."}</p> : null}
         onSelect={(id) => {
@@ -48,13 +54,13 @@ export function ParkMenu({ reducedMotion, onReducedMotion }: ParkMenuProps): Rea
         }} />
     );
   }
-  if (session.gameOver || (session.won && !session.winDismissed)) return null;
+  if (flags.gameOver || flags.ribbon) return null;
 
   return (
     <GameMenu label="Brightway Park" initialId={parkFocus.id ?? (recent === null ? "new" : "continue")} eyebrow="Seaside fair · build the midway" logo={LOGO} style={TOKENS}
-      tagline="Turn a quiet coastal fair into a blue ribbon park." footer={<span>Brightway Park · day {session.day}</span>}
+      tagline="Turn a quiet coastal fair into a blue ribbon park." footer={<span>Brightway Park · day {day}</span>}
       items={[
-        { id: "continue", label: "Continue", hint: recent === null ? "No park on the board" : `${recent.name ?? "Brightway Park"} · day ${String(recent.meta.day ?? session.day)}`, disabled: recent === null },
+        { id: "continue", label: "Continue", hint: recent === null ? "No park on the board" : `${recent.name ?? "Brightway Park"} · day ${String(recent.meta.day ?? day)}`, disabled: recent === null },
         { id: "new", label: "Open the park", hint: recent === null ? "Free play, or pick a scenario" : "Start fresh or pick a scenario" },
         { id: "saves", label: "Park saves", hint: recent === null ? "Nothing saved yet" : `Day ${String(recent.meta.day ?? 1)} on the board` },
         { id: "settings", label: "Settings", hint: "Motion, sound, controls" },

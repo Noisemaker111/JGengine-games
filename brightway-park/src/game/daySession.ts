@@ -2,14 +2,14 @@ import { createSessionLoop, installSessionProbe, type SessionLoop } from "@jgeng
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { perContext } from "@jgengine/core/runtime/perContext";
 
-import { session } from "./session";
+import { park } from "./park";
 
 export type DayLoop = SessionLoop<never, void, void>;
 
 /**
  * A park day is a session on the shared loop: it opens with the gates, closes at midnight, and
- * carries nothing - a tycoon day banks its takings in the ledger as they happen. The loop owns the
- * day count and whether the gates are open; `session.day` republishes the count for the HUD and save.
+ * carries nothing - a tycoon day banks its takings in the world as they happen. The loop owns the
+ * day count and whether the gates are open; `park.day` republishes the count for the HUD and save.
  */
 const days = perContext((ctx: GameContext) => {
   const loop = createSessionLoop<never, void, void>({ kind: "day", carries: false });
@@ -22,8 +22,9 @@ export function dayLoop(ctx: GameContext): DayLoop {
   if (!slot.restored) {
     slot.restored = true;
     // The save's day is the last one that closed; a loaded park resumes that day open.
-    if (session.day > 1) {
-      slot.loop.restore({ session: session.day, closed: session.day - 1, carried: 0, optionId: null });
+    const day = park.of(ctx).num("park.day");
+    if (day > 1) {
+      slot.loop.restore({ session: day, closed: day - 1, carried: 0, optionId: null });
       slot.loop.start();
     }
   }
@@ -39,6 +40,6 @@ export function openParkDay(ctx: GameContext): void {
 export function closeParkDay(ctx: GameContext): void {
   const loop = dayLoop(ctx);
   if (loop.phase() === "open") loop.settle();
-  session.day = loop.snapshot().closed + 1;
+  park.of(ctx).set("park.day", loop.snapshot().closed + 1);
   loop.start();
 }

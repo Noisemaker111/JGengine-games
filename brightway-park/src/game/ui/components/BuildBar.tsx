@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
+import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { KitActionPrompt, KitButton, KitPanel } from "@jgengine/react/uiKitRoot";
 
@@ -9,18 +10,20 @@ import { session } from "../../session";
 import { placementHintStore } from "../../build/placementHint";
 import { guestRidePreference, rideFit, rideThrill } from "../../sim/rideExperience";
 import { coasterCircuit } from "../../rides";
+import { usePark } from "../usePark";
 
 /** The catalog as a strip of fair tickets: pick a category, pick a ticket, place it on the park. */
 export function BuildBar({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState<BuildCategory>("ride");
   const { commands } = useGame();
-  const cash = useGameStore(() => session.cash);
+  const w = usePark();
+  const ctx = useGameContext();
+  const cash = w.num("park.cash");
   const selected = useGameStore(() => session.selectedTool);
   const refusal = useStore(placementHintStore);
-  const unlocked = new Set(useGameStore((ctx) => (ctx.game.unlocks?.list(ctx.player.userId) ?? []).join(",")).split(","));
   useEffect(() => { if (selected && BUILDABLES[selected]) setCategory(BUILDABLES[selected]!.category); }, [selected]);
   const blueprint = selected === null ? undefined : BUILDABLES[selected];
-  const circuit = coasterCircuit();
+  const circuit = coasterCircuit(ctx);
   const detail = blueprint === undefined ? "Pick a ticket, then a green spot on the park. Click anything built to inspect it."
     : refusal ?? (blueprint.ride !== undefined ? `$${blueprint.upkeep} a day · Intensity ${rideThrill(blueprint.id, circuit).toFixed(1)} · ${["guest_a", "guest_c", "guest_d"].map((k) => `${guestRidePreference(k).label} ${Math.round(rideFit(k, blueprint.id, circuit) * 100)}%`).join(" · ")}`
       : blueprint.category === "track" ? (circuit.closed ? `${Math.round(circuit.length)} m lap · excitement ${circuit.excitement.toFixed(1)}` : "Lay track until the loop comes back to the station")
@@ -35,7 +38,8 @@ export function BuildBar({ onClose }: { onClose: () => void }) {
         </div>
         <div className="bw-tickets" role="group" aria-label="Blueprints">
           {Object.values(BUILDABLES).filter((d) => d.category === category).map((def) => {
-            const locked = def.requires !== undefined && !unlocked.has(def.requires);
+            // Locked is the world's word: the kind's `when` reads the park's best rating.
+            const locked = w.canPlace(def.id)?.reason === "locked";
             return <KitButton key={def.id} disabled={locked} pressed={selected === def.id} variant={selected === def.id ? "primary" : "secondary"} icon={locked ? "🔒" : def.icon} title={def.blurb} onClick={() => commands.run("build.select", { id: def.id })}
               glyph={locked ? `★${MILESTONES.find((x) => x.unlock === def.requires)?.rating ?? "?"}` : <span data-bad={cash < def.cost ? "" : undefined}>${def.cost}</span>}>{def.label}</KitButton>;
           })}

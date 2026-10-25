@@ -8,6 +8,7 @@ import { keybinds } from "./game/keybinds";
 import { entityModels, objectModels } from "./game/models";
 import { BrightwayParkWorldOverlay } from "./game/render/WorldOverlay";
 import { session } from "./game/session";
+import { park } from "./game/park";
 import { GameUI } from "./game/ui/GameUI";
 import { parkKit } from "./game/ui/kit";
 import { parkTheme } from "./game/ui/theme";
@@ -22,7 +23,8 @@ export const game = defineGame({
   input: keybinds,
   server: { mode: "solo" },
   save: "none",
-  features: { unlocks: true },
+  // The park is one declaration (`game/park.ts`); its system runs the world and its commands.
+  systems: [park.system],
   time: { scale: 1, dayLength: DAY_LENGTH, start: DAY_LENGTH * (9 / 24), speeds: [1, 2, 4], startPaused: true },
   content,
   loop,
@@ -58,14 +60,15 @@ export const game = defineGame({
       menuSaves: { description: "Park saves with the saved day", state: "menu-saves", settleMs: 1800 },
       menuNew: { description: "New day pane with the scenarios", state: "menu-new", settleMs: 1200 },
     },
-    probe: () => {
+    probe: (ctx) => {
       let queued = 0;
       let riding = 0;
       for (const guest of session.guests.values()) {
         if (guest.phase === "queued") queued += 1;
         else if (guest.phase === "riding") riding += 1;
       }
-      return { guests: session.guests.size, queued, riding, rating: session.rating };
+      const w = park.of(ctx);
+      return { guests: session.guests.size, queued, riding, rating: w.num("park.rating"), cash: w.num("park.cash"), breakdowns: w.num("park.breakdowns") };
     },
   },
   pointer: { moveCommand: "park.pointer", secondaryCommand: "build.clear" },

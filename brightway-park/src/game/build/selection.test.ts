@@ -5,13 +5,13 @@ import { closeTopPanel, createPanelState, isOpen, panelByHotkey, togglePanel } f
 import { game } from "../../game.config";
 import { keybinds } from "../keybinds";
 import { content } from "../content";
-import { loop } from "../../loop";
 import { session } from "../session";
+import { park } from "../park";
 import { DAY_LENGTH } from "../catalog";
 import { seedGuests } from "../sim/guests";
 import { BUILD_PANEL, PARK_PANELS } from "../ui/panels";
 
-const runner = () => createHeadlessRunner({ definition: game.game, content, loop, maxStepSeconds: 1 });
+const runner = () => createHeadlessRunner({ definition: game.game, content, loop: game.game.loop, maxStepSeconds: 1 });
 
 describe("the build palette is a toggleable window", () => {
   test("starts open, B toggles it, Escape closes it", () => {
@@ -46,11 +46,11 @@ describe("placement mode", () => {
     live.ui.invoke("park.start");
     live.ui.invoke("build.select", { id: "path_walk" });
     live.ui.invoke("park.pointer", { point: [-40, 0, -40], object: null, entity: null });
-    expect([...session.placed.values()].at(-1)!.catalogId).toBe("path_walk");
+    expect(park.of(live.ctx).instances().at(-1)!.kind).toBe("path_walk");
     expect(session.selectedTool).toBe("path_walk");
     live.ui.invoke("build.select", { id: "staff_janitor" });
     live.ui.invoke("park.pointer", { point: [-36, 0, -28], object: null, entity: null });
-    expect([...session.placed.values()].at(-1)!.catalogId).toBe("staff_janitor");
+    expect(park.of(live.ctx).instances().at(-1)!.kind).toBe("staff_janitor");
     expect(session.selectedTool).toBeNull();
   });
 });
@@ -62,18 +62,19 @@ describe("click selection", () => {
     live.ui.invoke("build.select", { id: "path_walk" });
     live.ui.invoke("park.pointer", { point: [-40, 0, -40], object: null, entity: null });
     live.ui.invoke("build.clear");
-    const path = [...session.placed.values()].at(-1)!;
-    expect(path.catalogId).toBe("path_walk");
+    const path = park.of(live.ctx).instances().at(-1)!;
+    expect(path.kind).toBe("path_walk");
 
     // Clicking the path selects the path.
-    live.ui.invoke("park.pointer", { point: [path.x, 0, path.z], object: path.id, entity: null });
+    const [x, z] = path.position!;
+    live.ui.invoke("park.pointer", { point: [x, 0, z], object: path.id, entity: null });
     expect(session.selectedObject).toBe(path.id);
     expect(live.ctx.scene.entity.selection.size()).toBe(0);
 
     // A guest stands on that path: the engine reports it as `entity`, so the guest wins.
     seedGuests(live.ctx, 1);
     const guest = [...session.guests.keys()][0]!;
-    live.ui.invoke("park.pointer", { point: [path.x, 0, path.z], object: path.id, entity: guest });
+    live.ui.invoke("park.pointer", { point: [x, 0, z], object: path.id, entity: guest });
     expect(session.selectedObject).toBeNull();
     expect(live.ctx.scene.entity.selection.list()).toEqual([guest]);
 
