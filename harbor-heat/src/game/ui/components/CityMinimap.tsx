@@ -1,10 +1,8 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { headingToBearing, projectToMinimap, type MinimapView } from "@jgengine/core/world/minimap";
 import type { WorldBlip } from "@jgengine/core/worldModel/worldModel";
-import { useDisplayProfile } from "@jgengine/react/display";
 import { useGameStore } from "@jgengine/react/hooks";
 import { MinimapChrome, type MinimapChromeMarker } from "@jgengine/react/map";
-import { KitMinimapFrame } from "@jgengine/react/uiKitRoot";
 import { cityOf } from "../../cityRuntime";
 import { safehouseStore } from "../../commands";
 import { drivingStore, raceStore, wantedStore } from "../../handroll";
@@ -12,6 +10,7 @@ import { bountyStore } from "../../jobs/bounties";
 import { courierStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 import { stashStore } from "../../jobs/stashes";
 import { BOUNTY_SPOTS, DISTRICTS, districtAt, RACE_ROUTES, ROADS, SAFEHOUSE_POS, SHORE_X, STASH_SPOTS } from "../../world/districts";
+import { StreetSign, useRoom } from "../fiction/kit";
 
 const RADIUS = 130;
 const TINTS: Record<string, string> = { mainsail_boulevard: "#dcc79b", downtown: "#a8a496", port_carmine: "#918e84", palm_heights: "#b9ad7e" };
@@ -48,26 +47,48 @@ function readMap(ctx: GameContext) {
   return { at: [body.position[0], body.position[2]] as const, heading, markers, scared, search: wantedStore.read(ctx)?.search ?? null };
 }
 
+/**
+ * The harbor chart on the dash: a round sea chart under a brass bezel that turns with you, the north
+ * pin riding the rim, and the green street sign of the district you are standing in bolted beneath.
+ */
 export function CityMinimap() {
-  const compact = useDisplayProfile().compact;
-  const size = compact ? 120 : 172;
+  const room = useRoom();
+  const compact = room !== "wide";
+  const size = room === "wide" ? 168 : room === "short" ? 100 : 116;
   const map = useGameStore(readMap);
   if (map === null) return null;
   const view: MinimapView = { center: map.at, worldRadius: RADIUS, size, rotate: map.heading };
   const scale = size / (RADIUS * 2);
   const search = map.search === null ? null : projectToMinimap(map.search.center, view);
+  const half = size / 2;
+  const north = projectToMinimap([map.at[0], map.at[1] - RADIUS], view);
+  const nx = north.x - half;
+  const ny = north.y - half;
+  const reach = Math.hypot(nx, ny) || 1;
+  const rim = half + (compact ? 7 : 9);
+  const district = districtAt(map.at[0], map.at[1])?.label;
   return (
-    <KitMinimapFrame size={size} label={compact ? undefined : districtAt(map.at[0], map.at[1])?.label} heading={map.heading}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <rect width={size} height={size} fill="#c9bf9f" />
-        <polygon points={points(SEA, view)} fill="#12889f" />
-        <polygon points={points(BEACH, view)} fill="#e6d3a4" />
-        {DISTRICTS.map((d) => { const c = projectToMinimap(d.center, view); return <circle key={d.id} cx={c.x} cy={c.y} r={d.radius * scale} fill={TINTS[d.id] ?? "#8f8f86"} fillOpacity={0.85} />; })}
-        {ROADS.map((seg, i) => { const a = projectToMinimap(seg.from, view); const b = projectToMinimap(seg.to, view); return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#f4ead2" strokeWidth={4} strokeOpacity={0.8} strokeLinecap="round" />; })}
-        {map.scared.map((place, i) => { const c = projectToMinimap(place.at, view); return <circle key={`fear-${i}`} cx={c.x} cy={c.y} r={place.radius * scale} fill="#e23b3b" fillOpacity={Math.min(0.45, place.fear / 160)} />; })}
-        {search === null || map.search === null ? null : <circle cx={search.x} cy={search.y} r={map.search.radius * scale} fill="#ef5a3c" fillOpacity={0.14} stroke="#ef5a3c" strokeWidth={2} strokeDasharray="4 3" />}
-        <MinimapChrome view={view} markers={map.markers} />
-      </svg>
-    </KitMinimapFrame>
+    <div className="hh-chart" style={{ width: size + (compact ? 18 : 24) }}>
+      <span className="hh-chart-bezel" style={{ width: size + (compact ? 18 : 24), height: size + (compact ? 18 : 24) }}>
+        <svg className="hh-chart-map" width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="City map">
+          <defs>
+            <clipPath id="hh-chart-clip"><circle cx={half} cy={half} r={half} /></clipPath>
+          </defs>
+          <g clipPath="url(#hh-chart-clip)">
+            <rect width={size} height={size} fill="#c9bf9f" />
+            <polygon points={points(SEA, view)} fill="#12889f" />
+            <polygon points={points(BEACH, view)} fill="#e6d3a4" />
+            {DISTRICTS.map((d) => { const c = projectToMinimap(d.center, view); return <circle key={d.id} cx={c.x} cy={c.y} r={d.radius * scale} fill={TINTS[d.id] ?? "#8f8f86"} fillOpacity={0.85} />; })}
+            {ROADS.map((seg, i) => { const a = projectToMinimap(seg.from, view); const b = projectToMinimap(seg.to, view); return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#f4ead2" strokeWidth={4} strokeOpacity={0.8} strokeLinecap="round" />; })}
+            {map.scared.map((place, i) => { const c = projectToMinimap(place.at, view); return <circle key={`fear-${i}`} cx={c.x} cy={c.y} r={place.radius * scale} fill="#e23b3b" fillOpacity={Math.min(0.45, place.fear / 160)} />; })}
+            {search === null || map.search === null ? null : <circle cx={search.x} cy={search.y} r={map.search.radius * scale} fill="#ef5a3c" fillOpacity={0.14} stroke="#ef5a3c" strokeWidth={2} strokeDasharray="4 3" />}
+            <MinimapChrome view={view} markers={map.markers} />
+          </g>
+          <circle cx={half} cy={half} r={half - 1} fill="none" stroke="rgba(7, 29, 37, 0.55)" strokeWidth={2} />
+        </svg>
+        <span className="hh-chart-north" style={{ transform: `translate(${(nx / reach) * rim}px, ${(ny / reach) * rim}px)` }}>N</span>
+      </span>
+      {district === undefined ? null : <StreetSign className="hh-chart-sign">{district}</StreetSign>}
+    </div>
   );
 }

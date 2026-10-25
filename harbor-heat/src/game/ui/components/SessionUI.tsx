@@ -4,7 +4,6 @@ import { KitResultScreen, type KitResultScreenProps } from "@jgengine/react/kitF
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
 import { useStore } from "@jgengine/react/store";
-import { KitButton, useActionGlyph } from "@jgengine/react/uiKitRoot";
 import { startedStore } from "../../commands";
 import { courierStore, DELIVERY_ROUTES, RUSH_BOND, type CourierState } from "../../jobs/courier";
 import { saveHarborState } from "../../save";
@@ -70,9 +69,4 @@ export function SessionUI() {
       }}
     />
   );
-}
-
-export function PauseButton() {
-  const { commands } = useGame();
-  return <KitButton size="sm" glyph={useActionGlyph("pause", "P")} onClick={() => commands.run("session.pause", { paused: true })}>Pause</KitButton>;
 }

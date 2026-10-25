@@ -1,4 +1,6 @@
 @import "@jgengine/react/styles.css";
+@import "./game/ui/fiction/harbor.css";
+@import "./game/ui/fiction/hud.css";
 
 :root { color-scheme: dark; }
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }

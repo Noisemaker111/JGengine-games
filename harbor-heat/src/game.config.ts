@@ -86,6 +86,10 @@ export const game = defineGame({
   WorldOverlay: () => createElement(SceneCaptureBinding, { bind: bindHarborCapture }),
   hudTheme: harborTheme,
   uiKit: harborKit,
+  // The phone HUD is drawn at its own compact size (pager, scanner, chart and belt each have a
+  // phone cut in hud.css), so on a phone it scales against a square 480 px design instead of
+  // shrinking the 1600 px desktop layout to the 0.4 floor, upright or sideways alike.
+  hudFit: { mobile: { designSize: { width: 480, height: 480 }, minScale: 0.6 } },
   capture: {
     play: ["game.start"],
     // The dispatch poster is the first thing a player sees; a capture state keeps it reproducible.
