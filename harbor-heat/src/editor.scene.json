@@ -468,6 +468,45 @@
       "label": "Canal district"
     },
     {
+      "id": "riptide_yards",
+      "kind": "turf",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": -150
+      },
+      "label": "Saltworks Yards",
+      "meta": {
+        "radius": 50
+      }
+    },
+    {
+      "id": "riptide_strand",
+      "kind": "turf",
+      "position": {
+        "x": 180,
+        "y": 0,
+        "z": 60
+      },
+      "label": "East Strand",
+      "meta": {
+        "radius": 40
+      }
+    },
+    {
+      "id": "riptide_flats",
+      "kind": "turf",
+      "position": {
+        "x": -110,
+        "y": 0,
+        "z": 240
+      },
+      "label": "Low Flats",
+      "meta": {
+        "radius": 45
+      }
+    },
+    {
       "id": "stash_pier",
       "kind": "stash",
       "position": {

@@ -27,7 +27,8 @@ import { objectById as objectDefById } from "../objects/catalog";
 import { createDrivingAudio, type DrivingAudio } from "../audio/driving";
 import { drivingStore, type VehicleTelemetry } from "./shared";
 import { landBlast, landHit } from "../combat/hitModel";
-import { crashVehicle, forgetVehicleDamage, restoreVehicleDamage, vehicleDamageSave } from "./bodywork";
+import { crashVehicle, forgetVehicleDamage, rebaseVehicleDamage, restoreVehicleDamage, vehicleDamageSave } from "./bodywork";
+import { crashShare, moddedTuning } from "../progression/upgrades";
 import type { VehicleDamageState } from "@jgengine/core/physics/vehicleDamage";
 
 /** Road-grip sampler for the car sims: full bite on asphalt, a linear washout across the curb, less off-road. */
@@ -87,6 +88,8 @@ export interface Driving {
   vehicleDamageSave(ctx: GameContext): Record<string, VehicleDamageState>;
   /** Re-apply saved bodywork to the cars a reload still has, handling included. */
   restoreVehicleDamage(ctx: GameContext, sections: Record<string, VehicleDamageState>): void;
+  /** Re-bake every owned car's handling after a mod was bought; dents stay. */
+  retuneOwnedCars(ctx: GameContext): void;
   playerWorldPos(ctx: GameContext): readonly [number, number, number] | null;
   /** Put a ground car somewhere else, at rest: the sim is rebuilt from the new pose on its next tick. */
   placeVehicle(ctx: GameContext, vehicleId: string, position: readonly [number, number, number], heading: number): void;
@@ -196,6 +199,13 @@ export function createDriving(): Driving {
     carClamps.delete(vehicleId);
   }
 
+  /** A car's handling before dents: stock for a stranger's car, with the bay's mods for one you own. */
+  function baseTuning(ctx: GameContext, vehicleId: string, def: VehicleDef): KinematicVehicleTuning | null {
+    if (def.dynamics.type !== "ground") return null;
+    const owned = (ctx.scene.entity.get(vehicleId)?.meta as { owned?: boolean } | undefined)?.owned === true;
+    return owned ? moddedTuning(ctx, def.dynamics.tuning) : def.dynamics.tuning;
+  }
+
   function carVehicleFor(ctx: GameContext, vehicleId: string): KinematicVehicle {
     const existing = carVehicles.get(vehicleId);
     if (existing !== undefined) return existing;
@@ -206,7 +216,7 @@ export function createDriving(): Driving {
     if (def === undefined || def.dynamics.type !== "ground") throw new Error("car_compact must use ground dynamics");
     const created = makeCarSim(
       vehicleId,
-      carTunings.get(vehicleId) ?? def.dynamics.tuning,
+      carTunings.get(vehicleId) ?? baseTuning(ctx, vehicleId, def) ?? def.dynamics.tuning,
       def.collisionRadius,
       entity?.position ?? [0, 0, 0],
       entity?.rotationY ?? 0,
@@ -237,11 +247,13 @@ export function createDriving(): Driving {
 
     const impact = record?.clamp.takeImpact() ?? null;
     if (impact !== null && impact.closingSpeed > 3) {
+      // Armored panels soak part of every crash an owned car takes.
+      const share = (entity.meta as { owned?: boolean } | undefined)?.owned === true ? crashShare(ctx) : 1;
       const cs = impact.closingSpeed;
       cameraShake(Math.min(0.15 + cs * 0.02, 0.8));
       ctx.game.audio.play(cs > 8 ? "crash_hard" : "crash_soft", pos);
       if (cs > 8) {
-        landHit(ctx, { from: vehicleId, to: vehicleId, type: "impact", base: Math.round((cs - 8) * 7) });
+        landHit(ctx, { from: vehicleId, to: vehicleId, type: "impact", base: Math.round((cs - 8) * 7 * share) });
         ctx.scene.entity.vfx({ kind: "spark", color: 0xffc24a, from: vehicleId, radius: 1.6 });
         // The bodywork takes the same hit: a zone steps a stage and the sim is re-baked with its cost.
         if (def !== undefined && def.dynamics.type === "ground") {
@@ -252,9 +264,9 @@ export function createDriving(): Driving {
           crashVehicle(
             ctx,
             vehicleId,
-            def.dynamics.tuning,
+            baseTuning(ctx, vehicleId, def) ?? def.dynamics.tuning,
             {
-              closingSpeed: cs,
+              closingSpeed: cs * share,
               offsetRight: pushX * Math.cos(yaw) - pushZ * Math.sin(yaw),
               offsetForward: pushX * Math.sin(yaw) + pushZ * Math.cos(yaw),
             },
@@ -477,13 +489,24 @@ export function createDriving(): Driving {
         sections,
         (vehicleId) => {
           const def = vehicleById(ctx.scene.entity.get(vehicleId)?.name ?? "");
-          return def !== undefined && def.dynamics.type === "ground" ? def.dynamics.tuning : null;
+          return def === undefined ? null : baseTuning(ctx, vehicleId, def);
         },
         (vehicleId, next) => {
           carTunings.set(vehicleId, next);
           carVehicles.get(vehicleId)?.retune(next);
         },
       );
+    },
+    retuneOwnedCars(ctx) {
+      for (const entity of ctx.scene.entity.list()) {
+        if ((entity.meta as { owned?: boolean } | undefined)?.owned !== true) continue;
+        const def = vehicleById(entity.name);
+        const base = def === undefined ? null : baseTuning(ctx, entity.id, def);
+        if (base === null) continue;
+        const next = rebaseVehicleDamage(ctx, entity.id, base);
+        carTunings.set(entity.id, next);
+        carVehicles.get(entity.id)?.retune(next);
+      }
     },
     explodeVehicle(ctx, vehicleId, at) {
       cameraShake(0.7);

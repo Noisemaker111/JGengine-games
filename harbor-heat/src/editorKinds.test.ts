@@ -22,6 +22,7 @@ describe("harbor-heat placeable marker kinds", () => {
       "stash",
       "traffic_intersection",
       "traffic_parking",
+      "turf",
     ]);
   });
 

@@ -18,6 +18,7 @@ export type CashReason =
   | "race-refund"
   | "garage-purchase"
   | "safehouse-purchase"
+  | "upgrade-purchase"
   | "bribe"
   | "shop-purchase"
   | "market-purchase"

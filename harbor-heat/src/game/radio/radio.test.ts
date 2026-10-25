@@ -45,10 +45,10 @@ describe("Harbor Heat radio content", () => {
 
   test("each station words the same story its own way", () => {
     const bulletin = bulletinForLog({ kind: "turf:marina:carmine:player", text: "You took the Marina from the Carmines." }, "the Marina")!;
-    expect(bulletinForLog({ kind: "turf:canal:player:carmine", text: "" }, "Canal Row")?.byStation?.harbor_talk?.[0]).toBe("The Carmines took Canal Row back. Of course they did. Nothing changes in this town but the paint.");
-    expect(bulletinForLog({ kind: "turf_push:carmine_pushback", text: "" }, "Canal Row")?.topic).toBe("turf_push");
     expect(bulletin.byStation?.mnn?.[0]).toContain("lost control of the Marina");
     expect(bulletin.byStation?.harbor_talk?.[0]).toContain("The Carmines just lost the Marina");
+    expect(bulletinForLog({ kind: "turf:flats:player:riptide", text: "" }, "the Low Flats")?.byStation?.harbor_talk?.[0]).toBe("The Riptides took the Low Flats. Of course they did. Nothing changes in this town but the paint.");
+    expect(bulletinForLog({ kind: "turf_push:riptide_war", text: "" }, "Canal Row")?.topic).toBe("crew_war");
     expect(bulletinForLog({ kind: "gunfire", text: "" }, null)).toBeNull();
     expect(bulletinForWanted(1, 4, "Canal Row")?.priority).toBe(3);
     expect(bulletinForWanted(3, 0, null)?.topic).toBe("chase_lost");

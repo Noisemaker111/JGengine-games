@@ -32,6 +32,9 @@ export const CRED_BY_JOB: Record<string, number> = {
   kingpin: 800,
   clean_hands: 60,
   marina_turf: 200,
+  riptide_intro: 360,
+  corvo_offer: 320,
+  low_flats: 240,
 };
 
 export const BOUNTY_CRED = 140;

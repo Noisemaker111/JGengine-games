@@ -118,6 +118,8 @@ export const PLAYER_SPAWN: readonly [number, number, number] =
 /** Authored facing of the spawn marker — what the player, and so the chase camera, opens looking at. */
 export const PLAYER_SPAWN_YAW: number = authoredSpawnRotation(editorLayers);
 export const MARCO_POS: readonly [number, number, number] = markerXYZ("marco");
+/** Inez Corvo holds court at the Riptides' yard. */
+export const INEZ_POS: readonly [number, number, number] = markerXYZ("riptide_yards");
 export const GUNSHOP_POS: readonly [number, number, number] = markerXYZ("gunshop");
 export const GARAGE_POS: readonly [number, number, number] = markerXYZ("garage");
 export const DOCK_FIGHT_CENTER: readonly [number, number, number] = markerXYZ("dock_fight");

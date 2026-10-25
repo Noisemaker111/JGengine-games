@@ -22,6 +22,7 @@ import {
   GARAGE_POS,
   GUNSHOP_POS,
   MARCO_POS,
+  INEZ_POS,
   PLAYER_SPAWN,
   PROMENADES,
   SAFEHOUSE_POS,
@@ -474,6 +475,7 @@ export function setupWorld(ctx: GameContext): readonly BuildingFootprintXZ[] {
   }
 
   ctx.scene.entity.spawn("contact_marco", { id: "npc_marco", position: ground(ctx, MARCO_POS[0], MARCO_POS[2]), role: "npc" });
+  ctx.scene.entity.spawn("contact_inez", { id: "npc_inez", position: ground(ctx, INEZ_POS[0], INEZ_POS[2]), role: "npc" });
 
   // Sidewalk life is not a patrol loop per street any more: `game/world/residents.ts` runs the named
   // residents on authored routines through the engine's off-screen world, so each one walks its own

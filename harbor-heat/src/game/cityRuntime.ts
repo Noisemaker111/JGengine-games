@@ -9,7 +9,7 @@ import { editorLayers } from "../editorLayers";
 import { earn } from "./cash";
 import { city, CITY_PLAYER, TURF, turfWar } from "./city";
 import { raidLost, raidStarted, registerFronts, startRaidOnFirstFront, tickFronts } from "./city/fronts";
-import { crewPush, registerStreet, tickCover, tickReckless, tickStreetCrews } from "./city/street";
+import { crewPush, GANG_LABEL, gangClash, gangOf, registerStreet, tickClashes, tickCover, tickReckless, tickStreetCrews } from "./city/street";
 import { registerGarage } from "./city/garage";
 import { safehouseStore } from "./commands";
 import { handrollOf, raceStore } from "./handroll";
@@ -35,6 +35,8 @@ interface CityRuntime {
   panicking: boolean;
   /** Whether the Protection job has set up its raid yet. */
   protectionStaged: boolean;
+  /** Job crews already put down this job, by id prefix. */
+  staged: Set<string>;
 }
 
 /** Hours HHPD and the crews count as night: the clubs fill, the crews double up. */
@@ -76,6 +78,7 @@ const runtimes = perContext((ctx: GameContext): CityRuntime => ({
     live: () => liveFacts(ctx),
     hooks: {
       crewPush: (call) => crewPush(ctx, call),
+      gangClash: (call) => gangClash(ctx, call),
       raidStarted: (call) => raidStarted(ctx, call),
       raidLost: (call) => raidLost(ctx, call),
     },
@@ -84,6 +87,7 @@ const runtimes = perContext((ctx: GameContext): CityRuntime => ({
   cicadaWrecked: false,
   panicking: false,
   protectionStaged: false,
+  staged: new Set(),
 }));
 
 /** The city's world model for this context. */
@@ -114,11 +118,20 @@ export function registerCity(ctx: GameContext): void {
   registerStreet(ctx);
   registerGarage(ctx);
   ctx.game.events.on("entity.died", (event) => {
-    const { catalogId, instanceId, position } = event as { catalogId: string; instanceId: string; position: [number, number, number] };
-    runtime.pending.push({ kind: "kill", target: catalogId });
+    const { catalogId, instanceId, position, source } = event as { catalogId: string; instanceId: string; position: [number, number, number]; source?: string };
     if (instanceId === CICADA_STAGE_ID) runtime.cicadaWrecked = true;
+    const victim = gangOf(catalogId);
+    const killer = source === undefined ? null : gangOf(ctx.scene.entity.get(source)?.name ?? "");
+    // One crew dropping the other's soldier is their war, not the player's: no heat, no job count,
+    // and the block goes to the shooter's crew a little.
+    if (victim !== null && killer !== null && killer !== victim) {
+      cityEvent(ctx, { kind: turfWar.pushRipple(killer === "carmine" ? "carmine_war" : "riptide_war"), at: position });
+      return;
+    }
+    runtime.pending.push({ kind: "kill", target: catalogId });
     if (catalogId.startsWith("ped_")) cityEvent(ctx, { kind: "killing", at: position });
-    else if (catalogId.startsWith("ganger_") || catalogId === "kingpin_sal") cityEvent(ctx, { kind: "ganger_down", at: position, faction: "carmine" });
+    else if (victim === "riptide") cityEvent(ctx, { kind: "riptide_down", at: position, faction: "riptide" });
+    else if (victim === "carmine") cityEvent(ctx, { kind: "ganger_down", at: position, faction: "carmine" });
     else if (catalogId.startsWith("cop_") && catalogId !== "car_cop") cityEvent(ctx, { kind: "cop_down", at: position, faction: "hhpd" });
   });
   ctx.game.events.on("worldItem.picked_up", (event) => {
@@ -137,6 +150,7 @@ export function registerCity(ctx: GameContext): void {
       if (cityOf(state).startJob(input.id) === null) return;
       runtimes(state).cicadaWrecked = false;
       runtimes(state).protectionStaged = false;
+      runtimes(state).staged.clear();
       state.game.dialogue?.close();
       phoneStore.write(state, false);
       state.game.feedback.cue("objective", cityOf(state).job(input.id)?.title ?? "Job started");
@@ -226,10 +240,11 @@ function registerCityDev(ctx: GameContext): void {
         heat: Math.round(handrollOf(ctx).wanted().heat),
         clock: { hour: world.fact("clock.hour"), night: world.fact("clock.night") },
         turf: Object.fromEntries(TURF.map((id) => [id, { owner: world.fact(`${id}.owner`), grip: Math.round(world.num(`${id}.grip`)), attacker: world.fact(`${id}.attacker`) }])),
+        war: { on: world.fact("war.on"), tension: Math.round(world.num("war.tension")) },
         fronts: Object.fromEntries(world.instances("front").map((front) => [front.slot ?? front.id, { id: front.id, raid: world.fact(`${front.id}.raid`), hit: world.fact(`${front.id}.hit`), clock: Math.ceil(world.num(`${front.id}.raid_clock`)) }])),
         takings: Math.floor(world.num("fronts.takings")),
         repelled: world.num("fronts.repelled"),
-        crews: ctx.scene.entity.list().filter((entity) => entity.id.startsWith("crew_") || entity.id.startsWith("raider_")).map((entity) => entity.id),
+        crews: ctx.scene.entity.list().filter((entity) => entity.id.startsWith("crew_") || entity.id.startsWith("raider_") || entity.id.startsWith("clash_")).map((entity) => entity.id),
       };
     },
   };
@@ -279,9 +294,27 @@ function stageJob(ctx: GameContext, dt: number): void {
     runtimes(ctx).protectionStaged = startRaidOnFirstFront(ctx);
     if (!runtimes(ctx).protectionStaged) ctx.game.notices.push({ text: "You need an open front for Sal to hit. Buy or reopen one.", tone: "warn" });
   }
+  // Rising Tide's boat crew and Corvo's Canal Row crew are four soldiers each, put down once per stage.
+  if (view.missionId === "riptide_intro" && view.objectiveId === "drop") stageCrew(ctx, "riptide_boat", "riptide_soldier", "strand", 4);
+  if (view.missionId === "corvo_offer" && view.objectiveId === "clear") stageCrew(ctx, "corvo_target", "ganger_dock", "canal", 4);
   if (view.missionId === "hot_wheels" && view.objectiveId !== "deliver" && ctx.scene.entity.get(CICADA_STAGE_ID) === null) {
     const [x, , z] = CICADA_STAGE_POS;
     ctx.scene.entity.spawn("car_sport", { id: CICADA_STAGE_ID, position: [x, ctx.world.groundHeightAt(x, z), z], role: "prop" });
+  }
+}
+
+/** A job's crew, spawned once around a block's centre; ids stay fixed so a re-staged tick never doubles them. */
+function stageCrew(ctx: GameContext, prefix: string, catalogId: string, place: string, count: number): void {
+  const runtime = runtimes(ctx);
+  if (runtime.staged.has(prefix)) return;
+  const at = cityOf(ctx).position(place);
+  if (at === null) return;
+  runtime.staged.add(prefix);
+  for (let index = 0; index < count; index += 1) {
+    const angle = (index / count) * Math.PI * 2;
+    const x = at[0] + Math.cos(angle) * 5;
+    const z = at[1] + Math.sin(angle) * 5;
+    ctx.scene.entity.spawn(catalogId, { id: `${prefix}_${index}`, position: [x, ctx.world.groundHeightAt(x, z), z], role: "npc" });
   }
 }
 
@@ -339,18 +372,21 @@ export function tickCity(ctx: GameContext, dt: number): void {
       ctx.game.notices.push({ text: `${label} is yours. Its corners pay you protection now.`, tone: "success" });
       ctx.game.feedback.cue("objective", `Took ${label}`);
     } else if (handover.from === "player") {
-      ctx.game.notices.push({ text: `The Carmines took ${label} back.`, tone: "warn" });
+      ctx.game.notices.push({ text: `${GANG_LABEL[handover.to] ?? "A crew"} took ${label} from you.`, tone: "warn" });
+    } else {
+      ctx.game.notices.push({ text: `${GANG_LABEL[handover.to] ?? "A crew"} took ${label} from ${GANG_LABEL[handover.from] ?? "a crew"}.`, tone: "info" });
     }
   }
   stageJob(ctx, dt);
   tickPanic(ctx, runtime);
   tickFronts(ctx);
   tickStreetCrews(ctx);
+  tickClashes(ctx, dt);
   tickReckless(ctx);
   tickCover(ctx, safehouseStore.read(ctx) === true);
 }
 
-/** Carmine soldiers notice you from further away the angrier their crew is. */
-export function carmineAggroRadius(ctx: GameContext, base: number): number {
-  return base + Math.max(0, -cityOf(ctx).num("carmine.mood")) * 0.2;
+/** A crew's soldiers notice you from further away the angrier their crew is. */
+export function gangAggroRadius(ctx: GameContext, gang: string, base: number): number {
+  return base + Math.max(0, -cityOf(ctx).num(`${gang}.mood`)) * 0.2;
 }

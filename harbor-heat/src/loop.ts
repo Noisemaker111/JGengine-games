@@ -27,8 +27,8 @@ import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
 import { registerCaptureCommands } from "./game/capture";
 import { grantCred, RACE_WIN_CRED } from "./game/progression/cred";
-import { crewHostile } from "./game/city/street";
-import { carmineAggroRadius, cityEvent, failActiveJob, fearAt, PANIC_FEAR, registerCity, startCareer, tickCity } from "./game/cityRuntime";
+import { crewHostile, gangOf } from "./game/city/street";
+import { cityEvent, gangAggroRadius, failActiveJob, fearAt, PANIC_FEAR, registerCity, startCareer, tickCity } from "./game/cityRuntime";
 import {
   CICADA_STAGE_POS,
   DOCK_FIGHT_CENTER,
@@ -81,11 +81,11 @@ function tickGangers(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return;
   const now = ctx.time.now();
-  const aggro = carmineAggroRadius(ctx, AGGRO_RADIUS);
   for (const entity of ctx.scene.entity.list()) {
-    const hostile =
-      entity.name.startsWith("ganger_") || entity.name === "kingpin_sal" || entity.name === "bounty_mark";
+    const gang = gangOf(entity.name);
+    const hostile = gang !== null || entity.name === "bounty_mark";
     if (!hostile || !crewHostile(ctx, entity)) continue;
+    const aggro = gangAggroRadius(ctx, gang ?? "carmine", AGGRO_RADIUS);
     const dist = Math.hypot(entity.position[0] - player.position[0], entity.position[2] - player.position[2]);
     if (dist > aggro) continue;
     if (dist > 6) {

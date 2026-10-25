@@ -8,6 +8,7 @@ import type { SessionLoopState } from "@jgengine/core/run/sessionLoop";
 
 import { handrollOf } from "./handroll";
 import { harborProfileSystem } from "./menuProfile";
+import { catchUpAway, noteSavedAt } from "./away";
 import type { PursuitSave } from "./handroll/pursuit";
 import { ledgerState, restoreLedger, resetLedger, type CashReason } from "./cash";
 import { cargoStore } from "./items/cargoHaul";
@@ -88,6 +89,9 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
   "harbor.slot": { kind: "transient", reason: "The selected hotbar slot resets to the first slot each boot." },
   "harbor.radio": { kind: "transient", reason: "The in-car display is a HUD mirror the radio rebuilds every tick." },
   "harbor.continue": { kind: "transient", reason: "Whether Continue shows is derived from the loaded save itself." },
+  "harbor.upgrades": { kind: "world-snapshot", reason: "Car mods, gun work and bungalow rooms bought are durable profile progress." },
+  "harbor.house": { kind: "transient", reason: "Whether the bungalow board is open is a menu, not run state." },
+  "harbor.away": { kind: "transient", reason: "The morning paper on screen is a menu; the catch-up already landed in the world." },
 };
 
 /** True for a store key this game defines, for the test that keeps the policy table honest. */
@@ -277,6 +281,8 @@ export async function loadHarborSave(ctx: GameContext): Promise<boolean> {
   if (document === null) return adoptLegacyWanted(ctx);
   if (document.systems.wanted === undefined) return adoptLegacyWanted(ctx);
   await save.load();
+  noteSavedAt(ctx, document.savedAt);
+  catchUpAway(ctx);
   return true;
 }
 

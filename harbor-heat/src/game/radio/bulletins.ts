@@ -2,6 +2,10 @@ import type { RadioBulletin } from "@jgengine/core/audio/radio";
 import type { WorldLogEntry } from "@jgengine/core/worldModel/worldModel";
 import { turfWar } from "../city";
 
+/** How the radio names each crew; the player is nobody's crew. */
+const CREW: Record<string, string> = { carmine: "the Carmines", riptide: "the Riptides" };
+const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 /** The three stations' wording for one story: the news desk reads it straight, Sully rants, Luna keeps it light. */
 function story(topic: string, priority: number, news: string[], talk: string[], dj: string[], cooldown = 75): RadioBulletin {
   return { topic, priority, cooldown, lines: news, byStation: { mnn: news, harbor_talk: talk, neon_tide: dj } };
@@ -37,24 +41,39 @@ export function bulletinForLog(entry: Pick<WorldLogEntry, "kind" | "text">, plac
       [`Something blew up in ${where}.`, "In my day we blew things up on the Fourth of July, like Americans."],
       [`Heard a big bang over ${where}? Yeah. That wasn't thunder.`]);
   }
+  if (entry.kind === "riptide_down") {
+    return story("gang", 1,
+      [`A man police describe as a Riptide smuggler was shot in ${where}.`],
+      ["The Riptides lost another one. Who are these guys? Boat people? Call in if you're a boat person."],
+      [`Bad night to be Riptide crew around ${where}.`], 90);
+  }
   const handover = turfWar.handover(entry.kind);
-  if (handover?.to === "player") {
-    return story(`turf.${handover.block}`, 2,
-      [`Sources say the Carmine crew has lost control of ${where}.`, "Residents report new faces on the corners."],
-      [`The Carmines just lost ${where}!`, "Somebody new runs that block now, and honestly, they can't be worse. Can they? Don't answer that."],
-      [`Word is ${where} changed hands tonight. New management, same sunset.`], 120);
-  }
   if (handover !== null) {
+    const loser = CREW[handover.from] ?? "the old crew";
+    const taker = CREW[handover.to];
+    if (taker === undefined) {
+      return story(`turf.${handover.block}`, 2,
+        [`Sources say ${loser} have lost control of ${where}.`, "Residents report new faces on the corners."],
+        [`${cap(loser)} just lost ${where}!`, "Somebody new runs that block now, and honestly, they can't be worse. Can they? Don't answer that."],
+        [`Word is ${where} changed hands tonight. New management, same sunset.`], 120);
+    }
     return story(`turf.${handover.block}`, 2,
-      [`The Carmine crew appears to be back in control of ${where}.`],
-      [`The Carmines took ${where} back. Of course they did. Nothing changes in this town but the paint.`],
-      [`Looks like the Carmines are back on ${where}. Lock your doors, lovers.`], 120);
+      [`${cap(taker)} appear to be in control of ${where}, taking it from ${loser}.`],
+      [`${cap(taker)} took ${where}. Of course they did. Nothing changes in this town but the paint.`],
+      [`Looks like ${taker} run ${where} now. Lock your doors, lovers.`], 120);
   }
-  if (entry.kind === turfWar.pushRipple("carmine_pushback")) {
+  if (entry.kind.startsWith("turf_push:")) {
+    if (entry.kind.endsWith("_war")) {
+      return story("crew_war", 2,
+        [`Gunfire in ${where} as the Carmine and Riptide crews fight over the block.`],
+        [`The Carmines and the Riptides are shooting each other in ${where}. Folks, grab popcorn. From a distance.`],
+        [`Two crews going at it in ${where}. Whoever wins, steer clear tonight.`], 120);
+    }
+    const crew = entry.kind.includes("riptide") ? "Riptide" : "Carmine";
     return story("turf_push", 1,
-      [`Residents of ${where} report Carmine crews moving back into the neighbourhood.`],
-      [`Carmine boys pushing back into ${where}. It's like a tide, folks, a tide of guys in tracksuits.`],
-      [`Carmine crews rolling back into ${where}. Just so you know.`], 120);
+      [`Residents of ${where} report ${crew} crews moving into the neighbourhood.`],
+      [`${crew} boys pushing into ${where}. It's like a tide, folks, a tide of guys in tracksuits.`],
+      [`${crew} crews rolling into ${where}. Just so you know.`], 120);
   }
   if (entry.kind === "raid") {
     return story("raid", 2,

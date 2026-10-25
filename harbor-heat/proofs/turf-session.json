@@ -59,6 +59,19 @@
     },
     {
       "shot": "turf-03-marina-retaken"
+    },
+    {
+      "assert": "(__hd('city.dev.set', { key: 'war.on', value: true }), window.__jgengineAgent.handle({ method: 'time_scale', scale: 20 }), true)",
+      "note": "Rising Tide's result: the Carmines and the Riptides are at war"
+    },
+    {
+      "waitFor": "window.__harborCity.read().log.some((line) => /shooting it out/.test(line))",
+      "timeoutMs": 60000,
+      "note": "turf war: the two crews push into each other's neighbouring blocks on their own clocks"
+    },
+    {
+      "assert": "(window.__jgengineAgent.handle({ method: 'time_scale', scale: 1 }), Object.values(window.__harborCity.read().turf).some((b) => (b.owner === 'carmine' && b.attacker === 'riptide') || (b.owner === 'riptide' && b.attacker === 'carmine')))",
+      "note": "a crew block now has the other crew as its attacker"
     }
   ]
 }

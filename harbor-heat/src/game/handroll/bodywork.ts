@@ -144,6 +144,14 @@ export function restoreVehicleDamage(
   }
 }
 
+/** Swap a car's pre-dent handling (a mod was bought) and return what it drives like now, dents included. */
+export function rebaseVehicleDamage(ctx: GameContext, vehicleId: string, base: KinematicVehicleTuning): KinematicVehicleTuning {
+  const record = bodyworkOf(ctx).get(vehicleId);
+  if (record === undefined) return base;
+  record.base = base;
+  return damagedTuning(base, record.damage.effect());
+}
+
 /** Forget one car's bodywork (it burned or was despawned). */
 export function forgetVehicleDamage(ctx: GameContext, vehicleId: string): void {
   const bodywork = bodyworkOf(ctx);

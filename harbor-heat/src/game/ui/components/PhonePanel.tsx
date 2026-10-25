@@ -85,7 +85,7 @@ export function PhonePanel() {
         ))}
         <h3 className="hh-city-head">Turf</h3>
         {phone.turf.map((block) => (
-          <span key={block.id} className="hh-city-row"><span>{block.label}</span><em data-tone={block.owner === "player" ? "good" : "bad"}>{block.owner === "player" ? "yours" : "Carmine"} · hold {block.grip}</em></span>
+          <span key={block.id} className="hh-city-row"><span>{block.label}</span><em data-tone={block.owner === "player" ? "good" : "bad"}>{block.owner === "player" ? "yours" : block.owner === "riptide" ? "Riptide" : "Carmine"} · hold {block.grip}{block.attacker !== "" && block.attacker !== block.owner ? ` · ${block.attacker === "player" ? "you" : block.attacker === "riptide" ? "Riptides" : "Carmines"} pushing` : ""}</em></span>
         ))}
         {phone.fronts.length > 0 ? <h3 className="hh-city-head">{`Fronts · safe $${phone.takings}`}</h3> : null}
         {phone.fronts.map((front) => (

@@ -82,5 +82,7 @@ export interface Handroll {
   /** Each live car's bodywork stages, for the save document. */
   vehicleDamageSave(ctx: GameContext): Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>;
   restoreVehicleDamage(ctx: GameContext, sections: Record<string, import("@jgengine/core/physics/vehicleDamage").VehicleDamageState>): void;
+  /** Re-bake every owned car's handling after a mod was bought; dents stay. */
+  retuneOwnedCars(ctx: GameContext): void;
   explodeVehicle(ctx: GameContext, vehicleId: string, at: readonly [number, number, number]): void;
 }
