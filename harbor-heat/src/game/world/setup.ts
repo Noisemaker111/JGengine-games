@@ -1,14 +1,17 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { seededRng } from "@jgengine/core/random/rng";
+import { perContext } from "@jgengine/core/runtime/perContext";
 import { patrol } from "@jgengine/core/scene/behaviors";
 import type { Waypoint } from "@jgengine/core/nav/pathFollow";
-import { deriveBuildingLots } from "@jgengine/core/world/buildingLots";
+import type { EntityColliderSet } from "@jgengine/core/scene/colliders";
+import { cityLots, tuneCityLayout, type CityLayout } from "@jgengine/core/world/cityLayout";
 import { placeAuthoredObjectsFromDocument } from "@jgengine/core/world/authoredObjects";
-import { isOnRoad, nearestOnPath } from "@jgengine/core/world/roads";
+import { nearestOnPath } from "@jgengine/core/world/roads";
 import { furnitureSpots, parkingSpots, sidewalkPoint } from "@jgengine/core/world/streets";
 import { streets } from "../../world";
 import { editorLayers } from "../../editorLayers";
-import { buildingsByStyle, type BuildingStyle } from "./buildings";
+import { buildingsForZone } from "./buildings";
+import { cityLayout, LOT_ROADS, roadSource, zoneAt } from "./cityLayout";
 import { PALM_IDS } from "./models";
 import {
   BRIEFCASE_POS,
@@ -21,7 +24,6 @@ import {
   PLAYER_SPAWN,
   PROMENADES,
   SAFEHOUSE_POS,
-  SHORE_X,
   HHPD_POS,
   WORLD_D,
   WORLD_W,
@@ -96,13 +98,6 @@ const STREET_BLOCKERS: readonly (readonly [number, number])[] = [
   [HHPD_POS[0], HHPD_POS[2]],
 ];
 
-function styleAt(x: number, z: number, rng: () => number): BuildingStyle {
-  const district = districtAt(x, z);
-  if (district?.id === "downtown") return rng() < 0.45 ? "tower" : "commercial";
-  if (district?.id === "port_carmine") return "commercial";
-  return "suburban";
-}
-
 /** Palms cycle by index rather than by roll, so a run of them never repeats the same silhouette. */
 function palmAt(index: number): string {
   return PALM_IDS[index % PALM_IDS.length]!;
@@ -130,7 +125,11 @@ function districtProp(x: number, z: number, index: number, rng: () => number): s
     }
     case "port_carmine": {
       const roll = rng();
-      return roll < 0.4 ? "obj_dumpster" : roll < 0.7 ? "obj_trashcan" : roll < 0.86 ? "obj_crate_dock" : palmAt(index);
+      if (roll < 0.25) return "obj_dumpster";
+      if (roll < 0.45) return "obj_barrel";
+      if (roll < 0.6) return "obj_barrier";
+      if (roll < 0.74) return "obj_trashcan";
+      return roll < 0.88 ? "obj_crate_dock" : palmAt(index);
     }
     case "palm_heights": {
       const roll = rng();
@@ -141,62 +140,79 @@ function districtProp(x: number, z: number, index: number, rng: () => number): s
   }
 }
 
-/** Lot footprint fed to the frontage engine: `w` frontage (along the road), `d` depth (into the block). */
-const BUILDING_FOOTPRINT = { w: 22, d: 16 };
-/**
- * Extra margin (world units) added to a road's width when rejecting lots that straddle it. A lot whose
- * center falls within `(road.width + clearance) / 2` of ANY road centerline is dropped — the frontage
- * engine already sets each lot back from the road it lines, so this only culls the corner lots a
- * CROSSING street would run through. Without it, buildings spawn in the middle of the cross streets.
- */
-const BUILDING_ROAD_CLEARANCE = 16;
-
-/**
- * Mainsail Boulevard is built on one side only. The frontage engine lines both kerbs of every avenue, which
- * put a row of blocks out on the sand between the boulevard and the water — so the seafront read as
- * another back street and the beach never opened up. Lots west of this line are dropped, leaving the
- * boardwalk, the dunes and the Gulf as the whole left half of the city's establishing view.
- */
-const SEAFRONT_BUILD_LINE = SHORE_X + 24;
-
-/** A building lot's world footprint, as the frontage placer placed it. */
+/** A building lot's world footprint, as the city layout placed it. */
 export interface BuildingFootprintXZ {
   x: number;
   z: number;
   rotationY: number;
 }
 
+/** A grounded box body spanning a scaled unit block: the building's real walls, not the 1 m model. */
+function blockColliders(size: readonly [number, number, number]): EntityColliderSet {
+  return {
+    body: {
+      name: "body",
+      purpose: "physical",
+      shape: { kind: "aabb", halfExtents: [size[0] / 2, size[1] / 2, size[2] / 2], offset: [0, size[1] / 2, 0] },
+      damageEligible: false,
+      blocks: true,
+    },
+  };
+}
+
+/** Lowest ground under a footprint, so a block on a slope meets the ground on every side. */
+function footprintFloor(ctx: GameContext, x: number, z: number, rotationY: number, w: number, d: number): number {
+  const c = Math.cos(rotationY);
+  const s = Math.sin(rotationY);
+  let floor = ctx.world.groundHeightAt(x, z);
+  for (const [lx, lz] of [[-w / 2, -d / 2], [w / 2, -d / 2], [-w / 2, d / 2], [w / 2, d / 2]] as const) {
+    floor = Math.min(floor, ctx.world.groundHeightAt(x + lx * c + lz * s, z - lx * s + lz * c));
+  }
+  return floor;
+}
+
+/** Stable pick from a list by a lot's position, so a re-lay keeps each corner's look where it can. */
+function pickFor<T>(list: readonly T[], x: number, z: number): T | undefined {
+  const hash = Math.abs(Math.round(x * 73856093) ^ Math.round(z * 19349663));
+  return list[hash % list.length];
+}
+
 /**
- * Line every authored street with collidable, street-facing buildings using the engine's street-aware
- * frontage placer (`deriveBuildingLots` — the same lot engine `generateCity` composes over) instead of
- * hand-eyeballed furniture offsets. Lots set back past the curb and are dropped wherever they'd straddle
- * a crossing street or a gameplay POI, so no building ever lands on the asphalt. Each lot is placed as a
- * scene object, so it gets a fitted physical collider and blocks the player like a real building.
+ * Line every street with buildings from the city layout (`cityLots`): each zone's frontage, depth,
+ * setback past the sidewalk, spacing and floor range, corner clearance off crossing streets, and a
+ * driveway beside every lot in a zone that has them. A building is the unit block scaled to its lot
+ * and storey count, with a matching collider, so nothing ever overhangs a sidewalk or a road.
  */
-function placeBuildings(ctx: GameContext, rng: () => number): readonly BuildingFootprintXZ[] {
+function placeBuildings(ctx: GameContext, layout: CityLayout, ids: string[]): BuildingFootprintXZ[] {
   const placed: BuildingFootprintXZ[] = [];
-  const lots = deriveBuildingLots({
-    roads: streets.map((street) => ({ path: street.path, width: street.width })),
-    footprint: BUILDING_FOOTPRINT,
-    spacing: 8,
-    setback: 4,
-    bothSides: true,
+  const lots = cityLots(layout, {
+    roads: LOT_ROADS,
+    zoneAt,
     seed: "harbor-heat-lots",
     area: { center: [0, 0], halfExtents: [WORLD_W / 2, WORLD_D / 2] },
-    maxLots: 320,
+    maxLots: 420,
   });
   for (const lot of lots) {
     const [x, z] = lot.center;
-    if (x < SEAFRONT_BUILD_LINE) continue;
-    if (streets.some((street) => isOnRoad(street.path, street.width + BUILDING_ROAD_CLEARANCE, x, z))) continue;
-    if (STREET_BLOCKERS.some(([bx, bz]) => Math.hypot(x - bx, z - bz) < 22)) continue;
-    const options = buildingsByStyle(styleAt(x, z, rng));
-    const pick = options[Math.floor(rng() * options.length)];
-    if (pick === undefined) continue;
-    ctx.scene.object.place(pick.id, Math.round(x), ctx.world.groundHeightAt(x, z), Math.round(z), {
-      rotation: lot.rotationY,
-    });
+    const { w, d } = lot.footprint;
+    if (STREET_BLOCKERS.some(([bx, bz]) => Math.hypot(x - bx, z - bz) < Math.max(w, d) / 2 + 10)) continue;
+    const spec = pickFor(buildingsForZone(lot.zone), x, z);
+    if (spec === undefined) continue;
+    const y = footprintFloor(ctx, x, z, lot.rotationY, w, d) - 0.1;
+    const size = [w, lot.height + 0.1, d] as const;
+    const id = ctx.scene.object.place(spec.id, x, y, z, { rotation: lot.rotationY, visual: { scale: size } });
+    ctx.scene.object.setColliders(id, blockColliders(size));
+    ids.push(id);
     placed.push({ x, z, rotationY: lot.rotationY });
+    if (lot.driveway !== undefined) {
+      const [dx, dz] = lot.driveway.center;
+      const drive = ctx.scene.object.place("obj_driveway", dx, ctx.world.groundHeightAt(dx, dz) - 0.02, dz, {
+        rotation: lot.driveway.rotationY,
+        visual: { scale: [lot.driveway.width, 0.08, lot.driveway.length] },
+      });
+      ctx.scene.object.setColliders(drive, {});
+      ids.push(drive);
+    }
   }
   return placed;
 }
@@ -255,10 +271,76 @@ function dressPromenades(ctx: GameContext, rng: () => number): void {
   }
 }
 
+/**
+ * Lamps and district dressing along every street as the layout draws it now: lamps just inside the
+ * kerb, the district's furniture along the sidewalk's outer half, so neither reaches a building.
+ */
+function placeStreetFurniture(ctx: GameContext, layout: CityLayout, ids: string[]): void {
+  const rng = seededRng("harbor-heat-street-props");
+  const propOutset = Math.max(0.4, layout.sidewalkWidth - 1.6);
+  let propIndex = 0;
+  for (const street of roadSource.current()) {
+    // Denser lighting the length of every street reads as a lived-in city at night.
+    for (const spot of furnitureSpots(street, { spacing: 40, outset: 0.1 })) {
+      const [x, z] = spot.position;
+      ids.push(ctx.scene.object.place("obj_streetlight", x, ctx.world.groundHeightAt(x, z), z, { rotation: spot.heading }));
+    }
+    // District-flavored sidewalk dressing: neon + hydrants downtown, palms + benches on Mainsail Boulevard,
+    // dock clutter in Port Carmine, planters and desert trees up in Palm Heights. Gameplay POIs are kept
+    // clear so signage/contacts stay readable.
+    for (const spot of furnitureSpots(street, { spacing: 26, outset: propOutset })) {
+      const [x, z] = spot.position;
+      if (STREET_BLOCKERS.some(([bx, bz]) => Math.hypot(x - bx, z - bz) < 12)) continue;
+      propIndex += 1;
+      const prop = districtProp(x, z, propIndex, rng);
+      if (prop === null) continue;
+      const isTree = prop.startsWith("obj_palm") || prop === "obj_hedge" || prop === "obj_cactus" || prop === "obj_planter";
+      ids.push(
+        ctx.scene.object.place(prop, x, ctx.world.groundHeightAt(x, z), z, {
+          rotation: isTree ? rng() * Math.PI * 2 : spot.heading,
+        }),
+      );
+    }
+  }
+}
+
+/** Everything the city layout decides: buildings, driveways and street furniture. */
+function layCity(ctx: GameContext, layout: CityLayout): { ids: string[]; buildings: BuildingFootprintXZ[] } {
+  const ids: string[] = [];
+  const buildings = placeBuildings(ctx, layout, ids);
+  placeStreetFurniture(ctx, layout, ids);
+  return { ids, buildings };
+}
+
+/**
+ * Lay the city and keep it laid: the layout's sliders (Tune tab, `?debug=1`) re-lay the buildings,
+ * driveways and furniture on every change, while the shell redraws the streets from `roadSource`.
+ */
+const cityRelay = perContext(() => ({ stop: null as (() => void) | null }));
+
+function setupCity(ctx: GameContext): readonly BuildingFootprintXZ[] {
+  tuneCityLayout(cityLayout);
+  let laid = layCity(ctx, cityLayout.get());
+  const relay = cityRelay(ctx);
+  relay.stop?.();
+  relay.stop = cityLayout.subscribe(() => {
+    for (const id of laid.ids) ctx.scene.object.remove(id);
+    laid = layCity(ctx, cityLayout.get());
+  });
+  return laid.buildings;
+}
+
+/** Stop re-laying this context's city on layout changes. */
+export function disposeWorld(ctx: GameContext): void {
+  const relay = cityRelay(ctx);
+  relay.stop?.();
+  relay.stop = null;
+}
+
 export function setupWorld(ctx: GameContext): readonly BuildingFootprintXZ[] {
   const rng = seededRng("harbor-heat-setup");
 
-  const buildings = placeBuildings(ctx, rng);
+  const buildings = setupCity(ctx);
 
   // Authored city parks, the container yard and boardwalk seating: `prop` markers in the scene
   // document, placed through the shared authored-objects primitive so moving or adding one is an
@@ -328,35 +410,6 @@ export function setupWorld(ctx: GameContext): readonly BuildingFootprintXZ[] {
     const z = DOCK_FIGHT_CENTER[2] - 20 + rng() * 40;
     ctx.scene.object.place("obj_crate_dock", Math.round(x), Math.round(ctx.world.groundHeightAt(x, z)), Math.round(z));
   }
-
-  let propIndex = 0;
-  streets.forEach((street) => {
-    // Denser lighting the length of every street reads as a lived-in city at night.
-    for (const spot of furnitureSpots(street, { spacing: 50, outset: 1.1 })) {
-      ctx.scene.object.place(
-        "obj_streetlight",
-        spot.position[0],
-        ctx.world.groundHeightAt(spot.position[0], spot.position[1]),
-        spot.position[1],
-        { rotation: spot.heading },
-      );
-    }
-    // District-flavored sidewalk dressing: neon + hydrants downtown, palms + benches on Mainsail Boulevard,
-    // dock clutter in Port Carmine, hedges + cacti up in Palm Heights. Placed on the curb-side sidewalk
-    // spots the furniture engine returns, so nothing lands on the asphalt, and gameplay POIs are kept
-    // clear so signage/contacts stay readable.
-    for (const spot of furnitureSpots(street, { spacing: 26, outset: 3.4 })) {
-      const [x, z] = spot.position;
-      if (STREET_BLOCKERS.some(([bx, bz]) => Math.hypot(x - bx, z - bz) < 12)) continue;
-      propIndex += 1;
-      const prop = districtProp(x, z, propIndex, rng);
-      if (prop === null) continue;
-      const isTree = prop.startsWith("obj_palm") || prop === "obj_hedge" || prop === "obj_cactus" || prop === "obj_planter";
-      ctx.scene.object.place(prop, Math.round(x), ctx.world.groundHeightAt(x, z), Math.round(z), {
-        rotation: isTree ? rng() * Math.PI * 2 : spot.heading,
-      });
-    }
-  });
 
   dressPromenades(ctx, rng);
 

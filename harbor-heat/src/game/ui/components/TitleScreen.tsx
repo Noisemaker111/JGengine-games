@@ -31,7 +31,7 @@ export function TitleScreen() {
           <span><b>Shift</b> Sprint <b>P</b> Pause</span><span><b>Mouse</b> Look / fire</span>
         </div>
         <div className="hh-title-note">Your first stop: the teal dispatch booth beside you. Press E to take a parcel. Touch controls appear when you start.</div>
-        <footer>Original Mainsail art · assets by KayKit / Quaternius / ambientCG</footer>
+        <footer>Original Mainsail art · assets by Poly Haven / ambientCG / KayKit</footer>
       </div>
       <div className="hh-poster-stamp" aria-hidden="true">Mainsail<br /><strong>Express</strong><small>COAST • CITY • CREW</small></div>
     </main>

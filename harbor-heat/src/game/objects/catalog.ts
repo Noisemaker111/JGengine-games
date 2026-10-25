@@ -12,7 +12,8 @@ const BUILDING_OBJECTS: readonly ObjectDef[] = BUILDING_SPECS.map((b) => ({
   id: b.id,
   label: "Building",
   color: "#8a8f99",
-  footprint: { w: b.footprint, h: b.targetHeight, d: b.footprint },
+  // The unit block; each placement scales it to its lot (see `world/setup.ts`).
+  footprint: { w: 1, h: 1, d: 1 },
   solid: true,
 }));
 
@@ -28,7 +29,7 @@ export const OBJECTS: readonly ObjectDef[] = [
   { id: "obj_palm", label: "Palm", color: "#57a05b", footprint: { w: 2, h: 6, d: 2 }, solid: true },
   { id: "obj_palm_tall", label: "Palm", color: "#57a05b", footprint: { w: 2, h: 8, d: 2 }, solid: true },
   { id: "obj_palm_low", label: "Palm", color: "#57a05b", footprint: { w: 2, h: 5, d: 2 }, solid: true },
-  { id: "obj_flametree", label: "Flame Tree", color: "#b8422f", footprint: { w: 2, h: 6, d: 2 }, solid: true },
+  { id: "obj_flametree", label: "Shade Palm", color: "#57a05b", footprint: { w: 2, h: 6, d: 2 }, solid: true },
   { id: "obj_signal", label: "Traffic Signal", color: "#2fd8b0", footprint: { w: 1, h: 4, d: 1 }, solid: false },
   { id: "obj_planter", label: "Planter", color: "#6ba85a", footprint: { w: 2, h: 1, d: 2 }, solid: false },
   { id: "obj_bench", label: "Bench", color: "#8a6a45", footprint: { w: 2, h: 1, d: 1 }, solid: false },
@@ -37,6 +38,9 @@ export const OBJECTS: readonly ObjectDef[] = [
   { id: "obj_dumpster", label: "Dumpster", color: "#3f6d4a", footprint: { w: 2, h: 1, d: 1 }, solid: true },
   { id: "obj_neon", label: "Neon Sign", color: "#f2599b", footprint: { w: 1, h: 3, d: 1 }, solid: false },
   { id: "obj_hedge", label: "Hedge", color: "#4e8a4a", footprint: { w: 2, h: 1, d: 2 }, solid: false },
+  { id: "obj_barrier", label: "Road Barrier", color: "#b9b4aa", footprint: { w: 2, h: 1, d: 1 }, solid: true },
+  { id: "obj_barrel", label: "Steel Drum", color: "#4a5560", footprint: { w: 1, h: 1, d: 1 }, solid: true },
+  { id: "obj_driveway", label: "Driveway", color: "#b9b4aa", footprint: { w: 1, h: 1, d: 1 }, solid: false },
   { id: "obj_cargo", label: "Cargo Container", color: "#c08a3c", footprint: { w: 3, h: 2, d: 2 }, solid: true },
   { id: "obj_cactus", label: "Cactus", color: "#5f8a4f", footprint: { w: 1, h: 2, d: 1 }, solid: false },
   ...BUILDING_OBJECTS,
