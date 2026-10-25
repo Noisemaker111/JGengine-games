@@ -44,7 +44,7 @@ export const STRATA: Record<Stratum, StratumDef> = {
   },
   wells: {
     id: "wells", numeral: "III", name: "Ink Wells", metres: 260, pressure: 3, above: "cold", below: "choir",
-    lamp: { color: "#b48cff", intensity: 6, reach: 9 }, fog: { color: "#120a1c", near: 4, far: 24 }, ambient: 0.2,
+    lamp: { color: "#c9b8e6", intensity: 6, reach: 9 }, fog: { color: "#0c090f", near: 4, far: 24 }, ambient: 0.16,
     arrival: "Ink wells. Lamps are few. Couriers hunt by sound and by blood; walk, and keep the lamp low.",
     drain: { food: 1.2, water: 1.6, air: 1.3 },
   },

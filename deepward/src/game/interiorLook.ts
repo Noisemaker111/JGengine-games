@@ -22,6 +22,7 @@ export const LIBRARY_SOURCES = {
   "tile/ceramic": "ambientcg-tiles007",
   "ground/rock": "ambientcg-rock022",
   "stone/terrazzo": "ambientcg-terrazzo005",
+  "fabric/canvas": "ambientcg-fabric007",
 } as const;
 export type LibrarySurfaceName = keyof typeof LIBRARY_SOURCES;
 
@@ -56,12 +57,14 @@ export interface FloorLook {
 }
 
 const lens = (color: string, intensity: number): AuthoredSurfaceConfig => ({ color: "#ffffff", emissive: color, emissiveIntensity: intensity, roughness: 0.3, metalness: 0 });
+/** A burned-out lamp's lens: grey glass, no glow. */
+const dark: AuthoredSurfaceConfig = { color: "#3a3835", roughness: 0.3, metalness: 0 };
 
 /**
- * I Receiving reads like a working dock (painted plate, diamond-plate floor, cream service pipes);
- * II the cold stores are white tile and bare concrete under blue-white strips; III the ink wells
- * are wet violet rock over rusted catwalk; IV the choir is warm brutalist concrete and terrazzo
- * lit red.
+ * I Receiving reads like a working dock (painted plate, diamond-plate floor, cream service pipes,
+ * warm wall lamps under cool strips); II the cold stores are white tile and bare concrete under
+ * blue-white strips; III the ink wells are dark wet rock over rusted catwalk, sodium lamps over
+ * violet ink; IV the choir is rough brutalist concrete and terrazzo lit red.
  */
 export const FLOOR_LOOK: Readonly<Record<Stratum, FloorLook>> = {
   vault: {
@@ -75,10 +78,14 @@ export const FLOOR_LOOK: Readonly<Record<Stratum, FloorLook>> = {
       pipe: librarySurface("metal/painted", "#c9b98e"),
       fitting: librarySurface("metal/chipped", "#5b6562"),
       housing: librarySurface("metal/steel", "#4a5250"),
-      lens: lens("#d5f6ee", 3.2),
+      lens: lens("#ffe3b8", 4),
+      lensOff: dark,
+      panel: librarySurface("metal/chipped", "#5d6b62"),
+      hatch: librarySurface("metal/painted", "#6e7466"),
     },
     cable: "#151a1a",
-    practical: { color: "#d8f5ee", intensity: 16, distance: 9, count: 3, shadowed: 1 },
+    // Warm sodium wall lamps against the cool ceiling strips: each lamp throws its own pool.
+    practical: { color: "#ffd29a", intensity: 26, distance: 8, count: 4, shadowed: 1 },
   },
   cold: {
     wall: librarySurface("tile/ceramic", "#c9d6de"),
@@ -91,42 +98,52 @@ export const FLOOR_LOOK: Readonly<Record<Stratum, FloorLook>> = {
       pipe: librarySurface("metal/steel", "#c3d0d8"),
       fitting: librarySurface("metal/painted", "#5f7686"),
       housing: librarySurface("metal/steel", "#5b666d"),
-      lens: lens("#e2f1ff", 3.6),
+      lens: lens("#e2f1ff", 4),
+      lensOff: dark,
+      panel: librarySurface("metal/painted", "#7e98a6"),
+      hatch: librarySurface("metal/steel", "#8f9ca3"),
     },
     cable: "#1b2228",
-    practical: { color: "#dcecff", intensity: 12, distance: 9, count: 3, shadowed: 1 },
+    practical: { color: "#dcecff", intensity: 20, distance: 8, count: 3, shadowed: 1 },
   },
   wells: {
-    wall: librarySurface("ground/rock", "#4c4356", { normalScale: [0.7, 0.7] }),
-    floor: librarySurface("metal/rust", "#7a655c"),
-    ceiling: librarySurface("ground/rock", "#463d52"),
+    wall: librarySurface("ground/rock", "#3d3638", { normalScale: [1.1, 1.1] }),
+    floor: librarySurface("metal/rust", "#6e5a50"),
+    ceiling: librarySurface("ground/rock", "#2c272b"),
     structure: { paint: "metal/rust", steel: "metal/rust", floor: "metal/rust", printed: "metal/chipped", brass: "metal/chipped" },
-    structureBlend: 0.6, structureTint: "#6f5f66",
+    structureBlend: 0.6, structureTint: "#5e5254",
     dressing: {
       trim: librarySurface("metal/rust", "#6a554e"),
       pipe: librarySurface("metal/rust", "#8c6c5a"),
       fitting: librarySurface("metal/chipped", "#4e4650"),
       housing: librarySurface("metal/rust", "#3f3638"),
-      lens: lens("#cfa8ff", 3),
+      lens: lens("#ffb066", 4),
+      lensOff: dark,
+      panel: librarySurface("metal/rust", "#5a4a44"),
+      hatch: librarySurface("metal/chipped", "#4a4648"),
     },
     cable: "#141016",
-    practical: { color: "#c49dff", intensity: 6, distance: 8, count: 2, shadowed: 1 },
+    // The wells' violet lives in the ink; the few working lamps burn sodium orange over it.
+    practical: { color: "#f0a468", intensity: 9, distance: 7, count: 3, shadowed: 1 },
   },
   choir: {
-    wall: librarySurface("concrete/poured", "#a0968e"),
+    wall: librarySurface("concrete/rough", "#8e857e"),
     floor: librarySurface("stone/terrazzo", "#6f6561"),
-    ceiling: librarySurface("concrete/rough", "#5d5551"),
-    structure: { paint: "concrete/poured", steel: "metal/chipped", floor: "stone/terrazzo", printed: "concrete/smooth", brass: "metal/chipped" },
+    ceiling: librarySurface("concrete/smooth", "#4a4442"),
+    structure: { paint: "concrete/smooth", steel: "metal/chipped", floor: "stone/terrazzo", printed: "concrete/smooth", brass: "metal/chipped" },
     structureBlend: 0.55, structureTint: "#8d827c",
     dressing: {
       trim: librarySurface("concrete/smooth", "#7a706a"),
       pipe: librarySurface("metal/chipped", "#5c3a34"),
       fitting: librarySurface("metal/steel", "#3c3534"),
       housing: librarySurface("metal/steel", "#2e2827"),
-      lens: lens("#ff8a6c", 3.4),
+      lens: lens("#ff8a6c", 4),
+      lensOff: dark,
+      panel: librarySurface("concrete/smooth", "#5f5450"),
+      hatch: librarySurface("metal/chipped", "#4a3a36"),
     },
     cable: "#120c0c",
-    practical: { color: "#ff7c60", intensity: 9, distance: 9, count: 2, shadowed: 1 },
+    practical: { color: "#ff7c60", intensity: 16, distance: 8, count: 2, shadowed: 1 },
   },
 };
 

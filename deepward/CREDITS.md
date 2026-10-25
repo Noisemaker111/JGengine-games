@@ -57,6 +57,7 @@ Materials:
 - Ceramic tile (ambientcg-tiles007) by ambientCG (CC0-1.0)
 - Rock face (ambientcg-rock022) by ambientCG (CC0-1.0)
 - Terrazzo (ambientcg-terrazzo005) by ambientCG (CC0-1.0)
+- Canvas (ambientcg-fabric007) by ambientCG (CC0-1.0), on the diving suits
 
 Models:
 
@@ -74,3 +75,21 @@ Models:
 - Metal jerrycan by Sean Buckley (CC0-1.0) https://polyhaven.com/a/metal_jerrycan
 - Portable generator by James Ray Cock (CC0-1.0) https://polyhaven.com/a/portable_generator
 - Ammo box by DanKit (CC0-1.0) https://polyhaven.com/a/ammo_box
+- Cardboard box by Rahul Chaudhary (CC0-1.0) https://polyhaven.com/a/cardboard_box_01
+- Tool cart by Savva Zakharov (CC0-1.0) https://polyhaven.com/a/tool_cart
+- Industrial storage cart by Jule Bielitz (CC0-1.0) https://polyhaven.com/a/industrial_storage_cart
+- Portable welding cart by Georgii Gorbunov (CC0-1.0) https://polyhaven.com/a/portable_welding_cart
+- Trash bag by Benny Weimer (CC0-1.0) https://polyhaven.com/a/trashbag
+- Cement bag by PierreB3D (CC0-1.0) https://polyhaven.com/a/cement_bag
+- Rusted can by Rahul Chaudhary (CC0-1.0) https://polyhaven.com/a/can_rusted
+- Oil tin by Niklas (CC0-1.0) https://polyhaven.com/a/oil_tin
+- Metal toolbox by Mateusz Sadek (CC0-1.0) https://polyhaven.com/a/metal_toolbox
+- Rusted wheel rim by John Hutcheson (CC0-1.0) https://polyhaven.com/a/rusted_wheel_rim_01
+- Crowbar by Alexander Otterbeck (CC0-1.0) https://polyhaven.com/a/crowbar_01
+- Sledgehammer by Dylan Guzman (CC0-1.0) https://polyhaven.com/a/sledgehammer_01
+- Pipe wrench by Will Evarts (CC0-1.0) https://polyhaven.com/a/pipe_wrench
+- Small LPG tank by Ulan Cabanilla (CC0-1.0) https://polyhaven.com/a/small_lpg_tank
+- Wooden ladder by Miroslav Turura (CC0-1.0) https://polyhaven.com/a/wooden_ladder
+- Metal office desk by Ulan Cabanilla (CC0-1.0) https://polyhaven.com/a/metal_office_desk
+- Drawer cabinet by Ulan Cabanilla (CC0-1.0) https://polyhaven.com/a/drawer_cabinet
+- Clipboard by ProgrammerOnCoffee (CC0-1.0) https://polyhaven.com/a/clipboard

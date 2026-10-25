@@ -173,7 +173,7 @@ export function floorDressing(stratum: Stratum): FloorDressing {
   const { floorY, ceilingY } = placeElevation(stratum);
   const near = (at: Point, radius: number) => ({ x: at[0], z: at[2], radius });
   const keepClear = [
-    ...LIFTS.filter(lift => lift.place === stratum).map(lift => near(lift.at, 2.2)),
+    ...LIFTS.filter(lift => lift.place === stratum).map(lift => ({ ...near(lift.at, 2.2), mark: true })),
     ...NODES.filter(node => node.place === stratum).map(node => near(node.at, 1.4)),
     ...SUPPLIES.filter(supply => supply.place === stratum).map(supply => near(supply.at, 1.2)),
     ...FRAGMENTS.filter(fragment => fragment.place === stratum).map(fragment => near(fragment.at, 1.4)),

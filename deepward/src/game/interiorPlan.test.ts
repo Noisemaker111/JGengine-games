@@ -3,7 +3,7 @@ import { findLibraryMaterial } from "@jgengine/assets/catalogs/materialLibrary";
 import { findLibraryModelByName } from "@jgengine/assets/catalogs/modelLibrary";
 
 import { floorDressing, LIFTS, NODES, SUPPLIES, walkable } from "../world";
-import { clutterFootprint, FLOOR_PROPS } from "./interiorPlan";
+import { clutterFootprint, FLOOR_DEBRIS, FLOOR_PROPS } from "./interiorPlan";
 import { FLOOR_LOOK, LIBRARY_SOURCES } from "./interiorLook";
 import { STRATUM_ORDER } from "./strata";
 
@@ -35,7 +35,15 @@ test("the lifts and pickups stay walkable with the clutter standing", () => {
 });
 
 test("every prop the floors use is in the model library", () => {
-  for (const name of new Set(Object.values(FLOOR_PROPS).flat())) expect(findLibraryModelByName(name)).not.toBeNull();
+  for (const name of new Set([...Object.values(FLOOR_PROPS).flat(), ...Object.values(FLOOR_DEBRIS).flat()])) expect(findLibraryModelByName(name)).not.toBeNull();
+});
+
+test("every floor strews debris from its own scrap pool", () => {
+  for (const stratum of STRATUM_ORDER) {
+    const dressing = floorDressing(stratum);
+    expect(dressing.debris.length).toBeGreaterThan(0);
+    for (const { model } of dressing.debris) expect(FLOOR_DEBRIS[stratum]).toContain(model);
+  }
 });
 
 test("the floors' scans are the library entries the provisioner pulls", () => {
