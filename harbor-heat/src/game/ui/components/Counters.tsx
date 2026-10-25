@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { runDialogueChoice, useOpenDialogueId } from "@jgengine/react/components";
-import { useCurrency, useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
+import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { runDialogueChoice, useOpenDialogueId, type DialogueDef } from "@jgengine/react/components";
+import { useCurrency, useEntityStat, useGame, useGameStore, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { KitButton, KitPanel } from "@jgengine/react/uiKitRoot";
+import { cityOf } from "../../cityRuntime";
 import { bestRaceStore, garageStore, shopStore } from "../../commands";
 import { ITEM_LABELS } from "../../content";
-import { DIALOGUES } from "../../entities/npcs/dialogues";
 import { VEHICLES } from "../../entities/vehicles/catalog";
 import { wantedStore } from "../../handroll";
 import { marketStore } from "../../items/nightMarket";
@@ -14,6 +15,28 @@ import { CRED_GATES } from "../../progression/cred";
 
 const GUNS = [...WEAPONS, ...GEAR].filter((item) => item.trade?.buy !== undefined && item.trade.shops?.includes("shop_ammunation"));
 const CARS = VEHICLES.filter((car) => car.price > 0);
+
+/**
+ * A conversation is the city talking: the person's current line, then each job they can offer right
+ * now. A new person or job in `city.ts` shows up here with no dialogue file.
+ */
+export function conversation(ctx: GameContext, dialogueId: string): DialogueDef | null {
+  if (!dialogueId.startsWith("person:")) return null;
+  const id = dialogueId.slice("person:".length);
+  const world = cityOf(ctx);
+  const person = world.def.people?.[id];
+  if (person === undefined) return null;
+  const line = world.says(id)[0] ?? "...";
+  const offers = world.missionView() !== null ? [] : world.jobs().filter((job) => job.giver === id && (job.status === "available" || job.status === "failed"));
+  return {
+    id: `${dialogueId}:${offers.map((job) => job.id).join(",")}:${line}`,
+    lines: [
+      { speaker: person.name, text: line },
+      ...offers.flatMap((job) => (job.pitch === null ? [] : [{ speaker: person.name, text: job.pitch }])),
+      { choices: [...offers.map((job) => ({ label: `${job.status === "failed" ? "Try again" : "Take"}: ${job.title}`, invoke: { command: "city.job.start", args: { id: job.id } } })), { label: offers.length > 0 ? "Not now." : "Later.", invoke: { command: "dialogue.close", args: {} } }] },
+    ],
+  };
+}
 
 interface Row { id: string; label: string; price: number; run: [string, unknown] }
 
@@ -43,13 +66,13 @@ export function Counters() {
   const market = useStore(marketStore);
   const stars = useStore(wantedStore, (wanted) => wanted?.stars ?? 0);
   const bestLap = useStore(bestRaceStore, (v) => v);
-  const dialogue = dialogueId === null ? undefined : DIALOGUES[dialogueId];
-  if (dialogue !== undefined) {
+  const dialogue = useGameStore((ctx) => (dialogueId === null ? null : conversation(ctx, dialogueId)), (a, b) => a?.id === b?.id);
+  if (dialogue !== null) {
     const speaker = dialogue.lines.find((line) => "speaker" in line);
     return (
-      <KitPanel variant="card" title={speaker !== undefined && "speaker" in speaker ? speaker.speaker : undefined} style={{ width: "min(28rem, 88vw)", textTransform: "none" }}>
+      <KitPanel key={dialogue.id} variant="card" title={speaker !== undefined && "speaker" in speaker ? speaker.speaker : undefined} style={{ width: "min(28rem, 88vw)", textTransform: "none" }}>
         {dialogue.lines.map((line, index) => "choices" in line
-          ? <div key={index} style={{ display: "flex", gap: 14, marginTop: 12 }}>{line.choices.map((choice, at) => <KitButton key={choice.label} size="sm" variant={at === 0 ? "primary" : "secondary"} onClick={() => runDialogueChoice(commands, choice, null)}>{choice.label}</KitButton>)}</div>
+          ? <div key={index} style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 12 }}>{line.choices.map((choice, at) => <KitButton key={choice.label} size="sm" variant={at === 0 ? "primary" : "secondary"} onClick={() => runDialogueChoice(commands, choice, null)}>{choice.label}</KitButton>)}</div>
           : <p key={index} style={{ margin: "0 0 8px" }}>{line.text}</p>)}
       </KitPanel>
     );

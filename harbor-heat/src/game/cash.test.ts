@@ -58,11 +58,11 @@ describe("harbor-heat cash ledger", () => {
     const ctx = boot();
     openBooks(ctx);
     const start = wallet(ctx);
-    // A quest's cash reward is granted by the engine's reward system, not by this game.
+    // A job's cash reward is granted by the engine's reward system, not by this game.
     ctx.game.economy.grant(ctx.player.userId, "cash", 900);
-    recordWalletChange(ctx, "quest-reward", "m2_dock_sweep");
+    recordWalletChange(ctx, "job-reward", "dock_sweep");
 
-    expect(cashEntries(ctx, 1)[0]).toMatchObject({ amount: 900, reason: "quest-reward", ref: "m2_dock_sweep" });
+    expect(cashEntries(ctx, 1)[0]).toMatchObject({ amount: 900, reason: "job-reward", ref: "dock_sweep" });
     expect(ledgerState(ctx).accounts[HERO]?.cash).toBe(start + 900);
     expect(wallet(ctx)).toBe(start + 900);
   });

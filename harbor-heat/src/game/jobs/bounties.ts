@@ -2,9 +2,10 @@ import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { defineStore } from "@jgengine/core/store/defineStore";
 import { BOUNTY_CRED, grantCred } from "../progression/cred";
 import { earn } from "../cash";
+import { cityOf } from "../cityRuntime";
 import { BOUNTY_SPOTS, districtAt } from "../world/districts";
 
-export const BOUNTY_UNLOCK_QUEST = "m2_dock_sweep";
+export const BOUNTY_UNLOCK_JOB = "dock_sweep";
 export const BOUNTY_COOLDOWN_SEC = 45;
 export const BOUNTY_TARGET_PREFIX = "bounty_target_";
 
@@ -35,7 +36,7 @@ function bountyState(ctx: GameContext): BountyState {
 }
 
 function unlocked(ctx: GameContext): boolean {
-  return ctx.game.quest!.list(ctx.player.userId).some((q) => q.questId === BOUNTY_UNLOCK_QUEST && q.status === "completed");
+  return cityOf(ctx).fact(`jobs.${BOUNTY_UNLOCK_JOB}`) === "done";
 }
 
 /**

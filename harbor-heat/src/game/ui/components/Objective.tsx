@@ -3,45 +3,35 @@ import { resolveActivePrompt } from "@jgengine/core/interaction/proximityPrompt"
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { compassBearing, headingToBearing, relativeBearing } from "@jgengine/core/world/minimap";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { KitObjective, type KitObjectiveStep } from "@jgengine/react/kitFlow";
+import { KitObjective } from "@jgengine/react/kitFlow";
 import { KitButton } from "@jgengine/react/uiKitRoot";
+import { city } from "../../city";
+import { cityOf } from "../../cityRuntime";
 import { RACE_ENTRY_FEE, SAFEHOUSE_PRICE } from "../../commands";
 import { drivingStore, raceStore } from "../../handroll";
 import { cargoStore } from "../../items/cargoHaul";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { courierDeadline, courierObjectiveStore, courierStore, DELIVERY_ROUTES, DISPATCH, RUSH_BOND, THIEF } from "../../jobs/courier";
 import { prompts } from "../../prompts";
-import { MISSION_HINTS, QUESTS } from "../../quests/catalog";
-import { BOUNTY_SPOTS, BRIEFCASE_POS, CICADA_STAGE_POS, DOCK_FIGHT_CENTER, GARAGE_POS, KINGPIN_POS, MARCO_POS, RACE_ROUTES } from "../../world/districts";
+import { BOUNTY_SPOTS, RACE_ROUTES } from "../../world/districts";
 
 type XZ = readonly [number, number];
 const xz = (p: readonly number[]): XZ => [p[0]!, p[2]!];
 
-/** Where each story mission sends the player; the minimap pins the same spots. */
-export const QUEST_TARGETS: Record<string, XZ> = {
-  m1_welcome: xz(MARCO_POS),
-  m2_dock_sweep: xz(DOCK_FIGHT_CENTER),
-  m3_the_ledger: xz(BRIEFCASE_POS),
-  m5_ocean_loop: xz(GARAGE_POS),
-  m6_hot_wheels: xz(CICADA_STAGE_POS),
-  m7_carmine_convoy: xz(DOCK_FIGHT_CENTER),
-  m8_kingpin: xz(KINGPIN_POS),
-};
+/** The longest each job timer has shown, so its countdown has a total to warn against. */
+const timerTotals = new Map<string, number>();
 
 interface Goal {
   key: string;
   eyebrow?: string;
   title: string;
   target?: XZ;
-  steps?: KitObjectiveStep[];
   deadline?: { remaining: number; total: number };
   hint?: string;
   rush?: string;
 }
 
-const words = (id: string) => id.replaceAll("_", " ");
-
-/** The one thing to do now, most urgent first: a race, a parcel in hand, the story, a bounty, then the booth. */
+/** The one thing to do now, most urgent first: a race, a parcel in hand, the live job, a bounty, the next job, then the booth. */
 function goalOf(ctx: GameContext, at: XZ): Goal {
   const race = raceStore.read(ctx);
   const circuit = race?.active === true ? RACE_ROUTES.find((r) => r.id === race.routeId) : undefined;
@@ -62,15 +52,23 @@ function goalOf(ctx: GameContext, at: XZ): Goal {
     return { key: `parcel:${courier.route}`, eyebrow: load, title: `Deliver to ${route.recipient}`, target: route.position, deadline: { remaining: courier.remaining, total: courierDeadline(route.seconds, rush) }, hint: rush ? "Stay under 35 km/h and avoid hits: damage spoils the cargo." : `${route.hint} Stop beside it to hand over.` };
   }
   const atBooth = Math.hypot(at[0] - DISPATCH[0], at[1] - DISPATCH[1]) < 9;
-  const quest = ctx.game.quest?.list(ctx.player.userId).find((q) => q.status === "active");
-  if (quest !== undefined && courier.delivered > 0 && !atBooth) {
-    const counted = quest.objectives.length > 1 || quest.objectives.some((o) => o.count > 1);
-    return { key: `quest:${quest.questId}`, eyebrow: QUESTS.find((q) => q.id === quest.questId)?.title, title: MISSION_HINTS[quest.questId] ?? words(quest.questId), target: QUEST_TARGETS[quest.questId], steps: counted ? quest.objectives.map((o) => ({ id: o.id, label: `${words(o.id)} ${o.progress}/${o.count}`, done: o.complete })) : undefined };
+  const world = cityOf(ctx);
+  const live = world.missionView();
+  const next = world.next();
+  if (live !== null) {
+    const key = `job:${live.missionId}:${live.objectiveId}`;
+    const total = live.remaining === null ? 0 : Math.max(timerTotals.get(key) ?? 0, live.remaining);
+    if (live.remaining !== null) timerTotals.set(key, total);
+    const step = live.steps > 1 ? ` · step ${live.step} of ${live.steps}` : "";
+    return { key, eyebrow: `${live.title}${step}`, title: live.count > 1 ? `${live.label} · ${live.counted}/${live.count}` : live.label, target: next?.target ?? undefined, deadline: live.remaining === null ? undefined : { remaining: live.remaining, total } };
   }
   const bounty = bountyStore.read(ctx);
   const spot = BOUNTY_SPOTS.find((s) => s.id === bounty?.spotId);
   if (bounty?.targetId != null && spot !== undefined && !atBooth) {
     return { key: `bounty:${spot.id}`, eyebrow: `Bounty · $${bountyPayout(bounty.completed)}`, title: `Take down the mark at ${spot.label}`, target: xz(spot.position) };
+  }
+  if (next !== null && !atBooth) {
+    return { key: `next:${next.jobId}`, eyebrow: "Next job", title: next.text, target: next.target ?? undefined, hint: "Talk to them in person, or open the phone." };
   }
   const offer = DELIVERY_ROUTES[courier.delivered % DELIVERY_ROUTES.length]!;
   return {
@@ -87,6 +85,8 @@ function promptLabel(id: string): string {
   if (id.startsWith("enter:")) return "Get in";
   if (id.startsWith("race:")) return `Race ${RACE_ROUTES.find((r) => `race:${r.id}` === id)?.label ?? "the streets"} · $${RACE_ENTRY_FEE}`;
   const labels: Record<string, string> = { "shop:ammunation": "Browse Ammu-Isle", "garage:dealer": "Browse Sunset Motors", "safehouse:buy": `Buy Palmview Bungalow · $${SAFEHOUSE_PRICE.toLocaleString()}`, "safehouse:rest": "Rest at the bungalow", "courier:accept": "Take standard parcel", "courier:deliver": "Hand over the parcel" };
+  if (id.startsWith("talk:")) return `Talk to ${city.people?.[id.slice(5)]?.name ?? "them"}`;
+  if (id.startsWith("job:")) return `Start ${city.jobs?.[id.slice(4)]?.title ?? "the job"}`;
   return labels[id] ?? "Talk";
 }
 
@@ -128,7 +128,6 @@ export function Objective() {
         distance={view.distance}
         bearing={view.bearing}
         deadline={view.deadline}
-        steps={view.steps}
         hint={view.hint}
         progressKey={`${view.key}:${best.current.distance}`}
         prompt={prompt === null ? undefined : { action: "interact", label: promptLabel(prompt.id), onActivate: () => commands.run(prompt.name, prompt.input) }}

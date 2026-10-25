@@ -18,6 +18,7 @@ export const keybinds: ActionCodesMap = {
   throwGrenade: ["KeyG"],
   useMedkit: ["KeyQ"],
   exitVehicle: ["KeyF"],
+  phone: ["KeyT"],
   selectSlot1: ["Digit1"],
   selectSlot2: ["Digit2"],
   selectSlot3: ["Digit3"],

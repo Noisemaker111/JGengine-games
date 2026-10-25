@@ -3,11 +3,11 @@ import { defineGameDefinition } from "@jgengine/core/game/defineGame";
 import { createAssetCatalog } from "@jgengine/core/scene/assetCatalog";
 import { createGameContext, type GameContext } from "@jgengine/core/runtime/gameContext";
 import { content } from "../content";
-import { QUESTS } from "../quests/catalog";
+import { cityOf } from "../cityRuntime";
 import { BOUNTY_SPOTS } from "../world/districts";
 import {
   BOUNTY_COOLDOWN_SEC,
-  BOUNTY_UNLOCK_QUEST,
+  BOUNTY_UNLOCK_JOB,
   bountyPayout,
   bountySpotIndex,
   bountyStore,
@@ -21,7 +21,6 @@ function bootContext(): GameContext {
       name: "harbor-heat-bounty-test",
       assets: createAssetCatalog(),
       multiplayer: "off",
-      features: { quest: true },
     }),
     content,
     player: { userId: "p1", isNew: true },
@@ -45,7 +44,6 @@ describe("harbor-heat bounty contracts", () => {
   test("contracts stay locked until the docks are cleared", () => {
     const ctx = bootContext();
     ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
-    ctx.game.quest!.register(QUESTS);
     tickBounties(ctx);
     expect(bountyStore.read(ctx)?.targetId ?? null).toBeNull();
   });
@@ -53,10 +51,7 @@ describe("harbor-heat bounty contracts", () => {
   test("stage -> kill pays cash and arms the cooldown at the next spot", () => {
     const ctx = bootContext();
     ctx.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
-    ctx.game.quest!.register(QUESTS);
-    ctx.game.quest!.grant("p1", BOUNTY_UNLOCK_QUEST);
-    ctx.game.quest!.progress("p1", BOUNTY_UNLOCK_QUEST, "clear_gangers", 5);
-    expect(ctx.game.quest!.turnIn("p1", BOUNTY_UNLOCK_QUEST)).toBeNull();
+    cityOf(ctx).set(`jobs.${BOUNTY_UNLOCK_JOB}`, "done");
 
     tickBounties(ctx);
     const staged = bountyStore.read(ctx);

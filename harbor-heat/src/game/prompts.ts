@@ -4,7 +4,8 @@ import { safehouseStore } from "./commands";
 import { vehicleById } from "./entities/vehicles/catalog";
 import { handrollOf } from "./handroll";
 import { courierPrompts } from "./jobs/courier";
-import { GARAGE_POS, GUNSHOP_POS, MARCO_POS, RACE_ROUTES, SAFEHOUSE_POS } from "./world/districts";
+import { cityOf } from "./cityRuntime";
+import { GARAGE_POS, GUNSHOP_POS, RACE_ROUTES, SAFEHOUSE_POS } from "./world/districts";
 
 const staticPrompts: readonly PositionedPrompt[] = [
   {
@@ -16,16 +17,35 @@ const staticPrompts: readonly PositionedPrompt[] = [
       invoke: { name: "shop.open", input: undefined },
     },
   },
-  {
-    id: "talk:marco",
-    position: { x: MARCO_POS[0], z: MARCO_POS[2] },
-    prompt: {
-      radius: 4,
-      display: { kind: "keybind", actionId: "interact" },
-      invoke: { name: "dialogue.open", input: { id: "dlg_marco" } },
-    },
-  },
 ];
+
+/**
+ * One talk prompt per person the city knows a place for, and one start prompt per open job that has
+ * no giver: a person or job added to `city.ts` is reachable here without a line of prompt code.
+ */
+function cityPrompts(ctx: GameContext): PositionedPrompt[] {
+  const world = cityOf(ctx);
+  const out: PositionedPrompt[] = [];
+  for (const id of Object.keys(world.def.people ?? {})) {
+    const at = world.position(id);
+    if (at === null || world.fact(`${id}.known`) !== true) continue;
+    out.push({
+      id: `talk:${id}`,
+      position: { x: at[0], z: at[1] },
+      prompt: { radius: 4, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "dialogue.open", input: { id: `person:${id}` } } },
+    });
+  }
+  for (const job of world.jobs()) {
+    if (job.giver !== null || job.position === null || (job.status !== "available" && job.status !== "failed")) continue;
+    out.push({
+      id: `job:${job.id}`,
+      position: { x: job.position[0], z: job.position[1] },
+      priority: 2,
+      prompt: { radius: 6, display: { kind: "keybind", actionId: "interact" }, invoke: { name: "city.job.start", input: { id: job.id } } },
+    });
+  }
+  return out;
+}
 
 const garagePrompt: PositionedPrompt = {
   id: "garage:dealer",
@@ -72,6 +92,7 @@ export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
   }
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return staticPrompts;
+  const nearbyPrompts = [...staticPrompts, ...cityPrompts(ctx)];
   let nearestCar: { id: string; x: number; z: number } | null = null;
   let nearestDist = 6;
   for (const entity of ctx.scene.entity.list()) {
@@ -82,10 +103,10 @@ export function prompts(ctx: GameContext): readonly PositionedPrompt[] {
       nearestCar = { id: entity.id, x: entity.position[0], z: entity.position[2] };
     }
   }
-  if (nearestCar === null) return [...courierPrompts(ctx), ...staticPrompts, garagePrompt, safehousePrompt(ctx)];
+  if (nearestCar === null) return [...courierPrompts(ctx), ...nearbyPrompts, garagePrompt, safehousePrompt(ctx)];
   return [
     ...courierPrompts(ctx),
-    ...staticPrompts,
+    ...nearbyPrompts,
     garagePrompt,
     safehousePrompt(ctx),
     {

@@ -14,15 +14,16 @@ The dispatch booth, three parcel towers, coconut palm and title poster are origi
 
 ## Design checklist
 
-Read from `src/game/{quests,jobs,progression,entities,handroll}`. Numbers are what the build does now.
+Read from `src/game/city.ts` (the world: people, places, factions, jobs, reactions), `src/game/{jobs,progression,entities,handroll}`. Numbers are what the build does now.
 
-- **Core loop.** On foot or in a vehicle, take work in Mainsail: the eight-mission chain from "Welcome to the Isle" to Sal, courier runs from the teal dispatch booth, bounties after Dock Sweep, four race circuits and the hidden stashes. Cash pays for weapons, gear and the garage; cred levels gate the good stock.
+- **Core loop.** On foot or in a vehicle, take work in Mainsail: the eight-job story from "Welcome to the Isle" to Sal (offered in person or on the phone, `T`), Dee Kalani's repeatable side job, courier runs from the teal dispatch booth, bounties after Dock Sweep, four race circuits and the hidden stashes. Cash pays for weapons, gear and the garage; cred levels gate the good stock.
 - **Progression — three systems.**
   - [x] Cred 1–10 at 150 + 130 × level, gating the Carmine SMG (2), Boardwalk shotgun (3) and Cicada GT (4); missions pay 100–800, a bounty 140, a race 150, a stash 25.
   - [x] Garage. Pico 800 → Bandolero 2,400 → Vagabond 3,800 → Cicada GT 6,500 → Islander bus 9,000, then aircraft from the Maverick 44 at 12,000 to the Harrier V at 110,000. Each car's mass, grip and centre of mass are its own numbers, so the ladder changes handling and not just top speed.
   - [x] Contracts. Three courier routes (250 at 65 s, 400 at 95 s, 500 at 110 s, then rotating), a rush variant at 35% of the deadline for a $60 bond, bounties at 350 + 175 per completion up to eight, and 6,000 for bagging every stash.
-- **Failure states.** Death costs a clinic fee of 8% of cash (minimum $150); arrest costs $150 a star after 1.2 s of a cop inside 2.6 m. A missed courier deadline returns the parcel with no cash penalty, and losing a race is second place, not a wipe. Wanted heat runs to five stars, with cruisers from three.
-- **Screen.** The engine's ink kit in Harbor colours: one goal card, one action prompt, vitals, minimap and the filled hotbar slots. Cargo, wanted stars and the speedometer appear only when they apply.
+- **The city reacts.** Gunfire, assaults, killings and wrecks raise fear where they happen (it settles back in about 30 s). Fear of 35 or more sends residents home and freezes pedestrians, and it shows on the minimap as a red zone. Each hit also moves the owning faction's mood (shown on the phone) and adds heat. Shooting a cop costs 110 heat, drops HHPD's mood by 25 and makes Sgt. Dee stop taking calls. Every reaction lands in the phone's news. When a story job ends, owners, moods and contacts' lines change.
+- **Failure states.** Dying or being arrested drops the live job, and its giver offers it again. Death costs a clinic fee of 8% of cash (minimum $150); arrest costs $150 a star after 1.2 s of a cop inside 2.6 m. A missed courier deadline returns the parcel with no cash penalty, and losing a race is second place, not a wipe. Wanted heat runs to five stars, with cruisers from three.
+- **Screen.** The engine's ink kit in Harbor colours: one goal card, one action prompt, vitals, minimap, the filled hotbar slots and a Phone button (`T`). Cargo, wanted stars and the speedometer appear only when they apply.
 - **Minute 5 → hour 5.** At 5:00 the first two missions are done with a pistol, about $1,000 and no car. Hour five is cred 3–5 in a bought ground car, the courier loop and bounties as repeatable income, one race circuit learned; aircraft start at $12,000, so they are later than this.
 - **References it is chasing.**
   - *GTA: Vice City* — feel: a coast learned by landmark rather than map pin; density: traffic and pedestrians on every block; UI: minimap with mission blips and radio-style notices.

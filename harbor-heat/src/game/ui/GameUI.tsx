@@ -8,6 +8,7 @@ import { CityMinimap } from "./components/CityMinimap";
 import { Counters } from "./components/Counters";
 import { Hotbar } from "./components/Hotbar";
 import { Objective } from "./components/Objective";
+import { PhoneButton, PhonePanel } from "./components/PhonePanel";
 import { PauseButton, SessionUI } from "./components/SessionUI";
 import { Speedo } from "./components/Speedo";
 import { StatusPanel } from "./components/StatusPanel";
@@ -35,13 +36,13 @@ export function GameUI() {
       {started && !paused ? (
         <HudCanvas layout={layout} className="z-20">
           <HudPanel id="objective" anchor="top-left" compact="keep"><Objective /></HudPanel>
-          <HudPanel id="pause" anchor="top-right" order={-1} compact="keep"><PauseButton /></HudPanel>
+          <HudPanel id="pause" anchor="top-right" order={-1} compact="keep"><div style={{ display: "flex", gap: 10 }}><PhoneButton /><PauseButton /></div></HudPanel>
           <HudPanel id="status" anchor="top-right" compact="keep" interactive={false}><StatusPanel /></HudPanel>
           <HudPanel id="wanted" anchor="top" compact="keep" interactive={false}><WantedStars /></HudPanel>
           <HudPanel id="minimap" anchor="bottom-left" compact="keep" interactive={false}><CityMinimap /></HudPanel>
           <HudPanel id="hotbar" anchor="bottom" compact="keep"><Hotbar /></HudPanel>
           <HudPanel id="speedo" anchor="bottom-right" compact="keep" interactive={false}><Speedo /></HudPanel>
-          <HudPanel id="counter" anchor="center" compact="keep"><Counters /></HudPanel>
+          <HudPanel id="counter" anchor="center" compact="keep"><div style={{ display: "grid", gap: 16, justifyItems: "center" }}><Counters /><PhonePanel /></div></HudPanel>
         </HudCanvas>
       ) : null}
     </>

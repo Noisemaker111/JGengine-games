@@ -11,7 +11,6 @@ import { createPerception, type PerceptionCandidate, type PerceptionService } fr
 import { advancePursuit, armPursuit, createPursuitState, type PursuitState } from "@jgengine/core/ai/pursuit";
 import { DIFFICULTY_TIERS, type DifficultyProfile } from "@jgengine/core/ai/difficulty";
 import { createDriverState, driveStep, type DriverGoal, type DriverState, type DriverTuning, type PaceBand } from "@jgengine/core/ai/driver";
-import { behaviorControl } from "@jgengine/core/scene/behaviorRuntime";
 import { seededRng } from "@jgengine/core/random/rng";
 import { vehicleById } from "../entities/vehicles/catalog";
 import type { Driving } from "./driving";
@@ -136,7 +135,6 @@ export interface Pursuit {
   restore(ctx: GameContext, state: PursuitSave): void;
   wanted(): WantedSnapshot;
   tickWanted(ctx: GameContext, dt: number): void;
-  tickPedPanic(ctx: GameContext): void;
   tickCops(ctx: GameContext, dt: number): void;
   tickCruisers(ctx: GameContext, dt: number): void;
 }
@@ -161,7 +159,6 @@ export function createPursuit(driving: Driving): Pursuit {
   let peakStars = 0;
   let copTimer = 0;
   let copCounter = 0;
-  let lastPanicking = false;
   let lastNoticeTier = 0;
   const rng = seededRng("harbor-heat-cops");
   let cruiserCounter = 0;
@@ -455,23 +452,6 @@ export function createPursuit(driving: Driving): Pursuit {
     }
   }
 
-  /**
-   * Freeze pedestrian route behaviors while the player is wanted and thaw them once the heat is
-   * gone — pose ownership handed to the behavior lifecycle instead of a hand-rolled traffic loop.
-   * Runs only on the panic-state transition, so it never scans every frame.
-   */
-  function tickPedPanic(ctx: GameContext): void {
-    const panicking = police.wanted().tier !== null;
-    if (panicking === lastPanicking) return;
-    const control = behaviorControl(ctx);
-    for (const info of control.list()) {
-      if (!info.id.startsWith("ped_")) continue;
-      if (panicking) control.disable(info.id, "panic");
-      else control.enable(info.id);
-    }
-    lastPanicking = panicking;
-  }
-
   return {
     addHeat(_ctx, amount) {
       if (amount > 0) police.reportCrime(amount);
@@ -518,7 +498,6 @@ export function createPursuit(driving: Driving): Pursuit {
       };
     },
     tickWanted,
-    tickPedPanic,
     tickCops,
     tickCruisers,
   };

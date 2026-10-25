@@ -15,6 +15,7 @@ import type { Vec3 } from "@jgengine/core/world/geometry";
 import { createNavGrid, findPath, type NavGrid, type NavPoint } from "@jgengine/core/nav/navGrid";
 
 import { editorLayers } from "../../editorLayers";
+import { fearAt, PANIC_FEAR } from "../cityRuntime";
 import { createResidentAgents, residentAgentStore, type ResidentAgentSystem } from "./residentAgents";
 import type { BuildingFootprintXZ } from "./setup";
 
@@ -356,7 +357,7 @@ export function tickResidents(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
   residents.world.tick(dt, now, player?.position ?? [0, 0, 0]);
   residents.people.system.tick(dt);
-  applyDecisions(residents, now, dt);
+  applyDecisions(residents, now, dt, (x, z) => fearAt(ctx, x, z));
   publishBoard(ctx, residents, dt);
   // A day is the natural save point: the cast writes its needs and moods into the world save once a cycle.
   const day = Math.floor(now / CYCLE_SECONDS);
@@ -372,17 +373,19 @@ export function tickResidents(ctx: GameContext, dt: number): void {
  * walker is only re-aimed when its route ends somewhere other than that answer, so a resident never
  * replans on every frame.
  */
-function applyDecisions(residents: CityResidents, now: number, dt: number): void {
+function applyDecisions(residents: CityResidents, now: number, dt: number, fear: (x: number, z: number) => number): void {
   for (const id of residents.world.ids()) {
     const view = residents.world.agent(id);
     if (view === null || view.mode !== "near") continue;
     const agent = residents.people.system.get(id);
     if (agent === null) continue;
     const action = residents.people.system.action(id);
-    const urgent = action !== null && (action.option === "meal" || action.option === "home");
+    // A scared block outranks every need: residents caught in it head home until the city calms.
+    const home = fear(view.position[0], view.position[2]) >= PANIC_FEAR ? residents.people.spec(id)?.home : undefined;
+    const urgent = home !== undefined || (action !== null && (action.option === "meal" || action.option === "home"));
     // The member's own day says where it is heading when its needs are not pulling it anywhere.
     const phase = action === null ? null : agent.phaseAt(now);
-    const wanted = urgent ? action.target : (phase === null ? null : (phase.nextPlace ?? phase.place));
+    const wanted = home ?? (urgent ? action!.target : (phase === null ? null : (phase.nextPlace ?? phase.place)));
     if (wanted === null) continue;
     const place = PLACES[wanted];
     if (place === undefined) continue;
@@ -391,7 +394,7 @@ function applyDecisions(residents: CityResidents, now: number, dt: number): void
       residents.aimed.set(id, wanted);
       residents.near.setGoal(id, place);
     }
-    if (!urgent || action.option !== "meal") continue;
+    if (home !== undefined || action === null || action.option !== "meal") continue;
     if (Math.hypot(view.position[0] - place[0], view.position[2] - place[2]) < 3) {
       agent.needs.refill("hunger", 9 * dt);
     }
@@ -412,14 +415,17 @@ function publishBoard(ctx: GameContext, residents: CityResidents, dt: number): v
       const agent = residents.people.system.get(view.id);
       const mood = agent?.mood();
       const action = residents.people.system.action(view.id);
-      const doing = action?.target !== null && action?.target !== undefined
-        ? (PLACE_LABEL[action.target] ?? view.activity ?? "about")
-        : (view.activity === null ? "walking" : PLACE_LABEL[view.place ?? ""] ?? view.activity);
+      const scared = fearAt(ctx, view.position[0], view.position[2]) >= PANIC_FEAR;
+      const doing = scared
+        ? "Running home"
+        : action?.target !== null && action?.target !== undefined
+          ? (PLACE_LABEL[action.target] ?? view.activity ?? "about")
+          : (view.activity === null ? "walking" : PLACE_LABEL[view.place ?? ""] ?? view.activity);
       return {
         id: view.id,
         name: residents.people.spec(view.id)?.name ?? view.id,
-        mood: mood?.score ?? 50,
-        moodLabel: mood?.label ?? "Fine",
+        mood: scared ? Math.min(mood?.score ?? 50, 15) : (mood?.score ?? 50),
+        moodLabel: scared ? "Scared" : (mood?.label ?? "Fine"),
         doing,
       };
     });

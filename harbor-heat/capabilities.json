@@ -36,7 +36,8 @@
     "ui-kit-ink",
     "ui-kit-root",
     "ui-kits",
-    "vehicle-damage"
+    "vehicle-damage",
+    "world-model"
   ],
   "probes": {
     "@jgengine/core/economy/transactionLedger": [

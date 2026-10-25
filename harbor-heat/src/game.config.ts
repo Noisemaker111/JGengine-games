@@ -29,7 +29,7 @@ function wantedSnapshotOf(ctx: GameContext): { heat: number; stars: number } | n
 
 export const game = defineGame({
   name: "Harbor Heat",
-  features: { quest: true, trade: true, dialogue: true },
+  features: { trade: true, dialogue: true },
   assets,
   audio,
   world,

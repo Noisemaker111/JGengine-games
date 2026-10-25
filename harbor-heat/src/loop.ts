@@ -26,8 +26,8 @@ import { onBountyKilled, tickBounties } from "./game/jobs/bounties";
 import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
 import { registerCaptureCommands } from "./game/capture";
-import { CRED_BY_QUEST, grantCred, RACE_WIN_CRED } from "./game/progression/cred";
-import { QUESTS } from "./game/quests/catalog";
+import { grantCred, RACE_WIN_CRED } from "./game/progression/cred";
+import { carmineAggroRadius, cityEvent, failActiveJob, fearAt, PANIC_FEAR, registerCity, startCareer, tickCity } from "./game/cityRuntime";
 import {
   CICADA_STAGE_POS,
   DOCK_FIGHT_CENTER,
@@ -78,12 +78,13 @@ function tickGangers(ctx: GameContext, dt: number): void {
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return;
   const now = ctx.time.now();
+  const aggro = carmineAggroRadius(ctx, AGGRO_RADIUS);
   for (const entity of ctx.scene.entity.list()) {
     const hostile =
       entity.name.startsWith("ganger_") || entity.name === "kingpin_sal" || entity.name === "bounty_mark";
     if (!hostile) continue;
     const dist = Math.hypot(entity.position[0] - player.position[0], entity.position[2] - player.position[2]);
-    if (dist > AGGRO_RADIUS) continue;
+    if (dist > aggro) continue;
     if (dist > 6) {
       ctx.scene.entity.moveToward(entity.id, player.position, {
         speed: entity.name === "ganger_enforcer" ? 3.8 : 4.4,
@@ -107,111 +108,11 @@ function tickGangers(ctx: GameContext, dt: number): void {
   }
 }
 
-function tickMissions(ctx: GameContext): void {
-  const player = ctx.scene.entity.get(ctx.player.userId);
-  if (player === null) return;
-  const quests = ctx.game.quest!.list(ctx.player.userId);
-
-  const welcome = quests.find((q) => q.questId === "m1_welcome" && q.status === "active");
-  if (welcome !== undefined) {
-    const dist = Math.hypot(player.position[0] - MARCO_POS[0], player.position[2] - MARCO_POS[2]);
-    if (dist < 5) {
-      ctx.game.quest!.progress(ctx.player.userId, "m1_welcome", "meet_marco", 1);
-      ctx.game.quest!.turnIn(ctx.player.userId, "m1_welcome");
-      ctx.game.dialogue!.open("dlg_marco");
-    }
-  }
-
-  const shake = quests.find((q) => q.questId === "m4_shake_the_heat" && q.status === "active");
-  if (shake !== undefined) {
-    const wanted = handrollOf(ctx).wanted();
-    if (wanted.peakStars >= 3 && wanted.stars === 0) {
-      ctx.game.quest!.progress(ctx.player.userId, "m4_shake_the_heat", "lose_wanted", 1);
-      ctx.game.quest!.turnIn(ctx.player.userId, "m4_shake_the_heat");
-      ctx.game.notices.push({ text: "You shook the heat. Harbor Heat is yours.", tone: "success" });
-    }
-  }
-
-  const race = quests.find((q) => q.questId === "m5_ocean_loop" && q.status === "active");
-  if (race !== undefined) {
-    const snapshot = raceStore.peek(ctx);
-    if (snapshot !== undefined && snapshot.finished && snapshot.won && snapshot.routeId === OCEAN_LOOP_ID) {
-      ctx.game.quest!.progress(ctx.player.userId, "m5_ocean_loop", "win_race", 1);
-    }
-  }
-
-  const delivery = quests.find((q) => q.questId === "m6_hot_wheels" && q.status === "active");
-  if (delivery !== undefined) {
-    const drivingId = handrollOf(ctx).drivingVehicleId();
-    const vehicle = drivingId !== null ? ctx.scene.entity.get(drivingId) : null;
-    if (vehicle !== null && vehicle.name === "car_sport") {
-      const dist = Math.hypot(vehicle.position[0] - GARAGE_POS[0], vehicle.position[2] - GARAGE_POS[2]);
-      if (dist < 9) {
-        ctx.game.quest!.progress(ctx.player.userId, "m6_hot_wheels", "deliver_cicada", 1);
-        handrollOf(ctx).exitVehicle(ctx);
-        ctx.game.notices.push({ text: "Cicada GT delivered.", tone: "success" });
-      }
-    }
-  }
-
-  for (const quest of quests) {
-    if (quest.status !== "active") continue;
-    if (quest.questId !== "m1_welcome" && quest.questId !== "m4_shake_the_heat") {
-      if (ctx.game.quest!.canTurnIn(ctx.player.userId, quest.questId) === null) {
-        ctx.game.quest!.turnIn(ctx.player.userId, quest.questId);
-      }
-    }
-  }
-}
-
-function tickMissionSpawns(ctx: GameContext, dt: number): void {
-  const quests = ctx.game.quest!.list(ctx.player.userId);
-
-  const convoy = quests.find((q) => q.questId === "m7_carmine_convoy" && q.status === "active");
-  if (convoy !== undefined) {
-    const alive = ctx.scene.entity.list().filter((e) => e.name === "ganger_dock").length;
-    convoyRunners(ctx).update(dt, { alive });
-  }
-
-  const kingpin = quests.find((q) => q.questId === "m8_kingpin" && q.status === "active");
-  if (kingpin !== undefined && !mission(ctx).kingpinSpawned) {
-    patchMission(ctx, { kingpinSpawned: true });
-    if (ctx.scene.entity.get("kingpin_sal") === null) {
-      ctx.scene.entity.spawn("kingpin_sal", {
-        id: "kingpin_sal",
-        position: [KINGPIN_POS[0], ctx.world.groundHeightAt(KINGPIN_POS[0], KINGPIN_POS[2]), KINGPIN_POS[2]],
-        role: "npc",
-      });
-      for (let i = 0; i < 3; i += 1) {
-        const x = KINGPIN_POS[0] - 6 + i * 6;
-        const z = KINGPIN_POS[2] + 8;
-        ctx.scene.entity.spawn("ganger_enforcer", {
-          id: `sal_guard_${i}`,
-          position: [x, ctx.world.groundHeightAt(x, z), z],
-          role: "npc",
-        });
-      }
-      ctx.game.notices.push({ text: "Sal is holed up in Palm Heights.", tone: "info" });
-    }
-  }
-
-  // m6 needs a guaranteed target: keep one Cicada staged at the authored Palm Heights spot
-  // while the mission runs (it re-stages if the last one burned).
-  const hotWheels = quests.find((q) => q.questId === "m6_hot_wheels" && q.status === "active");
-  if (hotWheels !== undefined && ctx.scene.entity.get(CICADA_STAGE_ID) === null) {
-    const [x, , z] = CICADA_STAGE_POS;
-    ctx.scene.entity.spawn("car_sport", {
-      id: CICADA_STAGE_ID,
-      position: [x, ctx.world.groundHeightAt(x, z), z],
-      role: "prop",
-    });
-  }
-}
-
+/** Peds near the player scatter while the block is scared, whatever the stars say. */
 function tickPedPanic(ctx: GameContext, dt: number): void {
-  if (handrollOf(ctx).wanted().stars === 0) return;
   const player = ctx.scene.entity.get(ctx.player.userId);
   if (player === null) return;
+  if (fearAt(ctx, player.position[0], player.position[2]) < PANIC_FEAR) return;
   for (const entity of ctx.scene.entity.list()) {
     if (!entity.name.startsWith("ped_")) continue;
     const dx = entity.position[0] - player.position[0];
@@ -289,18 +190,9 @@ function tickBusted(ctx: GameContext, dt: number): void {
   handrollOf(ctx).clearWanted(ctx);
   ctx.scene.entity.floatText({ instanceId: ctx.player.userId, text: "BUSTED", kind: "warn" });
   finishCourier(ctx, false);
+  failActiveJob(ctx);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Busted · $${fine} fine. You are free to go at HHPD.` });
   syncPhase(ctx);
-}
-
-/** Death restages the active boss fight so m8 restarts clean instead of resuming half-dead guards. */
-function restageAfterWasted(ctx: GameContext): void {
-  const m8 = ctx.game.quest!.list(ctx.player.userId).find((q) => q.questId === "m8_kingpin" && q.status === "active");
-  if (m8 === undefined) return;
-  for (const entity of ctx.scene.entity.list()) {
-    if (entity.id === "kingpin_sal" || entity.id.startsWith("sal_guard_")) ctx.scene.entity.despawn(entity.id);
-  }
-  patchMission(ctx, { kingpinSpawned: false });
 }
 
 function tickWasted(ctx: GameContext): void {
@@ -315,7 +207,7 @@ function tickWasted(ctx: GameContext): void {
   const fee = clinicFee(ctx.game.economy.balance(ctx.player.userId, "cash"));
   if (fee > 0) spend(ctx, fee, "clinic-fee");
   handrollOf(ctx).clearWanted(ctx);
-  restageAfterWasted(ctx);
+  failActiveJob(ctx);
   finishCourier(ctx, false);
   sessionStore.write(ctx, { ...sessionStore.read(ctx), notice: `Clinic discharge · $${fee} fee. Health restored; your campaign progress is safe.` });
   syncPhase(ctx);
@@ -373,19 +265,8 @@ function onInit(ctx: GameContext): void {
   ctx.item.use.register(itemUseHandlers);
   ctx.player.loadout.register(loadouts);
   for (const table of lootTables) ctx.game.loot.register(table);
-  ctx.game.quest!.register(QUESTS);
-  ctx.game.quest!.bind("entity.died");
-  ctx.game.quest!.bind("inventory.added");
   ctx.game.feed.bind("entity.died");
   ctx.game.feed.bind("loot.granted");
-
-  ctx.game.events.on("quest.completed", (event) => {
-    const questId = (event as { questId?: string }).questId ?? "";
-    const cred = CRED_BY_QUEST[questId];
-    if (cred !== undefined) grantCred(ctx, cred);
-    // The quest's cash reward is the engine's own grant; journal it under the quest that paid it.
-    recordWalletChange(ctx, "quest-reward", questId);
-  });
 
   ctx.game.events.on("entity.died", (event) => {
     const dead = event as { instanceId?: string; catalogId?: string; at?: readonly [number, number, number] };
@@ -395,16 +276,15 @@ function onInit(ctx: GameContext): void {
       earn(ctx, enemy.bounty, "bounty", catalogId);
     }
     if (dead.instanceId !== undefined) onBountyKilled(ctx, dead.instanceId);
-    if (catalogId.startsWith("ped_")) handrollOf(ctx).addHeat(ctx, 60);
-    if (catalogId.startsWith("cop_") && catalogId !== "car_cop") handrollOf(ctx).addHeat(ctx, 110);
     if (vehicleById(catalogId) !== undefined && dead.instanceId !== undefined) {
       const at = dead.at ?? ctx.scene.entity.get(dead.instanceId)?.position ?? [0, 0, 0];
       handrollOf(ctx).explodeVehicle(ctx, dead.instanceId, at);
-      handrollOf(ctx).addHeat(ctx, 45);
+      cityEvent(ctx, { kind: "wreck", at });
     }
   });
 
   registerCommands(ctx);
+  registerCity(ctx);
   // The cash journal is live before the first movement, opened at the wallet's balance.
   openBooks(ctx);
   registerCaptureCommands(ctx);
@@ -426,7 +306,7 @@ function onNewPlayer(ctx: GameContext): void {
   });
   if (ctx.player.isNew) {
     ctx.player.applyLoadout(ctx.player.userId, "starterKit");
-    ctx.game.quest!.grant(ctx.player.userId, "m1_welcome");
+    startCareer(ctx);
   }
   // Boot at the title screen (menu phase) so the shell's touch dock stays hidden;
   // `game.start` and a restored session flip it to `playing`.
@@ -449,8 +329,7 @@ function onTick(ctx: GameContext, dt: number): void {
   tickTraffic(ctx, dt);
   tickResidents(ctx, dt);
   tickGangers(ctx, dt);
-  tickMissions(ctx);
-  tickMissionSpawns(ctx, dt);
+  tickCity(ctx, dt);
   tickBounties(ctx);
   tickStashes(ctx);
   tickRaceEconomy(ctx);
