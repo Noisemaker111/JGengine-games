@@ -42,7 +42,7 @@ Read from `src/game/city.ts` (the world: people, places, factions, jobs, reactio
   - *Need for Speed: Most Wanted* — feel: pursuit that escalates by star; density: street races sharing the same roads; UI: speedometer plus wanted stars readable at a glance.
 - **Gap to target.** The rival war now runs without you (raids, pushes, turf), but only one faction fights back, sleeping does not skip time, and fronts have no upgrades. Hour five wants a second rival and a reason to spend the safe beyond more fronts.
 
-Turf proof: `proofs/turf-session.json` (take the Marina, then let the furious Carmines push it back to zero and retake it).
+Turf proof: `proofs/turf-session.json` (take the Marina, let the furious Carmines push it back to zero and retake it, then start the crew war and watch the Carmines and Riptides push into each other).
 
 Depth proof: `proofs/depth-session.json` (buy a front, take the Marina, pay Dee, hide in the bay, break a raid, collect, let the city hit back overnight, reopen the wrecked front).
 

@@ -312,8 +312,8 @@ function stageCrew(ctx: GameContext, prefix: string, catalogId: string, place: s
   runtime.staged.add(prefix);
   for (let index = 0; index < count; index += 1) {
     const angle = (index / count) * Math.PI * 2;
-    const x = at[0] + Math.cos(angle) * 7;
-    const z = at[1] + Math.sin(angle) * 7;
+    const x = at[0] + Math.cos(angle) * 5;
+    const z = at[1] + Math.sin(angle) * 5;
     ctx.scene.entity.spawn(catalogId, { id: `${prefix}_${index}`, position: [x, ctx.world.groundHeightAt(x, z), z], role: "npc" });
   }
 }
