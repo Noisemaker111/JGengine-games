@@ -86,6 +86,7 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
   "harbor.driving": { kind: "transient", reason: "Which car is piloted is a live handle, not saved state." },
   "harbor.started": { kind: "transient", reason: "The title gate resets each boot so a reload lands on the menu." },
   "harbor.slot": { kind: "transient", reason: "The selected hotbar slot resets to the first slot each boot." },
+  "harbor.radio": { kind: "transient", reason: "The in-car display is a HUD mirror the radio rebuilds every tick." },
   "harbor.continue": { kind: "transient", reason: "Whether Continue shows is derived from the loaded save itself." },
 };
 

@@ -11,6 +11,7 @@ import { Hotbar } from "./components/Hotbar";
 import { Objective } from "./components/Objective";
 import { PauseButton, PhoneButton, PhonePanel } from "./components/PhonePanel";
 import { SessionUI } from "./components/SessionUI";
+import { RadioReadout } from "./components/RadioReadout";
 import { Speedo } from "./components/Speedo";
 import { StatusPanel } from "./components/StatusPanel";
 import { WantedStars } from "./components/WantedStars";
@@ -51,6 +52,7 @@ export function GameUI() {
           <HudPanel id="minimap" anchor={short ? "top-left" : "bottom-left"} order={short ? 1 : 0} compact="keep" interactive={false}><CityMinimap /></HudPanel>
           <HudPanel id="hotbar" anchor={short ? "top" : "bottom"} compact="keep"><Hotbar /></HudPanel>
           <HudPanel id="speedo" anchor={short ? "top-right" : "bottom-right"} order={short ? 2 : 0} compact="keep" interactive={false}><Speedo /></HudPanel>
+          <HudPanel id="radio" anchor={short ? "top-right" : "bottom-right"} order={short ? 3 : -1} compact="keep"><RadioReadout /></HudPanel>
           <HudPanel id="counter" anchor="center" compact="keep"><Counters /></HudPanel>
           <HudPanel id="phone" anchor="right" compact="keep"><PhonePanel /></HudPanel>
         </HudCanvas>

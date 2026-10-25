@@ -20,6 +20,7 @@ export const keybinds: ActionCodesMap = {
   exitVehicle: ["KeyF"],
   phone: ["KeyT"],
   taxiDuty: ["KeyY"],
+  radio: ["KeyR"],
   selectSlot1: ["Digit1"],
   selectSlot2: ["Digit2"],
   selectSlot3: ["Digit3"],
