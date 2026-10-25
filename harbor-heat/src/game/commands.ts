@@ -8,6 +8,7 @@ import { sessionStore, startedThisBoot, syncSession } from "./session";
 import { registerCourier } from "./jobs/courier";
 import { buyNightMarket } from "./items/nightMarket";
 import { buyFromShop, earn, spend } from "./cash";
+import { stealCar } from "./city/garage";
 
 export const shopStore = defineStore<string | undefined>("harbor.shop", undefined);
 export const garageStore = defineStore<boolean | undefined>("harbor.garage", undefined);
@@ -16,6 +17,9 @@ export const slotStore = defineStore<number | undefined>("harbor.slot", undefine
 /** True once a whole-world save was restored this boot — title shows Continue and start skips the intro. */
 export const continueStore = defineStore<boolean | undefined>("harbor.continue", undefined);
 /** Palmview Bungalow ownership — persisted with the world save. */
+/** Ammu-Isle's hours, sim clock. */
+export const SHOP_OPENS = 8;
+export const SHOP_CLOSES = 22;
 export const safehouseStore = defineStore<boolean | undefined>("harbor.safehouse", undefined);
 /** Best Ocean Loop time in seconds — persisted; beating it pays a bonus. */
 export const bestRaceStore = defineStore<number | undefined>("harbor.bestRace", undefined);
@@ -133,8 +137,7 @@ export function registerCommands(ctx: GameContext): void {
       const vehicle = state.scene.entity.get(vehicleId);
       if (vehicle === null || vehicleById(vehicle.name) === undefined) return;
       handrollOf(state).enterVehicle(state, vehicleId);
-      handrollOf(state).addHeat(state, 30);
-      state.game.notices.push({ text: `Boosted a ${vehicleById(vehicle.name)?.label ?? "car"}`, tone: "info" });
+      stealCar(state, vehicle);
     },
   });
 
@@ -145,6 +148,10 @@ export function registerCommands(ctx: GameContext): void {
   });
 
   ctx.game.commands.define("shop.open", {
+    validate(state) {
+      const hour = state.time.calendar().hour;
+      return hour >= SHOP_OPENS && hour < SHOP_CLOSES ? null : { reason: "closed", message: `Ammu-Isle is shut. Open ${SHOP_OPENS}:00 to ${SHOP_CLOSES}:00; the night market runs after dark.` };
+    },
     apply(state) {
       shopStore.write(state, "shop_ammunation");
     },
@@ -214,6 +221,7 @@ export function registerCommands(ctx: GameContext): void {
       state.scene.entity.spawn(def.id, {
         position: [x, state.world.groundHeightAt(x, z), z],
         role: "prop",
+        meta: { owned: true },
       });
       garageStore.clear(state);
       state.game.notices.push({ text: `Bought a ${def.label}`, tone: "success" });
@@ -258,7 +266,8 @@ export function registerCommands(ctx: GameContext): void {
       const health = state.scene.entity.stats.get(state.player.userId, "health");
       if (health === null) return;
       state.scene.entity.stats.set(state.player.userId, "health", { current: health.max });
-      state.game.notices.push({ text: "Rested at the bungalow — back to full health.", tone: "success" });
+      state.game.notices.push({ text: "Rested at the bungalow — back to full health. Progress saved.", tone: "success" });
+      void state.game.save?.checkpoint();
     },
   });
 

@@ -27,6 +27,7 @@ import { resetStashRuntime, tickStashes } from "./game/jobs/stashes";
 import { loadouts } from "./game/loadouts";
 import { registerCaptureCommands } from "./game/capture";
 import { grantCred, RACE_WIN_CRED } from "./game/progression/cred";
+import { crewHostile } from "./game/city/street";
 import { carmineAggroRadius, cityEvent, failActiveJob, fearAt, PANIC_FEAR, registerCity, startCareer, tickCity } from "./game/cityRuntime";
 import {
   CICADA_STAGE_POS,
@@ -82,7 +83,7 @@ function tickGangers(ctx: GameContext, dt: number): void {
   for (const entity of ctx.scene.entity.list()) {
     const hostile =
       entity.name.startsWith("ganger_") || entity.name === "kingpin_sal" || entity.name === "bounty_mark";
-    if (!hostile) continue;
+    if (!hostile || !crewHostile(ctx, entity)) continue;
     const dist = Math.hypot(entity.position[0] - player.position[0], entity.position[2] - player.position[2]);
     if (dist > aggro) continue;
     if (dist > 6) {

@@ -1,5 +1,6 @@
 import type { PositionedPrompt } from "@jgengine/core/interaction/proximityPrompt";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
+import { perContext } from "@jgengine/core/runtime/perContext";
 import type { WorldHookCall } from "@jgengine/core/worldModel/worldModel";
 import { editorLayers } from "../../editorLayers";
 import { earn, spend } from "../cash";
@@ -164,15 +165,8 @@ export function raidLost(ctx: GameContext, call: WorldHookCall): void {
   ctx.game.notices.push({ text: `${lot?.label ?? "Your front"} got wrecked${stolen > 0 ? ` and $${stolen} walked out the door` : ""}. Pay to reopen it.`, tone: "warn" });
 }
 
-const spawnedRaids = new WeakMap<GameContext, Set<string>>();
-function raidsSpawned(ctx: GameContext): Set<string> {
-  let set = spawnedRaids.get(ctx);
-  if (set === undefined) {
-    set = new Set();
-    spawnedRaids.set(ctx, set);
-  }
-  return set;
-}
+/** Raids whose crew is on the street this session; a raid restored from a save is not in it yet. */
+const raidsSpawned = perContext((): Set<string> => new Set());
 
 function spawnRaiders(ctx: GameContext, instanceId: string): void {
   const lot = lotOf(ctx, instanceId);

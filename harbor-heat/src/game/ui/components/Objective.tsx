@@ -7,12 +7,13 @@ import { KitObjective } from "@jgengine/react/kitFlow";
 import { KitButton } from "@jgengine/react/uiKitRoot";
 import { city } from "../../city";
 import { cityOf } from "../../cityRuntime";
+import { frontViews } from "../../city/fronts";
 import { RACE_ENTRY_FEE, SAFEHOUSE_PRICE } from "../../commands";
 import { drivingStore, raceStore } from "../../handroll";
 import { cargoStore } from "../../items/cargoHaul";
 import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { courierDeadline, courierObjectiveStore, courierStore, DELIVERY_ROUTES, DISPATCH, RUSH_BOND, THIEF } from "../../jobs/courier";
-import { prompts } from "../../prompts";
+import { prompts, systemPromptLabel } from "../../prompts";
 import { BOUNTY_SPOTS, RACE_ROUTES } from "../../world/districts";
 
 type XZ = readonly [number, number];
@@ -50,6 +51,10 @@ function goalOf(ctx: GameContext, at: XZ): Goal {
     const crates = cargoStore.read(ctx).carried;
     const load = rush ? `Fragile parcel · ${Math.round(courier.condition ?? 100)}% intact` : crates > 0 ? `Parcel + ${crates} crates` : "Parcel aboard";
     return { key: `parcel:${courier.route}`, eyebrow: load, title: `Deliver to ${route.recipient}`, target: route.position, deadline: { remaining: courier.remaining, total: courierDeadline(route.seconds, rush) }, hint: rush ? "Stay under 35 km/h and avoid hits: damage spoils the cargo." : `${route.hint} Stop beside it to hand over.` };
+  }
+  const raid = frontViews(ctx).find((front) => front.status === "raid");
+  if (raid !== undefined) {
+    return { key: `raid:${raid.slot}`, eyebrow: "Carmine raid", title: `Defend ${raid.label}`, target: raid.position, deadline: { remaining: raid.raidSeconds, total: 60 }, hint: "Drop every raider before the clock runs out, or they wreck it and empty the safe." };
   }
   const atBooth = Math.hypot(at[0] - DISPATCH[0], at[1] - DISPATCH[1]) < 9;
   const world = cityOf(ctx);
@@ -104,7 +109,7 @@ function objectiveView(ctx: GameContext) {
     distance: target === undefined ? undefined : Math.round(Math.hypot(target[0] - at[0], target[1] - at[1])),
     bearing: target === undefined ? undefined : Math.round(relativeBearing(compassBearing(at, target), headingToBearing(body.rotationY)) * 20) / 20,
     deadline: goal.deadline === undefined ? undefined : { remaining: Math.ceil(goal.deadline.remaining * 4) / 4, total: goal.deadline.total },
-    prompt: active?.prompt.invoke == null ? null : { id: active.id, name: active.prompt.invoke.name, input: active.prompt.invoke.input },
+    prompt: active?.prompt.invoke == null ? null : { id: active.id, label: systemPromptLabel(ctx, active.id), name: active.prompt.invoke.name, input: active.prompt.invoke.input },
   };
 }
 
@@ -130,7 +135,7 @@ export function Objective() {
         deadline={view.deadline}
         hint={view.hint}
         progressKey={`${view.key}:${best.current.distance}`}
-        prompt={prompt === null ? undefined : { action: "interact", label: promptLabel(prompt.id), onActivate: () => commands.run(prompt.name, prompt.input) }}
+        prompt={prompt === null ? undefined : { action: "interact", label: prompt.label ?? promptLabel(prompt.id), onActivate: () => commands.run(prompt.name, prompt.input) }}
       />
       {view.rush === undefined ? null : <KitButton size="sm" onClick={() => commands.run("courier.accept", { service: "rush" })}>{view.rush}</KitButton>}
     </div>

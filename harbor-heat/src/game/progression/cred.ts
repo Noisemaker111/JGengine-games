@@ -22,13 +22,16 @@ export function resolveCredProgress(level: number, xp: number): LevelProgress {
 export const CRED_BY_JOB: Record<string, number> = {
   welcome: 100,
   dock_sweep: 220,
+  front_money: 260,
   ledger: 300,
   shake_heat: 340,
   ocean_loop: 380,
   hot_wheels: 420,
+  protection: 460,
   convoy: 520,
   kingpin: 800,
   clean_hands: 60,
+  marina_turf: 200,
 };
 
 export const BOUNTY_CRED = 140;

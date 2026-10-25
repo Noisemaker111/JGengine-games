@@ -338,7 +338,9 @@ export const city = defineWorldModel({
     killing: { place: { fear: 45 }, owner: { mood: -8 }, out: { heat: 60 }, note: "Someone was killed in {place}." },
     ganger_down: [
       { place: { fear: 20 }, faction: { mood: -6 }, note: "A Carmine soldier went down in {place}." },
-      { whenPlace: { owner: "carmine" }, place: { grip: -20 } },
+      // On their own corner somebody calls it in; on yours, nobody saw a thing.
+      { whenPlace: { owner: "carmine" }, place: { grip: -25 }, out: { heat: 30 } },
+      { whenPlace: { owner: "locals" }, out: { heat: 30 } },
       { whenPlace: { owner: "player" }, place: { grip: 6 } },
     ],
     cop_down: { place: { fear: 35 }, faction: { mood: -25 }, world: { "dee.trust": -40 }, out: { heat: 110 }, note: "Officer down in {place}." },

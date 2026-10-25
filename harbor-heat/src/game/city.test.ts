@@ -26,7 +26,7 @@ describe("Mainsail's world model", () => {
     world.signal("go");
     world.signal("clear");
     expect(world.fact("port.owner")).toBe("player");
-    expect(world.says("marco")[0]).toContain("ledger");
+    expect(world.says("marco")[0]).toContain("clean front");
     expect(world.contacts().map((contact) => contact.id)).toEqual(["marco", "dee"]);
     expect(world.says("dee")[0]).toContain("quiet");
     expect(world.job("clean_hands")?.status).toBe("available");
@@ -45,5 +45,44 @@ describe("Mainsail's world model", () => {
     expect(world.says("dee")[0]).toBe("You shot a cop. Don't call me again.");
     expect(world.job("clean_hands")?.status).toBe("locked");
     expect(world.log().at(-1)?.text).toBe("Officer down in Downtown Vice.");
+  });
+
+  test("killing Carmine crew wears a block down until it flips, and a held block pays protection into the safe", () => {
+    const live = { "clock.hour": 12, "clock.night": false, "police.stars": 0, "turf.held": 0 };
+    const world = createWorldModel(city, { markers, live: () => live });
+    expect(world.fact("marina.owner")).toBe("carmine");
+    world.emit({ kind: "ganger_down", place: "marina", faction: "carmine" });
+    world.emit({ kind: "ganger_down", place: "marina", faction: "carmine" });
+    world.tick(0.3);
+    expect(world.fact("marina.owner")).toBe("player");
+    expect(world.log().map((entry) => entry.text)).toContain("You took the Marina from the Carmines.");
+    live["turf.held"] = 1;
+    world.tick(10);
+    expect(world.num("fronts.takings")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("a bought front earns more at night, stops under heavy heat, and a raid that runs out its clock wrecks it", () => {
+    const live = { "clock.hour": 12, "clock.night": false, "police.stars": 0, "turf.held": 0 };
+    const raids: string[] = [];
+    const world = createWorldModel(city, { markers, live: () => live, hooks: { raidStarted: (call) => raids.push(call.target ?? ""), raidLost: () => undefined } });
+    const placed = world.place("lounge", { slot: "front_lounge" }, { free: true });
+    expect(placed.ok).toBe(true);
+    world.tick(10);
+    const day = world.num("fronts.takings");
+    expect(day).toBeCloseTo(30, 0);
+    live["clock.night"] = true;
+    world.tick(10);
+    expect(world.num("fronts.takings") - day).toBeCloseTo(60, 0);
+    live["police.stars"] = 3;
+    const hot = world.num("fronts.takings");
+    world.tick(10);
+    expect(world.num("fronts.takings")).toBeCloseTo(hot, 3);
+    const id = world.occupant("front_lounge")!;
+    world.emit({ kind: "raid", target: id });
+    expect(raids).toEqual([id]);
+    expect(world.fact(`${id}.raid`)).toBe(true);
+    world.emit({ kind: "raid_lost", target: id });
+    expect(world.fact(`${id}.hit`)).toBe(true);
+    expect(world.log().at(-1)?.text).toBe("The Carmines wrecked the Neon Lounge.");
   });
 });
