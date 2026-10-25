@@ -1,4 +1,3 @@
-import { useCanvasCover } from "@jgengine/react";
 import { useEntityStat, useGame, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
 import { HudButton } from "@jgengine/react/hudButton";
@@ -6,24 +5,13 @@ import {
   activeCharacter,
   characterNodes,
   talentTree,
-  CHARACTERS,
   type CharacterDef,
   type CharacterNode,
 } from "../../characters";
 import { FERRALON } from "../../palette";
-import { characterIdStore, skillsOpenStore, talentRanksStore } from "../../stores";
-import { BroadcastTitle } from "../fiction/BroadcastTitle";
+import { skillsOpenStore, talentRanksStore } from "../../stores";
 import { ReclaimerPortrait } from "./Portrait";
 import { ScrapPanel } from "./ScrapPanel";
-
-export function CharacterSelect() {
-  const { commands } = useGame();
-  const picked = useStore(characterIdStore);
-  // The broadcast fills the screen: the field behind it is not drawn until a channel is tuned in.
-  useCanvasCover(picked === null);
-  if (picked !== null) return null;
-  return <BroadcastTitle onPick={(characterId) => commands.run("character.pick", { characterId })} />;
-}
 
 export function CharacterCard({ character, onPick }: { character: CharacterDef; onPick: () => void }) {
   return (

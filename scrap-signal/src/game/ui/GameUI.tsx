@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { HudCanvas, HudPanel, useDisplayProfile, useHudLayout } from "@jgengine/react";
 import { useGameFonts } from "@jgengine/react/gameFonts";
+import { useGamePhase } from "@jgengine/react/hooks";
 import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { itemNameById } from "../content";
 import { DamageVignette, HitMarker, LevelUpBurst } from "./components/Feedback";
 import { CashPlate, MissionTracker } from "./components/Mission";
 import { ReserveOverlay, VendorPanel } from "./components/Overlays";
-import { CharacterSelect, TalentsPanel } from "./components/Talents";
+import { TalentsPanel } from "./components/Talents";
 import { ScrapMenu } from "./menu/ScrapMenu";
 import { VitalsPlate } from "./components/Vitals";
 import { AmmoPlate, Hotbar, ItemCard } from "./components/Weapon";
@@ -30,6 +31,10 @@ export function GameUI() {
   const profile = useDisplayProfile();
   const combat = useHostilesNear();
   const [overlay, setOverlay] = useState<HTMLElement | null>(null);
+  const { phase } = useGamePhase();
+  // The front end replaces the field: the menu is the only surface a boot shows, and no run overlay
+  // paints through it. A run's HUD mounts when the player leaves the menu.
+  if (phase === "menu") return <ScrapMenu />;
   return (
     <OverlayHostContext.Provider value={overlay}>
     <HudCanvas layout={layout} className={`ss-hud ${profile.compact ? "compact" : ""}`}>
@@ -105,9 +110,6 @@ export function GameUI() {
       <LevelUpBurst />
     </HudCanvas>
     <div ref={setOverlay} className="ss-overlay-host" />
-    {/* The menu block is behind a flag until its overlay stops shifting under the pointer; the
-        game keeps its long-standing roster screen while the flag is off. */}
-    {import.meta.env.VITE_SCRAP_MENU === "1" ? <ScrapMenu /> : <CharacterSelect />}
     </OverlayHostContext.Provider>
   );
 }
