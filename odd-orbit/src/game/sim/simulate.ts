@@ -290,7 +290,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       // The shift is a session on the shared loop; it carries the pay the household banked for it.
       const loop = shiftLoop(ctx, member.id);
       openShift(loop, state.day);
-      probeShift(ctx, member.id);
+      probeShift(ctx, member.id, state.day);
       if (earned > 0) loop.carry(earned);
       agent.needs.refill("energy", -0.55 * worked);
       agent.needs.refill("hunger", -0.2 * worked);
@@ -311,7 +311,7 @@ function stepMember(ctx: GameContext, state: HouseholdState, member: MemberState
       if (member.shiftProgress > SHIFT_SECONDS - 1e-8) member.shiftProgress = SHIFT_SECONDS;
       const bloomLoop = shiftLoop(ctx, member.id);
       openShift(bloomLoop, state.day);
-      probeShift(ctx, member.id);
+      probeShift(ctx, member.id, state.day);
       agent.needs.refill("energy", -0.2 * dt);
       if (member.shiftProgress >= SHIFT_SECONDS) {
         const book = householdBook(state);
