@@ -1,8 +1,7 @@
 import { defineSystem, type GameContext } from "@jgengine/shell/gameKit";
 
-import { tickConstruction } from "./build/construction";
 import { tickTowers } from "./combat/towerAI";
-import { session } from "./session";
+import { keep, runEnded } from "./keep";
 import { tickWaves } from "./waves/director";
 import { heartbeat } from "./world/setup";
 
@@ -10,15 +9,7 @@ export const waves = defineSystem({
   id: "waves",
   tick: { type: "frame", stage: "ai" },
   update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickWaves(ctx, dt);
-  },
-});
-
-export const construction = defineSystem({
-  id: "construction",
-  tick: { type: "frame", stage: "ai", after: "waves" },
-  update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickConstruction(ctx, dt);
+    if (!runEnded(keep.of(ctx))) tickWaves(ctx, dt);
   },
 });
 
@@ -26,7 +17,7 @@ export const towers = defineSystem({
   id: "towers",
   tick: { type: "frame", stage: "combat", after: "waves" },
   update(ctx, dt) {
-    if (!session.gameOver && !session.victory) tickTowers(ctx, dt);
+    if (!runEnded(keep.of(ctx))) tickTowers(ctx, dt);
   },
 });
 
@@ -38,4 +29,5 @@ export const worldHeartbeat = defineSystem({
   },
 });
 
-export const systems = [waves, construction, towers, worldHeartbeat];
+/** The keep's world (`keep.system`: builds, upgrades, sales, ripples) beside the real-time sim. */
+export const systems = [keep.system, waves, towers, worldHeartbeat];

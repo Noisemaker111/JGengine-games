@@ -7,26 +7,21 @@ import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
 
 import { bindKeepCapture } from "../thumbs";
 
-import { editorLayers } from "../../editorLayers";
-import { GOLD_CURRENCY } from "../entities/base/catalog";
-import { towerDef } from "../entities/towers/catalog";
-import { towerStats } from "../entities/towers/progression";
+import { buildCost, keep, towerStats } from "../keep";
 import { session } from "../session";
 import { activeProjectiles } from "../combat/pendingProjectiles";
 import { BUILD_PLOTS, SPAWN_POINT, groundHeightAt } from "./path";
 import { rangeRingBand } from "./rangeRing";
 
 function BuildPlots() {
-  const ctx = useGameContext();
-  useGameStore((c) => c.game.economy.balance(c.player.userId, GOLD_CURRENCY));
+  const gold = useGameStore((c) => keep.of(c).num("keep.gold"));
+  const occupied = useGameStore((c) => BUILD_PLOTS.map((plot) => keep.of(c).occupant(plot.id) !== null).join(","));
   const selectedId = session.selectedTowerId;
-  const cost = selectedId === null ? 0 : towerDef(selectedId, editorLayers).cost;
-  const gold = ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
+  const cost = selectedId === null ? 0 : buildCost(selectedId);
   return (
     <>
-      {BUILD_PLOTS.map((plot) => {
-        const occupied = session.plotOccupant.get(plot.id) !== null;
-        if (occupied) return null;
+      {BUILD_PLOTS.map((plot, index) => {
+        if (occupied.split(",")[index] === "true") return null;
         const affordable = selectedId !== null && gold >= cost;
         const color = selectedId === null ? "#4a5a44" : affordable ? "#5fbf6a" : "#8a4a4a";
         return (
@@ -44,6 +39,39 @@ function BuildPlots() {
             <mesh position-y={0.31} rotation={[-Math.PI / 2, 0, 0]}>
               <ringGeometry args={[1.12, 1.44, 24]} />
               <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.45} roughness={0.6} transparent opacity={0.9} />
+            </mesh>
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+/** A tower still rising: a timber frame that climbs with the keep's build order, so a timed build reads on the field. */
+function BuildSites() {
+  const sites = useGameStore((c) => {
+    const world = keep.of(c);
+    return world.orders("build").map((order) => `${world.instance(order.target ?? "")?.slot ?? ""}:${order.progress.toFixed(2)}`).join(",");
+  });
+  if (sites.length === 0) return null;
+  return (
+    <>
+      {sites.split(",").map((site) => {
+        const [slot, progressText] = site.split(":");
+        const plot = BUILD_PLOTS.find((candidate) => candidate.id === slot);
+        if (plot === undefined) return null;
+        const height = 0.3 + 2.6 * Number(progressText);
+        return (
+          <group key={slot} position={[plot.position[0], plot.position[1], plot.position[2]]}>
+            {[[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]].map(([dx, dz]) => (
+              <mesh key={`${dx}:${dz}`} position={[dx!, height / 2, dz!]} castShadow>
+                <boxGeometry args={[0.18, height, 0.18]} />
+                <meshStandardMaterial color="#8a6a3e" roughness={1} />
+              </mesh>
+            ))}
+            <mesh position-y={height} castShadow>
+              <boxGeometry args={[2.1, 0.14, 2.1]} />
+              <meshStandardMaterial color="#a07a46" roughness={1} />
             </mesh>
           </group>
         );
@@ -83,12 +111,10 @@ function RangeRing({ center, radius }: { center: readonly [number, number]; radi
 /** Selection ring plus the live firing radius of the tower whose sell/upgrade panel is open. */
 function InspectedTower() {
   const inspectedId = useGameStore(() => session.inspectedTowerId);
-  const level = useGameStore(() => (inspectedId === null ? 0 : session.towers.get(inspectedId)?.level ?? 0));
-  const tower = inspectedId === null ? undefined : session.towers.get(inspectedId);
-  if (tower === undefined || level === 0) return null;
-  const plot = BUILD_PLOTS.find((candidate) => candidate.id === tower.plotId);
+  const slot = useGameStore((c) => (inspectedId === null ? null : keep.of(c).instance(inspectedId)?.slot ?? null));
+  const range = useGameStore((c) => (inspectedId === null ? 0 : towerStats(keep.of(c), inspectedId).range));
+  const plot = slot === null ? undefined : BUILD_PLOTS.find((candidate) => candidate.id === slot);
   if (plot === undefined) return null;
-  const range = towerStats(towerDef(tower.catalogId, editorLayers), tower.level).range;
   return (
     <>
       <group position={[plot.position[0], plot.position[1], plot.position[2]]}>
@@ -163,6 +189,7 @@ export function BeaconBastionWorldOverlay() {
       <SceneCaptureBinding bind={bindKeepCapture} />
       <SpawnGate />
       <BuildPlots />
+      <BuildSites />
       <InspectedTower />
       <ProjectileBolts />
     </>

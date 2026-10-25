@@ -5,7 +5,7 @@ import { editorLayers } from "./editorLayers";
 import { assets } from "./game/assets";
 import { BEACON_SOUNDS } from "./game/audio";
 import { content } from "./game/content";
-import { GOLD_CURRENCY } from "./game/entities/base/catalog";
+import { keep, towersStanding } from "./game/keep";
 import { currentWaveNumber, session } from "./game/session";
 import { keybinds } from "./game/keybinds";
 import { entityModels, scatterModels } from "./game/models";
@@ -86,8 +86,8 @@ export const game = defineGame({
       pause: { description: "Pause menu over live play", state: "pause", settleMs: 900 },
     },
     probe: (ctx) => ({
-      gold: ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY),
-      towers: session.towers.size,
+      gold: keep.of(ctx).num("keep.gold"),
+      towers: towersStanding(keep.of(ctx)),
       creeps: session.creeps.size,
       wave: currentWaveNumber(),
     }),

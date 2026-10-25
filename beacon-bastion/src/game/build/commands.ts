@@ -1,14 +1,10 @@
-import { enqueue } from "@jgengine/core/gameplay";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 
-import { GOLD_CURRENCY } from "../entities/base/catalog";
-import { editorLayers } from "../../editorLayers";
-import { TOWER_IDS, towerDef } from "../entities/towers/catalog";
-import { sellValue, upgradeCost } from "../entities/towers/progression";
-import { nearestPlot, type BuildPlot } from "../world/path";
-import { session, nextTowerInstanceId, type TowerRuntime } from "../session";
-import { towerBuildConfig } from "./construction";
+import { TOWER_IDS } from "../entities/towers/catalog";
+import { keep, runEnded, sellAction, upgradeAction } from "../keep";
+import { nearestPlot } from "../world/path";
+import { session } from "../session";
 
 const PLOT_CLICK_RADIUS = 4.5;
 
@@ -21,41 +17,23 @@ export interface TowerTargetInput {
   instanceId?: string;
 }
 
-/** A refusal; `message` is what the shell shows in the shared notice feed (with the deny cue). */
 type Refusal = { reason: string; message?: string };
+const refusal = (result: { reason: string; message: string } | null): Refusal | null =>
+  result === null ? null : { reason: result.reason, message: result.message };
 
+/**
+ * A click on the field: an occupied plot opens its tower, open ground closes the panel, and an empty
+ * plot builds the picked tower through `beacon.place`, which pays, reserves the plot and starts the build.
+ */
 function rejectBuild(ctx: GameContext, input: BuildPlaceInput): Refusal | null {
   const plot = nearestPlot(input.point, PLOT_CLICK_RADIUS);
   if (plot === null) return session.inspectedTowerId === null ? { reason: "no-plot" } : null;
-  if (session.plotOccupant.get(plot.id) !== null) return null;
-  const towerId = session.selectedTowerId;
-  if (towerId === null) return { reason: "no-tower-selected", message: "Pick a tower first" };
-  const def = towerDef(towerId, editorLayers);
-  const shortfall = def.cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
-  if (shortfall > 0) return { reason: "insufficient-gold", message: `${def.label} needs ${shortfall} more gold` };
-  return null;
-}
-
-function placeTower(ctx: GameContext, plot: BuildPlot): void {
-  const towerId = session.selectedTowerId!;
-  const def = towerDef(towerId, editorLayers);
-  const instanceId = nextTowerInstanceId();
-  // Queue the construction; the completion adapter (tickConstruction) spawns the
-  // tower entity. Charge gold and reserve the plot now so the cost and occupancy
-  // are immediate — the construction system raises the tower (instant when
-  // buildSeconds is 0, otherwise over its build time).
-  const queued = enqueue(session.buildQueue, towerBuildConfig, {
-    towerId,
-    plotId: plot.id,
-    instanceId,
-    position: plot.position,
-    userId: ctx.player.userId,
-  });
-  if (!queued.ok) return;
-  session.buildQueue = queued.state;
-  ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, def.cost);
-  session.plotOccupant.set(plot.id, instanceId);
-  ctx.game.audio.play("build", plot.position);
+  const world = keep.of(ctx);
+  if (world.occupant(plot.id) !== null) return null;
+  if (runEnded(world)) return { reason: "run-ended" };
+  const kind = session.selectedTowerId;
+  if (kind === null) return { reason: "no-tower-selected", message: "Pick a tower first" };
+  return refusal(world.canPlace(kind, { slot: plot.id }));
 }
 
 function clickPlot(ctx: GameContext, input: BuildPlaceInput): GameContext {
@@ -64,55 +42,35 @@ function clickPlot(ctx: GameContext, input: BuildPlaceInput): GameContext {
     session.inspectedTowerId = null;
     return ctx;
   }
-  const occupant = session.plotOccupant.get(plot.id) ?? null;
-  if (occupant !== null) {
-    session.inspectedTowerId = occupant;
-    return ctx;
-  }
-  session.inspectedTowerId = null;
-  placeTower(ctx, plot);
+  const occupant = keep.of(ctx).occupant(plot.id);
+  session.inspectedTowerId = occupant;
+  if (occupant !== null) return ctx;
+  ctx.game.commands.run("beacon.place", { kind: session.selectedTowerId!, slot: plot.id });
+  ctx.game.audio.play("build", plot.position);
   return ctx;
 }
 
-function targetTower(input: TowerTargetInput | undefined): TowerRuntime | null {
+function targetOf(ctx: GameContext, input: TowerTargetInput | undefined): { id: string; kind: string } | null {
   const id = typeof input?.instanceId === "string" ? input.instanceId : session.inspectedTowerId;
   if (id === null) return null;
-  return session.towers.get(id) ?? null;
+  const tower = keep.of(ctx).instance(id);
+  return tower === null ? null : { id, kind: tower.kind };
 }
 
-function rejectSell(_ctx: GameContext, input: TowerTargetInput | undefined): { reason: string } | null {
-  return targetTower(input) === null ? { reason: "no-tower" } : null;
-}
-
-function sellTower(ctx: GameContext, input: TowerTargetInput | undefined): GameContext {
-  const tower = targetTower(input)!;
-  const def = towerDef(tower.catalogId, editorLayers);
-  ctx.game.economy.grant(ctx.player.userId, GOLD_CURRENCY, sellValue(def, tower.level));
-  ctx.scene.entity.despawn(tower.instanceId);
-  session.towers.delete(tower.instanceId);
-  session.plotOccupant.set(tower.plotId, null);
-  if (session.inspectedTowerId === tower.instanceId) session.inspectedTowerId = null;
-  ctx.game.audio.play("sell");
-  return ctx;
-}
-
-function rejectUpgrade(ctx: GameContext, input: TowerTargetInput | undefined): Refusal | null {
-  const tower = targetTower(input);
-  if (tower === null) return { reason: "no-tower" };
-  const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level);
-  if (cost === null) return { reason: "max-level" };
-  const shortfall = cost - ctx.game.economy.balance(ctx.player.userId, GOLD_CURRENCY);
-  if (shortfall > 0) return { reason: "insufficient-gold", message: `Upgrade needs ${shortfall} more gold` };
-  return null;
-}
-
-function upgradeTower(ctx: GameContext, input: TowerTargetInput | undefined): GameContext {
-  const tower = targetTower(input)!;
-  const cost = upgradeCost(towerDef(tower.catalogId, editorLayers), tower.level)!;
-  ctx.game.economy.charge(ctx.player.userId, GOLD_CURRENCY, cost);
-  tower.level += 1;
-  ctx.game.audio.play("upgrade");
-  return ctx;
+/** The keybind path (U / X): the declared upgrade or sale of the inspected tower. */
+function towerAction(actionOf: (kind: string) => string) {
+  return {
+    validate(ctx: GameContext, input: TowerTargetInput | undefined): Refusal | null {
+      const tower = targetOf(ctx, input);
+      if (tower === null) return { reason: "no-tower" };
+      return refusal(keep.of(ctx).canAct(actionOf(tower.kind), tower.id));
+    },
+    apply(ctx: GameContext, input: TowerTargetInput | undefined): GameContext {
+      const tower = targetOf(ctx, input)!;
+      ctx.game.commands.run("beacon.act", { action: actionOf(tower.kind), target: tower.id });
+      return ctx;
+    },
+  };
 }
 
 function selectTowerCommand(id: string) {
@@ -130,14 +88,8 @@ export function registerBuildCommands(ctx: GameContext): void {
     validate: rejectBuild,
     apply: clickPlot,
   });
-  ctx.game.commands.define<TowerTargetInput | undefined>("sellTower", {
-    validate: rejectSell,
-    apply: sellTower,
-  });
-  ctx.game.commands.define<TowerTargetInput | undefined>("upgradeTower", {
-    validate: rejectUpgrade,
-    apply: upgradeTower,
-  });
+  ctx.game.commands.define<TowerTargetInput | undefined>("sellTower", towerAction(sellAction));
+  ctx.game.commands.define<TowerTargetInput | undefined>("upgradeTower", towerAction(upgradeAction));
   TOWER_IDS.forEach((id, index) => {
     ctx.game.commands.define(`buildTower${index + 1}`, selectTowerCommand(id));
   });

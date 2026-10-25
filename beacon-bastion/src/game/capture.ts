@@ -1,7 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 
-import { tickConstruction } from "./build/construction";
 import { tickTowers } from "./combat/towerAI";
+import { keep, runEnded } from "./keep";
 import { session } from "./session";
 import { sendWave, tickWaves } from "./waves/director";
 import { AUTHORED_WAVES, TOTAL_WAVES } from "./waves/manifest";
@@ -18,23 +18,24 @@ const MAX_STAGED_SECONDS = 900;
 /**
  * Run the defense's own three systems for `seconds` of game time without waiting for a
  * frame. A staged state is the real fight advanced quickly, never a scene assembled by hand:
- * the wave director spawns and walks the raiders, construction raises the towers, tower AI
+ * the wave director spawns and walks the raiders, the keep's world raises the towers, tower AI
  * shoots, and leaks, kills, gold and the result all come out of those systems.
  */
 function advance(ctx: GameContext, seconds: number): void {
   for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
     tickWaves(ctx, STEP);
-    tickConstruction(ctx, STEP);
+    keep.system.update?.(ctx, STEP);
     tickTowers(ctx, STEP);
-    if (session.gameOver || session.victory) return;
+    if (runEnded(keep.of(ctx))) return;
   }
 }
 
 /** Open the authored Warden wave and walk it until the boss is on the field. */
 function stageBossWave(ctx: GameContext): void {
   session.encounter.openWave(AUTHORED_WAVES.length - 1, session.pressure);
-  session.waveStarted = true;
-  session.waveReady = false;
+  keep.of(ctx).set("keep.wave_started", true);
+  keep.of(ctx).set("keep.wave_ready", false);
+  keep.of(ctx).set("keep.wave", session.encounter.view().wave);
   advance(ctx, 11);
   const boss = session.boss;
   if (boss === null) return;
@@ -49,8 +50,9 @@ function stageBossWave(ctx: GameContext): void {
 /** Release each assault only once the field is clear, so the run is a defense and not a wave rush. */
 function playOutDefense(ctx: GameContext): void {
   for (let elapsed = 0; elapsed < MAX_STAGED_SECONDS; elapsed += 1) {
-    if (session.gameOver || session.victory) return;
-    if (session.waveReady && session.creeps.size === 0 && !session.encounter.view().done) sendWave(ctx);
+    const world = keep.of(ctx);
+    if (runEnded(world)) return;
+    if (world.fact("keep.wave_ready") === true && session.creeps.size === 0 && !session.encounter.view().done) sendWave(ctx);
     advance(ctx, 1);
   }
 }

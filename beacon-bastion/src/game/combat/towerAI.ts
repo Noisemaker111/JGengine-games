@@ -6,7 +6,7 @@ import { distance } from "@jgengine/core/world/vec3";
 
 import { editorLayers } from "../../editorLayers";
 import { towerDef, type TowerDef } from "../entities/towers/catalog";
-import { towerStats, type TowerCombatStats } from "../entities/towers/progression";
+import { keep, towerStats } from "../keep";
 import { gameClockMs, session } from "../session";
 import { pushProjectile } from "./pendingProjectiles";
 
@@ -37,7 +37,7 @@ export function chooseTarget(
   });
 }
 
-function applyDamage(ctx: GameContext, stats: TowerCombatStats, towerId: string, targetId: string): void {
+function applyDamage(ctx: GameContext, stats: { damage: number; splashRadius: number }, towerId: string, targetId: string): void {
   ctx.scene.entity.effect({ from: towerId, to: targetId, effect: "damage", via: { amount: stats.damage } });
   if (stats.splashRadius <= 0) return;
   const target = ctx.scene.entity.get(targetId);
@@ -70,27 +70,30 @@ export function tickTowers(ctx: GameContext, dt: number): void {
 
   // A stationary turret is the degenerate pursuit case: no chase, no leash — just the shared
   // cooldown-gated attack. `stopDistance` is infinite so an acquired target is always "in reach";
-  // `scratch` mirrors each tower's serializable `cooldownSeconds` so the loop allocates nothing.
+  // `scratch` carries each tower's cooldown in and out so the loop allocates nothing.
   const scratch: PursuitState = { attackCooldown: 0 };
-  for (const tower of session.towers.values()) {
-    const def = towerDef(tower.catalogId, editorLayers);
-    const stats = towerStats(def, tower.level);
-    const entity = ctx.scene.entity.get(tower.instanceId);
+  // Level, damage, range, rate and splash are world facts the keep's upgrades write; aim and cooldown stay here.
+  const world = keep.of(ctx);
+  for (const tower of world.instances()) {
+    if (!tower.ready) continue;
+    const def = towerDef(tower.kind, editorLayers);
+    const stats = towerStats(world, tower.id);
+    const entity = ctx.scene.entity.get(tower.id);
     const targetId =
       entity === null ? null : chooseTarget(def.targeting, entity.position, stats.range, candidates);
 
-    scratch.attackCooldown = tower.cooldownSeconds;
+    scratch.attackCooldown = session.towerCooldowns.get(tower.id) ?? 0;
     const action = advancePursuit(scratch, dt, targetId === null ? null : 0, Number.POSITIVE_INFINITY, "always");
-    tower.cooldownSeconds = scratch.attackCooldown;
+    session.towerCooldowns.set(tower.id, scratch.attackCooldown);
     if (action !== "attack" || entity === null || targetId === null) continue;
 
     const target = ctx.scene.entity.get(targetId);
     if (target === null) continue;
 
-    applyDamage(ctx, stats, tower.instanceId, targetId);
+    applyDamage(ctx, stats, tower.id, targetId);
     applySlow(def, targetId, nowMs);
     pushProjectile(entity.position, target.position, def.boltColor, stats.splashRadius, now);
     armPursuit(scratch, 1 / stats.fireRateHz);
-    tower.cooldownSeconds = scratch.attackCooldown;
+    session.towerCooldowns.set(tower.id, scratch.attackCooldown);
   }
 }

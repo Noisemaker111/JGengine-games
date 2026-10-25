@@ -158,6 +158,17 @@
       "intent": "adapt a combat ability-kit snapshot into an action-bar action def"
     },
     {
+      "id": "action-glyph",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/inputDevice",
+      "domain": "action-glyph",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "the key, pad button or tap label for an action on the device in use"
+    },
+    {
       "id": "action-tooltip",
       "packages": [
         "@jgengine/react"
@@ -3513,6 +3524,17 @@
       "intent": "hash a save document's state for a determinism test or a diff"
     },
     {
+      "id": "game-spec",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/gameSpec",
+      "domain": "worldModel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a whole game as one declaration the engine runs, with named code hooks for the rest"
+    },
+    {
       "id": "game-system",
       "packages": [
         "@jgengine/core"
@@ -4206,6 +4228,17 @@
       "intent": "buffer early presses, coyote time, hold duration and double tap for responsive controls"
     },
     {
+      "id": "input-device",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/inputDevice",
+      "domain": "input-device",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "which device the player last used (keyboard, gamepad, touch), live, for device-correct prompts"
+    },
+    {
       "id": "input-recorder",
       "packages": [
         "@jgengine/core"
@@ -4534,6 +4567,127 @@
       "gameFacing": false,
       "probe": null,
       "intent": "arcade car/kart driving physics with throttle, brake, steer and retunable handling"
+    },
+    {
+      "id": "kit-action-glyph",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-action-glyph",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "the bound key, pad button or tap label for an action, live, for any kit part"
+    },
+    {
+      "id": "kit-action-prompt",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-action-prompt",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a device-correct \"press X to do Y\" prompt (keyboard key, pad button, tap) in the active UI kit"
+    },
+    {
+      "id": "kit-banner",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/kitFlow",
+      "domain": "kit-banner",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a phase-change banner (day, wave, run start) in the active UI kit, shown when its cue changes"
+    },
+    {
+      "id": "kit-button",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-button",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a button drawn by the active UI kit, with UI cue sounds"
+    },
+    {
+      "id": "kit-menu",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-menu",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a verb list drawn by the active UI kit over shared menu navigation"
+    },
+    {
+      "id": "kit-meter",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-meter",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a value meter (bar, segments, ring) drawn by the active UI kit"
+    },
+    {
+      "id": "kit-minimap-frame",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-minimap-frame",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a minimap or radar frame drawn by the active UI kit"
+    },
+    {
+      "id": "kit-objective",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/kitFlow",
+      "domain": "kit-objective",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "first-minute guidance in the active UI kit — goal, distance and direction, checklist, countdown with urgency warnings, idle hint, next-action prompt"
+    },
+    {
+      "id": "kit-panel",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-panel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a content surface drawn by the active UI kit, with the kit's enter/exit motion"
+    },
+    {
+      "id": "kit-result-screen",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/kitFlow",
+      "domain": "kit-result-screen",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "run/day/level result screen in the active UI kit — scrim, summary, tally, keyboard/gamepad/touch choices, kit motion"
+    },
+    {
+      "id": "kit-toast",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "kit-toast",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "a short message drawn by the active UI kit, with its enter/exit motion"
     },
     {
       "id": "lane-board",
@@ -8985,6 +9139,127 @@
       "gameFacing": false,
       "probe": null,
       "intent": "a cast-free typed handle onto one reactive game-store slot, replayable and host-authoritative"
+    },
+    {
+      "id": "ui-kit-arcade",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitArcade",
+      "domain": "ui-kit-arcade",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "retro 8-bit arcade UI kit: stepped pixel frames, JRPG windows, depth buttons, hearts, score popups, chiptune cues"
+    },
+    {
+      "id": "ui-kit-broadcast",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitBroadcast",
+      "domain": "ui-kit-broadcast",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "sports broadcast UI kit — skewed slabs, score bugs, breaking-news bands, tote-board menus, shot-clock rings, wipe motion, whoosh and stinger sounds"
+    },
+    {
+      "id": "ui-kit-customize",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKit",
+      "domain": "ui-kit-customize",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "reshape a UI kit per game — tokens, swapped parts, extra CSS, motion and sounds — without losing any part"
+    },
+    {
+      "id": "ui-kit-holo",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitHolo",
+      "domain": "ui-kit-holo",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "sci-fi hologram UI kit — chamfered glass, bracket corners, hex tags, radar frames, projection motion and tone sweeps"
+    },
+    {
+      "id": "ui-kit-ink",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitInk",
+      "domain": "ui-kit-ink",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "comic ink UI kit — outlines, halftone, caption tabs, speech balloons, pop motion, marker sounds"
+    },
+    {
+      "id": "ui-kit-paper",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitPaper",
+      "domain": "ui-kit-paper",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "paper and sticker UI kit — taped notes, ticket buttons, sticker badges, ruler meters, tag toasts, place-and-peel motion"
+    },
+    {
+      "id": "ui-kit-parchment",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitParchment",
+      "domain": "ui-kit-parchment",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "painterly fantasy parchment UI kit — stained paper, wax seals, scroll panels, vial meters, compass rims, unfurl motion, plucked-string sounds"
+    },
+    {
+      "id": "ui-kit-root",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitRoot",
+      "domain": "ui-kit-root",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "one line picks a complete UI language (shapes, type, motion, sound) for every kit part below it"
+    },
+    {
+      "id": "ui-kit-signal",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitSignal",
+      "domain": "ui-kit-signal",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "in-world signage UI kit — enamel plates, arrow and blade signs, route shields, LED departure boards, split-flap motion and clacks"
+    },
+    {
+      "id": "ui-kit-terminal",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKitTerminal",
+      "domain": "ui-kit-terminal",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "brutalist phosphor terminal UI kit: double rules, ASCII meters, log toasts, scanlines, stepped reveals, square-wave beeps"
+    },
+    {
+      "id": "ui-kits",
+      "packages": [
+        "@jgengine/react"
+      ],
+      "module": "@jgengine/react/uiKits",
+      "domain": "ui-kits",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "eight complete built-in UI kits (ink, paper, parchment, terminal, holo, broadcast, arcade, signal) a game picks in one line"
     },
     {
       "id": "ui-sound-cues",

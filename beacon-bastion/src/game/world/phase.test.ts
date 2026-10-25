@@ -4,11 +4,11 @@ import { gamePhase } from "@jgengine/core/game/gamePhase";
 import { createGameContext, type GameContext } from "@jgengine/core/runtime/gameContext";
 
 import { content } from "../content";
-import { BASE_CATALOG_ID } from "../entities/base/catalog";
-import { session } from "../session";
+import { STARTING_LIVES } from "../entities/base/catalog";
+import { keep } from "../keep";
 import { setupWorld } from "./setup";
 
-/** Boot a real headless context and wire the defense (grants gold, spawns the keep, subscribes death). */
+/** Boot a real headless context and wire the defense (opens the keep's world, spawns the keep, subscribes kills). */
 function boot(): GameContext {
   const definition = defineGameDefinition({ name: "BeaconBastionPhaseTest", multiplayer: "off" });
   const ctx = createGameContext({ definition, content, player: { userId: "p1", isNew: true } });
@@ -20,14 +20,11 @@ function boot(): GameContext {
 describe("beacon-bastion run phase", () => {
   test("the keep falling ends the run — game over reads as ended (dock off)", () => {
     const ctx = boot();
-    expect(session.gameOver).toBe(false);
-    ctx.game.events.emit("entity.died", {
-      instanceId: BASE_CATALOG_ID,
-      catalogId: BASE_CATALOG_ID,
-      reason: { kind: "environment", source: "test" },
-      position: [0, 0, 0],
-    });
-    expect(session.gameOver).toBe(true);
+    expect(keep.of(ctx).fact("keep.fallen")).toBe(false);
+    for (let leak = 0; leak < STARTING_LIVES - 1; leak += 1) keep.emit(ctx, { kind: "leak" });
+    expect(gamePhase(ctx)).not.toBe("ended");
+    keep.emit(ctx, { kind: "leak" });
+    expect(keep.of(ctx).fact("keep.fallen")).toBe(true);
     expect(gamePhase(ctx)).toBe("ended");
   });
 });
