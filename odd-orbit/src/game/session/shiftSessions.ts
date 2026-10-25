@@ -69,11 +69,17 @@ export function closeShift(loop: ShiftLoop, day: number, finished: boolean): Shi
 
 /**
  * The probe reports the member whose shift is live and follows the household as the working member
- * changes - one readout of one career's session, never a second copy of its state.
+ * changes - one readout of one career's session, never a second copy of its state. Pass `day` from a
+ * shift that is only ticking: a shift that already closed that day keeps the readout until another
+ * one closes or the day turns, so the next worker's open shift cannot hide the boundary.
  */
-export function probeShift(ctx: GameContext, memberId: string): void {
+export function probeShift(ctx: GameContext, memberId: string, day?: number): void {
   const slot = sessions(ctx);
   if (slot.probedId === memberId) return;
+  if (day !== undefined && slot.probedId !== null) {
+    const probed = slot.loops.get(slot.probedId);
+    if (probed !== undefined && probed.phase() === "closed" && probed.snapshot().session === day + 1) return;
+  }
   slot.uninstall?.();
   slot.uninstall = installSessionProbe(shiftLoop(ctx, memberId));
   slot.probedId = memberId;

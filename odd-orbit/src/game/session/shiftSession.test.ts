@@ -80,3 +80,23 @@ test("the probe reports the member's live shift session", () => {
   advance(ctx, 4);
   expect(probe?.read()).toMatchObject({ kind: "shift", phase: "open" });
 });
+
+test("a closed shift stays on the probe while the next member's shift ticks, until that one closes", () => {
+  const ctx = boot();
+  const [first, second] = householdStore.read(ctx).order as [string, string];
+  const readout = () => (globalThis as { __jgengineRun?: { read(): { phase: string; closed: number } } }).__jgengineRun?.read();
+  startYieldShift(ctx, first);
+  advance(ctx, 22);
+  expect(householdStore.read(ctx).members[first]!.completedShifts).toBe(1);
+  expect(readout()).toMatchObject({ phase: "closed", closed: 1 });
+
+  // The console frees up and the next member starts the same day: the boundary that just settled stays readable.
+  startYieldShift(ctx, second);
+  advance(ctx, 4);
+  expect(shiftLoop(ctx, second).phase()).toBe("open");
+  expect(readout()).toMatchObject({ phase: "closed", closed: 1 });
+
+  advance(ctx, 20);
+  expect(householdStore.read(ctx).members[second]!.completedShifts).toBe(1);
+  expect(readout()).toMatchObject({ phase: "closed", closed: 1 });
+});
