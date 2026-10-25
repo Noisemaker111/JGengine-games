@@ -10,6 +10,7 @@ import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from
 import { activeCharacter, talentTree } from "./game/characters";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild } from "./game/commands";
+import { settleBootPhase } from "./game/bootPhase";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
 import { registerPerks } from "./game/combat/gunPerks";
 import { startAmbience, tickAudio } from "./game/audio/drive";
@@ -302,7 +303,7 @@ function onNewPlayer(ctx: GameContext): void {
  *
  * A boot never resumes a run on its own: the saved phase is a fact about the document, not an
  * instruction to start, so the phase is `menu` whatever the snapshot said. Continue and New run are
- * the only ways out, and they are the player's.
+ * the only ways out, and they are the player's (or a capture host's pick made while the save loaded).
  */
 async function resumeOrStart(ctx: GameContext): Promise<void> {
   const worldLoaded = await loadSavedProgress(ctx);
@@ -314,8 +315,7 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     restoreMastWatch(ctx);
   }
-  setGamePhase(ctx, "menu");
-  ctx.time.pause();
+  settleBootPhase(ctx);
 }
 
 /** One staged boot per session: the dev hook above must not re-wound a reconstructed chassis. */
