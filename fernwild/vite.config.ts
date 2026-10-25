@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 import { viteIdleExit } from "../shared/viteIdleExit";
+import { engineDedupe } from "../shared/viteEngineDedupe";
 
 const engineSrc = (pkg: string) => fileURLToPath(new URL(`../../packages/${pkg}/src`, import.meta.url));
 const registryUi = fileURLToPath(new URL("../registry/jgengine", import.meta.url));
@@ -14,6 +15,7 @@ export default defineConfig({
   clearScreen: false,
   build: { target: "es2022" },
   resolve: {
+    dedupe: engineDedupe(new URL(".", import.meta.url)),
     extensions: [".ts", ".tsx", ".mjs", ".js", ".jsx", ".json"],
     alias: [
       ...(existsSync(registryUi) ? [{ find: /^@\/components\/ui\/(.*)$/, replacement: `${registryUi}/$1` }] : []),
