@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "rootDirs": [
+      "."
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@llmville/game/*": [
+        "./packages/game/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "*.ts",
+    "scripts/*.ts"
+  ],
+  "exclude": [
+    "packages",
+    "node_modules",
+    "dist"
+  ]
+}

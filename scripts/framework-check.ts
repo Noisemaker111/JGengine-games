@@ -55,7 +55,14 @@ export const ENGINE_SEAMS: readonly EngineSeam[] = [
   {
     name: "scheduler",
     owner: "AI director / run and session loop",
-    defines: [/\bclass\s+\w*(?:Scheduler|TimerQueue|IntervalHeap)\b/, /\b(?:nextRunAt|dueAt|scheduledAt|timerHeap|intervalHeap)\b/, /\bfunction\s+\w*(?:schedule|tickQueue)\b/],
+    defines: [
+      /\bclass\s+\w*(?:Scheduler|TimerQueue|IntervalHeap)\b/,
+      /\b(?:timerHeap|intervalHeap)\b/,
+      // A due time is a scheduler only where the module also drains a queue by it: a bill that
+      // merely carries a `dueAt` field (a schema row, a sort for display) is data.
+      /^(?=[^]*\b(?:nextRunAt|dueAt|scheduledAt)\b)(?=[^]*\.(?:shift|pop)\(\))/,
+      /\bfunction\s+\w*(?:schedule|tickQueue)\b/,
+    ],
   },
   {
     name: "resource pool",
@@ -90,7 +97,8 @@ export const ENGINE_SEAMS: readonly EngineSeam[] = [
 
 /** A named set of states and the transitions between them: a state machine, not a typed field. */
 const STATE_UNION = /\btype\s+\w*(?:State|Phase)\s*=\s*[^;]*\|/;
-const STATE_TRANSITION = /\b\w*(?:state|phase|State|Phase)\s*=\s*["'`]/g;
+/** An assignment of a named state; the `type X = "a" | ...` declaration itself is not a move. */
+const STATE_TRANSITION = /(?<!\btype\s+)\b\w*(?:state|phase|State|Phase)\s*=\s*["'`]/g;
 
 function definesStateMachine(code: string): boolean {
   const moves = code.match(STATE_TRANSITION)?.length ?? 0;

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "noEmit": true,
+    "paths": {
+      "@llmville/game/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
+  ]
+}
