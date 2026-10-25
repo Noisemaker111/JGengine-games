@@ -1,7 +1,7 @@
 {
-  "drawsFrame": 732,
-  "previousDraws": 1253,
+  "drawsFrame": 679,
+  "previousDraws": 732,
   "triangles": 4405210,
-  "nodes": 3769,
-  "baseline": "2026-10-24 bun run perf harbor-heat --seconds 6 --uncapped --quality high, whole-frame p95 as the gate compares it, GeForce RTX 3070 ANGLE D3D11, 1600x900, tier high (the game's own default), engine 3611d0e1 serving Games 43ccab9; two runs read drawsFrame 666 / 666, triangles 1,421,460 / 1,421,460, nodes 3,427 / 3,427. Ceilings are +10% over the measured value, rounded down: drawsFrame 732 (666), nodes 3,769 (3,427). The triangle ceiling stays where it was: a triangle count is one sample at snapshot time, not a window p95, and it moved far more than 10% between runs historically, so it is not ratcheted here. Previous draws ceiling 1,253 (itself from 10,420). The node baseline rose from 2,860 because the 60 m far levels save draws and triangles at the cost of scene nodes: measured on this same engine in the same session with both far levels disabled, the scene holds 2,969 nodes, 1,524,424 triangles and 646 draws, so the far levels add 458 nodes while removing 102,964 triangles and 20 draws. The other +109 nodes is scene content that landed since the 2026-10-23 baseline. The node ceiling is the old +10% convention applied to a newer measurement, not a loosened rule."
+  "nodes": 6608,
+  "baseline": "2026-10-25 bun run perf harbor-heat --seconds 6 --uncapped --quality high, GeForce RTX 3070 ANGLE D3D11, 1600x900, tier high, engine 5b64fdd6 (0.42.0) serving Games on origin/beta a6267c7f plus the harbor-look lane; two runs read drawsFrame 613 / 618, triangles 2,998,943 / 3,006,673, nodes 6,008 / 6,008. Ceilings are +10% over the higher measured value, rounded down: drawsFrame 679 (618), nodes 6,608 (6,008). Before this lane the same engine and beta measured drawsFrame 941 / 941 and nodes 6,899 / 6,899 (already over the old 732 / 3,769 ceilings from content that landed after the 2026-10-24 baseline): the palm went from 38 primitives to 3 and its far level from a decimation to an authored mesh, which is the 323 draws and 891 nodes saved; triangles rose 66,194 for the denser crowns, the bus and the cruiser. The node ceiling is the +10% convention on today's measurement, not a loosened rule. Previous draws ceiling 732."
 }

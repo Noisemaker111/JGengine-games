@@ -323,12 +323,13 @@
 .hh-dial-major { stroke: #1b1410; stroke-width: 2.6; stroke-linecap: round; }
 .hh-dial-minor { stroke: #1b1410; stroke-width: 1.3; }
 .hh-dial-num { font: 400 11px/1 var(--hh-display); fill: #1b1410; text-anchor: middle; }
+.hh-dial-num[data-long] { font-size: 9.5px; letter-spacing: -0.02em; }
 .hh-dial-needle { fill: var(--hh-coral); stroke: #7a1e10; stroke-width: 0.6; }
 .hh-dial-hub { fill: #1b2226; stroke: var(--hh-coral); stroke-width: 2; }
 .hh-dash-lcd {
   position: absolute;
   left: 50%;
-  bottom: 34px;
+  bottom: 33px;
   transform: translateX(-50%);
   display: flex;
   align-items: baseline;
@@ -341,6 +342,30 @@
 }
 .hh-dash-lcd b { font: 400 22px/1 var(--hh-display); letter-spacing: 0.05em; min-width: 2.2ch; text-align: right; }
 .hh-dash-lcd small { font: 700 9px/1 var(--hh-body); letter-spacing: 0.1em; text-transform: uppercase; }
+/* The gear the box is in, printed on its own cell at the left of the LCD; reverse lights it coral. */
+.hh-dash-gear {
+  align-self: center;
+  margin-right: 3px;
+  padding: 1px 4px 0;
+  font: 400 15px/1 var(--hh-display);
+  font-style: normal;
+  color: #ffcd6a;
+  background: var(--hh-lcd-ink);
+  border-radius: 2px;
+}
+.hh-dash-gear[data-reverse] { color: var(--hh-cream); background: var(--hh-coral); }
+/* Ten rev lamps between the LCD and the badge: amber, the last two red, lit up to the revs. */
+.hh-dash-revs {
+  position: absolute;
+  left: 50%;
+  bottom: 23px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+.hh-dash-revs i { width: 5px; height: 5px; border-radius: 50%; background: #3a3128; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4); }
+.hh-dash-revs i[data-on] { background: var(--hh-amber); }
+.hh-dash-revs i[data-on][data-red] { background: var(--hh-coral); }
 .hh-dash-badge {
   position: absolute;
   left: 50%;
@@ -462,6 +487,8 @@
 .hh-hud-compact .hh-dash-lcd { bottom: 24px; }
 .hh-hud-compact .hh-dash-lcd b { font-size: 17px; }
 .hh-hud-compact .hh-dash-badge { font-size: 12px; }
+.hh-hud-compact .hh-dash-revs { display: none; }
+.hh-hud-compact .hh-dash-gear { font-size: 12px; }
 .hh-hud-compact .hh-city-phone { width: min(300px, 82vw); margin-right: 0; transform: none; }
 .hh-hud-compact .hh-city-phone .hh-phone-lcd { height: 272px; }
 
