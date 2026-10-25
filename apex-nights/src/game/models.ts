@@ -1,16 +1,9 @@
-import { libraryModel } from "@jgengine/assets/catalogs/modelLibrary";
 import type { ModelConfig } from "@jgengine/core/game/playableGame";
 
 import { idea } from "./idea";
-import type { ModelRef } from "./ideaShape";
+import { model } from "./modelRef";
 
-/** A model from `idea.ts`: a path is a file the game serves; a bare name is from the realistic model library. */
-export function model(ref: ModelRef): ModelConfig {
-  const drawn: ModelConfig = ref.model.startsWith("/")
-    ? { url: ref.model, ...(ref.height === undefined ? {} : { targetHeight: ref.height }) }
-    : libraryModel(ref.model, ref.height === undefined ? {} : { targetHeight: ref.height });
-  return ref.tint === undefined ? drawn : { ...drawn, material: { ...drawn.material, color: ref.tint } };
-}
+export { scatterModels } from "./modelRef";
 
 /** Entity catalog id -> the model it draws. */
 export const entityModels: Record<string, ModelConfig> = {

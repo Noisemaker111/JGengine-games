@@ -1,4 +1,4 @@
-import type { DriverIdea } from "./ideaShape";
+import type { Idea } from "./kindShape";
 
 /**
  * Apex Nights: "arcade street racer: win night races, earn cash, upgrade your car"
@@ -6,21 +6,59 @@ import type { DriverIdea } from "./ideaShape";
  * Everything the game says and draws starts here. Change a word, a cost or a model and the game
  * follows; places live in `src/editor.scene.json` (F2+E in the running game).
  */
-export const idea: DriverIdea = {
-  "player": "driver",
+export const idea: Idea = {
+  "kind": "racer",
+  "name": "Apex Nights",
   "id": "apex-nights",
   "spec": "apex_nights",
-  "name": "Apex Nights",
   "pitch": "arcade street racer: win night races, earn cash, upgrade your car",
   "tagline": "Win races. Tune the car. Own the night.",
   "kit": "arcade",
   "look": "cinematic",
-  "mood": "night",
+  "mood": "dusk",
   "accent": "#ff3d8b",
   "ground": {
-    "material": "slate",
-    "low": "#2c2f36",
-    "high": "#4a4e57"
+    "material": "grass",
+    "low": "#2c3a28",
+    "high": "#4b5640"
+  },
+  "world": {
+    "relief": 7,
+    "frequency": 0.008,
+    "waterLevel": -40,
+    "scatter": {
+      "tree": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_1.glb",
+        "height": 10
+      },
+      "tree2": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_4.glb",
+        "height": 12
+      },
+      "pine": {
+        "model": "/models/imported/quaternius-stylized-nature/Pine_2.glb",
+        "height": 11
+      },
+      "bush": {
+        "model": "/models/imported/quaternius-stylized-nature/Bush_Common.glb",
+        "height": 1.2
+      },
+      "grass": {
+        "model": "/models/imported/quaternius-stylized-nature/Grass_Common_Tall.glb",
+        "height": 0.6
+      },
+      "rock": {
+        "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_1.glb",
+        "height": 1.6
+      }
+    },
+    "sky": {
+      "preset": "dusk",
+      "cycle": true,
+      "dayLength": 1440,
+      "startHour": 18.6,
+      "haze": 0.4
+    }
   },
   "guide": {
     "name": "Vee",
@@ -104,24 +142,20 @@ export const idea: DriverIdea = {
   ],
   "scenery": [
     {
-      "model": "/models/imported/kaykit-city-builder/building_A.glb",
-      "height": 12
+      "model": "city/road-barrier",
+      "height": 1.1
     },
     {
-      "model": "/models/imported/kaykit-city-builder/building_C.glb",
-      "height": 14
+      "model": "/models/imported/kaykit-city-builder/box_A.glb",
+      "height": 1
     },
     {
-      "model": "/models/imported/kaykit-city-builder/building_E.glb",
-      "height": 16
+      "model": "/models/imported/kaykit-city-builder/dumpster.glb",
+      "height": 1.4
     },
     {
-      "model": "/models/imported/kaykit-city-builder/building_G.glb",
-      "height": 18
-    },
-    {
-      "model": "/models/imported/kaykit-city-builder/building_H.glb",
-      "height": 15
+      "model": "/models/imported/kaykit-city-builder/trafficlight_A.glb",
+      "height": 4.5
     },
     {
       "model": "/models/imported/kaykit-city-builder/watertower.glb",

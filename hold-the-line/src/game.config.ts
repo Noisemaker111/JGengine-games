@@ -4,16 +4,18 @@ import { editorLayers } from "./editorLayers";
 import { content } from "./game/content";
 import { flowSystem } from "./game/flow";
 import { idea } from "./game/idea";
-import { entityModels, objectModels } from "./game/models";
+import { entityModels, objectModels, scatterModels } from "./game/models";
 import { prompts } from "./game/prompts";
 import { camp } from "./game/spec";
 import { GameUI } from "./game/ui/GameUI";
 import { onNewPlayer, systems } from "./loop";
-import { world } from "./world";
+import { time, world } from "./world";
 
 export const game = defineGame({
   name: idea.name,
   world,
+  // The sun runs through a day as the waves come: calm by day, the wave at dusk.
+  time,
   // Binding the movement actions makes the shell drive the walk controller.
   input: {
     ...DEFAULT_WALK_CODES,
@@ -32,6 +34,7 @@ export const game = defineGame({
   editorLayers,
   entityModels,
   objectModels,
+  sceneScatterModels: scatterModels,
   worldHealthBars: { statId: "health" },
   look: idea.look,
   mood: idea.mood,

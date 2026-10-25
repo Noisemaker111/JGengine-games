@@ -17,6 +17,10 @@
     "game-pause-menu",
     "game-spec",
     "game-system",
+    "hud-canvas",
+    "hud-frame",
+    "hud-layout",
+    "hud-panel",
     "hud-ticker",
     "kit-action-glyph",
     "kit-action-prompt",
@@ -53,199 +57,199 @@
   "declines": {
     "agents": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no agent loop yet: it is a night-defence survival starter, and nothing in its loop uses agents."
+      "reason": "Hold the Line has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses agents."
     },
     "audio-probe": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no audio mix yet: it is a night-defence survival starter, and nothing in its loop uses audio-probe."
+      "reason": "Hold the Line has no audio mix yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses audio-probe."
     },
     "cover-field": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no cover yet: it is a night-defence survival starter, and nothing in its loop uses cover-field."
+      "reason": "Hold the Line has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-field."
     },
     "cover-points-from-solids": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no cover yet: it is a night-defence survival starter, and nothing in its loop uses cover-points-from-solids."
+      "reason": "Hold the Line has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-points-from-solids."
     },
     "cover-points-near": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no cover yet: it is a night-defence survival starter, and nothing in its loop uses cover-points-near."
+      "reason": "Hold the Line has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-points-near."
     },
     "cover-score": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no cover yet: it is a night-defence survival starter, and nothing in its loop uses cover-score."
+      "reason": "Hold the Line has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-score."
     },
     "cover-select": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no cover yet: it is a night-defence survival starter, and nothing in its loop uses cover-select."
+      "reason": "Hold the Line has no cover yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses cover-select."
     },
     "damage-runtime": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no damage table yet: it is a night-defence survival starter, and nothing in its loop uses damage-runtime."
+      "reason": "Hold the Line has no damage table yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses damage-runtime."
     },
     "damage-target-unknown": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no damage table yet: it is a night-defence survival starter, and nothing in its loop uses damage-target-unknown."
+      "reason": "Hold the Line has no damage table yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses damage-target-unknown."
     },
     "equipment-slot-inventory": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no equipment slots yet: it is a night-defence survival starter, and nothing in its loop uses equipment-slot-inventory."
+      "reason": "Hold the Line has no equipment slots yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses equipment-slot-inventory."
     },
     "game-save": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no save document yet: it is a night-defence survival starter, and nothing in its loop uses game-save."
+      "reason": "Hold the Line has no save document yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses game-save."
     },
     "game-save-digest": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no save document yet: it is a night-defence survival starter, and nothing in its loop uses game-save-digest."
+      "reason": "Hold the Line has no save document yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses game-save-digest."
     },
     "loan-schedule": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loans yet: it is a night-defence survival starter, and nothing in its loop uses loan-schedule."
+      "reason": "Hold the Line has no loans yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loan-schedule."
     },
     "loans": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loans yet: it is a night-defence survival starter, and nothing in its loop uses loans."
+      "reason": "Hold the Line has no loans yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loans."
     },
     "loot-comparison": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loot rolling yet: it is a night-defence survival starter, and nothing in its loop uses loot-comparison."
+      "reason": "Hold the Line has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-comparison."
     },
     "loot-generation": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loot rolling yet: it is a night-defence survival starter, and nothing in its loop uses loot-generation."
+      "reason": "Hold the Line has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-generation."
     },
     "loot-roller": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loot rolling yet: it is a night-defence survival starter, and nothing in its loop uses loot-roller."
+      "reason": "Hold the Line has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-roller."
     },
     "loot-score": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loot rolling yet: it is a night-defence survival starter, and nothing in its loop uses loot-score."
+      "reason": "Hold the Line has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-score."
     },
     "loot-validation": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no loot rolling yet: it is a night-defence survival starter, and nothing in its loop uses loot-validation."
+      "reason": "Hold the Line has no loot rolling yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses loot-validation."
     },
     "mission-events": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no mission runtime yet: it is a night-defence survival starter, and nothing in its loop uses mission-events."
+      "reason": "Hold the Line has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-events."
     },
     "mission-rewards": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no mission runtime yet: it is a night-defence survival starter, and nothing in its loop uses mission-rewards."
+      "reason": "Hold the Line has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-rewards."
     },
     "mission-runtime": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no mission runtime yet: it is a night-defence survival starter, and nothing in its loop uses mission-runtime."
+      "reason": "Hold the Line has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-runtime."
     },
     "mission-validation": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no mission runtime yet: it is a night-defence survival starter, and nothing in its loop uses mission-validation."
+      "reason": "Hold the Line has no mission runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses mission-validation."
     },
     "nav-crowd": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no navigation yet: it is a night-defence survival starter, and nothing in its loop uses nav-crowd."
+      "reason": "Hold the Line has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses nav-crowd."
     },
     "nav-runtime": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no navigation yet: it is a night-defence survival starter, and nothing in its loop uses nav-runtime."
+      "reason": "Hold the Line has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses nav-runtime."
     },
     "navmesh-from-scene": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no navigation yet: it is a night-defence survival starter, and nothing in its loop uses navmesh-from-scene."
+      "reason": "Hold the Line has no navigation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses navmesh-from-scene."
     },
     "near-agents": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no agent loop yet: it is a night-defence survival starter, and nothing in its loop uses near-agents."
+      "reason": "Hold the Line has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses near-agents."
     },
     "offscreen-world": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no offscreen simulation yet: it is a night-defence survival starter, and nothing in its loop uses offscreen-world."
+      "reason": "Hold the Line has no offscreen simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses offscreen-world."
     },
     "perception-service": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no perception yet: it is a night-defence survival starter, and nothing in its loop uses perception-service."
+      "reason": "Hold the Line has no perception yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses perception-service."
     },
     "police-response": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no police heat yet: it is a night-defence survival starter, and nothing in its loop uses police-response."
+      "reason": "Hold the Line has no police heat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses police-response."
     },
     "police-roads": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no police heat yet: it is a night-defence survival starter, and nothing in its loop uses police-roads."
+      "reason": "Hold the Line has no police heat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses police-roads."
     },
     "ride-appeal": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no ride simulation yet: it is a night-defence survival starter, and nothing in its loop uses ride-appeal."
+      "reason": "Hold the Line has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-appeal."
     },
     "ride-choice": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no ride simulation yet: it is a night-defence survival starter, and nothing in its loop uses ride-choice."
+      "reason": "Hold the Line has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-choice."
     },
     "ride-sim": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no ride simulation yet: it is a night-defence survival starter, and nothing in its loop uses ride-sim."
+      "reason": "Hold the Line has no ride simulation yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses ride-sim."
     },
     "run-loop": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no run yet: it is a night-defence survival starter, and nothing in its loop uses run-loop."
+      "reason": "Hold the Line has no run yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses run-loop."
     },
     "rvo-avoidance": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no crowd steering yet: it is a night-defence survival starter, and nothing in its loop uses rvo-avoidance."
+      "reason": "Hold the Line has no crowd steering yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses rvo-avoidance."
     },
     "session-loop": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no run yet: it is a night-defence survival starter, and nothing in its loop uses session-loop."
+      "reason": "Hold the Line has no run yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses session-loop."
     },
     "skill-tree": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no skill tree yet: it is a night-defence survival starter, and nothing in its loop uses skill-tree."
+      "reason": "Hold the Line has no skill tree yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses skill-tree."
     },
     "squad-combat": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no squad combat yet: it is a night-defence survival starter, and nothing in its loop uses squad-combat."
+      "reason": "Hold the Line has no squad combat yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses squad-combat."
     },
     "status-runtime": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no status effects yet: it is a night-defence survival starter, and nothing in its loop uses status-runtime."
+      "reason": "Hold the Line has no status effects yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses status-runtime."
     },
     "status-unknown": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no status effects yet: it is a night-defence survival starter, and nothing in its loop uses status-unknown."
+      "reason": "Hold the Line has no status effects yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses status-unknown."
     },
     "supply-demand-pricing": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no market pricing yet: it is a night-defence survival starter, and nothing in its loop uses supply-demand-pricing."
+      "reason": "Hold the Line has no market pricing yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses supply-demand-pricing."
     },
     "traffic": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no traffic yet: it is a night-defence survival starter, and nothing in its loop uses traffic."
+      "reason": "Hold the Line has no traffic yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses traffic."
     },
     "transaction-ledger": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no transaction ledger yet: it is a night-defence survival starter, and nothing in its loop uses transaction-ledger."
+      "reason": "Hold the Line has no transaction ledger yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses transaction-ledger."
     },
     "utility-brain": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no agent loop yet: it is a night-defence survival starter, and nothing in its loop uses utility-brain."
+      "reason": "Hold the Line has no agent loop yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses utility-brain."
     },
     "vehicle-damage": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no vehicle damage yet: it is a night-defence survival starter, and nothing in its loop uses vehicle-damage."
+      "reason": "Hold the Line has no vehicle damage yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses vehicle-damage."
     },
     "visitor-population": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no park population yet: it is a night-defence survival starter, and nothing in its loop uses visitor-population."
+      "reason": "Hold the Line has no park population yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses visitor-population."
     },
     "wait-queue": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no queue yet: it is a night-defence survival starter, and nothing in its loop uses wait-queue."
+      "reason": "Hold the Line has no queue yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses wait-queue."
     },
     "weapon-system": {
       "kind": "not-applicable",
-      "reason": "Hold the Line has no weapon runtime yet: it is a night-defence survival starter, and nothing in its loop uses weapon-system."
+      "reason": "Hold the Line has no weapon runtime yet: it is a camp survival (gather by day, hold the night) starter, and nothing in its loop uses weapon-system."
     }
   }
 }

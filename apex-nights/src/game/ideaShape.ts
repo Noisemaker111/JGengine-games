@@ -1,9 +1,10 @@
 /**
- * The shape of `idea.ts`: every word, number and model the starter reads. `bun run new-game` writes
- * `idea.ts` from a plain-words idea; change a word, a cost or a model there and the game follows.
+ * The shared shape of `idea.ts`: what every generated game has whatever its kind (name, look, the
+ * ground and sky, the UI kit). Each kind adds its own fields in `kindShape.ts`. `bun run new-game`
+ * writes `idea.ts` from a plain-words idea; change a word, a cost or a model there and the game follows.
  */
 
-export type PlayerKind = "walker" | "driver";
+export type KindName = "survival" | "racer" | "builder" | "defense" | "farm" | "shooter" | "colony" | "explorer";
 export type UiKitName = "ink" | "paper" | "parchment" | "terminal" | "holo" | "broadcast" | "arcade" | "signal";
 export type LookName = "cinematic" | "photoreal" | "toon" | "comic" | "retro";
 export type MoodName = "day" | "bright" | "golden" | "dusk" | "overcast" | "night";
@@ -25,64 +26,32 @@ export interface ModelRef {
   tint?: string;
 }
 
-export interface ResourceWord {
-  id: string;
-  label: string;
-  start: number;
-}
-
-/** Something in the world the player works for a resource (search a crate, chop a tree). */
-export interface NodeWord {
-  id: string;
-  label: string;
-  verb: string;
-  gives: string;
-  amount: number;
-  /** Uses before it is spent; it refills at `regrow` per second. */
-  uses: number;
-  regrow: number;
-  prop: ModelRef;
-}
-
-/** Something the player builds on the camp grid. */
-export interface StructureWord {
-  id: string;
-  label: string;
-  /** `wall` soaks damage, `turret` shoots threats in range, `producer` adds a resource over time. */
-  role: "wall" | "turret" | "producer";
-  key: string;
-  cost: Readonly<Record<string, number>>;
-  takes: number;
-  health: number;
-  /** turret: damage per shot at level 1; producer: units per second at level 1. */
-  power: number;
-  /** producer: the resource it makes. */
-  makes?: string;
-  prop: ModelRef;
-}
-
-/** Something that comes for the camp when the wave starts. */
-export interface ThreatWord {
-  id: string;
-  label: string;
-  model: ModelRef;
-  health: number;
-  damage: number;
-  speed: number;
-  /** First wave it shows up in. */
-  from: number;
-}
-
-/** A creature the player can win over; it follows and fights threats. */
-export interface AllyWord {
-  id: string;
-  label: string;
-  verb: string;
-  model: ModelRef;
-  cost: Readonly<Record<string, number>>;
-  health: number;
-  damage: number;
-  speed: number;
+/**
+ * The land and the sky: how hilly the ground is, where the water sits, what the foliage regions are
+ * drawn with, and the day the sun runs through. Places (forests, towns, lakes, paths) live in
+ * `editor.scene.json`; this is only how they are drawn.
+ */
+export interface WorldWord {
+  /** Hill height in metres (terrain noise amplitude); 0 is flat. */
+  relief: number;
+  /** Hill size: lower is broader. */
+  frequency: number;
+  /** Ground height water fills to; lakes in the scene sit at this level. */
+  waterLevel: number;
+  /** Scatter palette item -> model, for every foliage and rock region in the scene. */
+  scatter: Readonly<Record<string, ModelRef>>;
+  sky: {
+    /** The look when the clock is off, and the look the day starts in. */
+    preset: "day" | "dusk" | "night";
+    /** Run the sun through a day; off holds `preset`. */
+    cycle: boolean;
+    /** Seconds of play in one in-world day. */
+    dayLength: number;
+    /** Hour of day the game starts at (0-24). */
+    startHour: number;
+    /** Haze across the distance, 0 (clear) to 1. */
+    haze: number;
+  };
 }
 
 /** One story beat: reach a fact, then the next beat starts by itself. */
@@ -95,8 +64,9 @@ export interface BeatWord {
   pitch: string;
 }
 
-export interface WalkerIdea {
-  player: "walker";
+/** What every idea carries, whatever kind of game it is. */
+export interface BaseIdea {
+  kind: KindName;
   id: string;
   spec: string;
   name: string;
@@ -107,47 +77,6 @@ export interface WalkerIdea {
   mood: MoodName;
   accent: string;
   ground: GroundWord;
-  home: { label: string; health: number; model: ModelRef };
+  world: WorldWord;
   guide: { name: string; title: string };
-  /** What one wave is called ("Night", "Hunt", "Raid"). */
-  wave: string;
-  /** Seconds of calm between waves. */
-  calm: number;
-  hero: ModelRef & { health: number; damage: number; label: string };
-  resources: readonly ResourceWord[];
-  nodes: readonly NodeWord[];
-  structures: readonly StructureWord[];
-  threats: readonly ThreatWord[];
-  allies: readonly AllyWord[];
-  beats: readonly BeatWord[];
-  scenery: readonly ModelRef[];
-  /** Waves to hold for the ending; play goes on after it. */
-  winAt: number;
 }
-
-export interface DriverIdea {
-  player: "driver";
-  id: string;
-  spec: string;
-  name: string;
-  pitch: string;
-  tagline: string;
-  kit: UiKitName;
-  look: LookName;
-  mood: MoodName;
-  accent: string;
-  ground: GroundWord;
-  guide: { name: string; title: string };
-  currency: { id: string; label: string; start: number };
-  car: ModelRef;
-  rivals: readonly ModelRef[];
-  /** Upgrades bought in the garage, each with levels. */
-  upgrades: readonly { id: string; label: string; cost: number; levels: number; boost: number }[];
-  /** Races, run in order; each pays and unlocks the next. */
-  races: readonly { id: string; title: string; laps: number; rivals: number; pay: number; pitch: string }[];
-  scenery: readonly ModelRef[];
-  /** Lines both sides of the circuit (street lamps, cones, barriers). */
-  trackside: ModelRef;
-}
-
-export type Idea = WalkerIdea | DriverIdea;

@@ -252,8 +252,8 @@ export const idea: Idea = {
       "height": 8
     },
     {
-      "model": "/models/imported/quaternius-stylized-nature/TwistedTree_2.glb",
-      "height": 7
+      "model": "/models/imported/quaternius-stylized-nature/Bush_Common.glb",
+      "height": 1.2
     },
     {
       "model": "/models/imported/quaternius-stylized-nature/Fern_1.glb",
@@ -268,8 +268,8 @@ export const idea: Idea = {
       "height": 2
     },
     {
-      "model": "/models/imported/quaternius-stylized-nature/TwistedTree_1.glb",
-      "height": 7
+      "model": "/models/imported/quaternius-stylized-nature/Rock_Medium_2.glb",
+      "height": 1.2
     }
   ],
   "winAt": 7,
@@ -325,13 +325,13 @@ export const idea: Idea = {
         "model": "/models/imported/quaternius-stylized-nature/CommonTree_1.glb",
         "height": 12
       },
-      "twisted": {
-        "model": "/models/imported/quaternius-stylized-nature/TwistedTree_1.glb",
-        "height": 8
+      "tree3": {
+        "model": "/models/imported/quaternius-stylized-nature/CommonTree_2.glb",
+        "height": 9
       },
       "fern": {
         "model": "/models/imported/quaternius-stylized-nature/Fern_1.glb",
-        "height": 1.4
+        "height": 0.9
       },
       "plant": {
         "model": "/models/imported/quaternius-stylized-nature/Plant_1_Big.glb",
