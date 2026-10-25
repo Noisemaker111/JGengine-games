@@ -4,15 +4,16 @@ import { editorLayers } from "./editorLayers";
 import { content } from "./game/content";
 import { flowSystem } from "./game/flow";
 import { idea } from "./game/idea";
-import { entityModels, objectModels } from "./game/models";
+import { entityModels, objectModels, scatterModels } from "./game/models";
 import { raceView } from "./game/race";
 import { GameUI } from "./game/ui/GameUI";
 import { onNewPlayer, systems } from "./loop";
-import { world } from "./world";
+import { time, world } from "./world";
 
 export const game = defineGame({
   name: idea.name,
   world,
+  time,
   // No walk bindings: the race loop drives the car from these actions.
   input: {
     throttle: ["KeyW", "ArrowUp"],
@@ -33,6 +34,7 @@ export const game = defineGame({
   editorLayers,
   entityModels,
   objectModels,
+  sceneScatterModels: scatterModels,
   look: idea.look,
   mood: idea.mood,
   uiKit: idea.kit,
