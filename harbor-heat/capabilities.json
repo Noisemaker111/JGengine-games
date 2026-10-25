@@ -39,6 +39,7 @@
     "side-jobs",
     "traffic",
     "transaction-ledger",
+    "turf-war",
     "ui-kit-customize",
     "ui-kit-ink",
     "ui-kit-root",
@@ -154,11 +155,6 @@
     "supply-demand-pricing": {
       "kind": "not-applicable",
       "reason": "Market pricing is not part of harbor-heat: vendors run on the shared shop stock rather than a demand-priced market."
-    },
-    "turf-war": {
-      "kind": "debt",
-      "reason": "city.ts builds the Carmine turf by hand: four blocks with owner and grip facts, take triggers and staggered pushes, which is the turf war the engine now owns.",
-      "issue": 256
     },
     "utility-brain": {
       "kind": "not-applicable",

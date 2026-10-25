@@ -7,7 +7,7 @@ import { defineStore } from "@jgengine/core/store/defineStore";
 import { createWorldModel, type WorldEvent, type WorldModel, type WorldModelState } from "@jgengine/core/worldModel/worldModel";
 import { editorLayers } from "../editorLayers";
 import { earn } from "./cash";
-import { city, CITY_PLAYER, TURF } from "./city";
+import { city, CITY_PLAYER, TURF, turfWar } from "./city";
 import { raidLost, raidStarted, registerFronts, startRaidOnFirstFront, tickFronts } from "./city/fronts";
 import { crewPush, registerStreet, tickCover, tickReckless, tickStreetCrews } from "./city/street";
 import { registerGarage } from "./city/garage";
@@ -225,7 +225,7 @@ function registerCityDev(ctx: GameContext): void {
         hidden: handrollOf(ctx).hidden(),
         heat: Math.round(handrollOf(ctx).wanted().heat),
         clock: { hour: world.fact("clock.hour"), night: world.fact("clock.night") },
-        turf: Object.fromEntries(TURF.map((id) => [id, { owner: world.fact(`${id}.owner`), grip: Math.round(world.num(`${id}.grip`)) }])),
+        turf: Object.fromEntries(TURF.map((id) => [id, { owner: world.fact(`${id}.owner`), grip: Math.round(world.num(`${id}.grip`)), attacker: world.fact(`${id}.attacker`) }])),
         fronts: Object.fromEntries(world.instances("front").map((front) => [front.slot ?? front.id, { id: front.id, raid: world.fact(`${front.id}.raid`), hit: world.fact(`${front.id}.hit`), clock: Math.ceil(world.num(`${front.id}.raid_clock`)) }])),
         takings: Math.floor(world.num("fronts.takings")),
         repelled: world.num("fronts.repelled"),
@@ -332,12 +332,13 @@ export function tickCity(ctx: GameContext, dt: number): void {
     }
   }
   for (const id of result.fired ?? []) {
-    const [verb, place] = id.split("_");
-    const label = place === undefined ? "" : (city.places?.[place]?.label ?? place);
-    if (verb === "take") {
+    const handover = turfWar.handover(id);
+    if (handover === null) continue;
+    const label = city.places?.[handover.block]?.label ?? handover.block;
+    if (handover.to === "player") {
       ctx.game.notices.push({ text: `${label} is yours. Its corners pay you protection now.`, tone: "success" });
       ctx.game.feedback.cue("objective", `Took ${label}`);
-    } else if (verb === "lose") {
+    } else if (handover.from === "player") {
       ctx.game.notices.push({ text: `The Carmines took ${label} back.`, tone: "warn" });
     }
   }

@@ -44,7 +44,9 @@ describe("Harbor Heat radio content", () => {
   });
 
   test("each station words the same story its own way", () => {
-    const bulletin = bulletinForLog({ kind: "take_marina", text: "You took the Marina from the Carmines." }, "the Marina")!;
+    const bulletin = bulletinForLog({ kind: "turf:marina:carmine:player", text: "You took the Marina from the Carmines." }, "the Marina")!;
+    expect(bulletinForLog({ kind: "turf:canal:player:carmine", text: "" }, "Canal Row")?.byStation?.harbor_talk?.[0]).toBe("The Carmines took Canal Row back. Of course they did. Nothing changes in this town but the paint.");
+    expect(bulletinForLog({ kind: "turf_push:carmine_pushback", text: "" }, "Canal Row")?.topic).toBe("turf_push");
     expect(bulletin.byStation?.mnn?.[0]).toContain("lost control of the Marina");
     expect(bulletin.byStation?.harbor_talk?.[0]).toContain("The Carmines just lost the Marina");
     expect(bulletinForLog({ kind: "gunfire", text: "" }, null)).toBeNull();
