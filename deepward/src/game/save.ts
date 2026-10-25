@@ -7,6 +7,7 @@ import type { Point } from "../world";
 import { openScripBooks } from "./counter";
 import { ITEMS, itemIssues, rollItem, type Item, type ItemKind } from "./items";
 import { newHome, type Dive, type Home, type Result } from "./state";
+import { newDeep, readDeep, type Deep } from "./deep";
 
 /** Where v1-v4 records live. They are read once and rewritten as a record under {@link RECORD_KEY}. */
 export const SAVE_KEY = "deepward.marrow.v1";
@@ -43,7 +44,8 @@ const KINDS: readonly string[] = Object.keys(ITEMS);
 function validId(item: Item): boolean {
   const purchase = /^purchase-([1-9]\d*):([a-z-]+)$/.exec(item.id);
   if (purchase !== null) return KINDS.includes(purchase[2]!);
-  const haul = /^([1-9]\d*):([a-z-]+)$/.exec(item.id);
+  // A worked node's yield also names the node: `7:wire~cold-cable-wire-1`.
+  const haul = /^([1-9]\d*):([a-z-]+)(?:~[a-z0-9-]+)?$/.exec(item.id);
   if (haul === null) return false;
   const source = haul[2]!;
   if (source === "fitter") return item.baseId === "service-rifle";
@@ -166,6 +168,8 @@ export interface RunSnapshot {
 export interface RunHooks {
   snapshot(): RunSnapshot;
   restore(next: RunSnapshot | null): void;
+  /** The descent section: body, gear, scans, charted strata and Marrow's base world. */
+  deep?: { snapshot(): Deep; restore(next: Deep): void };
 }
 
 export interface RecordSession {
@@ -250,12 +254,19 @@ export function openRecord(storage: StoragePort, run: RunHooks, initialSlot: str
     },
     reset: () => { recordProfile.thumbnail = null; recordProfile.playtime = 0; },
   };
+  /** Deepward below receiving, as its own section: a record from before the strata loads untouched. */
+  const deep: GameSaveSystem<Deep> = {
+    name: "deep",
+    snapshot: () => run.deep?.snapshot() ?? newDeep(),
+    restore: next => { run.deep?.restore(readDeep(next)); },
+    reset: () => { run.deep?.restore(newDeep()); },
+  };
   const save: GameSave = createGameSave({
     backend: backendOver(storage),
     game: "deepward",
     key: RECORD_KEY,
     slot: initialSlot,
-    systems: [marrow, live, profile],
+    systems: [marrow, live, profile, deep],
     playtime: () => recordProfile.playtime,
     onError: error => { failure = error; },
     devtoolsName: "deepward.save",

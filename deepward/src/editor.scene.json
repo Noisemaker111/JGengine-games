@@ -599,6 +599,1231 @@
         "subtitle": "21 M / MARROW",
         "width": 2.4
       }
+    },
+    {
+      "id": "fabricator-marrow",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -5.2,
+        "y": 0,
+        "z": 16.4
+      },
+      "rotationY": 1.5707963267948966,
+      "label": "Fabricator",
+      "meta": {
+        "place": "home",
+        "role": "fabricator",
+        "reach": 2.1
+      }
+    },
+    {
+      "id": "bay-1",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 5.6,
+        "y": 0,
+        "z": 9.6
+      },
+      "rotationY": -1.0251412722679047,
+      "label": "Bay 1",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "bay-2",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 5.6,
+        "y": 0,
+        "z": 12.4
+      },
+      "rotationY": -1.464060654145761,
+      "label": "Bay 2",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "bay-3",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 5.6,
+        "y": 0,
+        "z": 17.6
+      },
+      "rotationY": -2.2584675828336263,
+      "label": "Bay 3",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "bay-4",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 2.8,
+        "y": 0,
+        "z": 17.9
+      },
+      "rotationY": -2.62244653934327,
+      "label": "Bay 4",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "bay-5",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 17.9
+      },
+      "rotationY": 3.141592653589793,
+      "label": "Bay 5",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "bay-6",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -2.8,
+        "y": 0,
+        "z": 17.9
+      },
+      "rotationY": 2.62244653934327,
+      "label": "Bay 6",
+      "meta": {
+        "place": "home",
+        "role": "bay"
+      }
+    },
+    {
+      "id": "strata-sign-home-bays",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": 6.85,
+        "y": 2.5,
+        "z": 11
+      },
+      "rotationY": -1.5707963267948966,
+      "label": "BAYS / MARROW",
+      "meta": {
+        "place": "home",
+        "subtitle": "BUILD WITH WHAT YOU BRING HOME",
+        "width": 2.6
+      }
+    },
+    {
+      "id": "lift-vault-down",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -1.2,
+        "y": 0,
+        "z": -42.6
+      },
+      "label": "Descent lift / II",
+      "meta": {
+        "place": "vault",
+        "role": "lift",
+        "to": "cold",
+        "reach": 2
+      }
+    },
+    {
+      "id": "spawn-vault-lift",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -1.2,
+        "y": 0,
+        "z": -41.1
+      },
+      "label": "Lift landing",
+      "meta": {
+        "place": "vault",
+        "role": "stratum-spawn"
+      }
+    },
+    {
+      "id": "strata-sign-vault-lift",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -1.2,
+        "y": 2.9,
+        "z": -43.85
+      },
+      "rotationY": 0,
+      "label": "LIFT / II COLD STORES",
+      "meta": {
+        "place": "vault",
+        "subtitle": "120 M  ↓  SEAL 2",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-node-vault-scrap-wire",
+      "kind": "deepward-node",
+      "position": {
+        "x": -6.2,
+        "y": 0,
+        "z": -0.5
+      },
+      "label": "Scrap heap",
+      "meta": {
+        "place": "vault",
+        "nodeId": "vault-scrap-wire",
+        "yields": "wire",
+        "tool": "hands",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-node-vault-scrap-polymer",
+      "kind": "deepward-node",
+      "position": {
+        "x": 6.5,
+        "y": 0,
+        "z": -31.8
+      },
+      "label": "Scrap heap",
+      "meta": {
+        "place": "vault",
+        "nodeId": "vault-scrap-polymer",
+        "yields": "polymer",
+        "tool": "hands",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-supply-vault-ration-locker",
+      "kind": "deepward-supply",
+      "position": {
+        "x": -3.8,
+        "y": 0,
+        "z": -21.2
+      },
+      "label": "Ration locker",
+      "meta": {
+        "place": "vault",
+        "supplyId": "vault-ration-locker",
+        "gives": "ration",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-supply-vault-coolant-tap",
+      "kind": "deepward-supply",
+      "position": {
+        "x": -6.8,
+        "y": 0,
+        "z": -24
+      },
+      "label": "Coolant tap",
+      "meta": {
+        "place": "vault",
+        "supplyId": "vault-coolant-tap",
+        "gives": "water",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-fragment-vault-cart-wreck",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 6.2,
+        "y": 0,
+        "z": 1
+      },
+      "label": "Rail cart wreck",
+      "meta": {
+        "place": "vault",
+        "fragmentId": "vault-cart-wreck",
+        "entry": "cutter"
+      }
+    },
+    {
+      "id": "strata-fragment-vault-shift-log",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 3.2,
+        "y": 0,
+        "z": -8.2
+      },
+      "label": "Shift log terminal",
+      "meta": {
+        "place": "vault",
+        "fragmentId": "vault-shift-log",
+        "entry": "log-receiving"
+      }
+    },
+    {
+      "id": "strata-fauna-vault-hand-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -4.5,
+        "y": 0,
+        "z": -17
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "vault",
+        "creatureId": "vault-hand-1",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-vault-hand-2",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 3.5,
+        "y": 0,
+        "z": -24.5
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "vault",
+        "creatureId": "vault-hand-2",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "lift-cold-up",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 17.6
+      },
+      "label": "Lift / I Receiving",
+      "meta": {
+        "place": "cold",
+        "role": "lift",
+        "to": "vault",
+        "reach": 2
+      }
+    },
+    {
+      "id": "spawn-cold",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 16.1
+      },
+      "label": "Lift landing",
+      "meta": {
+        "place": "cold",
+        "role": "stratum-spawn"
+      }
+    },
+    {
+      "id": "lift-cold-down",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -24.4
+      },
+      "label": "Descent lift / III",
+      "meta": {
+        "place": "cold",
+        "role": "lift",
+        "to": "wells",
+        "reach": 2
+      }
+    },
+    {
+      "id": "strata-node-cold-cable-wire",
+      "kind": "deepward-node",
+      "position": {
+        "x": -7.4,
+        "y": 0,
+        "z": -6
+      },
+      "label": "Cable run",
+      "meta": {
+        "place": "cold",
+        "nodeId": "cold-cable-wire",
+        "yields": "wire",
+        "tool": "cutter",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-node-cold-cable-cells",
+      "kind": "deepward-node",
+      "position": {
+        "x": 7.4,
+        "y": 0,
+        "z": 2
+      },
+      "label": "Cable run",
+      "meta": {
+        "place": "cold",
+        "nodeId": "cold-cable-cells",
+        "yields": "cells",
+        "tool": "cutter",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-node-cold-scrap-polymer",
+      "kind": "deepward-node",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": -12.5
+      },
+      "label": "Scrap heap",
+      "meta": {
+        "place": "cold",
+        "nodeId": "cold-scrap-polymer",
+        "yields": "polymer",
+        "tool": "hands",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-supply-cold-ration-crate-1",
+      "kind": "deepward-supply",
+      "position": {
+        "x": 3,
+        "y": 0,
+        "z": 12
+      },
+      "label": "Ration crate",
+      "meta": {
+        "place": "cold",
+        "supplyId": "cold-ration-crate-1",
+        "gives": "ration",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-supply-cold-ration-crate-2",
+      "kind": "deepward-supply",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": -2.5
+      },
+      "label": "Ration crate",
+      "meta": {
+        "place": "cold",
+        "supplyId": "cold-ration-crate-2",
+        "gives": "ration",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-supply-cold-ice-block",
+      "kind": "deepward-supply",
+      "position": {
+        "x": -3.5,
+        "y": 0,
+        "z": -24
+      },
+      "label": "Ice block",
+      "meta": {
+        "place": "cold",
+        "supplyId": "cold-ice-block",
+        "gives": "water",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-fragment-cold-cart-wreck",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -9
+      },
+      "label": "Rail cart wreck",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-cart-wreck",
+        "entry": "cutter"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-diver-suit-1",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": 4
+      },
+      "label": "Frozen diver suit",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-diver-suit-1",
+        "entry": "seal2"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-diver-suit-2",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": -7
+      },
+      "label": "Frozen diver suit",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-diver-suit-2",
+        "entry": "seal2"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-diver-suit-3",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": -17
+      },
+      "label": "Frozen diver suit",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-diver-suit-3",
+        "entry": "seal2"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-drill-rig",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 4.2,
+        "y": 0,
+        "z": -22
+      },
+      "label": "Abandoned drill rig",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-drill-rig",
+        "entry": "drill"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-seed-tray",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -3,
+        "y": 0,
+        "z": 12.5
+      },
+      "label": "Seed tray",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-seed-tray",
+        "entry": "growbed"
+      }
+    },
+    {
+      "id": "strata-fragment-cold-shift-log",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 3,
+        "y": 0,
+        "z": 16.5
+      },
+      "label": "Cold stores log",
+      "meta": {
+        "place": "cold",
+        "fragmentId": "cold-shift-log",
+        "entry": "log-cold"
+      }
+    },
+    {
+      "id": "strata-fauna-cold-hand-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -4,
+        "y": 0,
+        "z": -8
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "cold",
+        "creatureId": "cold-hand-1",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-cold-hand-2",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 0
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "cold",
+        "creatureId": "cold-hand-2",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-cold-hand-3",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": 2
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "cold",
+        "creatureId": "cold-hand-3",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-cold-hand-4",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -12
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "cold",
+        "creatureId": "cold-hand-4",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-cold-courier-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -2.5,
+        "y": 0,
+        "z": -20
+      },
+      "label": "Courier",
+      "meta": {
+        "place": "cold",
+        "creatureId": "cold-courier-1",
+        "species": "courier"
+      }
+    },
+    {
+      "id": "strata-sign-cold-landing",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": 2.6,
+        "y": 2.6,
+        "z": 18.85
+      },
+      "rotationY": 3.141592653589793,
+      "label": "05 / LIFT LANDING",
+      "meta": {
+        "place": "cold",
+        "subtitle": "II COLD STORES / 120 M",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-sign-cold-aisles",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -2.6,
+        "y": 2.6,
+        "z": 10.25
+      },
+      "rotationY": 0,
+      "label": "06 / FREEZER AISLES",
+      "meta": {
+        "place": "cold",
+        "subtitle": "KEEP DOORS SHUT",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-sign-cold-icehouse",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -3.1,
+        "y": 2.6,
+        "z": -13.75
+      },
+      "rotationY": 0,
+      "label": "07 / ICE HOUSE",
+      "meta": {
+        "place": "cold",
+        "subtitle": "LIFT III  ↓",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "lift-wells-up",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -5,
+        "y": 0,
+        "z": 17.8
+      },
+      "label": "Lift / II Cold Stores",
+      "meta": {
+        "place": "wells",
+        "role": "lift",
+        "to": "cold",
+        "reach": 2
+      }
+    },
+    {
+      "id": "spawn-wells",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -5,
+        "y": 0,
+        "z": 16.3
+      },
+      "label": "Lift landing",
+      "meta": {
+        "place": "wells",
+        "role": "stratum-spawn"
+      }
+    },
+    {
+      "id": "lift-wells-down",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": -5.5,
+        "y": 0,
+        "z": -34.2
+      },
+      "label": "Descent lift / IV",
+      "meta": {
+        "place": "wells",
+        "role": "lift",
+        "to": "choir",
+        "reach": 2
+      }
+    },
+    {
+      "id": "strata-node-wells-ink-seam-1",
+      "kind": "deepward-node",
+      "position": {
+        "x": 7.2,
+        "y": 0,
+        "z": 13
+      },
+      "label": "Ink seam",
+      "meta": {
+        "place": "wells",
+        "nodeId": "wells-ink-seam-1",
+        "yields": "ink",
+        "tool": "drill",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-node-wells-ink-seam-2",
+      "kind": "deepward-node",
+      "position": {
+        "x": 6.8,
+        "y": 0,
+        "z": -34.5
+      },
+      "label": "Ink seam",
+      "meta": {
+        "place": "wells",
+        "nodeId": "wells-ink-seam-2",
+        "yields": "ink",
+        "tool": "drill",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-node-wells-cable-cells",
+      "kind": "deepward-node",
+      "position": {
+        "x": -8.2,
+        "y": 0,
+        "z": -3.2
+      },
+      "label": "Cable run",
+      "meta": {
+        "place": "wells",
+        "nodeId": "wells-cable-cells",
+        "yields": "cells",
+        "tool": "cutter",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-supply-wells-condensate",
+      "kind": "deepward-supply",
+      "position": {
+        "x": -2.5,
+        "y": 0,
+        "z": 12.5
+      },
+      "label": "Condensate drip",
+      "meta": {
+        "place": "wells",
+        "supplyId": "wells-condensate",
+        "gives": "water",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-supply-wells-ration-tin",
+      "kind": "deepward-supply",
+      "position": {
+        "x": 3.2,
+        "y": 0,
+        "z": -19
+      },
+      "label": "Ration tin",
+      "meta": {
+        "place": "wells",
+        "supplyId": "wells-ration-tin",
+        "gives": "ration",
+        "amount": 1
+      }
+    },
+    {
+      "id": "strata-fragment-wells-drill-rig",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -6.8,
+        "y": 0,
+        "z": -16
+      },
+      "label": "Seized drill rig",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-drill-rig",
+        "entry": "drill"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-diver-suit-1",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 4,
+        "y": 0,
+        "z": 13
+      },
+      "label": "Drowned diver suit",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-diver-suit-1",
+        "entry": "seal3"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-diver-suit-2",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -2,
+        "y": 0,
+        "z": 5
+      },
+      "label": "Drowned diver suit",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-diver-suit-2",
+        "entry": "seal3"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-diver-suit-3",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 6.5,
+        "y": 0,
+        "z": -24.5
+      },
+      "label": "Drowned diver suit",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-diver-suit-3",
+        "entry": "seal3"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-crawler-1",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 6.8,
+        "y": 0,
+        "z": 3
+      },
+      "label": "Crawler wreck",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-crawler-1",
+        "entry": "crawler"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-crawler-2",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -6.5,
+        "y": 0,
+        "z": -30
+      },
+      "label": "Crawler wreck",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-crawler-2",
+        "entry": "crawler"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-o2-scrubber",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -2.5,
+        "y": 0,
+        "z": 17.5
+      },
+      "label": "O2 scrubber",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-o2-scrubber",
+        "entry": "o2"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-shift-log",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -7.6,
+        "y": 0,
+        "z": 15.5
+      },
+      "label": "Ink wells log",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-shift-log",
+        "entry": "log-wells"
+      }
+    },
+    {
+      "id": "strata-fragment-wells-radio-relay",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -6.8,
+        "y": 0,
+        "z": -13
+      },
+      "label": "Radio relay",
+      "meta": {
+        "place": "wells",
+        "fragmentId": "wells-radio-relay",
+        "entry": "log-relay"
+      }
+    },
+    {
+      "id": "strata-fauna-wells-courier-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -29
+      },
+      "label": "Courier",
+      "meta": {
+        "place": "wells",
+        "creatureId": "wells-courier-1",
+        "species": "courier"
+      }
+    },
+    {
+      "id": "strata-fauna-wells-courier-2",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -3.2
+      },
+      "label": "Courier",
+      "meta": {
+        "place": "wells",
+        "creatureId": "wells-courier-2",
+        "species": "courier"
+      }
+    },
+    {
+      "id": "strata-fauna-wells-hand-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -5,
+        "y": 0,
+        "z": 13.5
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "wells",
+        "creatureId": "wells-hand-1",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-fauna-wells-hand-2",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 7.6,
+        "y": 0,
+        "z": 9.2
+      },
+      "label": "Hand",
+      "meta": {
+        "place": "wells",
+        "creatureId": "wells-hand-2",
+        "species": "hand"
+      }
+    },
+    {
+      "id": "strata-sign-wells-sump",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -5,
+        "y": 2.4,
+        "z": 18.85
+      },
+      "rotationY": 3.141592653589793,
+      "label": "08 / LIFT SUMP",
+      "meta": {
+        "place": "wells",
+        "subtitle": "III INK WELLS / 260 M",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-sign-wells-catwalks",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -5.5,
+        "y": 2.4,
+        "z": 11.15
+      },
+      "rotationY": 0,
+      "label": "09 / RESERVOIR CATWALKS",
+      "meta": {
+        "place": "wells",
+        "subtitle": "MIND THE RAILS",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-sign-wells-floor",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": 3.5,
+        "y": 2.4,
+        "z": -35.85
+      },
+      "rotationY": 0,
+      "label": "10 / INK WELL FLOOR",
+      "meta": {
+        "place": "wells",
+        "subtitle": "LIFT IV  ↓  SEAL 4",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "lift-choir-up",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 14.8
+      },
+      "label": "Lift / III Ink Wells",
+      "meta": {
+        "place": "choir",
+        "role": "lift",
+        "to": "wells",
+        "reach": 2
+      }
+    },
+    {
+      "id": "spawn-choir",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 13.3
+      },
+      "label": "Lift landing",
+      "meta": {
+        "place": "choir",
+        "role": "stratum-spawn"
+      }
+    },
+    {
+      "id": "printer-zero",
+      "kind": "deepward-anchor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -21.5
+      },
+      "label": "Printer Zero",
+      "meta": {
+        "place": "choir",
+        "role": "goal",
+        "reach": 2.2
+      }
+    },
+    {
+      "id": "strata-node-choir-ink-seam",
+      "kind": "deepward-node",
+      "position": {
+        "x": -7,
+        "y": 0,
+        "z": 7
+      },
+      "label": "Ink seam",
+      "meta": {
+        "place": "choir",
+        "nodeId": "choir-ink-seam",
+        "yields": "ink",
+        "tool": "drill",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-node-choir-cable-cells",
+      "kind": "deepward-node",
+      "position": {
+        "x": 7,
+        "y": 0,
+        "z": -4
+      },
+      "label": "Cable run",
+      "meta": {
+        "place": "choir",
+        "nodeId": "choir-cable-cells",
+        "yields": "cells",
+        "tool": "cutter",
+        "amount": 2
+      }
+    },
+    {
+      "id": "strata-fragment-choir-crawler",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 6.8,
+        "y": 0,
+        "z": 12
+      },
+      "label": "Crawler wreck",
+      "meta": {
+        "place": "choir",
+        "fragmentId": "choir-crawler",
+        "entry": "crawler"
+      }
+    },
+    {
+      "id": "strata-fragment-choir-log",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": -6.8,
+        "y": 0,
+        "z": 12.5
+      },
+      "label": "Choir log",
+      "meta": {
+        "place": "choir",
+        "fragmentId": "choir-log",
+        "entry": "log-choir"
+      }
+    },
+    {
+      "id": "strata-fragment-choir-zero-log",
+      "kind": "deepward-fragment",
+      "position": {
+        "x": 2.6,
+        "y": 0,
+        "z": -19.5
+      },
+      "label": "Printer Zero log",
+      "meta": {
+        "place": "choir",
+        "fragmentId": "choir-zero-log",
+        "entry": "log-zero"
+      }
+    },
+    {
+      "id": "strata-fauna-choir-overrun",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -0.2
+      },
+      "label": "Overrun",
+      "meta": {
+        "place": "choir",
+        "creatureId": "choir-overrun",
+        "species": "overrun"
+      }
+    },
+    {
+      "id": "strata-fauna-choir-courier-1",
+      "kind": "deepward-fauna",
+      "position": {
+        "x": -6,
+        "y": 0,
+        "z": -9
+      },
+      "label": "Courier",
+      "meta": {
+        "place": "choir",
+        "creatureId": "choir-courier-1",
+        "species": "courier"
+      }
+    },
+    {
+      "id": "strata-sign-choir-hall",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": 3,
+        "y": 3,
+        "z": 15.85
+      },
+      "rotationY": 3.141592653589793,
+      "label": "11 / CHOIR HALL",
+      "meta": {
+        "place": "choir",
+        "subtitle": "IV CHOIR DEEP / 400 M",
+        "width": 2.4
+      }
+    },
+    {
+      "id": "strata-sign-choir-sanctum",
+      "kind": "deepward-station-sign",
+      "position": {
+        "x": -2.75,
+        "y": 3,
+        "z": -13.75
+      },
+      "rotationY": 0,
+      "label": "12 / SANCTUM",
+      "meta": {
+        "place": "choir",
+        "subtitle": "PRINTER ZERO",
+        "width": 2.4
+      }
     }
   ],
   "volumes": [
@@ -5899,6 +7124,5033 @@
       "meta": {
         "place": "vault",
         "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-1",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.6,
+        "y": 0.012,
+        "z": 9.6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-2",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.6,
+        "y": 0.012,
+        "z": 12.4
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-3",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.6,
+        "y": 0.012,
+        "z": 17.6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-4",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.8,
+        "y": 0.012,
+        "z": 17.9
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-5",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0.012,
+        "z": 17.9
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-home-bay-floor-plate-6",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.8,
+        "y": 0.012,
+        "z": 17.9
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.012,
+        "z": 0.85
+      },
+      "color": "#3a4446",
+      "label": "bay-floor-plate",
+      "meta": {
+        "place": "home",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-vault-lift-cage-post-7",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.45,
+        "y": 1.7,
+        "z": -43.6
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "vault",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-vault-lift-cage-post-8",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0.05,
+        "y": 1.7,
+        "z": -43.6
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "vault",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-vault-lift-cage-head-9",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -1.2,
+        "y": 3.45,
+        "z": -43.6
+      },
+      "halfExtents": {
+        "x": 1.35,
+        "y": 0.1,
+        "z": 0.1
+      },
+      "color": "#263739",
+      "label": "lift-cage-head",
+      "meta": {
+        "place": "vault",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-room-cold-landing",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 2.2,
+        "z": 14.5
+      },
+      "halfExtents": {
+        "x": 4,
+        "y": 2.2,
+        "z": 4.5
+      },
+      "label": "05 / lift landing",
+      "meta": {
+        "place": "cold"
+      }
+    },
+    {
+      "id": "strata-room-cold-aisles",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 2.2,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 8,
+        "y": 2.2,
+        "z": 12
+      },
+      "label": "06 / freezer aisles",
+      "meta": {
+        "place": "cold"
+      }
+    },
+    {
+      "id": "strata-room-cold-icehouse",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 2.2,
+        "z": -20
+      },
+      "halfExtents": {
+        "x": 5,
+        "y": 2.2,
+        "z": 6
+      },
+      "label": "07 / ice house",
+      "meta": {
+        "place": "cold"
+      }
+    },
+    {
+      "id": "strata-cold-bulkhead-10",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.6,
+        "y": 2.2,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 1.4,
+        "y": 2.2,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "bulkhead",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-bulkhead-11",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -3.1,
+        "y": 2.2,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.9,
+        "y": 2.2,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "bulkhead",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-bulkhead-12",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.6,
+        "y": 2.2,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 1.4,
+        "y": 2.2,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "bulkhead",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-bulkhead-13",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 3.1,
+        "y": 2.2,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.9,
+        "y": 2.2,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "bulkhead",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-door-header-14",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.1000000000000005,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 1.2,
+        "y": 0.3,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "door-header",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-door-header-15",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.1000000000000005,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.2,
+        "y": 0.3,
+        "z": 0.2
+      },
+      "color": "#3b5568",
+      "label": "door-header",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-16",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 1.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-17",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 0.9,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-18",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 1.8,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-19",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 2.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-20",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": -9.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-21",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-22",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": -4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-23",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 1.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-24",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 0.9,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-25",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 1.8,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-26",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 2.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-27",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": -0.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-28",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-29",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5.5,
+        "y": 3.62,
+        "z": 4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-30",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-31",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 0.9,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-32",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.8,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-33",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 2.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-34",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": -9.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-35",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-36",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": -4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-37",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-38",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 0.9,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-39",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.8,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-40",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 2.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-41",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": -0.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-42",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-43",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3.62,
+        "z": 4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-44",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-45",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 0.9,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-46",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.8,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-47",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 2.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-48",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": -9.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-49",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-50",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": -4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-51",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-52",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 0.9,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-53",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.8,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-54",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 2.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-55",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": -0.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-56",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-57",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3.62,
+        "z": 4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-58",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 1.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-59",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 0.9,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-60",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 1.8,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-61",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 2.7,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-62",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": -9.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-63",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": -7.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-64",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": -4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-row-65",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 1.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.45,
+        "y": 1.7,
+        "z": 3.75
+      },
+      "color": "#c9d6dc",
+      "label": "shelf-row",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-66",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 0.9,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-67",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 1.8,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-shelf-frost-lip-68",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 2.7,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.5,
+        "y": 0.025,
+        "z": 3.77
+      },
+      "color": "#e6f2f8",
+      "label": "shelf-frost-lip",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-69",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": -0.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-70",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": 2.25
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#9fc4dd",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frozen-crate-71",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.5,
+        "y": 3.62,
+        "z": 4.75
+      },
+      "halfExtents": {
+        "x": 0.4,
+        "y": 0.22,
+        "z": 0.45
+      },
+      "color": "#3b5568",
+      "label": "frozen-crate",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-frost-pipe-72",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4,
+        "y": 4,
+        "z": -2
+      },
+      "radius": 0.14,
+      "height": 23.5,
+      "color": "#e6f2f8",
+      "label": "frost-pipe",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-cold-frost-pipe-73",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4,
+        "y": 4,
+        "z": -2
+      },
+      "radius": 0.14,
+      "height": 23.5,
+      "color": "#e6f2f8",
+      "label": "frost-pipe",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-cold-frost-header-74",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 0,
+        "y": 4.05,
+        "z": 8.6
+      },
+      "radius": 0.16,
+      "height": 15.4,
+      "color": "#e6f2f8",
+      "label": "frost-header",
+      "meta": {
+        "place": "cold",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 1.5707963267948966
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-75",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -7,
+        "y": 4.3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 10
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-76",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -4,
+        "y": 4.3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 10
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-77",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 10
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-78",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 4,
+        "y": 4.3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 10
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-79",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 7,
+        "y": 4.3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 10
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-80",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.3,
+        "z": 14.5
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 3.5
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-cold-lamp-81",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.3,
+        "z": -20
+      },
+      "halfExtents": {
+        "x": 0.06,
+        "y": 0.02,
+        "z": 5
+      },
+      "color": "#d4e8ff",
+      "label": "cold-lamp",
+      "meta": {
+        "place": "cold",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-post-82",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -1.4,
+        "y": 1.7,
+        "z": 18.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-post-83",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 1.4,
+        "y": 1.7,
+        "z": 18.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-head-84",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3.45,
+        "z": 18.7
+      },
+      "halfExtents": {
+        "x": 1.5,
+        "y": 0.1,
+        "z": 0.1
+      },
+      "color": "#3b5568",
+      "label": "lift-cage-head",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-ice-stack-85",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -4.3,
+        "y": 1.1,
+        "z": -20.5
+      },
+      "halfExtents": {
+        "x": 0.6,
+        "y": 1.1,
+        "z": 1
+      },
+      "color": "#9fc4dd",
+      "label": "ice-stack",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-ice-stack-86",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 4.3,
+        "y": 1.1,
+        "z": -18.5
+      },
+      "halfExtents": {
+        "x": 0.6,
+        "y": 1.1,
+        "z": 1
+      },
+      "color": "#9fc4dd",
+      "label": "ice-stack",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-cold-ice-rime-87",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -4.3,
+        "y": 2.3,
+        "z": -20.5
+      },
+      "halfExtents": {
+        "x": 0.65,
+        "y": 0.1,
+        "z": 1.05
+      },
+      "color": "#e6f2f8",
+      "label": "ice-rime",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-ice-rime-88",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 4.3,
+        "y": 2.3,
+        "z": -18.5
+      },
+      "halfExtents": {
+        "x": 0.65,
+        "y": 0.1,
+        "z": 1.05
+      },
+      "color": "#e6f2f8",
+      "label": "ice-rime",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-post-89",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -1.4,
+        "y": 1.7,
+        "z": -25.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-post-90",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 1.4,
+        "y": 1.7,
+        "z": -25.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-cold-lift-cage-head-91",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3.45,
+        "z": -25.7
+      },
+      "halfExtents": {
+        "x": 1.5,
+        "y": 0.1,
+        "z": 0.1
+      },
+      "color": "#3b5568",
+      "label": "lift-cage-head",
+      "meta": {
+        "place": "cold",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-hazard-cold-frost-aisle",
+      "kind": "deepward-hazard",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 1,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 1.5,
+        "y": 1,
+        "z": 2
+      },
+      "label": "Frost patch",
+      "meta": {
+        "place": "cold",
+        "hazard": "frost"
+      }
+    },
+    {
+      "id": "strata-hazard-cold-frost-icehouse",
+      "kind": "deepward-hazard",
+      "shape": "box",
+      "center": {
+        "x": 2,
+        "y": 1,
+        "z": -18
+      },
+      "halfExtents": {
+        "x": 1.5,
+        "y": 1,
+        "z": 2
+      },
+      "label": "Frost patch",
+      "meta": {
+        "place": "cold",
+        "hazard": "frost"
+      }
+    },
+    {
+      "id": "strata-room-wells-sump",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 2.1,
+        "z": 15
+      },
+      "halfExtents": {
+        "x": 4,
+        "y": 2.1,
+        "z": 4
+      },
+      "label": "08 / lift sump",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-catwalk-north",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": -2,
+        "y": 2.1,
+        "z": 4.5
+      },
+      "halfExtents": {
+        "x": 1.2000000000000002,
+        "y": 2.1,
+        "z": 6.5
+      },
+      "label": "09 / reservoir catwalks",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-catwalk-cross",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 2.1,
+        "z": -3.2
+      },
+      "halfExtents": {
+        "x": 8.5,
+        "y": 2.1,
+        "z": 1.2000000000000002
+      },
+      "label": "09 / reservoir catwalks",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-catwalk-east",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 6.8,
+        "y": 2.1,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 1.2000000000000002,
+        "y": 2.1,
+        "z": 5
+      },
+      "label": "09 / reservoir catwalks",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-reservoir-deck",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 6,
+        "y": 2.1,
+        "z": 11
+      },
+      "halfExtents": {
+        "x": 3,
+        "y": 2.1,
+        "z": 3
+      },
+      "label": "09 / reservoir catwalks",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-catwalk-south",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 3.2,
+        "y": 2.1,
+        "z": -13.2
+      },
+      "halfExtents": {
+        "x": 1.2000000000000002,
+        "y": 2.1,
+        "z": 8.8
+      },
+      "label": "09 / reservoir catwalks",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-well-floor",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 2.1,
+        "z": -29
+      },
+      "halfExtents": {
+        "x": 8,
+        "y": 2.1,
+        "z": 7
+      },
+      "label": "10 / ink well floor",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-room-wells-relay-spur",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": -6.8,
+        "y": 2.1,
+        "z": -17
+      },
+      "halfExtents": {
+        "x": 1.2000000000000002,
+        "y": 2.1,
+        "z": 5
+      },
+      "label": "10 / ink well floor",
+      "meta": {
+        "place": "wells"
+      }
+    },
+    {
+      "id": "strata-wells-tank-base-92",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -7.5,
+        "y": 0.2,
+        "z": 12.5
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.2,
+        "z": 0.8
+      },
+      "color": "#1d1824",
+      "label": "tank-base",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-wells-ink-tank-93",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -7.5,
+        "y": 2.2,
+        "z": 12.5
+      },
+      "radius": 0.7360000000000001,
+      "height": 3.6,
+      "color": "#5a3d75",
+      "label": "ink-tank",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-94",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -7.5,
+        "y": 1,
+        "z": 12.5
+      },
+      "radius": 0.76,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-95",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -7.5,
+        "y": 2.2,
+        "z": 12.5
+      },
+      "radius": 0.76,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-96",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -7.5,
+        "y": 3.4,
+        "z": 12.5
+      },
+      "radius": 0.76,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-base-97",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -4.5,
+        "y": 0.2,
+        "z": -26.5
+      },
+      "halfExtents": {
+        "x": 1.1,
+        "y": 0.2,
+        "z": 1.1
+      },
+      "color": "#1d1824",
+      "label": "tank-base",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-wells-ink-tank-98",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4.5,
+        "y": 2.2,
+        "z": -26.5
+      },
+      "radius": 1.0120000000000002,
+      "height": 3.6,
+      "color": "#5a3d75",
+      "label": "ink-tank",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-99",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4.5,
+        "y": 1,
+        "z": -26.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-100",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4.5,
+        "y": 2.2,
+        "z": -26.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-101",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4.5,
+        "y": 3.4,
+        "z": -26.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-base-102",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 4.5,
+        "y": 0.2,
+        "z": -29
+      },
+      "halfExtents": {
+        "x": 1.1,
+        "y": 0.2,
+        "z": 1.1
+      },
+      "color": "#1d1824",
+      "label": "tank-base",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-wells-ink-tank-103",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4.5,
+        "y": 2.2,
+        "z": -29
+      },
+      "radius": 1.0120000000000002,
+      "height": 3.6,
+      "color": "#5a3d75",
+      "label": "ink-tank",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-104",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4.5,
+        "y": 1,
+        "z": -29
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-105",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4.5,
+        "y": 2.2,
+        "z": -29
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-106",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4.5,
+        "y": 3.4,
+        "z": -29
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-base-107",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 0.2,
+        "z": -32.5
+      },
+      "halfExtents": {
+        "x": 1.1,
+        "y": 0.2,
+        "z": 1.1
+      },
+      "color": "#1d1824",
+      "label": "tank-base",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-wells-ink-tank-108",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 0,
+        "y": 2.2,
+        "z": -32.5
+      },
+      "radius": 1.0120000000000002,
+      "height": 3.6,
+      "color": "#5a3d75",
+      "label": "ink-tank",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-109",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 0,
+        "y": 1,
+        "z": -32.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-110",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 0,
+        "y": 2.2,
+        "z": -32.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-tank-band-111",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 0,
+        "y": 3.4,
+        "z": -32.5
+      },
+      "radius": 1.045,
+      "height": 0.12,
+      "color": "#9279aa",
+      "label": "tank-band",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-112",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -3.12,
+        "y": 1,
+        "z": 4.5
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 6.5
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-113",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -0.88,
+        "y": 1,
+        "z": 4.5
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 6.5
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-114",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.08,
+        "y": 1,
+        "z": -13.2
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 8.8
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-115",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 4.32,
+        "y": 1,
+        "z": -13.2
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 8.8
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-116",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5.68,
+        "y": 1,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 5
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-117",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 7.92,
+        "y": 1,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 0.03,
+        "y": 0.03,
+        "z": 5
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-118",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 1,
+        "z": -4.32
+      },
+      "halfExtents": {
+        "x": 8.5,
+        "y": 0.03,
+        "z": 0.03
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-catwalk-rail-119",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 1,
+        "z": -2.08
+      },
+      "halfExtents": {
+        "x": 8.5,
+        "y": 0.03,
+        "z": 0.03
+      },
+      "color": "#4a4552",
+      "label": "catwalk-rail",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-grating-120",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2,
+        "y": 0.01,
+        "z": 4.5
+      },
+      "halfExtents": {
+        "x": 1.05,
+        "y": 0.01,
+        "z": 6.35
+      },
+      "color": "#2c2633",
+      "label": "grating",
+      "meta": {
+        "place": "wells",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-grating-121",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 3.2,
+        "y": 0.01,
+        "z": -13.2
+      },
+      "halfExtents": {
+        "x": 1.05,
+        "y": 0.01,
+        "z": 8.65
+      },
+      "color": "#2c2633",
+      "label": "grating",
+      "meta": {
+        "place": "wells",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-grating-122",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 6.8,
+        "y": 0.01,
+        "z": 3
+      },
+      "halfExtents": {
+        "x": 1.05,
+        "y": 0.01,
+        "z": 4.85
+      },
+      "color": "#2c2633",
+      "label": "grating",
+      "meta": {
+        "place": "wells",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-grating-123",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 0.01,
+        "z": -3.2
+      },
+      "halfExtents": {
+        "x": 8.35,
+        "y": 0.01,
+        "z": 1.05
+      },
+      "color": "#2c2633",
+      "label": "grating",
+      "meta": {
+        "place": "wells",
+        "surface": "floor",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-ink-main-124",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -2,
+        "y": 3.6,
+        "z": 4.5
+      },
+      "radius": 0.16,
+      "height": 13,
+      "color": "#9279aa",
+      "label": "ink-main",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-ink-main-125",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 3.2,
+        "y": 3.6,
+        "z": -13.2
+      },
+      "radius": 0.16,
+      "height": 17.6,
+      "color": "#9279aa",
+      "label": "ink-main",
+      "meta": {
+        "place": "wells",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-126",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 4.1,
+        "z": 15
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-127",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2,
+        "y": 4.1,
+        "z": 4.5
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-128",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -0.5,
+        "y": 4.1,
+        "z": -3.2
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-129",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 6,
+        "y": 4.1,
+        "z": 11
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-130",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 3.2,
+        "y": 4.1,
+        "z": -13
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-well-lamp-131",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 4.1,
+        "z": -27
+      },
+      "halfExtents": {
+        "x": 0.25,
+        "y": 0.025,
+        "z": 0.25
+      },
+      "color": "#b48cff",
+      "label": "well-lamp",
+      "meta": {
+        "place": "wells",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-lift-cage-post-132",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -6.4,
+        "y": 1.7,
+        "z": 18.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-lift-cage-post-133",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -3.6,
+        "y": 1.7,
+        "z": 18.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-lift-cage-post-134",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -6.9,
+        "y": 1.7,
+        "z": -35.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-wells-lift-cage-post-135",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -4.1,
+        "y": 1.7,
+        "z": -35.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "wells",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-hazard-wells-pool-catwalk",
+      "kind": "deepward-hazard",
+      "shape": "box",
+      "center": {
+        "x": 3.2,
+        "y": 1,
+        "z": -12.5
+      },
+      "halfExtents": {
+        "x": 1.3,
+        "y": 1,
+        "z": 1.5
+      },
+      "label": "Ink pool",
+      "meta": {
+        "place": "wells",
+        "hazard": "ink"
+      }
+    },
+    {
+      "id": "strata-hazard-wells-pool-floor",
+      "kind": "deepward-hazard",
+      "shape": "box",
+      "center": {
+        "x": -2,
+        "y": 1,
+        "z": -28
+      },
+      "halfExtents": {
+        "x": 1.25,
+        "y": 1,
+        "z": 1.5
+      },
+      "label": "Ink pool",
+      "meta": {
+        "place": "wells",
+        "hazard": "ink"
+      }
+    },
+    {
+      "id": "strata-hazard-wells-pool-deck",
+      "kind": "deepward-hazard",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1,
+        "z": 10.5
+      },
+      "halfExtents": {
+        "x": 1.25,
+        "y": 1,
+        "z": 1.5
+      },
+      "label": "Ink pool",
+      "meta": {
+        "place": "wells",
+        "hazard": "ink"
+      }
+    },
+    {
+      "id": "strata-room-choir-hall",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3,
+        "z": 1
+      },
+      "halfExtents": {
+        "x": 8,
+        "y": 3,
+        "z": 15
+      },
+      "label": "11 / choir hall",
+      "meta": {
+        "place": "choir"
+      }
+    },
+    {
+      "id": "strata-room-choir-sanctum",
+      "kind": "deepward-room",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3,
+        "z": -19
+      },
+      "halfExtents": {
+        "x": 4,
+        "y": 3,
+        "z": 5
+      },
+      "label": "12 / sanctum",
+      "meta": {
+        "place": "choir"
+      }
+    },
+    {
+      "id": "strata-choir-bulkhead-136",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.75,
+        "y": 3,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.25,
+        "y": 3,
+        "z": 0.2
+      },
+      "color": "#0e0a0b",
+      "label": "bulkhead",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-bulkhead-137",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.75,
+        "y": 3,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.25,
+        "y": 3,
+        "z": 0.2
+      },
+      "color": "#0e0a0b",
+      "label": "bulkhead",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-door-header-138",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 5.5,
+        "z": -14
+      },
+      "halfExtents": {
+        "x": 1.5,
+        "y": 0.5,
+        "z": 0.2
+      },
+      "color": "#0e0a0b",
+      "label": "door-header",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-139",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 3,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-140",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.6,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-141",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 5.75,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-142",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.25,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-143",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-144",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.6,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-145",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 5.75,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-146",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.25,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-147",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 3,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-148",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.6,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-149",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 5.75,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-150",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.25,
+        "z": 10
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-151",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-152",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.6,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-153",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 5.75,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-154",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.25,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-155",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-156",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.6,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-157",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 5.75,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-158",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.25,
+        "z": 6
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-159",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 3,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-160",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.6,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-161",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 5.75,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-162",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.25,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-163",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-164",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.6,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-165",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 5.75,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-166",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.25,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-167",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 3,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-168",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.6,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-169",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 5.75,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-170",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.25,
+        "z": 2
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-171",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-172",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.6,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-173",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 5.75,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-174",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.25,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-175",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-176",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.6,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-177",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 5.75,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-178",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.25,
+        "z": -2
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-179",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 3,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-180",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.6,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-181",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 5.75,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-182",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -5,
+        "y": 1.25,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-183",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 3,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-184",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.6,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-185",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 5.75,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-186",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 1.25,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-187",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 3,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-188",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.6,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-189",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 5.75,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-190",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 5,
+        "y": 1.25,
+        "z": -6
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-191",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 3,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-192",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.6,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-193",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 5.75,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-194",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -2.5,
+        "y": 1.25,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-printer-pillar-195",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 3,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.7,
+        "y": 3,
+        "z": 0.7
+      },
+      "color": "#2a1416",
+      "label": "printer-pillar",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": true
+      }
+    },
+    {
+      "id": "strata-choir-pillar-head-196",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.6,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.8,
+        "y": 0.25,
+        "z": 0.8
+      },
+      "color": "#7a1f1a",
+      "label": "pillar-head",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-cap-197",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 5.75,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.85,
+        "y": 0.25,
+        "z": 0.85
+      },
+      "color": "#0e0a0b",
+      "label": "pillar-cap",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-pillar-glow-198",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 2.5,
+        "y": 1.25,
+        "z": -10
+      },
+      "halfExtents": {
+        "x": 0.81,
+        "y": 0.02,
+        "z": 0.81
+      },
+      "color": "#ff6a52",
+      "label": "pillar-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-choir-conduit-199",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -4,
+        "y": 5.4,
+        "z": 1
+      },
+      "radius": 0.2,
+      "height": 29,
+      "color": "#7a1f1a",
+      "label": "choir-conduit",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-choir-conduit-200",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 4,
+        "y": 5.4,
+        "z": 1
+      },
+      "radius": 0.2,
+      "height": 29,
+      "color": "#7a1f1a",
+      "label": "choir-conduit",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 1.5707963267948966,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-lift-cage-post-201",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": -1.4,
+        "y": 1.7,
+        "z": 15.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-lift-cage-post-202",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 1.4,
+        "y": 1.7,
+        "z": 15.7
+      },
+      "halfExtents": {
+        "x": 0.08,
+        "y": 1.7,
+        "z": 0.08
+      },
+      "color": "#d59b48",
+      "label": "lift-cage-post",
+      "meta": {
+        "place": "choir",
+        "surface": "paint",
+        "turn": 0,
+        "solid": false
+      }
+    },
+    {
+      "id": "strata-choir-sanctum-cable-203",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -2.6,
+        "y": 3,
+        "z": -22.6
+      },
+      "radius": 0.18,
+      "height": 6,
+      "color": "#0e0a0b",
+      "label": "sanctum-cable",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-sanctum-cable-204",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 2.6,
+        "y": 3,
+        "z": -22.6
+      },
+      "radius": 0.18,
+      "height": 6,
+      "color": "#0e0a0b",
+      "label": "sanctum-cable",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-sanctum-cable-205",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": -2.6,
+        "y": 3,
+        "z": -17
+      },
+      "radius": 0.18,
+      "height": 6,
+      "color": "#0e0a0b",
+      "label": "sanctum-cable",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-sanctum-cable-206",
+      "kind": "deepward-structure",
+      "shape": "cylinder",
+      "center": {
+        "x": 2.6,
+        "y": 3,
+        "z": -17
+      },
+      "radius": 0.18,
+      "height": 6,
+      "color": "#0e0a0b",
+      "label": "sanctum-cable",
+      "meta": {
+        "place": "choir",
+        "surface": "steel",
+        "turnX": 0,
+        "turnZ": 0
+      }
+    },
+    {
+      "id": "strata-choir-sanctum-glow-207",
+      "kind": "deepward-structure",
+      "shape": "box",
+      "center": {
+        "x": 0,
+        "y": 5.9,
+        "z": -21.5
+      },
+      "halfExtents": {
+        "x": 1.2,
+        "y": 0.025,
+        "z": 1.2
+      },
+      "color": "#ff6a52",
+      "label": "sanctum-glow",
+      "meta": {
+        "place": "choir",
+        "surface": "lamp",
         "turn": 0,
         "solid": false
       }

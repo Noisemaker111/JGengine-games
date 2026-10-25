@@ -3,7 +3,9 @@ import type { DamageTableDef } from "@jgengine/core/combat/damageTable";
 import type { HitZoneTable } from "@jgengine/core/combat/hitZones";
 import { weaponIntervalMs, type WeaponDefinition } from "@jgengine/core/combat/weaponDefinition";
 import { createWeaponSystem, type WeaponContact, type WeaponSystem } from "@jgengine/core/combat/weaponSystem";
-import { PRINT_ID, lineOfSight, type Point } from "../world";
+import { PRINT_ID, lineOfSight, type Place, type Point } from "../world";
+import { FAUNA } from "../world";
+import { SPECIES, isSpecies } from "./fauna";
 import { weaponStats, type Item } from "./items";
 import type { Dive } from "./state";
 
@@ -44,6 +46,8 @@ export const HIT_ZONES: HitZoneTable = {
 export function createDeepwardDamage(rng: () => number): DamageRuntime {
   const damage = createDamageRuntime({ table: DAMAGE_TABLE, zones: HIT_ZONES, rng, devtoolsName: "deepward.damage" });
   damage.registerTarget(PRINT_ID, { resistance: "flesh", armor: 0 });
+  // Every creature is flesh; the Overrun's hide is armour enough that a sidearm barely marks it.
+  for (const spawn of FAUNA) damage.registerTarget(spawn.id, { resistance: "flesh", armor: spawn.species === "overrun" ? 220 : 0 });
   return damage;
 }
 
@@ -128,11 +132,38 @@ export function fitterContact(input: {
   return { target: PRINT_ID, point: enemy };
 }
 
+/** A creature a shot can land on: where it stands and how big its body is. */
+export interface ShotTarget { id: string; at: Point; size: number }
+
 export interface WeaponDepsInput {
   rng: () => number;
   damage: DamageRuntime;
   at: () => Point | null;
   print: () => Dive["print"] | null;
+  /** Creatures in the stratum the diver stands in, and that stratum's walls. */
+  creatures?: () => readonly ShotTarget[];
+  place?: () => Place;
+}
+
+/** The nearest creature along the ray, with the same aim tolerance (scaled by body size) and wall test. */
+export function creatureContact(input: { from: Point; direction: Point; maxRange: number; diverAt: Point; targets: readonly ShotTarget[]; place: Place }): (WeaponContact & { distance: number }) | null {
+  let best: (WeaponContact & { distance: number }) | null = null;
+  for (const target of input.targets) {
+    const body: Point = [target.at[0], Math.min(1.1, target.size * 0.9), target.at[2]];
+    const delta: Point = [body[0] - input.from[0], body[1] - input.from[1], body[2] - input.from[2]];
+    const along = delta[0] * input.direction[0] + delta[1] * input.direction[1] + delta[2] * input.direction[2];
+    const miss = Math.hypot(delta[0] - along * input.direction[0], delta[1] - along * input.direction[1], delta[2] - along * input.direction[2]);
+    if (!(along > 0 && along < input.maxRange && miss <= Math.max(AIM_TOLERANCE * 0.8, target.size * 0.7))) continue;
+    if (!lineOfSight(input.diverAt, target.at, input.place)) continue;
+    if (best === null || along < best.distance) best = { target: target.id, point: body, distance: along };
+  }
+  return best;
+}
+
+/** Creatures alive in a stratum, as shot targets. */
+export function shotTargets(fauna: Dive["fauna"], place: Place): ShotTarget[] {
+  return Object.values(fauna).filter(creature => creature.place === place && creature.health > 0 && isSpecies(creature.species))
+    .map(creature => ({ id: creature.id, at: creature.at, size: SPECIES[creature.species].size }));
 }
 
 /** One held weapon per dive; the hand is swapped by retuning it, so ammo and cadence carry over. */
@@ -145,8 +176,15 @@ export function createDeepwardWeapon(definition: WeaponDefinition, deps: WeaponD
     maxShotsPerTick: 1,
     raycast(from, direction, maxRange) {
       const at = deps.at(), print = deps.print();
-      if (at === null || print === null) return null;
-      return fitterContact({ from, direction, maxRange, diverAt: at, print });
+      if (at === null) return null;
+      const place = deps.place?.() ?? "vault";
+      // The Fitter walks receiving only; below it, the shot meets whatever lives on that floor.
+      const fitter = print === null || place !== "vault" ? null : fitterContact({ from, direction, maxRange, diverAt: at, print });
+      const creature = deps.creatures === undefined ? null : creatureContact({ from, direction, maxRange, diverAt: at, targets: deps.creatures(), place });
+      if (fitter === null) return creature === null ? null : { target: creature.target, point: creature.point };
+      if (creature === null) return fitter;
+      const fitterRange = Math.hypot(fitter.point[0] - from[0], fitter.point[1] - from[1], fitter.point[2] - from[2]);
+      return creature.distance < fitterRange ? { target: creature.target, point: creature.point } : fitter;
     },
     devtoolsName: "deepward.weapon",
   });

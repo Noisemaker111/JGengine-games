@@ -5,7 +5,8 @@ import { createEditorHost } from '@jgengine/editor/session';
 import { readFileSync, writeFileSync } from 'node:fs';
 const path = new URL('../src/editor.scene.json', import.meta.url);
 const { session, api, dispose } = createEditorHost({ gameId: 'deepward', layers: JSON.parse(readFileSync(path, 'utf8')) });
-const old = [...session.getState().document.volumes.filter(v => v.kind === 'deepward-structure'), ...session.getState().document.markers.filter(v => v.kind === 'deepward-station-sign')];
+const own = (v: { id: string; meta?: Record<string, unknown> }) => !v.id.startsWith('strata-') && (v.meta?.place === 'home' || v.meta?.place === 'vault');
+const old = [...session.getState().document.volumes.filter(v => v.kind === 'deepward-structure' && own(v)), ...session.getState().document.markers.filter(v => v.kind === 'deepward-station-sign' && own(v))];
 for (const v of old) session.dispatch({ type: 'remove', id: v.id });
 let n = 0;
 function box(place: string, role: string, at: number[], size: number[], color: string, surface = 'paint', turn = 0) {

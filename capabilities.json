@@ -1484,7 +1484,7 @@
       "domain": "game",
       "gameFacing": false,
       "probe": null,
-      "intent": "codex/bestiary/lorebook of defined entries with discovery tracking, categories, secret masking, completion, an onDiscover seam, and serializable state"
+      "intent": "codex/bestiary/lorebook of defined entries with discovery tracking, fragment scans, categories, secret masking, completion, an onDiscover seam, and serializable state"
     },
     {
       "id": "codex-gallery",
@@ -1913,6 +1913,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "deterministic stat inheritance, mutation, and lineage genetics for taming games"
+    },
+    {
+      "id": "creature-temperament",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/temperament",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "passive, territorial and predator creatures that react to what perception senses, including light, noise and scent"
     },
     {
       "id": "credits-for-asset-ids",

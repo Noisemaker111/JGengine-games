@@ -10,6 +10,10 @@ import { defineGame } from "@jgengine/shell/defineGame";
 import { useGameContext } from "@jgengine/react/provider";
 import { useStore } from "@jgengine/react/store";
 import { distance, GARAGE, EXIT, PROPS, PRINT_ID, SALVAGE, STEAM, STASH, walkable, world, physics, editorLayers, ROOMS, RETURN_SPINE, DECOR, decorPoint, type Place, type Point } from "./world";
+import { hazardsAt } from "./game/descent";
+import { marrowOf, marrowSpec } from "./game/marrow";
+import { STRATA } from "./game/strata";
+import { Headlamp, MarrowBays, StratumAtmosphere, StratumDressing } from "./game/strataArt";
 import { PALETTE as C, signTexture, IndustrialBox, SALVAGE_PLACARD, type Triple } from "./game/art";
 import { surfaceMaterial, type IndustrialSurface } from "./game/industrialMaterials";
 import { FitterModel } from "./game/fitterArt";
@@ -71,7 +75,7 @@ function Architecture({ place }: { place: Place }) {
     }
     for(const l of plan.lamps) {
       part(`${l.id}:housing`, [l.fixture[0],l.fixture[1]+0.05,l.fixture[2]], [l.width+0.16,0.1,0.32],C.steel,"steel");
-      part(`${l.id}:light`, [l.fixture[0],l.fixture[1]-0.02,l.fixture[2]], [l.width,0.045,0.2],place==="home"?C.amber:C.cyan,"lamp");
+      part(`${l.id}:light`, [l.fixture[0],l.fixture[1]-0.02,l.fixture[2]], [l.width,0.045,0.2],place==="home"?C.amber:place==="vault"?C.cyan:STRATA[place].lamp.color,"lamp");
     }
     return [...groups.entries()];
   },[plan,place]);
@@ -88,7 +92,7 @@ function Architecture({ place }: { place: Place }) {
 /** Fixed pool selected on the render frame; no timers, actor hiding, or graphics-profile changes. */
 function RoomLights() {
   const view = useStore(viewStore), refs = useRef<(PointLight | null)[]>([]);
-  const place = view.mode === "home" || view.dive === null ? "home" : "vault";
+  const place: Place = view.mode === "home" || view.dive === null ? "home" : view.dive.stratum;
   const lamps = useMemo(() => deriveRoomPresentation(place).lamps, [place]);
   useFrame(({ camera }) => {
     const closest = activeRoomLamps(lamps, [camera.position.x, camera.position.y, camera.position.z]);
@@ -99,7 +103,7 @@ function RoomLights() {
       if (candidate) light.position.set(...candidate.light);
     }
   });
-  return <>{Array.from({ length: ROOM_LIGHT_BUDGET }, (_, i) => <pointLight key={i} ref={light => { refs.current[i] = light; }} intensity={0} color={place === "home" ? "#f3c390" : "#a4ded2"} distance={ROOM_LIGHT_REACH} decay={2} />)}</>;
+  return <>{Array.from({ length: ROOM_LIGHT_BUDGET }, (_, i) => <pointLight key={i} ref={light => { refs.current[i] = light; }} intensity={0} color={place === "home" ? "#f3c390" : STRATA[place].lamp.color} distance={place === "home" ? ROOM_LIGHT_REACH : STRATA[place].lamp.reach} decay={2} />)}</>;
 }
 function SalvageModel({ kind, empty }: { kind: keyof typeof ITEMS; empty: boolean }) {
   const color = empty ? C.panel : ITEMS[kind].color;
@@ -159,12 +163,17 @@ function Hand() {
   </group>;
 }
 function WorldOverlay() {
-  const view = useStore(viewStore), dive = view.dive;
+  const ctx = useGameContext(), view = useStore(viewStore), dive = view.dive;
   const steamOn = dive !== null && dive.elapsed % 8 < 3;
+  const place: Place = dive === null ? "home" : dive.stratum;
+  const base = marrowOf(ctx);
   return <>
     <SceneCaptureBinding bind={registerSceneCapture} />
-    <Architecture place={dive === null ? "home" : "vault"} /><StationStructure place={dive === null ? "home" : "vault"} /><RoomLights /><StationModels place={dive === null ? "home" : "vault"} assets={stationAssets} />
-    {editorLayers.markers.filter(m => m.kind === "deepward-station-sign" && m.meta?.place === (dive === null ? "home" : "vault")).map(m => <Sign key={m.id} at={[m.position.x,m.position.y,m.position.z]} title={m.label ?? m.id} sub={String(m.meta?.subtitle ?? "")} width={Number(m.meta?.width ?? 2.6)} turn={m.rotationY ?? 0} color={C.amber} />)}
+    <StratumAtmosphere place={place} /><Headlamp on={dive?.lamp === true} />
+    <Architecture place={place} /><StationStructure place={place} /><RoomLights /><StationModels place={place} assets={stationAssets} />
+    {dive === null && <MarrowBays world={base} />}
+    {dive !== null && <StratumDressing dive={dive} deep={view.deep} world={base} />}
+    {editorLayers.markers.filter(m => m.kind === "deepward-station-sign" && m.meta?.place === place).map(m => <Sign key={m.id} at={[m.position.x,m.position.y,m.position.z]} title={m.label ?? m.id} sub={String(m.meta?.subtitle ?? "")} width={Number(m.meta?.width ?? 2.6)} turn={m.rotationY ?? 0} color={C.amber} />)}
     <group visible={dive === null}>
     <RailCart at={[GARAGE[0], GARAGE[1], GARAGE[2] - 0.7]} home />
 
@@ -183,7 +192,7 @@ function WorldOverlay() {
     </group>
     }
     <Sign at={decorPoint("sign-marrow")} title="MARROW" sub="ONE OF THE LAST LIT VAULTS" color={C.amber} turn={Math.PI} width={5.5} />
-    </group><group visible={dive !== null}>
+    </group><group visible={dive !== null && dive.stratum === "vault"}>
     <RailCart at={[EXIT[0], EXIT[1], EXIT[2] + 0.5]} />
     {DECOR.filter(entry => entry.id.startsWith("locker-shift-")).map(entry => <group key={entry.id} position={[entry.position.x, entry.position.y, entry.position.z]}>
       <Block at={[0, 1.1, 0]} size={[0.8, 2.2, 0.7]} color={C.wall} />
@@ -211,7 +220,7 @@ function WorldOverlay() {
       </>}
     </group>
     </group>
-    {dive?.print.drop !== null && dive?.print.drop !== undefined && !dive.collected.includes("fitter") && <group position={[dive.print.drop[0], dive.print.drop[1] + 0.1, dive.print.drop[2]]} rotation={[0, Math.PI / 2, Math.PI / 2]} scale={1.35}>
+    {dive?.print.drop !== null && dive?.print.drop !== undefined && dive.stratum === "vault" && !dive.collected.includes("fitter") && <group position={[dive.print.drop[0], dive.print.drop[1] + 0.1, dive.print.drop[2]]} rotation={[0, Math.PI / 2, Math.PI / 2]} scale={1.35}>
       <ServiceWeapon kind="service-rifle" />
     </group>}
     {view.trace !== null && <Tracer from={view.trace.from} to={view.trace.to} />}
@@ -234,6 +243,8 @@ export const game = defineGame({
   presentation: "3d", scenePlacement: false, touch: false, platforms: ["web"],
   // Engine records own acquisition; the vault's authored meshes own presentation.
   worldItem: { filter: [{ id: "authored-salvage", when: {}, hide: true }] },
+  // Marrow's base and story run on the engine's world model: bays, power, galley flows, story facts.
+  systems: [marrowSpec.system],
   loop: { onInit: (ctx) => { initialize(ctx); registerCaptureCommands(ctx); }, onNewPlayer: seatPlayer, onTick: tick },
   GameUI, WorldOverlay, renderEntity,
   hudTheme: shiftTheme,
@@ -244,11 +255,13 @@ export const game = defineGame({
     beforeCommit(frame) {
       const view = viewStore.read(frame.ctx);
       if (view.paused || view.panel !== null || (view.mode !== "home" && view.mode !== "dive")) return frame.current;
-      const place = view.mode === "home" ? "home" : "vault";
+      const place: Place = view.mode === "home" || view.dive === null ? "home" : view.dive.stratum;
+      // Ink pools drag at the suit: a step through one covers a little over half the ground.
+      const drag = view.dive !== null && place !== "home" && hazardsAt(frame.current, place, false).has("ink") ? 0.55 : 1;
       // Subdivide the whole displacement so a long frame cannot tunnel through a wall.
       const steps = Math.max(1, Math.ceil(distance(frame.current, frame.next) / 0.15));
       let x = frame.current[0], z = frame.current[2];
-      const dx = (frame.next[0] - x) / steps, dz = (frame.next[2] - z) / steps;
+      const dx = (frame.next[0] - x) / steps * drag, dz = (frame.next[2] - z) / steps * drag;
       for (let n = 0; n < steps; n++) {
         if (walkable(x + dx, z + dz, place)) { x += dx; z += dz; }
         else if (walkable(x + dx, z, place)) x += dx;
