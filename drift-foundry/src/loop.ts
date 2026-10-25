@@ -1,7 +1,7 @@
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import type { LifecycleConfig } from "@jgengine/core/game/defineGame";
 
-import { COMPACTOR_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
+import { COMPACTOR_ENTITY, KART_GHOST_ENTITY, KART_PLAYER_ENTITY } from "./game/entities/catalog";
 import { upgradeBodies } from "./game/art/upgrades";
 import { impactBursts } from "./game/impact";
 import { RIVAL_DEFS } from "./game/race/opponents";
@@ -102,6 +102,12 @@ export function onTick(ctx: GameContext, dt: number): void {
         role: "prop",
       },
     ],
+    dt,
+  );
+
+  const ghost = snapshot.ghost?.pose ?? null;
+  ctx.scene.entity.bind("ghost").sync(
+    ghost === null ? [] : [{ id: "ghost", kind: KART_GHOST_ENTITY, position: ghost.position, rotationY: ghost.rotationY, role: "prop" as const }],
     dt,
   );
 

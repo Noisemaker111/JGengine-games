@@ -91,7 +91,7 @@ export function GameUI() {
     <FoundryMenu snapshot={snapshot} session={session} publish={() => publishSession(ctx, session)}/>
     <div className="fd-ui" ref={uiRef}>
     {snapshot.phase === "running" && <>
-      <TimingTower race={snapshot.race}/>
+      <TimingTower race={snapshot.race} event={snapshot.event} ghost={snapshot.ghost}/>
       <GateSign eyebrow={`${nextGate ? `NEXT ${nextGate.requirement === "jump" ? "JUMP STACK" : "PLOW WALL"}` : "EXIT GATE"} / ${Math.ceil(Math.max(0, distance))}m`} call={call} sub={nextGate?.label ?? "470m escape line"} tone={signTone}/>
       <nav className="fd-dash-rail" aria-label="Run">
         <DashTab icon="pause" label="Pause run" keyCap="P" onPress={togglePause}/>
