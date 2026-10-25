@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vite";
 
+import { engineDedupe } from "../shared/viteEngineDedupe";
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -17,6 +19,7 @@ export default defineConfig({
     react(),
   ],
   resolve: {
+    dedupe: engineDedupe(new URL(".", import.meta.url)),
     alias: {
       "@": path.resolve(__dirname, "./src"),
       // Resolve the workspace package straight to its source. Bypasses
