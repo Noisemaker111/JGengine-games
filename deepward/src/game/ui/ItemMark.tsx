@@ -1,12 +1,16 @@
 import { IconTreatment } from '@jgengine/react/iconTreatment';
 import { hudTheme } from '@jgengine/react/hudTheme';
+import { gameFontStacks } from '@jgengine/react/gameFonts';
 import { ITEMS, type ItemKind } from '../state';
+import { GAME_FONTS } from '../../art/fonts/fonts';
+
+const FONTS = gameFontStacks(GAME_FONTS);
 
 /** Marrow's inventory is a stamped issue docket, with game-specific technical pictograms. The shell applies it at the HUD root. */
 export const shiftTheme = hudTheme({
  palette:{accent:'#d5b879',accentDeep:'#8c723f',accentGlow:'#d5b87933',accentDim:'#d5b87915',health:'#a1e1d5',healthDeep:'#467c73',ammo:'#e1c18c'},
  surface:{surface:'#25383b',surfaceDeep:'#142429',edge:'#657d76',edgeBright:'#a1c4b3',text:'#ede9d9',textDim:'#bac7c1',backdrop:'#0d181bcc'},
- font:{display:'"Segoe UI",sans-serif',body:'"Segoe UI",sans-serif',numeric:'monospace'},
+ font:{display:FONTS.fontDisplay,body:FONTS.fontBody,numeric:FONTS.fontNumeric},
  frame:{bg:'linear-gradient(150deg,#27383b,#142429)',border:'#7c908b',radius:'0',glow:'none'},
  slot:{bg:'#1b3030',border:'#5a7470',radius:'0'},
  state:{disabledOpacity:'1',focusRing:'0 0 0 3px #9ce0da'},

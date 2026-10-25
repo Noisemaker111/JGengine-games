@@ -1,33 +1,63 @@
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { ContinuePane, CreditsPane, SaveSlotsPane } from "@jgengine/react/gameMenuSaves";
 import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
-import { useOptionalGamePhase } from "@jgengine/react/hooks";
+import { useGameStore, useOptionalGamePhase } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
 import { useStore } from "@jgengine/react/store";
 import type { SaveSlotMeta } from "@jgengine/core/game/saveSlots";
+import { GameFrame } from "@jgengine/react/gameFrame";
 
 import { DEEPWARD_CREDITS } from "../../credits";
 import { loadRecordSlot, beginRecordSlot, openTitle, persistRecord, recordOf, withdrawToTitle, viewStore } from "../../controls";
 import { captureRecordThumb, recordLabel, recordSlots, refreshRecordSlots } from "../../menuRecord";
+import { depthAt } from "../../../world";
+import { CACHE_WEIGHT, loadOf } from "../../haul";
 
 /** Capture-only focus request: a shot declares which verb it wants highlighted. */
 export const menuFocus: { id: string | null } = { id: null };
 
-/** Deepward's print-service palette, handed to the menu as tokens rather than a preset. */
+/** Marrow's console palette for the menu chrome the kit does not draw (header, footer, tint). */
 const MENU_TOKENS = {
-  "--jg-accent": "#d7b774",
-  "--jg-accent-soft": "rgba(215,183,116,0.24)",
-  "--jg-accent-glow": "rgba(215,183,116,0.3)",
+  "--jg-accent": "#e2bd6e",
+  "--jg-accent-soft": "rgba(226,189,110,0.24)",
+  "--jg-accent-glow": "rgba(226,189,110,0.3)",
   "--jg-text": "#ede9d9",
-  "--jg-text-dim": "rgba(232,236,226,0.94)",
-  "--jg-font-display": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
-  "--jg-font-body": "\"Segoe UI\", sans-serif",
-  "--jg-menu-logo-size": "clamp(32px, 5vw, 68px)",
-  "--jg-menu-card-radius": "2px",
+  "--jg-text-dim": "rgba(214,226,220,0.86)",
+  "--jg-menu-logo-size": "clamp(30px, 4.4vw, 64px)",
 } as const;
+
+/** A stencilled hull nameplate: the console's own name, riveted on. */
+function Nameplate({ word, sub, small = false }: { word: string; sub: ReactNode; small?: boolean }): ReactNode {
+  return (
+    <GameFrame material="hull" cut="notch" depth={small ? 12 : 16} tint="#26404b" edge="#060d10" edgeWidth={2} padding={small ? "10px 22px 11px" : "14px 30px 16px"} className={`dw-nameplate${small ? " dw-nameplate-small" : ""}`}>
+      <span className="dw-nameplate-word">{word}</span>
+      <span className="dw-nameplate-sub">{sub}</span>
+    </GameFrame>
+  );
+}
+
+/** The dive log's heading line. */
+function LogHead({ children, tag }: { children: ReactNode; tag?: ReactNode }): ReactNode {
+  return (
+    <div className="dw-log-head">
+      <span className="dw-log-caret" aria-hidden="true">&gt;</span>
+      <span className="dw-log-title">{children}</span>
+      {tag === undefined ? null : <span className="dw-log-tag">{tag}</span>}
+    </div>
+  );
+}
+
+/** Console key legend: stamped key caps, not a sentence. */
+function KeyLegend({ pause }: { pause: boolean }): ReactNode {
+  return (
+    <span className="dw-keylegend">
+      <kbd>&uarr;&darr;</kbd><span>select</span><kbd>Enter</kbd><span>confirm</span><kbd>Esc</kbd><span>{pause ? "resume" : "back"}</span>
+    </span>
+  );
+}
 
 type Screen = "title" | "pause";
 
@@ -37,58 +67,68 @@ function replaceable(): string | null {
   return held[0]?.id ?? null;
 }
 
-/** The words a dive is described in: where it stands, what it carries, whose Life it is. */
+/** The words a dive is described in: whose Life it is, what it carries. */
 function DiveLine() {
   const view = useStore(viewStore);
   const dive = view.dive;
-  if (dive === null) {
-    return <span>Halloway / Life {view.home.life} / {view.home.stash.length} banked</span>;
-  }
-  return <span>Life {view.home.life} / carry {dive.cache.length} / air {Math.ceil(dive.oxygen)}s</span>;
+  if (dive === null) return <span>Marrow &middot; Life {view.home.life} &middot; {view.home.stash.length} banked</span>;
+  return <span>Bellwether &middot; Life {view.home.life} &middot; carry {dive.cache.length}</span>;
 }
 
 /** The New dive pane: a fresh Life starts at the home, ready to walk to the garage. */
 function NewDivePane({ slot, onBegin }: { slot: string | null; onBegin: () => void }): ReactNode {
+  const view = useStore(viewStore);
   const occupancy = recordSlots.get(slot ?? "");
   const replacing = occupancy !== null && !occupancy.empty;
+  const air = view.home.refits.includes("tank") ? 145 : 110;
   return (
-    <div data-new-dive-pane="" style={{ display: "flex", flexDirection: "column", gap: 14, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800, letterSpacing: "0.02em" }}>
-        New dive
-      </div>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "var(--jg-text-dim)", maxWidth: "46ch" }}>
-        A Life starts at the home with the issue sidearm. Walk to the garage, take the rail to Bellwether,
-        and come back with the haul before the air runs out.
-      </p>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: replacing ? "#e6b079" : "var(--jg-text-dim)" }}>
-        {slot === null
-          ? "Every record is held."
-          : replacing
-            ? `${recordLabel(slot)} is held; a new dive replaces it.`
-            : `This writes ${recordLabel(slot)}.`}
-      </p>
-      <button
-        type="button"
+    <div data-new-dive-pane="" className="dw-log">
+      <LogHead tag={slot === null ? "no record free" : recordLabel(slot)}>New dive</LogHead>
+      <p className="dw-log-line">Full tank. Issue sidearm. Rail to Bellwether and back before the air runs out.</p>
+      <dl className="dw-log-stats">
+        <div><dt>Air</dt><dd>{air}<small>s</small></dd></div>
+        <div><dt>Cache</dt><dd>4&times;3</dd></div>
+        <div><dt>Load</dt><dd>12<small>kg</small></dd></div>
+        <div><dt>Life</dt><dd>{view.home.life}</dd></div>
+      </dl>
+      {replacing && slot !== null ? <p className="dw-log-warn">{recordLabel(slot)} is held. A new dive replaces it.</p> : null}
+      <GameFrame
+        as="button"
         data-new-dive-start=""
-        onClick={onBegin}
+        material="brass"
+        cut="hex"
+        depth={14}
+        padding="12px 34px"
         disabled={slot === null}
-        style={{
-          alignSelf: "flex-start",
-          padding: "11px 22px",
-          borderRadius: 2,
-          border: "none",
-          background: slot === null ? "rgba(148,163,184,0.24)" : "#d7b774",
-          color: "#172529",
-          fontFamily: "var(--jg-font-display)",
-          fontSize: "var(--jg-type-lg)",
-          fontWeight: 800,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          cursor: slot === null ? "not-allowed" : "pointer",
-        }}
+        onClick={onBegin}
+        className="dw-log-go"
       >
         Take the rail
-      </button>
+      </GameFrame>
+    </div>
+  );
+}
+
+/** The frozen dive computer: what the pause is holding, in four numbers. */
+function HeldBoard({ hint }: { hint?: string }): ReactNode {
+  const view = useStore(viewStore);
+  const dive = view.dive;
+  const at = useGameStore((state) => state.scene.entity.get(state.player.userId)?.position ?? ([0, 0, 0] as const));
+  const rows: [string, ReactNode][] = dive === null
+    ? [["Scrip", view.home.bank.banked], ["Stash", view.home.stash.length], ["Returns", view.home.extractions], ["Life", view.home.life]]
+    : [
+        ["Air", <>{Math.ceil(dive.oxygen)}<small>s</small></>],
+        ["Depth", String(depthAt(at, "vault")).padStart(2, "0")],
+        ["Carry", <>{loadOf(dive.cache).mass}<small>/{CACHE_WEIGHT}</small></>],
+        ["Suit", <>{Math.ceil(dive.health)}<small>%</small></>],
+      ];
+  return (
+    <div className="dw-log" data-held-board="">
+      <LogHead tag={dive === null ? "Marrow" : "Bellwether"}>{dive === null ? "Home held" : "Dive held"}</LogHead>
+      <dl className="dw-log-stats dw-log-stats-big">
+        {rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+      </dl>
+      <p className="dw-log-line">{hint ?? "Tank and prints are stopped while this console is open."}</p>
     </div>
   );
 }
@@ -162,10 +202,9 @@ export function DeepwardMenu(): ReactNode {
     <GameMenu
       open={screen === "title"}
       label="Deepward"
+      className="dw-console"
       initialId={menuFocus.id ?? (recent === null ? "new" : "continue")}
-      eyebrow="Halloway municipal print service / 06"
-      logo={{ text: <span className="dw-wordmark">Deepward<span>/ Marrow</span></span>, title: "Deepward" }}
-      tagline="Air is the clock. Bank what you can carry, and take the rail before it runs out."
+      logo={{ text: <Nameplate word="DEEPWARD" sub={<>Halloway print service &middot; line 06</>} />, title: "Deepward" }}
       items={[
         {
           id: "continue",
@@ -186,11 +225,14 @@ export function DeepwardMenu(): ReactNode {
       detail={(id) => {
         if (id === "continue") {
           return (
-            <ContinuePane
-              slot={recent}
-              emptyMessage="No dive kept yet. Take the rail, pack a haul and save it from the pause menu."
-              onContinue={(slot) => void openRecord(slot.id)}
-            />
+            <div className="dw-log">
+              <LogHead tag={recent === null ? "empty" : recordLabel(recent.id)}>Continue dive</LogHead>
+              <ContinuePane
+                slot={recent}
+                emptyMessage="No dive kept yet. Take the rail, pack a haul and save it from the pause console."
+                onContinue={(slot) => void openRecord(slot.id)}
+              />
+            </div>
           );
         }
         if (id === "new") return <NewDivePane slot={emptySlot} onBegin={() => startNew(emptySlot)} />;
@@ -224,7 +266,8 @@ export function DeepwardMenu(): ReactNode {
         if (id === "continue" && recent !== null) void openRecord(recent.id);
         else if (id === "records") void refreshRecordSlots(ctx);
       }}
-      footer={<span>Marrow / {recordLabel(open)} · Life {view.home.life} · {view.home.bank.banked} scrip · {notice ?? "one record per slot"}</span>}
+      footer={<span className="dw-console-foot">Marrow / {recordLabel(open)} &middot; Life {view.home.life} &middot; {view.home.bank.banked} scrip{notice === null ? "" : ` · ${notice}`}</span>}
+      controlHint={<KeyLegend pause={false} />}
       style={MENU_TOKENS}
     />
   );
@@ -233,31 +276,33 @@ export function DeepwardMenu(): ReactNode {
     <GamePauseMenu
       open={screen === "pause"}
       label={view.dive === null ? "The home is held" : "The dive is held"}
+      className="dw-console"
       onBack={back}
       onResume={back}
-      logo={{ text: <span className="dw-wordmark">Hold.</span>, title: "Hold" }}
-      eyebrow={<DiveLine />}
-      tagline="Air and prints are stopped with the simulation: the tank does not count while this is open."
+      logo={{ text: <Nameplate small word={view.dive === null ? "HOME HELD" : "DIVE HELD"} sub={<DiveLine />} />, title: "Hold" }}
       items={[
-        { id: "resume", label: view.dive === null ? "Back to the home" : "Back to the dive" },
-        { id: "save", label: `Save to ${recordLabel(open)}`, hint: "Writes this Life and its haul where it stands" },
+        { id: "resume", label: view.dive === null ? "Back to Marrow" : "Back to the dive" },
+        { id: "save", label: `Save to ${recordLabel(open)}`, hint: "Life and haul, as they stand" },
         { id: "settings", label: "Settings" },
         { id: "credits", label: "Credits" },
       ]}
-      secondary={[{ id: "title", label: "Save & return to the home" }]}
+      secondary={[{ id: "title", label: "Save & leave to title" }]}
       detail={(id) =>
         id === "settings" ? (
           <RecordSettings />
         ) : id === "credits" ? (
           <CreditsPane sections={DEEPWARD_CREDITS.sections} notice={DEEPWARD_CREDITS.notice} heading="Deepward" />
-        ) : null
+        ) : (
+          <HeldBoard hint={id === "save" ? `Writes this Life to ${recordLabel(open)}.` : id === "title" ? "Writes the record, then shuts the console down to the title." : undefined} />
+        )
       }
       onSelect={(id) => {
         if (id === "resume") back();
         else if (id === "save") void saveHere();
         else if (id === "title") void whileLoading("Writing the record", () => withdrawToTitle(ctx));
       }}
-      footer={<span>{notice ?? `${view.home.bank.banked} scrip banked · Life ${view.home.life}`}</span>}
+      footer={<span className="dw-console-foot">{notice ?? `${view.home.bank.banked} scrip banked · Life ${view.home.life}`}</span>}
+      controlHint={<KeyLegend pause />}
       style={MENU_TOKENS}
     />
   );
@@ -267,7 +312,7 @@ export function DeepwardMenu(): ReactNode {
       {titleMenu}
       {pauseMenu}
       {busy !== null && (
-        <div className="dw-menu-busy" role="status" aria-live="polite">
+        <div className="dw-console-busy" role="status" aria-live="polite">
           <span>{busy}</span>
         </div>
       )}
@@ -283,8 +328,8 @@ function RecordSettings(): ReactNode {
   const activeId = chosen !== null && categories.some((category) => category.id === chosen) ? chosen : (categories[0]?.id ?? "");
   const active = categories.find((category) => category.id === activeId) ?? null;
   return (
-    <div data-deepward-settings="" style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 800 }}>Settings</div>
+    <div data-deepward-settings="" className="dw-log dw-log-fill">
+      <LogHead tag="console">Settings</LogHead>
       <SettingsTabs categories={categories} activeId={activeId} onSelect={setChosen} />
       <div style={{ overflowY: "auto", minHeight: 0, paddingRight: 4 }}>
         {active === null ? null : <SettingsSection category={active} heading={false} />}

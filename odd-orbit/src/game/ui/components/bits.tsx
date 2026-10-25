@@ -6,10 +6,10 @@ import { MOOD_COLORS, NEED_COLORS } from "../../palette";
 export function NeedBar({ need, value }: { need: NeedId; value: number }): ReactNode {
   const def = NEED_DEFS[need];
   const pct = Math.max(0, Math.min(100, value));
-  return <div className={`orbit-need ${pct < 30 ? "low" : ""}`}><span>{def.label}</span><div role="meter" aria-label={def.label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%`, backgroundColor: NEED_COLORS[need] }}/></div><b>{Math.round(pct)}</b></div>;
+  return <div className={`orbit-need ${pct < 30 ? "low" : ""}`}><span>{def.label}</span><div role="meter" aria-label={def.label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${Math.round(pct)}%`, backgroundColor: NEED_COLORS[need] }}/></div><b>{Math.round(pct)}</b></div>;
 }
 export function MoodBadge({ tier, face, label }: { tier: string; face: string; label: string }): ReactNode {
-  return <span className="orbit-mood" style={{ color: MOOD_COLORS[tier] }}><span aria-hidden="true">{face}</span> {label}</span>;
+  return <span className="orbit-mood" style={{ color: `color-mix(in srgb, ${MOOD_COLORS[tier]} 70%, #2a1733)` }}><span aria-hidden="true">{face}</span> {label}</span>;
 }
 export function AlienSwatch({ plan, size = 40 }: { plan: AlienBodyPlan; size?: number }): ReactNode {
   const tall = plan.shape === "tall";

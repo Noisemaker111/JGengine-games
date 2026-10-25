@@ -69,3 +69,21 @@ Hold the Line, Fernwild and Apex Nights were generated from one-sentence ideas b
 | Fernwild | Quaternius Medieval Village (`quaternius-medieval-village`): wooden fence | Quaternius | CC0 1.0 |
 | Fernwild | KayKit Dungeon (`kaykit-dungeon`): lit torch | Kay Lousberg | CC0 1.0 |
 | Fernwild | KayKit adventurer and Quaternius animal models renamed for the engine's former Lantern Reach port (`lantern-reach`): ranger, raptor, stag, boar, bull, settlement | Kay Lousberg; Quaternius | CC0 1.0 |
+
+## Bundled fonts
+
+Each game ships one display font and one body font from [Google Fonts](https://github.com/google/fonts). The files are unmodified and licensed under the SIL Open Font License 1.1. Several fonts carry Reserved Font Names, so the files must stay unmodified. Each game's `src/art/fonts/` folder holds:
+- the font files
+- `OFL.txt`, with each font's copyright line and the license
+- `SOURCE.md`, with the exact source URL and version of each file
+
+| Game | Display | Body |
+| --- | --- | --- |
+| Harbor Heat | Bangers | Barlow |
+| Beacon Bastion | Cinzel | Alegreya Sans |
+| Ember Command | IM Fell English SC | Alegreya |
+| Brightway Park | Lilita One | Nunito |
+| Deepward | Share Tech Mono | Rajdhani |
+| Drift Foundry | Saira Stencil One | Barlow Condensed |
+| Odd Orbit | Comfortaa | Quicksand |
+| Scrap Signal | Russo One | Chakra Petch |

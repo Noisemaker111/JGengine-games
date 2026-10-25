@@ -33,6 +33,15 @@ export const game = defineGame({
   loop: { onInit, onNewPlayer, onTick },
   GameUI,
   hudTheme: emberTheme,
+  // The command board, the formation tabs and the army call already carry every bound action as a
+  // pressable token, so the derived touch buttons would only repeat them over the field.
+  touch: {
+    hidden: [
+      "trainPeasant", "trainFootman", "trainRifleman", "attackMove", "buildBarracks", "buildFarm", "buildTower", "rally", "hold",
+      "formationLine", "formationWedge", "formationColumn", "selectArmy", "researchWeapons", "researchArmor", "heroAbility",
+      "heroMuster", "heroVolley", "heroWard", "heroPickFirst", "heroPickSecond",
+    ],
+  },
   // Order reports and refusals: below the stockpile strip, clear of the command console.
   notices: { placement: "top", ttlMs: 5000 },
   entityModels,

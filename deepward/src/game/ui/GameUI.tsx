@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { HudCanvas, HudPanel, useHudLayout } from "@jgengine/react";
 import { useBrowserSuspension, useDialogBehavior } from "@jgengine/react";
 import { useOptionalGamePhase } from "@jgengine/react/hooks";
@@ -20,7 +20,19 @@ import { ItemMark } from "./ItemMark";
 import { DeepwardMenu } from "./menu/DeepwardMenu";
 import { RECORD_KEY, SAVE_KEY } from "../save";
 import { placement } from "./hudPanels";
+import { ActionPlate, DepthStrip, DiveComputer, Docket, HoldTab, KitCounter, RadioLine, Reticle, SearchBar, Visor } from "./VisorHud";
+import { useGameFonts } from "@jgengine/react/gameFonts";
+import { GAME_FONTS } from "../../art/fonts/fonts";
 
+const PORTRAIT = "(max-aspect-ratio: 4/5)";
+/** A tall phone: the visor's readouts move to the top corners so the bottom lane stays free. */
+function usePortrait(): boolean {
+  return useSyncExternalStore(
+    notify => { const query = window.matchMedia(PORTRAIT); query.addEventListener("change", notify); return () => query.removeEventListener("change", notify); },
+    () => window.matchMedia(PORTRAIT).matches,
+    () => false,
+  );
+}
 function grab(): void {
   const canvas = document.querySelector("canvas");
   // The published shell receives keys on its focusable canvas wrapper. A menu
@@ -47,8 +59,10 @@ function Compared({ item, equipped }: { item: Item; equipped: Item | null }) {
   </p>;
 }
 export function GameUI() {
+  useGameFonts(GAME_FONTS);
   const ctx = useGameContext(), view = useStore(viewStore);
   const hud = useHudLayout({ storageKey: "deepward.hud" });
+  const portrait = usePortrait();
   const phase = useOptionalGamePhase();
   const at = useGameStore(state => state.scene.entity.get(state.player.userId)?.position ?? [0, 0, 14] as const);
   const target = useGameStore(nearby);
@@ -103,66 +117,43 @@ export function GameUI() {
   const journal = scripJournal(view.home, 4);
   const prepared = view.home.stash.find(item => item.id === view.rifleUid) ?? null;
   const close = () => { command("close"); grab(); };
-  return <div className={`dw-ui ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
+  return <div className={`dw-ui dw-hud ${low ? "dw-low" : ""} ${view.paused ? "dw-held" : ""}`} onKeyDown={event => {
     if (event.code === "Tab") event.stopPropagation();
     if ((event.code === "Space" || event.code === "Enter") && event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea, [contenteditable=true]")) event.stopPropagation();
   }}>
+    <Visor low={low} hurt={dive !== null && dive.hurt > 0} />
+    {dive !== null && dive.hurt > 0 && <div className="dw-hurtwash" aria-hidden="true" />}
+    {dive !== null && <Reticle hit={dive.flash > 0} />}
     <HudCanvas layout={hud} editChord={false} compactScale={0.86}>
-      <HudPanel {...placement("title")} compact="keep" interactive={false} locked>
-        <div className="dw-title-plate">
-          <span className="dw-eyebrow">Halloway municipal print service / 06</span>
-          <h1>DEEPWARD<span> / {dive === null ? "MARROW" : "BELLWETHER"}</span></h1>
-          <p>{roomAt(at, dive === null ? "home" : "vault")} · Life {view.home.life}</p>
-        </div>
-      </HudPanel>
-      <HudPanel {...placement("shift")} compact="keep" locked>
-        <div className="dw-shift-buttons">
-          <HudButton disabled={view.mode !== "home" && view.mode !== "dive"} onClick={() => command("pause")} className="dw-small">Pause / Esc</HudButton>
-        </div>
+      <HudPanel {...placement("shift", portrait)} compact="keep" locked>
+        <HoldTab disabled={view.mode !== "home" && view.mode !== "dive"} onPause={() => command("pause")} />
       </HudPanel>
       {dive !== null && <>
-        <HudPanel {...placement("air")} compact="keep" interactive={false} locked>
-          <HudSurface className="dw-air" as="section" aria-label="Oxygen tank" interactive={false}>
-            <span className="dw-eyebrow">Equipment / {dive.tankSeconds > 110 ? "sealed tank" : "issue tank"}</span>
-            <div><strong>{Math.ceil(dive.oxygen)}<small>s</small></strong><span>{dive.oxygen === 0 ? "NO AIR / HEALTH BLEED" : low ? "RETRACE TO THE RAIL" : "AIR REMAINING"}</span></div>
-            <progress max={dive.tankSeconds} value={dive.oxygen} />
-            <p>Return rail · {Math.round(distance(at, EXIT))} m · the way you came in</p>
-          </HudSurface>
+        <HudPanel {...placement("depth", portrait)} compact="keep" interactive={false} locked>
+          <DepthStrip room={roomAt(at, "vault")} />
         </HudPanel>
-        <HudPanel {...placement("vitals")} compact="keep" interactive={false} locked>
-          <HudSurface className="dw-vitals" interactive={false}><span>HEALTH <strong>{Math.ceil(dive.health)}</strong> / 100</span><progress value={dive.health} max={100} />
-            <span>ONE HAND / {weapon.label}</span><div className="dw-ammo">{view.ammo === null ? "— / —" : view.ammo.reloading ? `RELOADING ${Math.round((1 - view.ammo.reloadProgress) * 1.3 * 10) / 10}s` : `${view.ammo.loaded} / ${view.ammo.capacity}`} <small>{view.ammo?.reserve ?? 0} reserve</small></div>
-          </HudSurface>
+        <HudPanel {...placement("air", portrait)} compact="keep" interactive={false} locked>
+          <DiveComputer oxygen={dive.oxygen} tank={dive.tankSeconds} health={dive.health} rail={distance(at, EXIT)} sealed={dive.tankSeconds > 110} low={low} hurt={dive.hurt > 0} />
         </HudPanel>
-        <HudPanel {...placement("haul")} compact="keep" locked>
-          <HudSurface className="dw-haul" interactive={false}><span className="dw-eyebrow">Carried / at risk</span><strong>{dive.cache.length} {dive.cache.length === 1 ? "item" : "items"}</strong>
-            <p>{load.mass} / {CACHE_WEIGHT} weight · {load.remaining} free</p>
-            <p>{dive.cache.map(i => ITEMS[kindOf(i)].name).join(" · ") || "Nothing carried yet"}</p>
-            <p>{load.mass > 0 ? `${dive.cache.reduce((sum, item) => sum + itemValue(item), 0)} ${SCRIP.unit} on the rail, lost if this Life ends` : "The rail pays for what comes home"}</p>
-            <HudButton onClick={() => command("cache")}>Open cache / Tab</HudButton>
-          </HudSurface>
+        <HudPanel {...placement("haul", portrait)} compact="keep" locked>
+          <KitCounter weapon={weapon.label} loaded={view.ammo?.loaded ?? null} capacity={view.ammo?.capacity ?? null} reserve={view.ammo?.reserve ?? 0}
+            reloading={view.ammo?.reloading ? Math.round((1 - view.ammo.reloadProgress) * 1.3 * 10) / 10 : null}
+            items={dive.cache.length} mass={load.mass} capacityWeight={CACHE_WEIGHT} onCache={() => command("cache")} />
         </HudPanel>
       </>}
-      <div className="dw-reticle" aria-hidden="true">{dive !== null && dive.flash > 0 ? "+" : "·"}</div>
-      {dive !== null && dive.hurt > 0 && <div className="dw-damage" aria-hidden="true" />}
-      {view.mode === "home" && view.panel === null && <HudPanel {...placement("home")} compact="keep" interactive={false} locked>
-        <HudSurface className="dw-home" as="aside" aria-label="Marrow departure" interactive={false}>
-          <span className="dw-eyebrow">Marrow / rail line 06</span><h2>Rail departure / 06</h2>
-          <p>Find supplies in Bellwether. Return to this rail before your air runs out.</p>
-          <dl><div><dt>Scrip</dt><dd>{view.home.bank.banked}</dd></div><div><dt>Standing</dt><dd>{marrowTier.id} / {marrowScore}</dd></div><div><dt>Stash</dt><dd>{view.home.stash.length}</dd></div><div><dt>Returns</dt><dd>{view.home.extractions}</dd></div><div><dt>Lives lost</dt><dd>{view.home.deaths}</dd></div></dl>
-          <p className="dw-note">Stash / refit bench to the left. Return banks the haul. Death loses carried items; a reload resumes from its checkpoint.</p>
-          <p className="dw-note">Next departure: {view.rifleUid === null ? "issue sidearm · 12 free cache squares" : `banked ${prepared?.name ?? "service rifle"} · rifle at risk`}. Prepare a rifle at the stash bench.</p>
-          {view.home.last !== null && <p className={`dw-result ${view.home.last.kind}`}><strong>{view.home.last.kind === "extracted" ? "RETURNED" : "REPRINTED"}</strong> {view.home.last.reason}</p>}
-        </HudSurface>
+      {view.mode === "home" && view.panel === null && <HudPanel {...placement("home", portrait)} compact="keep" interactive={false} locked>
+        <Docket life={view.home.life} scrip={view.home.bank.banked} stash={view.home.stash.length} returns={view.home.extractions} lost={view.home.deaths}
+          standing={`${marrowTier.id} / ${marrowScore}`}
+          next={view.rifleUid === null ? "issue sidearm · 12 squares free" : `${prepared?.name ?? "service rifle"} · rifle at risk`}
+          last={view.home.last === null ? null : { kind: view.home.last.kind, reason: view.home.last.reason }} />
       </HudPanel>}
-      <HudPanel {...placement("radio")} compact="keep" interactive={false} locked>
-        <HudSurface className="dw-radio" interactive={false}><span>MARROW / RADIO</span><p role="status">{view.hint}</p>
-          {view.error && view.mode !== "saving" && view.mode !== "blocked" && <p role="alert" className="dw-error">{view.error}</p>}
-        </HudSurface>
+      <HudPanel {...placement("radio", portrait)} compact="keep" interactive={false} locked>
+        <RadioLine hint={view.hint} error={view.error && view.mode !== "saving" && view.mode !== "blocked" ? view.error : null} />
       </HudPanel>
-      <HudPanel {...placement("prompt")} compact="keep" locked>
-        {dive?.channel !== null && dive?.channel !== undefined ? <div className="dw-prompt"><strong>Searching / keep still</strong><progress max={1.4} value={1.4 - dive.channel.remaining} /><small>E to cancel · movement or damage interrupts</small></div>
-          : target !== null && view.panel === null && !view.paused ? <HudButton className="dw-prompt" onClick={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }}>{target.label}</HudButton> : <span className="dw-keys" aria-hidden="true">WASD walk · E interact · Tab cache · R reload · Esc pause</span>}
+      <HudPanel {...placement("prompt", portrait)} compact="keep" locked>
+        {dive?.channel !== null && dive?.channel !== undefined ? <SearchBar remaining={dive.channel.remaining} total={1.4} />
+          : target !== null && view.panel === null && !view.paused ? <ActionPlate label={target.label} onAct={() => { command("interact"); const next = viewStore.read(ctx); if (!next.paused && next.panel === null && (next.mode === "home" || next.mode === "dive")) grab(); }} />
+          : null}
       </HudPanel>
     </HudCanvas>
     {view.panel === "stash" && <div className="dw-modal"><HudSurface ref={shiftDialogRef} elevation="modal" data-hud-window className="dw-sheet" aria-label="Marrow stash" role="dialog" aria-modal="true" tabIndex={-1}>

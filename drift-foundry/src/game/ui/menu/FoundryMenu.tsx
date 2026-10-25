@@ -4,6 +4,12 @@ import { GameMenu, GamePauseMenu } from "@jgengine/react/gameMenu";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSettings } from "@jgengine/react/settings";
 import { SettingsSection, SettingsTabs } from "@jgengine/react/settingsBlocks";
+import { GameFrame } from "@jgengine/react/gameFrame";
+import { gameFontStacks } from "@jgengine/react/gameFonts";
+import { GAME_FONTS } from "../../../art/fonts/fonts";
+import { plate } from "../DashHud";
+import { PartIcon } from "../components/PartIcon";
+import { PART_SLOTS } from "../../parts/catalog";
 
 import { FOUNDRY_CREDITS } from "../../credits";
 import { foundrySlots, refreshFoundrySlots, saveParkedRunHere } from "../../menuSave";
@@ -13,35 +19,52 @@ import type { GarageRow } from "../../career";
 /** Capture-only focus request: a shot declares which verb it wants highlighted. */
 export const menuFocus: { id: string | null } = { id: null };
 
-/** The yard's pit-radio palette, handed to the shared menu as CSS tokens rather than a preset. */
+const FONTS = gameFontStacks(GAME_FONTS);
+
+/** The pit wall's chrome the kit does not draw (header, footer, tint), handed over as CSS tokens. */
 const MENU_TOKENS = {
-  "--jg-accent": "#edc565",
-  "--jg-accent-soft": "rgba(237,197,101,0.24)",
-  "--jg-accent-glow": "rgba(237,197,101,0.3)",
-  "--jg-text": "#f4ecd8",
-  "--jg-text-dim": "rgba(214,196,160,0.68)",
-  "--jg-font-display": "\"Arial Black\", \"Arial Narrow\", Impact, sans-serif",
-  "--jg-font-body": "\"Arial Narrow\", \"Roboto Condensed\", \"Segoe UI\", sans-serif",
+  "--jg-accent": "#f2c230",
+  "--jg-accent-soft": "rgba(242,194,48,0.22)",
+  "--jg-accent-glow": "rgba(242,194,48,0.3)",
+  "--jg-text": "#f1e8d2",
+  "--jg-text-dim": "rgba(236,227,204,0.72)",
+  "--jg-font-display": FONTS.fontDisplay,
+  "--jg-font-body": FONTS.fontBody,
   "--jg-menu-logo-size": "clamp(30px, 4.6vw, 66px)",
-  "--jg-menu-card-radius": "2px",
+  "--jg-menu-card-radius": "0px",
 } as const;
+
+/** The factory gate's sign: stencilled steel between two hazard bands. */
+function GateLogo({ lines, sub, small = false }: { lines: readonly string[]; sub: ReactNode; small?: boolean }): ReactNode {
+  return (
+    <GameFrame material="steel" cut="notch" depth={small ? 10 : 14} tint="#454c50" {...plate("#0b0d0e")} padding="0" className={`fd-rimmed fd-gate-sign${small ? " fd-gate-sign-small" : ""}`}>
+      <span className="fd-gate-band" aria-hidden="true" />
+      <span className="fd-gate-word">{lines.map((line) => <span key={line}>{line}</span>)}</span>
+      <span className="fd-gate-sub">{sub}</span>
+      <span className="fd-gate-band" aria-hidden="true" />
+    </GameFrame>
+  );
+}
+
+/** A sheet heading, stencilled like a crate side. */
+function SheetHead({ children, tag }: { children: ReactNode; tag?: ReactNode }): ReactNode {
+  return <div className="fd-sheet-head"><span className="fd-sheet-title">{children}</span>{tag === undefined ? null : <span className="fd-sheet-tag">{tag}</span>}</div>;
+}
 
 function metres(z: number): string {
   return `${Math.max(0, Math.floor(z))} m`;
 }
 
-/** The pit's New run pane: what the corridor asks before the engine turns over. */
+/** The pit's New run pane: the run sheet clipped to the board before the engine turns over. */
 function NewRunPane({ shift, best }: { shift: SessionSnapshot["shift"]; best: number | null }): ReactNode {
   return (
-    <div data-new-run-pane="" style={{ display: "flex", flexDirection: "column", gap: 14, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 900 }}>New run</div>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "rgba(214,196,160,0.8)", maxWidth: "46ch" }}>
-        One welded buggy, twelve pieces of salvage, and a compactor that never stops. Bolt on what you drive over; hold E to swap an engine or frame. Three yard karts start ahead of you.
-      </p>
-      <p data-new-run-shift="" style={{ margin: 0, fontSize: "var(--jg-type-md)", color: "rgba(237,197,101,0.92)" }}>
+    <div data-new-run-pane="" className="fd-sheet">
+      <SheetHead tag="Run sheet">New run</SheetHead>
+      <p className="fd-sheet-line">One welded buggy, twelve pieces of salvage, and a compactor that never stops. Bolt on what you drive over; hold E to swap an engine or frame. Three yard karts start ahead of you.</p>
+      <p data-new-run-shift="" className="fd-sheet-stamp">
         {shift === null ? "CLEAN SHIFT - nobody has changed the yard. Escape pays what the line earns." : `THIS RUN - ${shift.label}. ${shift.hint}`}
       </p>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-sm)", color: "rgba(214,196,160,0.66)" }}>
+      <p className="fd-sheet-note">
         {best === null ? "No escape on record yet. The 470 m gate is the only income worth planning around." : `Best escape ${best.toFixed(1)} s.`}
       </p>
     </div>
@@ -51,26 +74,23 @@ function NewRunPane({ shift, best }: { shift: SessionSnapshot["shift"]; best: nu
 /** The garage: one ladder rung per slot, priced in the credits the last escapes banked. */
 function GaragePane({ rows, credits, onBuy }: { rows: readonly GarageRow[]; credits: number; onBuy: (slot: GarageRow["slot"]) => void }): ReactNode {
   return (
-    <div data-garage-pane="" style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overflowY: "auto" }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 900 }}>Pit garage</div>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-sm)", color: "rgba(214,196,160,0.72)" }}>{credits} cr banked. Buy the next rung of a slot's ladder; it bolts on for every run after this one.</p>
-      {rows.map((row) => (
-        <div key={row.slot} style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", border: "1px solid rgba(237,197,101,0.24)", padding: "8px 10px" }}>
-          <div style={{ minWidth: 0 }}>
-            <strong style={{ display: "block", fontSize: "var(--jg-type-md)" }}>{row.part?.label ?? row.slot}</strong>
-            <small style={{ color: "rgba(214,196,160,0.64)" }}>{row.owned ? "fully built" : row.locked ? `locked / needs ${row.needs} standing` : `${row.price} cr`}</small>
+    <div data-garage-pane="" className="fd-sheet fd-sheet-scroll">
+      <SheetHead tag={`${credits} cr banked`}>Pit garage</SheetHead>
+      <p className="fd-sheet-note">Buy the next rung of a slot's ladder; it bolts on for every run after this one.</p>
+      {rows.map((row) => {
+        const blocked = row.owned || row.locked || row.price === null || row.price > credits;
+        return (
+          <div key={row.slot} className="fd-sheet-row">
+            <div className="fd-sheet-row-text">
+              <strong>{row.part?.label ?? row.slot}</strong>
+              <small>{row.owned ? "fully built" : row.locked ? `locked / needs ${row.needs} standing` : `${row.price} cr`}</small>
+            </div>
+            <button type="button" className="fd-stamp-btn" data-garage-buy={row.slot} disabled={blocked} onClick={() => onBuy(row.slot)}>
+              {row.owned ? "BUILT" : row.locked ? `LOCKED ${row.needs}` : row.price !== null && row.price > credits ? `NEED ${row.price - credits}` : `BUY ${row.price}`}
+            </button>
           </div>
-          <button
-            type="button"
-            data-garage-buy={row.slot}
-            disabled={row.owned || row.locked || row.price === null || row.price > credits}
-            onClick={() => onBuy(row.slot)}
-            style={{ padding: "7px 14px", borderRadius: 2, border: "none", background: row.owned || row.locked || row.price === null || row.price > credits ? "rgba(148,163,184,0.24)" : "#edc565", color: "#182d32", fontFamily: "var(--jg-font-display)", fontWeight: 800, letterSpacing: "0.08em", cursor: "pointer" }}
-          >
-            {row.owned ? "BUILT" : row.locked ? `LOCKED ${row.needs}` : row.price !== null && row.price > credits ? `NEED ${row.price - credits}` : `BUY ${row.price}`}
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -79,21 +99,41 @@ function GaragePane({ rows, credits, onBuy }: { rows: readonly GarageRow[]; cred
 function RecordsPane({ snapshot }: { snapshot: SessionSnapshot }): ReactNode {
   const records = snapshot.records;
   return (
-    <div data-records-pane="" style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 900 }}>Corridor records</div>
-      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexWrap: "wrap", gap: 8 }}>
+    <div data-records-pane="" className="fd-sheet">
+      <SheetHead tag={`${snapshot.runsPlayed} runs settled`}>Corridor records</SheetHead>
+      <dl className="fd-sheet-stats">
         {[
-          ["Best escape", records.bestTime === null ? "no escape yet" : `${records.bestTime.toFixed(1)} s`],
+          ["Best escape", records.bestTime === null ? "none" : `${records.bestTime.toFixed(1)} s`],
           ["Escapes", `${records.escapes}`],
           ["Runs finished", `${records.attempts}`],
           ["Farthest", metres(records.farthest)],
         ].map(([label, value]) => (
-          <li key={label} style={{ border: "1px solid rgba(237,197,101,0.3)", padding: "6px 10px", fontSize: "var(--jg-type-sm)" }}>{label} <strong style={{ marginLeft: 6 }}>{value}</strong></li>
+          <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
         ))}
-      </ul>
-      <p style={{ margin: 0, fontSize: "var(--jg-type-sm)", color: "rgba(214,196,160,0.68)" }}>
-        {snapshot.runsPlayed} runs settled in this career. Every settled run draws the next shift; the pit shows what the next engine start opens with.
-      </p>
+      </dl>
+      <p className="fd-sheet-note">Every settled run draws the next shift; the pit shows what the next engine start opens with.</p>
+    </div>
+  );
+}
+
+/** The pit board while the run is held: where the buggy stands and what it carries. */
+function PitBoard({ snapshot, hint }: { snapshot: SessionSnapshot; hint: string }): ReactNode {
+  return (
+    <div data-pit-board="" className="fd-sheet">
+      <SheetHead tag={snapshot.zone.label}>Run held</SheetHead>
+      <dl className="fd-sheet-stats">
+        <div><dt>Place</dt><dd>P{snapshot.race.place}<small>/{snapshot.race.total}</small></dd></div>
+        <div><dt>Distance</dt><dd>{Math.max(0, Math.floor(snapshot.pose.position[2]))}<small>m</small></dd></div>
+        <div><dt>Clock</dt><dd>{snapshot.runTime.toFixed(1)}<small>s</small></dd></div>
+        <div data-warn={snapshot.compactorGap < 22 ? "" : undefined}><dt>Compactor</dt><dd>{Math.max(0, Math.round(snapshot.compactorGap))}<small>m back</small></dd></div>
+      </dl>
+      <div className="fd-sheet-build">
+        {PART_SLOTS.map((slot) => (
+          <span key={slot} data-empty={snapshot.installed[slot] === null ? "" : undefined}><PartIcon partId={snapshot.installed[slot]?.id ?? null} /><span><small>{slot}</small>{snapshot.installed[slot]?.label ?? "empty"}</span></span>
+        ))}
+      </div>
+      <p className="fd-sheet-stamp">{snapshot.salvageAtRisk} cr riding on this run · {snapshot.career.credits} cr banked</p>
+      <p className="fd-sheet-note">{hint}</p>
     </div>
   );
 }
@@ -106,8 +146,8 @@ function PitSettings(): ReactNode {
   const activeId = chosen !== null && categories.some((category) => category.id === chosen) ? chosen : (categories[0]?.id ?? "");
   const active = categories.find((category) => category.id === activeId) ?? null;
   return (
-    <div data-pit-settings="" style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
-      <div style={{ fontFamily: "var(--jg-font-display)", fontSize: "var(--jg-type-xxl)", fontWeight: 900 }}>Pit settings</div>
+    <div data-pit-settings="" className="fd-sheet fd-sheet-fill">
+      <SheetHead tag="Picture · sound · controls">Pit settings</SheetHead>
       <SettingsTabs categories={categories} activeId={activeId} onSelect={setChosen} />
       <div style={{ overflowY: "auto", minHeight: 0, paddingRight: 4 }}>
         {active === null ? null : <SettingsSection category={active} heading={false} />}
@@ -184,8 +224,8 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       open={title}
       label="Drift Foundry"
       initialId={menuFocus.id ?? (recent === null ? "new" : "continue")}
-      eyebrow="ROW SIX / SALVAGE SPECIAL"
-      logo={{ text: <span className="df-wordmark">DRIFT<br />FOUNDRY</span>, title: "Drift Foundry" }}
+      className="fd-pitwall"
+      logo={{ text: <GateLogo lines={["DRIFT", "FOUNDRY"]} sub="Row Six · salvage special" />, title: "Drift Foundry" }}
       tagline="One welded buggy. Three yard karts ahead of you. A compactor that never stops."
       items={[
         { id: "continue", label: "Continue run", hint: parked === null ? "No parked run at the pit" : `${metres(parked.position[2])} / ${parked.runTime.toFixed(1)} s / ${parked.partIds.length} parts`, disabled: parked === null },
@@ -198,13 +238,13 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       detail={(id) => {
         if (id === "continue") {
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
+            <div className="fd-sheet">
               <ContinuePane
                 slot={recent}
                 emptyMessage="No run parked yet. Stop the buggy on the ground, pause and park it before you leave the corridor."
                 onContinue={() => startRun()}
               />
-              <p data-continue-run="" style={{ margin: 0, fontSize: "var(--jg-type-sm)", color: "rgba(214,196,160,0.72)" }}>{continueLine}</p>
+              <p data-continue-run="" className="fd-sheet-note">{continueLine}</p>
             </div>
           );
         }
@@ -219,7 +259,7 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
         if (id === "continue") startRun();
         else if (id === "new") newRun();
       }}
-      footer={<span>{notice ?? `${snapshot.records.escapes} escapes / ${snapshot.records.attempts} runs - ${snapshot.career.credits} cr banked`}</span>}
+      footer={<span className="fd-pitwall-foot">{notice ?? `${snapshot.records.escapes} escapes / ${snapshot.records.attempts} runs - ${snapshot.career.credits} cr banked`}</span>}
       style={MENU_TOKENS}
     />
   );
@@ -230,9 +270,9 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       label="The run is held"
       onBack={resume}
       onResume={resume}
-      logo={{ text: <span className="df-wordmark">PIT<br />STOP.</span>, title: "The run is held" }}
-      eyebrow={`${snapshot.zone.label} / ${metres(snapshot.pose.position[2])} / ${snapshot.runTime.toFixed(1)} s`}
-      tagline="The buggy and the compactor are stopped with the simulation: the crusher does not close while this is open."
+      className="fd-pitwall"
+      logo={{ text: <GateLogo small lines={["PIT STOP"]} sub={`${snapshot.zone.label} / ${metres(snapshot.pose.position[2])} / ${snapshot.runTime.toFixed(1)} s`} />, title: "The run is held" }}
+      tagline="The buggy and the crusher stop with the clock while the board is out."
       items={[
         { id: "resume", label: "Back to the run", hint: snapshot.parkedRun === null ? "The buggy is still moving: stop on the ground to park it" : `Parked at ${metres(snapshot.parkedRun.position[2])}` },
         { id: "save", label: "Park the run", hint: "Writes the build, the clock and the salvage it carries" },
@@ -242,7 +282,9 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       ]}
       secondary={[{ id: "title", label: "Park & back to the pit" }]}
       detail={(id) =>
-        id === "garage" ? <GaragePane rows={snapshot.career.garage} credits={snapshot.career.credits} onBuy={buy} />
+        id === "resume" ? <PitBoard snapshot={snapshot} hint="Esc or Back to the run puts the buggy back on the road where it stopped." />
+          : id === "save" ? <PitBoard snapshot={snapshot} hint={snapshot.pose.speedKmh > 1 || snapshot.pose.airborne ? "Stop on the ground first: a moving buggy cannot be parked." : "Parking writes the build, the clock and the salvage it carries. Continue picks it up from the pit."} />
+          : id === "garage" ? <GaragePane rows={snapshot.career.garage} credits={snapshot.career.credits} onBuy={buy} />
           : id === "settings" ? <PitSettings />
             : id === "credits" ? <CreditsPane sections={FOUNDRY_CREDITS.sections} notice={FOUNDRY_CREDITS.notice} heading="Credits" />
               : null
@@ -252,16 +294,16 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
         else if (id === "save") void parkHere();
         else if (id === "title") void backToPit();
       }}
-      footer={<span>{notice ?? `${snapshot.salvageAtRisk} cr at risk - ${snapshot.career.credits} cr banked`}</span>}
+      footer={<span className="fd-pitwall-foot">{notice ?? `${snapshot.salvageAtRisk} cr at risk - ${snapshot.career.credits} cr banked`}</span>}
       style={MENU_TOKENS}
     />
   );
 
   return (
-    <div className="df-menu">
+    <div className="fd-menu">
       {titleMenu}
       {pauseMenu}
-      {busy !== null && <div className="df-menu-busy" role="status" aria-live="polite"><span>{busy}</span></div>}
+      {busy !== null && <div className="fd-menu-busy" role="status" aria-live="polite"><span>{busy}</span></div>}
     </div>
   );
 }

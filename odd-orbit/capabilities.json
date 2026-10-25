@@ -2,6 +2,12 @@
   "adopts": [
     "agents",
     "audio-probe",
+    "game-cursor",
+    "game-font-stacks",
+    "game-fonts",
+    "game-frame",
+    "game-slider",
+    "hud-fade",
     "mount-game",
     "session-loop"
   ],

@@ -15,6 +15,8 @@ import {
 } from "../../stores";
 import { TRAVEL_STATIONS } from "../../world/sites";
 import { FERRALON } from "../../palette";
+import { Plate, Waveform } from "../fiction/kit";
+import { Counter } from "./Mission";
 
 function useNowMs(): number {
   return useGameStore((ctx) => ctx.time.now() * 1000);
@@ -25,17 +27,14 @@ export function ZoneBanner() {
   const zone = useStore(currentZoneStore);
   if (zone === null || nowMs - zone.atMs > 4000) return null;
   return (
-    <div key={zone.name} className="scrap-banner pointer-events-none flex flex-col items-center">
-      <span className="border-b-2 border-amber-400 px-6 pb-1 text-3xl font-black uppercase tracking-[0.3em] text-stone-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-        {zone.name}
-      </span>
-      <span className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
-        Recommended level {zone.level}
-      </span>
+    <div key={zone.name} className="scrap-banner ss-zone">
+      <span className="ss-zone-name">{zone.name}</span>
+      <span className="ss-zone-level">Recommended level {zone.level}</span>
     </div>
   );
 }
 
+/** An incoming transmission from a crewmate, on the rig’s radio strip. */
 export function EchoBox() {
   const nowMs = useNowMs();
   const echo = useStore(echoStore);
@@ -43,23 +42,16 @@ export function EchoBox() {
   const line = QUEST_ECHOES[echo.questId];
   if (line === undefined) return null;
   return (
-    <div className="max-w-[24rem] border-2 border-cyan-400/70 bg-black/80 px-3 py-2">
-      <div className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300">
-        ECHO — {line.speaker}
-      </div>
-      <div className="mt-1 text-xs font-semibold leading-relaxed text-stone-100">{line.line}</div>
-    </div>
+    <Plate material="carbon" cut="notch" depth={10} rim="#2c4d4a" padding="0" className="ss-echo">
+      <span className="ss-echo-head"><span className="ss-led on" aria-hidden="true" /><b>ECHO — {line.speaker}</b><Waveform seed={line.speaker.length} /></span>
+      <span className="ss-echo-line">{line.line}</span>
+    </Plate>
   );
 }
 
 export function CoresPlate() {
   const cores = useCurrency("cores");
-  return (
-    <div className="flex skew-x-[-8deg] items-baseline gap-1 border-2 border-black/80 bg-black/70 px-3 py-1">
-      <span className="text-sm font-black text-fuchsia-400">◆</span>
-      <span className="text-lg font-black tabular-nums text-stone-50">{cores}</span>
-    </div>
-  );
+  return <Counter icon="gem" value={cores} color="#e879f9" label="Cores" />;
 }
 
 export function TravelPanel() {
