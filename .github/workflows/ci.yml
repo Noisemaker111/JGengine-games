@@ -64,7 +64,11 @@ jobs:
             */public/sprites
           key: game-assets-${{ hashFiles('bun.lock', '*/src/game/assets.ts') }}
           restore-keys: game-assets-
+      # Rocketbox and Khronos library models list files through the GitHub contents API;
+      # anonymous runners share a 60-an-hour limit and get HTTP 403, so the pull sends this token.
       - run: bun run provision
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
@@ -110,7 +114,11 @@ jobs:
             */public/sprites
           key: game-assets-${{ hashFiles('bun.lock', '*/src/game/assets.ts') }}
           restore-keys: game-assets-
+      # Rocketbox and Khronos library models list files through the GitHub contents API;
+      # anonymous runners share a 60-an-hour limit and get HTTP 403, so the pull sends this token.
       - run: bun run provision
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: bun run check:framework --base origin/beta
       - run: bun run check:seam-line
       - run: bun run check:module-globals
