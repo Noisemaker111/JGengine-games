@@ -58,6 +58,7 @@ function entityById(catalogId: string): GameContextEntityEntry | null {
     return {
       stats: playerDef.stats,
       receive: playerDef.receive,
+      onDeath: playerDef.onDeath,
       movement: { poses: playerDef.poses, walkSpeed: playerDef.walkSpeed },
     };
   }

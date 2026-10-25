@@ -1,3 +1,4 @@
+import type { OnDeathSpec } from "@jgengine/core/combat/death";
 import type { ReceiveMap } from "@jgengine/core/combat/effects";
 import type { MovementPose } from "@jgengine/core/movement/poseState";
 import type { StatCatalog } from "@jgengine/core/scene/entityStats";
@@ -11,6 +12,7 @@ export interface PlayerDef {
   poses: readonly MovementPose[];
   stats: StatCatalog;
   receive: ReceiveMap;
+  onDeath: OnDeathSpec;
 }
 
 export const player: PlayerDef = {
@@ -35,6 +37,9 @@ export const player: PlayerDef = {
   receive: {
     damage: { order: ["shield", "health"] },
   },
+  // The Emergency Reserve owns a lethal hit: the chassis stays on the field, downed, with its level
+  // and kit, instead of the engine removing it.
+  onDeath: { keep: true },
 };
 
 export const players: PlayerDef[] = [player];

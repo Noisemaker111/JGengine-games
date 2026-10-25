@@ -94,6 +94,23 @@ interface FrontRuntime {
   /** Capture staging only: health fraction the Foreman should arrive at. */
   stageBossFraction: number | null;
   seq: number;
+  /** A run laid over the authored front (an Overdrive tier); null for the plain front. */
+  run: FrontRunHooks | null;
+  /** True once the plain front has been fought to the end in this session. */
+  everCleared: boolean;
+}
+
+/**
+ * What a run laid over the front owns: every arrival passes through `onSpawn` (to scale it, give it a
+ * mutator or a twin), `gate` decides when a cleared wave lets the next one out, and `onCleared` hears
+ * the last wave fall. The front keeps the squads, cover, hearing and the Foreman's clock.
+ */
+export interface FrontRunHooks {
+  onSpawn?: (ctx: GameContext, id: string, catalogId: string, position: EntityPosition) => void;
+  /** Called every tick between waves; true releases `nextWave` (1-based). */
+  gate?: (ctx: GameContext, dt: number, nextWave: number) => boolean;
+  onWave?: (ctx: GameContext, wave: number) => void;
+  onCleared?: (ctx: GameContext) => void;
 }
 
 function freshRuntime(): FrontRuntime {
@@ -115,11 +132,15 @@ function freshRuntime(): FrontRuntime {
     cover: [],
     stageBossFraction: null,
     seq: 0,
+    run: null,
+    everCleared: false,
   };
 }
 
 const runtimeOf = perContext(freshRuntime);
 const encounterOf = perContext(() => createEncounter({ definition: FRONT_WAVES, seed: FRONT_SEED }));
+/** The encounter as authored, before any wave opened: what a fresh run of the front restores. */
+const pristineEncounter = createEncounter({ definition: FRONT_WAVES, seed: FRONT_SEED }).snapshot();
 const huntOf = perContext((ctx) => createShotHunt(() => huntingRoster(ctx), {
   hearingRange: HEARING_RANGE,
   memorySeconds: MEMORY_SECONDS,
@@ -296,6 +317,7 @@ function openWave(ctx: GameContext, index: number): void {
   encounter.openWave(index, runtime.pressure);
   const label = encounter.waveAt(index)?.label ?? "";
   if (label.length > 0) ctx.game.notices.push({ text: `THE FRONT — ${label.toUpperCase()}`, tone: "warn", ttlMs: 2600 });
+  runtime.run?.onWave?.(ctx, index + 1);
 }
 
 function resolveEntry(entry: string): { x: number; z: number } {
@@ -305,14 +327,23 @@ function resolveEntry(entry: string): { x: number; z: number } {
 }
 
 function spawnOrder(ctx: GameContext, order: EncounterOrder): void {
-  const runtime = runtimeOf(ctx);
-  const def = enemyById(order.unit);
-  if (def === undefined) return;
   const entry = resolveEntry(order.entry);
+  spawnFrontUnit(ctx, order.unit, entry, order.waveId);
+}
+
+/**
+ * Put one fighter on the front near `around`, enrolled in its crew and the open wave. The encounter's
+ * orders come through here, and so does anything a run adds on top (a twin, an escort).
+ */
+export function spawnFrontUnit(ctx: GameContext, unit: string, around: { x: number; z: number }, waveId = "extra"): string | null {
+  const runtime = runtimeOf(ctx);
+  const def = enemyById(unit);
+  if (def === undefined) return null;
+  const order = { unit, waveId };
   const angle = ctx.rng() * Math.PI * 2;
   const radius = 1.4 + ctx.rng() * 3.6;
-  const x = entry.x + Math.cos(angle) * radius;
-  const z = entry.z + Math.sin(angle) * radius;
+  const x = around.x + Math.cos(angle) * radius;
+  const z = around.z + Math.sin(angle) * radius;
   const position: EntityPosition = [x, ctx.world.groundHeightAt(x, z), z];
   runtime.seq += 1;
   const id = `front_${order.waveId}_${runtime.seq}`;
@@ -320,6 +351,7 @@ function spawnOrder(ctx: GameContext, order: EncounterOrder): void {
   rememberHome(ctx, id, position);
   runtime.units.set(id, { catalogId: order.unit, faction: factionOf(def) });
   runtime.waveUnits.push(id);
+  runtime.run?.onSpawn?.(ctx, id, order.unit, position);
 
   if (order.unit === ELITE_TELL.unit) {
     ctx.game.notices.push({ text: ELITE_TELL.text, tone: "warn", ttlMs: ELITE_TELL.windupMs + 800 });
@@ -346,6 +378,7 @@ function spawnOrder(ctx: GameContext, order: EncounterOrder): void {
     ctx.game.notices.push({ text: FOREMAN_TELL_TEXT.wake ?? "", tone: "warn", ttlMs: 2600 });
     ctx.game.audio.play("wave", position);
   }
+  return id;
 }
 
 /** Where a fighter in each crew wants to be, from its duty and its crew's dials. */
@@ -565,13 +598,25 @@ function advanceWaves(ctx: GameContext, dt: number): void {
   const view = encounter.view();
   runtime.waveUnits = runtime.waveUnits.filter((id) => ctx.scene.entity.get(id) !== null);
   if (runtime.waveUnits.length === 0 && view.emitted >= view.total && !view.done) {
-    runtime.nextWaveIn += dt;
-    if (runtime.nextWaveIn < FRONT_WAVE_GAP_SECONDS) return;
+    const gate = view.wave < FRONT_WAVE_COUNT ? runtime.run?.gate : undefined;
+    if (gate !== undefined) {
+      if (!gate(ctx, dt, view.wave + 1)) return;
+    } else {
+      runtime.nextWaveIn += dt;
+      if (runtime.nextWaveIn < FRONT_WAVE_GAP_SECONDS) return;
+    }
     encounter.completeWave();
     const next = encounter.view();
     if (next.done || next.wave > FRONT_WAVE_COUNT) {
       runtime.cleared = true;
       runtime.started = false;
+      const run = runtime.run;
+      runtime.run = null;
+      if (run !== null) {
+        run.onCleared?.(ctx);
+        return;
+      }
+      runtime.everCleared = true;
       ctx.game.notices.push({ text: "THE FRONT GOES QUIET — the wreck is yours", tone: "success", ttlMs: 5000 });
       ctx.game.audio.play("victory");
       return;
@@ -677,6 +722,61 @@ export function stageFrontFight(ctx: GameContext): void {
   const encounter = encounterOf(ctx);
   for (const order of encounter.update(4)) spawnOrder(ctx, order);
 }
+
+function clearField(ctx: GameContext): void {
+  const runtime = runtimeOf(ctx);
+  for (const id of [...runtime.units.keys()]) ctx.scene.entity.despawn(id);
+  runtime.units.clear();
+  runtime.waveUnits = [];
+  runtime.posts.clear();
+  runtime.hunting.clear();
+  runtime.orders = { scrapjack: null, ripper: null };
+  runtime.boss = null;
+  runtime.nextWaveIn = 0;
+}
+
+/**
+ * Fight the whole front again with a run laid over it: the field is cleared, the encounter goes back
+ * to its authored first wave, and every arrival passes through the run's hooks.
+ */
+export function startFrontRun(ctx: GameContext, hooks: FrontRunHooks): void {
+  const runtime = runtimeOf(ctx);
+  clearField(ctx);
+  encounterOf(ctx).restore(pristineEncounter);
+  runtime.run = hooks;
+  runtime.started = true;
+  runtime.cleared = false;
+  runtime.elapsed = 0;
+  runtime.cover = buildCover(ctx);
+  openWave(ctx, 0);
+}
+
+/** Stop a run: its fighters leave the field and the front stays quiet until the next run. */
+export function abortFrontRun(ctx: GameContext): void {
+  const runtime = runtimeOf(ctx);
+  clearField(ctx);
+  encounterOf(ctx).restore(pristineEncounter);
+  runtime.run = null;
+  runtime.started = false;
+  runtime.cleared = true;
+}
+
+export function frontRunActive(ctx: GameContext): boolean {
+  return runtimeOf(ctx).run !== null;
+}
+
+/** True once the plain front was fought to the end in this session. */
+export function frontEverCleared(ctx: GameContext): boolean {
+  return runtimeOf(ctx).everCleared;
+}
+
+/** The fighters on the field right now. */
+export function frontUnitIds(ctx: GameContext): readonly string[] {
+  return [...runtimeOf(ctx).units.keys()];
+}
+
+/** The wreck the front is fought over. */
+export const FRONT_SITE: { readonly x: number; readonly z: number } = SITE;
 
 function frameFront(ctx: GameContext): void {
   const player = ctx.scene.entity.get(ctx.player.userId);

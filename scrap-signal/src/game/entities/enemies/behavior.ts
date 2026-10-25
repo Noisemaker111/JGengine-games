@@ -4,7 +4,47 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 import type { EntityPosition } from "@jgengine/core/scene/entityStore";
 import { cameraShake } from "@jgengine/shell/camera";
 import { zoneLevelAt } from "../../world/zones";
-import { levelDamageMult, type EnemyDef } from "./catalog";
+import { enemyWeapons, levelDamageMult, type EnemyDef } from "./catalog";
+
+const weaponDamage = new Map(enemyWeapons.map((weapon) => [weapon.id, weapon.weapon.damage]));
+
+/**
+ * A fighter's power above its authored numbers: what an Overdrive tier or a mutator lays on a crew.
+ * `level` replaces the zone level its damage would otherwise grow from.
+ */
+export interface EnemyPower {
+  level?: number;
+  damage?: number;
+  interval?: number;
+  speed?: number;
+}
+
+const powerOf = perContext(() => new Map<string, EnemyPower>());
+
+export function setEnemyPower(ctx: GameContext, id: string, power: EnemyPower): void {
+  powerOf(ctx).set(id, power);
+}
+
+export function enemyPower(ctx: GameContext, id: string): EnemyPower | undefined {
+  return powerOf(ctx).get(id);
+}
+
+export function clearEnemyPower(ctx: GameContext, id: string): void {
+  powerOf(ctx).delete(id);
+}
+
+/**
+ * What one swing or bolt from this fighter deals, times its power. Swings grow with level; bolts keep
+ * their weapon's authored damage, which is how the world was tuned against the reclaimer's health.
+ */
+export function enemyHitDamage(ctx: GameContext, def: EnemyDef, enemyId: string, at: EntityPosition): number {
+  const power = powerOf(ctx).get(enemyId);
+  const base =
+    def.attack.kind === "melee"
+      ? def.attack.damage * levelDamageMult(power?.level ?? zoneLevelAt(at[0], at[2]))
+      : weaponDamage.get(def.attack.itemId) ?? 0;
+  return Math.max(1, Math.round(base * (power?.damage ?? 1)));
+}
 
 /**
  * What every hostile needs before it can be driven by either the zone AI or the front's squad
@@ -36,6 +76,7 @@ export function homeOf(ctx: GameContext, id: string): EntityPosition | undefined
 export function forgetHome(ctx: GameContext, id: string): void {
   homesOf(ctx).delete(id);
   nextAttackAtOf(ctx).delete(id);
+  powerOf(ctx).delete(id);
 }
 
 function distance2d(a: EntityPosition, b: EntityPosition): number {
@@ -67,8 +108,9 @@ export function tickEnemyAttack(
   nowMs: number,
   mods: EnemyAttackMods = {},
 ): void {
-  const speed = def.walkSpeed * (mods.speedScale ?? 1);
-  const intervalScale = mods.intervalScale ?? 1;
+  const power = powerOf(ctx).get(enemyId);
+  const speed = def.walkSpeed * (mods.speedScale ?? 1) * (power?.speed ?? 1);
+  const intervalScale = (mods.intervalScale ?? 1) * (power?.interval ?? 1);
 
   if (def.attack.kind === "melee") {
     const reach = def.attack.reach * (mods.reachScale ?? 1);
@@ -91,7 +133,7 @@ export function tickEnemyAttack(
     if (nowMs < readyAt) return;
     nextAttackAtOf(ctx).set(enemyId, nowMs + def.attack.intervalMs * intervalScale);
     ctx.game.playEntityAnimation(enemyId, "attack");
-    const damage = Math.round(def.attack.damage * levelDamageMult(zoneLevelAt(enemyPos[0], enemyPos[2])));
+    const damage = enemyHitDamage(ctx, def, enemyId, enemyPos);
     ctx.scene.entity.effect({ from: enemyId, to: targetId, effect: "damage", via: { amount: damage } });
     if (targetId === ctx.player.userId) cameraShake(Math.min(0.5, damage / 60));
     return;
@@ -125,7 +167,7 @@ export function tickEnemyAttack(
   const targetPoint: EntityPosition = [targetPos[0], targetPos[1] + 1.1, targetPos[2]];
   const shotId = ctx.scene.entity.fireProjectile({
     from: enemyId,
-    via: { item: attack.itemId },
+    via: power === undefined ? { item: attack.itemId } : { item: attack.itemId, amount: enemyHitDamage(ctx, def, enemyId, enemyPos) },
     aim: aimToPoint(origin, targetPoint),
     effect: "damage",
   });

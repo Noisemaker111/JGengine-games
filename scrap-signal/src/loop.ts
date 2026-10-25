@@ -17,6 +17,7 @@ import { startAmbience, tickAudio } from "./game/audio/drive";
 import { noteEquipped, noteGameNow, noteLevelUp, notePlayerHealth } from "./game/feel";
 import { tickEnemies } from "./game/entities/enemies/ai";
 import { tickFront } from "./game/encounters/front";
+import { loseRift, registerRift, riftLootFor, riftShieldRegen, tickRift } from "./game/rift/rift";
 import { enemyById, levelXpFor } from "./game/entities/enemies/catalog";
 import { lootTables } from "./game/entities/enemies/loot-tables";
 import { player } from "./game/entities/players/catalog";
@@ -67,13 +68,17 @@ function deathAnchor(ctx: GameContext, event: EntityDiedEvent): readonly [number
 function dropGunAt(ctx: GameContext, event: EntityDiedEvent, anchor: readonly [number, number, number], guaranteed = 0): void {
   const def = enemyById(event.catalogId);
   if (def === undefined) return;
-  const rolls = guaranteed + (dropRng() < def.gunDropChance ? 1 : 0);
+  // An Overdrive fighter drops at the run's loot level and luck, and its Foreman always pays out.
+  const rift = riftLootFor(ctx, event.instanceId);
+  const legendaries = guaranteed + (rift?.legendary === true ? 1 : 0);
+  const rolls = legendaries + (rift?.boss === true && !rift.legendary ? 1 : 0) + (dropRng() < def.gunDropChance ? 1 : 0);
   if (rolls === 0) return;
-  const level = Math.max(1, zoneLevelAt(anchor[0], anchor[2]) + Math.floor(dropRng() * 3) - 1);
+  const baseLevel = rift?.lootLevel ?? zoneLevelAt(anchor[0], anchor[2]);
+  const level = Math.max(1, baseLevel + Math.floor(dropRng() * 3) - 1);
   for (let index = 0; index < rolls; index += 1) {
     const gun = rollGun(dropRng, level, {
-      luck: def.gunLuck,
-      ...(guaranteed > 0 && index < guaranteed ? { rarity: "legendary" as const } : {}),
+      luck: def.gunLuck * (rift?.luck ?? 1),
+      ...(index < legendaries ? { rarity: "legendary" as const } : {}),
     });
     ctx.scene.worldItem.spawn({
       itemId: gun.id,
@@ -111,7 +116,7 @@ function onEntityDied(ctx: GameContext, event: EntityDiedEvent): void {
       const family = gunById(event.reason.via.item)?.family;
       if (family !== undefined) noteMastKill(ctx, event.catalogId, userId, family);
     }
-    grantXp(ctx, userId, levelXpFor(enemy.xp, zoneLevelAt(anchor[0], anchor[2])));
+    grantXp(ctx, userId, levelXpFor(enemy.xp, riftLootFor(ctx, event.instanceId)?.level ?? zoneLevelAt(anchor[0], anchor[2])));
     grantCores(ctx, event);
     if (enemy.id === "foundry_heart") {
       reactorOpenStore.write(ctx, { atMs: ctx.time.now() * 1000 });
@@ -196,7 +201,10 @@ function tickReserve(ctx: GameContext, dt: number): void {
   }
   // The shared state owns the countdown; its `died` event is the game's cue to pay the fee.
   for (const event of tickDowned(ctx, dt)) {
-    if (event.kind === "died") respawnAtNewU(ctx);
+    if (event.kind === "died") {
+      loseRift(ctx, "the reserve ran dry");
+      respawnAtNewU(ctx);
+    }
   }
   syncReserve(ctx);
 }
@@ -240,6 +248,7 @@ function onInit(ctx: GameContext): void {
   registerRelay(ctx, respawnAtNewU);
   registerMastWatch(ctx);
   registerPerks(ctx);
+  registerRift(ctx);
 
   ctx.game.feed.bind("entity.died");
   ctx.game.feed.bind("loot.granted");
@@ -346,8 +355,9 @@ function onTick(ctx: GameContext, dt: number): void {
   tickAudio(ctx, nowMs);
   // The front runs first: it owns its fighters and writes the hearing map the zone AI reads.
   tickFront(ctx, dt);
+  tickRift(ctx, dt);
   tickEnemies(ctx, dt);
-  tickShields(ctx, nowMs, dt);
+  tickShields(ctx, nowMs, dt, riftShieldRegen(ctx));
   tickDots(ctx, dt);
   tickCombat(ctx, dt);
   tickReloads(ctx, dt);

@@ -20,4 +20,5 @@ export const keybinds: ActionCodesMap = {
   selectSlot4: ["Digit4"],
   openSkills: ["KeyK"],
   "relay.overclock": ["KeyV"],
+  "rift.callWave": ["KeyN"],
 };

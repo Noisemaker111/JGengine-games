@@ -184,6 +184,8 @@
 .ss-hud.compact .ss-contract-tube p { font-size: 11px; }
 .ss-hud.compact .ss-log { max-width: 196px; }
 .ss-hud.compact .ss-stash, .ss-hud.compact .ss-scan { width: 208px; }
+/* On a phone the stash keeps its name, verdict and keys; the stat rows would sit over the stick. */
+.ss-hud.compact .ss-stash :is(.ss-stash-row, .ss-stash-affix, .ss-perks, .ss-stash-sub) { display: none; }
 .ss-hud.compact .ss-zone-name { font-size: 22px; letter-spacing: 0.14em; }
 /* The canvas fits the desktop rig onto a phone at 0.4; the readouts a fight depends on are held
    back up to about 0.6 so their numbers stay legible at arm's length. */

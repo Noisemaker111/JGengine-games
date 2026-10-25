@@ -5,8 +5,9 @@ import { Plate, Stamp } from "../fiction/kit";
  * A gun's perks on a card: a named legendary's signature in red text with its flavor line and the boss
  * that farms it, rolled perks as stamped steel chips with their one-line read.
  */
-export function PerkList({ perks }: { perks: readonly PerkLine[] }) {
-  if (perks.length === 0) return null;
+export function PerkList({ perks }: { perks: readonly PerkLine[] | undefined }) {
+  // A field stash stored before perks existed (an older save) carries none.
+  if (perks === undefined || perks.length === 0) return null;
   return (
     <span className="ss-perks">
       {perks.map((perk) =>

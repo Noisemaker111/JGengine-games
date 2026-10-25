@@ -8,6 +8,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
 
 import { bonus } from "../characters";
 import { enemyById } from "../entities/enemies/catalog";
+import { surfaceOverride } from "./surfaceOverride";
 import type { GunDef, GunElement, Surface } from "../handroll/guns";
 
 /**
@@ -85,7 +86,7 @@ export function resistanceOf(ctx: GameContext, targetId: string): string {
   const entity = ctx.scene.entity.get(targetId);
   if (entity === null) return "flesh";
   const def = enemyById(entity.name);
-  return def?.surface ?? "flesh";
+  return surfaceOverride(ctx, targetId) ?? def?.surface ?? "flesh";
 }
 
 /** Register every combatant the scene holds, so a hit on anything else is a wiring error, not 0. */
