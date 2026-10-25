@@ -138,13 +138,22 @@ export function codeLines(source: string): number {
     .filter((line) => line.trim().length > 0).length;
 }
 
+/**
+ * Drop import declarations: `import { type DamageTableDef } from "@jgengine/..."` names a shared
+ * type the file adopts, so it must not read as the file defining one.
+ */
+export function stripImports(code: string): string {
+  return code.replace(/^\s*import\s[^;]*?from\s*["'][^"']+["'];?/gm, "");
+}
+
 /** The engine systems a file owns; empty when it is content, adoption or too small to be a system. */
 export function engineSeams(path: string, source: string): EngineSeam[] {
   if (!CODE_FILE.test(path) || TEST_FILE.test(path)) return [];
   if (codeLines(source) < MIN_SYSTEM_LINES) return [];
-  const code = stripComments(source);
+  const withImports = stripComments(source);
+  const code = stripImports(withImports);
   const seams: EngineSeam[] = [];
-  if (!SHARED_RUN_LOOP.test(code) && (definesStateMachine(code) || STATE_MACHINE_SEAM.defines.some((pattern) => pattern.test(code)))) {
+  if (!SHARED_RUN_LOOP.test(withImports) && (definesStateMachine(code) || STATE_MACHINE_SEAM.defines.some((pattern) => pattern.test(code)))) {
     seams.push(STATE_MACHINE_SEAM);
   }
   for (const seam of ENGINE_SEAMS) {
@@ -152,7 +161,7 @@ export function engineSeams(path: string, source: string): EngineSeam[] {
     if (seam.defines.some((pattern) => pattern.test(code))) seams.push(seam);
   }
   const damage = ENGINE_SEAMS.find((seam) => seam.name === "damage or status table");
-  if (damage !== undefined && !seams.includes(damage) && DAMAGE_TABLE_CONST.test(code) && !ADOPTS_DAMAGE_MODEL.test(code)) {
+  if (damage !== undefined && !seams.includes(damage) && DAMAGE_TABLE_CONST.test(code) && !ADOPTS_DAMAGE_MODEL.test(withImports)) {
     seams.push(damage);
   }
   return seams;
