@@ -1,10 +1,14 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { resolveActivePrompt } from "@jgengine/core/interaction/proximityPrompt";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { compassBearing, headingToBearing, relativeBearing } from "@jgengine/core/world/minimap";
 import { useGame, useGameStore } from "@jgengine/react/hooks";
-import { KitObjective } from "@jgengine/react/kitFlow";
-import { KitButton } from "@jgengine/react/uiKitRoot";
+import { GameIcon } from "@jgengine/react/gameIcons";
+import { useHudAwake } from "@jgengine/react/hudFade";
+import { useInputDevice } from "@jgengine/react/inputDevice";
+import { deadlineStage, formatCountdown } from "@jgengine/react/kitFlow";
+import { useUiCue } from "@jgengine/react/uiCues";
+import { useActionGlyph } from "@jgengine/react/uiKitRoot";
 import { city } from "../../city";
 import { cityOf } from "../../cityRuntime";
 import { frontViews } from "../../city/fronts";
@@ -15,6 +19,7 @@ import { bountyPayout, bountyStore } from "../../jobs/bounties";
 import { courierDeadline, courierObjectiveStore, courierStore, DELIVERY_ROUTES, DISPATCH, RUSH_BOND, THIEF } from "../../jobs/courier";
 import { prompts, systemPromptLabel } from "../../prompts";
 import { BOUNTY_SPOTS, RACE_ROUTES } from "../../world/districts";
+import { KeyCap, Lcd } from "../fiction/kit";
 
 type XZ = readonly [number, number];
 const xz = (p: readonly number[]): XZ => [p[0]!, p[2]!];
@@ -115,29 +120,92 @@ function objectiveView(ctx: GameContext) {
 
 const sameView = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
-/** One card that always says what to do next, which way it is, and the key that does it. */
+/** The pointer on the pager: which way to go from where the courier faces. */
+function Bearing({ radians }: { radians: number }) {
+  return (
+    <svg className="hh-pager-arrow" viewBox="0 0 24 24" aria-hidden="true" style={{ transform: `rotate(${radians}rad)` }}>
+      <path d="M12 2 L20.5 12 L15 12 L15 22 L9 22 L9 12 L3.5 12 Z" />
+    </svg>
+  );
+}
+
+/** The parcel clock as LCD segments draining left to right. */
+function Fuse({ remaining, total }: { remaining: number; total: number }) {
+  const lit = total <= 0 ? 0 : Math.ceil((Math.max(0, remaining) / total) * 16);
+  return (
+    <span className="hh-pager-fuse" aria-hidden="true">
+      {Array.from({ length: 16 }, (_, i) => <i key={i} data-lit={i < lit ? "" : undefined} />)}
+    </span>
+  );
+}
+
+/**
+ * The courier's pager, clipped to the top-left of the screen: the job on an amber LCD, the arrow and
+ * distance to it, the parcel clock (the backlight turns coral when it is nearly out), and a hint that
+ * scrolls in only after twelve seconds without getting closer. Below it hangs the dispatch ticket for
+ * whatever is in reach: the key to press (or TAP) and what it does.
+ */
 export function Objective() {
   const { commands } = useGame();
+  const device = useInputDevice();
+  const bound = useActionGlyph("interact", "E");
+  const cue = useUiCue();
   const view = useGameStore(objectiveView, sameView);
   // The idle hint waits on real progress: getting closer, not just moving.
   const best = useRef({ key: "", distance: Infinity });
+  const stage = view?.deadline === undefined || view === null ? "calm" : deadlineStage(view.deadline);
+  const lastStage = useRef(stage);
+  useEffect(() => {
+    if (stage !== lastStage.current && stage !== "calm") cue(stage === "urgent" ? "deny" : "notify");
+    lastStage.current = stage;
+  }, [stage, cue]);
+  if (view !== null && best.current.key !== view.key) best.current = { key: view.key, distance: Infinity };
+  if (view?.distance !== undefined && view.distance < best.current.distance - 3) best.current.distance = view.distance;
+  const progressKey = view === null ? "" : `${view.key}:${best.current.distance}`;
+  const hasHint = view?.hint !== undefined;
+  const moving = useHudAwake([progressKey], 12_000, !hasHint);
+  const stuck = hasHint && !moving;
+  useEffect(() => {
+    if (stuck) cue("notify");
+  }, [stuck, cue]);
   if (view === null) return null;
-  if (best.current.key !== view.key) best.current = { key: view.key, distance: Infinity };
-  if (view.distance !== undefined && view.distance < best.current.distance - 3) best.current.distance = view.distance;
   const prompt = view.prompt;
+  const glyph = device === "touch" ? "Tap" : (bound ?? "E");
   return (
-    <div style={{ display: "grid", gap: 12, justifyItems: "start" }}>
-      <KitObjective
-        eyebrow={view.eyebrow}
-        title={view.title}
-        distance={view.distance}
-        bearing={view.bearing}
-        deadline={view.deadline}
-        hint={view.hint}
-        progressKey={`${view.key}:${best.current.distance}`}
-        prompt={prompt === null ? undefined : { action: "interact", label: prompt.label ?? promptLabel(prompt.id), onActivate: () => commands.run(prompt.name, prompt.input) }}
-      />
-      {view.rush === undefined ? null : <KitButton size="sm" onClick={() => commands.run("courier.accept", { service: "rush" })}>{view.rush}</KitButton>}
+    <div className="hh-obj">
+      <div className="hh-pager" data-stage={stage} aria-live="polite">
+        <span className="hh-pager-clip" aria-hidden="true" />
+        <span className="hh-pager-brand" aria-hidden="true">Mainsail<b>page</b></span>
+        <Lcd className="hh-pager-lcd" alarm={stage === "urgent"}>
+          <span className="hh-pager-top">
+            <small>{view.eyebrow ?? "Dispatch"}</small>
+            {view.deadline === undefined ? null : <b className="hh-pager-clock">{formatCountdown(view.deadline.remaining)}</b>}
+          </span>
+          <span className="hh-pager-main">
+            <b className="hh-pager-title">{view.title}</b>
+            {view.distance === undefined ? null : (
+              <span className="hh-pager-way">
+                {view.bearing === undefined ? null : <Bearing radians={view.bearing} />}
+                <span>{view.distance} m</span>
+              </span>
+            )}
+          </span>
+          {view.deadline === undefined ? null : <Fuse remaining={view.deadline.remaining} total={view.deadline.total} />}
+          {stuck && view.hint !== undefined ? <span className="hh-pager-hint">{view.hint}</span> : null}
+        </Lcd>
+      </div>
+      {prompt === null ? null : (
+        <button type="button" className="hh-act" onClick={() => commands.run(prompt.name, prompt.input)}>
+          <KeyCap wide={glyph.length > 2}>{glyph}</KeyCap>
+          <span>{prompt.label ?? promptLabel(prompt.id)}</span>
+        </button>
+      )}
+      {view.rush === undefined ? null : (
+        <button type="button" className="hh-act rush" onClick={() => commands.run("courier.accept", { service: "rush" })}>
+          <GameIcon name="hourglass" size={16} />
+          <span>{view.rush}</span>
+        </button>
+      )}
     </div>
   );
 }
