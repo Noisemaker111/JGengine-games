@@ -8214,6 +8214,17 @@
       "intent": "downscale a captured frame to a save-card thumbnail data URL"
     },
     {
+      "id": "side-jobs",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/mission/sideJobs",
+      "domain": "mission",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "offer and run repeatable side jobs (fares, deliveries, races) with fare math, deadlines, tips, streaks and wagers"
+    },
+    {
       "id": "sight-line",
       "packages": [
         "@jgengine/core"

@@ -60,6 +60,7 @@ export const game = defineGame({
       car: {
         buttons: [
           { action: "jump", label: "Handbrake", shape: "lever" },
+          { action: "taxiDuty", label: "Taxi", kind: "utility" },
           { action: "exitVehicle", label: "Exit", kind: "utility" },
         ],
       },
@@ -102,6 +103,8 @@ export const game = defineGame({
       "menu-bays": ["game.start", { name: "menu.driver", input: { driver: "Mara Vell" } }, "menu.saveDoc", "menu.bays"],
       "menu-new": ["menu.title"],
       chase: ["game.start", { name: "chase.stage", input: { mode: "chase" } }],
+      // `taxi` (dev-only `gigs.stage`): in the nearest car, taxi light on, a fare hailing at the closest kerb.
+      taxi: ["game.start", { name: "gigs.stage", input: { mode: "taxi" } }],
     },
     views: {
       boulevard: {

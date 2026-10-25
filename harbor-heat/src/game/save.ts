@@ -12,6 +12,7 @@ import type { PursuitSave } from "./handroll/pursuit";
 import { ledgerState, restoreLedger, resetLedger, type CashReason } from "./cash";
 import { cargoStore } from "./items/cargoHaul";
 import { courierLoopState, courierMissionStore, courierObjectiveStore, courierStore, restoreCourierLoop, type CourierState } from "./jobs/courier";
+import { gigSave, resetGigs, restoreGigs } from "./jobs/gigs";
 import {
   convoySnapshot,
   mission,
@@ -58,6 +59,10 @@ export const STORE_POLICY: Readonly<Record<string, { kind: SystemPolicy; reason:
   "harbor.courier.objective": {
     kind: "document",
     reason: "The objective line the parcel's mission machine last published rides with it.",
+  },
+  "harbor.gigs": {
+    kind: "document",
+    reason: "HUD mirror of the side-job board; the run section carries the board and the taxi light.",
   },
   "harbor.cargo": {
     kind: "document",
@@ -148,6 +153,7 @@ function runSystem(ctx: GameContext): GameSaveSystem {
       courierMission: courierMissionStore.peek(ctx) ?? null,
       courierObjective: courierObjectiveStore.peek(ctx) ?? null,
       cargo: cargoStore.peek(ctx) ?? null,
+      gigs: gigSave(ctx),
     }),
     restore(section) {
       if (!isRecord(section)) return;
@@ -157,6 +163,7 @@ function runSystem(ctx: GameContext): GameSaveSystem {
       restoreNullable(courierMissionStore, ctx, section.courierMission);
       restoreNullable(courierObjectiveStore, ctx, section.courierObjective);
       restoreNullable(cargoStore, ctx, section.cargo);
+      restoreGigs(ctx, section.gigs);
     },
     reset() {
       patchMission(ctx, { bustedHold: 0, raceSettled: false, raceClearAt: 0 });
@@ -165,6 +172,7 @@ function runSystem(ctx: GameContext): GameSaveSystem {
       courierMissionStore.clear(ctx);
       courierObjectiveStore.clear(ctx);
       cargoStore.clear(ctx);
+      resetGigs(ctx);
     },
   };
 }

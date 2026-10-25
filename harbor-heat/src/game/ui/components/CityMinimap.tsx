@@ -9,6 +9,7 @@ import { drivingStore, raceStore, wantedStore } from "../../handroll";
 import { bountyStore } from "../../jobs/bounties";
 import { courierStore, DELIVERY_ROUTES, DISPATCH } from "../../jobs/courier";
 import { stashStore } from "../../jobs/stashes";
+import { gigStore } from "../../jobs/gigs";
 import { BOUNTY_SPOTS, DISTRICTS, districtAt, RACE_ROUTES, ROADS, SAFEHOUSE_POS, SHORE_X, STASH_SPOTS } from "../../world/districts";
 import { StreetSign, useRoom } from "../fiction/kit";
 
@@ -42,6 +43,10 @@ function readMap(ctx: GameContext) {
   const scared = Object.entries(world.def.places ?? {}).flatMap(([id, place]) => { const at = world.position(id); const fear = world.num(`${id}.fear`); return at === null || fear < 10 ? [] : [{ at, radius: Math.min(place.radius ?? 30, 60), fear }]; });
   markers.push(dot("courier", courier.phase === "running" ? DELIVERY_ROUTES[courier.route % DELIVERY_ROUTES.length]!.position : DISPATCH, "#ffb020", 6.5));
   if (circuit !== undefined && race !== undefined) markers.push(dot("gate", circuit.checkpoints[Math.min(race.checkpoint, circuit.checkpoints.length - 1)]!, "#ffb020", 6.5));
+  // Gigs: the job in hand is the amber goal, a hailing fare or a paged race a yellow job pin.
+  const gigs = gigStore.read(ctx);
+  if (gigs.view?.target != null) markers.push(dot("gig", [gigs.view.target.x, gigs.view.target.z], "#ffb020", 6.5));
+  else for (const offer of gigs.offers) if (offer.kindId !== "taxi" || gigs.duty) markers.push(dot(`gig-${offer.id}`, [offer.pickup.x, offer.pickup.z], "#ffe066", 5.5));
   const heading = headingToBearing(body.rotationY);
   markers.push({ ...dot("player", [body.position[0], body.position[2]], "#fff0d2", 9), heading, clampToEdge: false });
   return { at: [body.position[0], body.position[2]] as const, heading, markers, scared, search: wantedStore.read(ctx)?.search ?? null };
