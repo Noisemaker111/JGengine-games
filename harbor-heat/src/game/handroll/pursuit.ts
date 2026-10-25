@@ -128,8 +128,20 @@ export interface PursuitSave {
   cruiserCounter: number;
 }
 
+/** Whether a would-be witness keeps quiet: a resident on a block the player holds, say. */
+export type WitnessFilter = (ctx: GameContext, entity: { readonly name: string; readonly position: readonly [number, number, number] }) => boolean;
+
 export interface Pursuit {
   addHeat(ctx: GameContext, amount: number): void;
+  /** Take heat off at once (a bribe, a respray); returns the stars left. */
+  forgiveHeat(ctx: GameContext, amount: number): number;
+  /** The player is in cover HHPD can't see into this tick. */
+  setHidden(hidden: boolean): void;
+  hidden(): boolean;
+  /** Who keeps quiet: called for every pedestrian and resident before it is asked what it saw. */
+  setWitnessFilter(filter: WitnessFilter | null): void;
+  /** Heat at the threshold of a star count, for pricing a pay-off down to it. */
+  heatForStars(stars: number): number;
   clearWanted(ctx: GameContext): void;
   snapshot(): PursuitSave;
   restore(ctx: GameContext, state: PursuitSave): void;
@@ -141,6 +153,8 @@ export interface Pursuit {
 
 export function createPursuit(driving: Driving): Pursuit {
   let witnessRoster: string[] = [];
+  let hiddenNow = false;
+  let quiet: WitnessFilter | null = null;
   const perception: PerceptionService = createPerception({
     sightRange: WITNESS_RADIUS,
     sightConeDeg: 150,
@@ -197,6 +211,12 @@ export function createPursuit(driving: Driving): Pursuit {
     return Math.min(MAX_STARS, stars);
   }
 
+  function tierThresholdAt(heat: number): number {
+    let threshold = 0;
+    for (const tier of POLICE_TUNING.tiers ?? DEFAULT_POLICE_TUNING.tiers) if (heat >= tier.threshold) threshold = tier.threshold;
+    return threshold;
+  }
+
   /** Ask every witness near the player what it can see; bounded by roster size, never the whole city. */
   function observeWitnesses(ctx: GameContext, nowMs: number): void {
     const player = ctx.scene.entity.get(ctx.player.userId);
@@ -209,6 +229,7 @@ export function createPursuit(driving: Driving): Pursuit {
       .list()
       .filter((entity) => isWitnessName(entity.name))
       .filter((entity) => Math.hypot(entity.position[0] - player.position[0], entity.position[2] - player.position[2]) <= WITNESS_RADIUS)
+      .filter((entity) => isCopName(entity.name) || quiet === null || !quiet(ctx, entity))
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
       .slice(0, MAX_WITNESSES);
     witnessRoster = near.map((entity) => entity.id);
@@ -226,7 +247,7 @@ export function createPursuit(driving: Driving): Pursuit {
 
     const area = police.searchArea();
     const around: readonly [number, number] = area === null ? [playerPos[0], playerPos[2]] : area.center;
-    const step = police.tick(dt, { nowMs, activePursuers: cops.length, around });
+    const step = police.tick(dt, { nowMs, activePursuers: cops.length, around, hidden: hiddenNow });
     const wanted = police.wanted();
     const stars = tierStars(wanted.tier?.threshold ?? 0);
     peakStars = Math.max(peakStars, stars);
@@ -455,6 +476,22 @@ export function createPursuit(driving: Driving): Pursuit {
   return {
     addHeat(_ctx, amount) {
       if (amount > 0) police.reportCrime(amount);
+    },
+    forgiveHeat(ctx, amount) {
+      const left = police.forgive(Math.max(0, amount));
+      publishWanted(ctx);
+      return tierStars(tierThresholdAt(left));
+    },
+    setHidden(hidden) {
+      hiddenNow = hidden;
+    },
+    hidden: () => hiddenNow,
+    setWitnessFilter(filter) {
+      quiet = filter;
+    },
+    heatForStars(stars) {
+      const tiers = POLICE_TUNING.tiers ?? DEFAULT_POLICE_TUNING.tiers;
+      return stars <= 0 ? 0 : (tiers[Math.min(tiers.length, stars) - 1]?.threshold ?? 0);
     },
     clearWanted(ctx) {
       police = freshPolice();

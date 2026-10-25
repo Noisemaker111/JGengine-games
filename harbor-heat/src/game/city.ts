@@ -1,5 +1,5 @@
 import type { MissionDef } from "@jgengine/core/mission/mission";
-import { calm, defineWorldModel } from "@jgengine/core/worldModel/worldModel";
+import { calm, defineWorldModel, type WorldFactSpec, type WorldScheduleDecl, type WorldTriggerDecl } from "@jgengine/core/worldModel/worldModel";
 
 /**
  * Mainsail as one world: who lives here, who holds which block, what each job is and what it leaves
@@ -19,6 +19,59 @@ const mission = (id: string, title: string, objectives: MissionDef["objectives"]
 
 const killed = (target: string) => ({ kind: "kill" as const, target });
 
+/**
+ * Blocks the Carmines hold at the start and the player can take. Each has a grip: Carmine soldiers
+ * dying there wear it down, and at zero the block changes hands; the same fact then measures the
+ * player's hold, which Carmine pushes and lost raids wear down again.
+ */
+export const TURF = ["port", "heights", "canal", "marina"] as const;
+export type TurfId = (typeof TURF)[number];
+
+/** A block's hold drifts back toward 60 when nobody is fighting over it, whoever owns it. */
+const grip = (value: number): WorldFactSpec => calm(value, 0.08, { rest: 60, min: 0, max: 100 });
+
+/** Seconds between Carmine pushes into each block the player holds; staggered so they never land together. */
+const PUSH_EVERY: Record<TurfId, number> = { port: 83, heights: 101, canal: 89, marina: 97 };
+
+const turfTriggers: Record<string, WorldTriggerDecl> = {};
+const turfPushes: Record<string, WorldScheduleDecl> = {};
+for (const id of TURF) {
+  turfTriggers[`take_${id}`] = {
+    when: { [`${id}.owner`]: "carmine", [`${id}.grip`]: { atMost: 0 } },
+    then: { [`${id}.owner`]: "player", [`${id}.grip`]: 40, "carmine.mood": -10, "locals.mood": 5 },
+    place: id,
+    note: "You took {place} from the Carmines.",
+  };
+  turfTriggers[`lose_${id}`] = {
+    when: { [`${id}.owner`]: "player", [`${id}.grip`]: { atMost: 0 } },
+    then: { [`${id}.owner`]: "carmine", [`${id}.grip`]: 50 },
+    place: id,
+    note: "The Carmines took {place} back.",
+  };
+  turfPushes[`push_${id}`] = {
+    every: PUSH_EVERY[id],
+    ripple: "turf_push",
+    place: id,
+    chance: 0.7,
+    when: { [`${id}.owner`]: "player", "carmine.mood": { atMost: -20 } },
+  };
+}
+
+/** A front's facts: what it earns by day and on top at night, and whether a raid is on or has wrecked it. */
+const front = (label: string, income: number, night: number) => ({
+  label,
+  slot: "fronts",
+  tags: ["front"],
+  facts: {
+    income,
+    night,
+    hit: false,
+    raid: false,
+    /** Seconds left to break a raid before the crew wrecks the place. */
+    raid_clock: { value: 0, decay: 1, min: 0 },
+  },
+});
+
 export const city = defineWorldModel({
   factions: {
     carmine: { label: "Carmine crew", facts: { mood: calm(0, 0.05, { min: -100, max: 100 }) } },
@@ -28,8 +81,10 @@ export const city = defineWorldModel({
   places: {
     boulevard: { label: "Mainsail Boulevard", position: [-170, 0], radius: 110, owner: "locals", facts: { fear: calm(0, 1.5) } },
     downtown: { label: "Downtown Vice", position: [40, -60], radius: 120, owner: "locals", facts: { fear: calm(0, 1.5) } },
-    port: { label: "Port Carmine", marker: "dock_fight", radius: 100, owner: "carmine", facts: { fear: calm(0, 1.5) } },
-    heights: { label: "Palm Heights", marker: "kingpin", radius: 90, owner: "carmine", facts: { fear: calm(0, 1.5) } },
+    port: { label: "Port Carmine", marker: "dock_fight", radius: 100, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(60) } },
+    heights: { label: "Palm Heights", marker: "kingpin", radius: 90, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(80) } },
+    canal: { label: "Canal Row", marker: "bounty_canal", radius: 42, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(50) } },
+    marina: { label: "the Marina", marker: "bounty_marina", radius: 40, owner: "carmine", facts: { fear: calm(0, 1.5), grip: grip(40) } },
     neon: { label: "the neon strip", marker: "marco", radius: 20, owner: "locals" },
     motors: { label: "Sunset Motors", marker: "garage", radius: 20, owner: "locals" },
     precinct: { label: "HHPD precinct", marker: "hhpd_station", radius: 20, owner: "hhpd" },
@@ -43,13 +98,16 @@ export const city = defineWorldModel({
       blip: { icon: "contact" },
       facts: { trust: 0 },
       says: [
+        { text: "Not with sirens on you. Lose them, then come see me.", when: { "police.stars": { atLeast: 2 } } },
         { text: "Not here, not now. The block's crawling with sirens.", when: { "neon.fear": { atLeast: 30 } } },
         { text: "The Carmines took my docks. Sweep them out and the money's yours.", when: { "port.owner": "carmine", "jobs.dock_sweep": { is: "done", not: true } } },
-        { text: "That ledger names every cop Sal owns. Get it before his enforcer burns it.", when: { "jobs.ledger": { is: "done", not: true } } },
+        { text: "Dirty money needs a clean front. The Neon Lounge is for sale. Buy it.", when: { "jobs.front_money": { is: "done", not: true } } },
         { text: "You're hot property now. Make the cops forget your face.", when: { "jobs.shake_heat": { is: "done", not: true } } },
-        { text: "Sal's re-arming the docks. Break his convoy before it lands.", when: { "jobs.ocean_loop": "done", "jobs.convoy": { is: "done", not: true } } },
-        { text: "Sal's alone up in Palm Heights. End it.", when: { "jobs.convoy": "done", "jobs.kingpin": { is: "done", not: true } } },
-        { text: "Go see Rita at Sunset Motors. She owes me.", when: { "jobs.ocean_loop": { is: "done", not: true } } },
+        { text: "Go see Rita at Sunset Motors. She owes me.", when: { "jobs.hot_wheels": { is: "done", not: true } } },
+        { text: "Sal knows the lounge is yours. His crew will hit it. Be there.", when: { "jobs.protection": { is: "done", not: true } } },
+        { text: "Sal's re-arming the docks. Break his convoy before it lands.", when: { "jobs.convoy": { is: "done", not: true } } },
+        { text: "Sal's alone up in Palm Heights. End it.", when: { "jobs.kingpin": { is: "done", not: true } } },
+        { text: "Every block the Carmines lose pays you protection. Keep taking them.", when: { "turf.held": { atMost: 3 } } },
         { text: "This town runs on sunshine and dirty cash, and now it runs on you." },
       ],
     },
@@ -61,9 +119,10 @@ export const city = defineWorldModel({
       known: false,
       blip: { icon: "contact", when: { "rita.known": true } },
       says: [
-        { text: "Win me the Ocean Loop and I'll know you can drive.", when: { "jobs.ocean_loop": { is: "done", not: true } } },
+        { text: "Pull it into the bay. HHPD doesn't look in here, and a respray buys you a new face.", when: { "police.stars": { atLeast: 1 } } },
         { text: "Sal's Cicada GT sits in Palm Heights. Bring it to my lot in one piece.", when: { "jobs.hot_wheels": { is: "done", not: true } } },
-        { text: "Anything with wheels, I can sell. Anything with sirens, keep away from my lot." },
+        { text: "Win me the Ocean Loop and I'll know you can drive.", when: { "jobs.ocean_loop": { is: "done", not: true } } },
+        { text: "Anything with wheels, I can store, fix or sell. Anything with sirens, keep it in the bay." },
       ],
     },
     sal: {
@@ -87,6 +146,7 @@ export const city = defineWorldModel({
       facts: { trust: calm(20, 0.02, { min: -100, max: 100 }) },
       says: [
         { text: "You shot a cop. Don't call me again.", when: { "dee.trust": { atMost: -20 } } },
+        { text: "I can lose a report or two. It'll cost you. Call me.", when: { "police.stars": { atLeast: 1 } } },
         { text: "Port Carmine's quiet for once. I'll pretend I didn't see how.", when: { "port.owner": "player" } },
         { text: "Carmine runners are fencing guns on my beat. Take one down and I'll look the other way." },
       ],
@@ -117,7 +177,7 @@ export const city = defineWorldModel({
     },
     ledger: {
       title: "The Ledger",
-      act: 1,
+      kind: "side",
       giver: "marco",
       requires: ["dock_sweep"],
       pitch: "Sal's enforcer carries a ledger. Take it off him.",
@@ -128,21 +188,32 @@ export const city = defineWorldModel({
       ], 2000),
       beat: { "sal.known": true, "carmine.mood": -20, "marco.trust": 20 },
     },
+    front_money: {
+      title: "Front Money",
+      act: 1,
+      giver: "marco",
+      requires: ["dock_sweep"],
+      pitch: "Dirty money needs a clean front. Buy the Neon Lounge across from me.",
+      mission: mission("front_money", "Front Money", [
+        { id: "buy", kind: "survive", until: { fact: "fronts.count", atLeast: 1 }, label: "Buy a front: the Neon Lounge is on the strip" },
+      ], 600),
+      beat: { "marco.trust": 10, "sal.known": true },
+    },
     shake_heat: {
       title: "Shake the Heat",
       act: 2,
       giver: "marco",
-      requires: ["ledger"],
-      pitch: "Get the city's attention, three stars of it, then lose them.",
+      requires: ["front_money"],
+      pitch: "Get the city's attention, three stars of it, then lose them. Rita's bay hides a car.",
       mission: mission("shake_heat", "Shake the Heat", [
         { id: "raise", kind: "survive", until: { fact: "police_tier", atLeast: 3 }, label: "Raise three stars of heat", next: "lose" },
-        { id: "lose", kind: "survive", until: { fact: "police_tier", atMost: 0 }, label: "Lose the cops" },
+        { id: "lose", kind: "survive", until: { fact: "police_tier", atMost: 0 }, label: "Lose the cops: outrun them or hide in Sunset Motors' bay" },
       ], 3500),
       beat: { "rita.known": true, "marco.trust": 10 },
     },
     ocean_loop: {
       title: "The Ocean Loop",
-      act: 2,
+      kind: "side",
       giver: "rita",
       requires: ["shake_heat"],
       pitch: "Win the Ocean Loop from my start line.",
@@ -156,7 +227,7 @@ export const city = defineWorldModel({
       title: "Hot Wheels",
       act: 2,
       giver: "rita",
-      requires: ["ocean_loop"],
+      requires: ["shake_heat"],
       pitch: "Steal Sal's Cicada GT and bring it to my lot.",
       mission: mission("hot_wheels", "Hot Wheels", [
         { id: "find", kind: "reach", actor: PLAYER, marker: "cicada_stage", radius: 15, label: "Find the Cicada GT in Palm Heights", next: "steal" },
@@ -173,11 +244,22 @@ export const city = defineWorldModel({
       ], 5000, [{ id: "wrecked", message: "The Cicada burned." }]),
       beat: { "carmine.mood": -15, "rita.trust": 20 },
     },
+    protection: {
+      title: "Protection",
+      act: 3,
+      giver: "marco",
+      requires: ["hot_wheels"],
+      pitch: "Sal's crew is on its way to your lounge. Break the raid before they wreck it.",
+      mission: mission("protection", "Protection", [
+        { id: "hold", kind: "survive", until: { fact: "fronts.repelled", atLeast: 1 }, label: "Get to your front and drop the raiders" },
+      ], 4500),
+      beat: { "marco.trust": 10, "carmine.mood": -10 },
+    },
     convoy: {
       title: "Carmine Convoy",
       act: 3,
       giver: "marco",
-      requires: ["hot_wheels"],
+      requires: ["protection"],
       pitch: "Sal's re-arming the docks. Break the convoy.",
       mission: mission("convoy", "Carmine Convoy", [
         { id: "go", kind: "reach", actor: PLAYER, marker: "dock_fight", radius: 30, label: "Get to the docks", next: "break" },
@@ -197,6 +279,18 @@ export const city = defineWorldModel({
       ], 25000),
       beat: { "heights.owner": "player", "carmine.mood": -50, "story.act": 4 },
     },
+    marina_turf: {
+      title: "Take the Marina",
+      kind: "side",
+      giver: "marco",
+      requires: ["dock_sweep"],
+      when: { "marina.owner": "carmine" },
+      pitch: "The Carmines run the marina off the boulevard. Thin their crew until the block is ours.",
+      mission: mission("marina_turf", "Take the Marina", [
+        { id: "take", kind: "survive", until: { fact: "marina.owner", is: "player" }, label: "Drop Carmine crew in the Marina until it changes hands" },
+      ], 1500),
+      beat: { "marco.trust": 5 },
+    },
     clean_hands: {
       title: "Clean Hands",
       kind: "side",
@@ -212,17 +306,69 @@ export const city = defineWorldModel({
       beat: { "dee.trust": 10, "carmine.mood": -5 },
     },
   },
+  slots: {
+    fronts: {
+      front_lounge: { marker: "front_lounge", label: "the Neon Lounge" },
+      front_arcade: { marker: "front_arcade", label: "the Boardwalk Arcade" },
+      front_carwash: { marker: "front_carwash", label: "the Pier Three car wash" },
+      front_motel: { marker: "front_motel", label: "the Villa Row motel" },
+    },
+  },
+  kinds: {
+    lounge: front("Neon Lounge", 3, 3),
+    arcade: front("Boardwalk Arcade", 2, 1),
+    carwash: front("Pier Three car wash", 4, 0),
+    motel: front("Villa Row motel", 5, 2),
+  },
+  totals: {
+    "fronts.count": { of: "front" },
+    "fronts.income": { of: "front", sum: "income", where: { hit: false, raid: false } },
+    "fronts.night": { of: "front", sum: "night", where: { hit: false, raid: false } },
+  },
+  flows: {
+    takings: { to: "fronts.takings", from: "fronts.income", when: { "police.stars": { atMost: 2 } } },
+    nightlife: { to: "fronts.takings", from: "fronts.night", when: { "clock.night": true, "police.stars": { atMost: 2 } } },
+    protection: { to: "fronts.takings", from: "turf.held", rate: 0.5 },
+  },
   ripples: {
     gunfire: { place: { fear: 18 }, owner: { mood: -1 } },
     assault: { place: { fear: 30 }, owner: { mood: -4 }, out: { heat: 55 } },
     cop_shot: { place: { fear: 25 }, world: { "hhpd.mood": -10, "dee.trust": -10 }, out: { heat: 90 } },
     explosion: { place: { fear: 40 }, owner: { mood: -5 }, out: { heat: 70 }, note: "An explosion rocked {place}." },
     killing: { place: { fear: 45 }, owner: { mood: -8 }, out: { heat: 60 }, note: "Someone was killed in {place}." },
-    ganger_down: { place: { fear: 20 }, faction: { mood: -6 }, note: "A Carmine soldier went down in {place}." },
+    ganger_down: [
+      { place: { fear: 20 }, faction: { mood: -6 }, note: "A Carmine soldier went down in {place}." },
+      { whenPlace: { owner: "carmine" }, place: { grip: -20 } },
+      { whenPlace: { owner: "player" }, place: { grip: 6 } },
+    ],
     cop_down: { place: { fear: 35 }, faction: { mood: -25 }, world: { "dee.trust": -40 }, out: { heat: 110 }, note: "Officer down in {place}." },
     wreck: { place: { fear: 15 }, out: { heat: 45 } },
+    reckless: { place: { fear: 6 }, owner: { mood: -0.5 }, out: { heat: 6 } },
+    carjack: { place: { fear: 10 }, owner: { mood: -1 }, out: { heat: 35 } },
+    turf_push: { whenPlace: { owner: "player" }, place: { grip: -15 }, note: "Carmine crews are pushing back into {place}.", hook: "crewPush" },
+    raid: { whenTarget: { hit: false, raid: false }, target: { raid: true, raid_clock: 60 }, note: "Carmines are hitting {target}!", hook: "raidStarted" },
+    raid_repelled: {
+      target: { raid: false, raid_clock: -999 },
+      place: { grip: 10 },
+      world: { "carmine.mood": -4, "fronts.repelled": 1, "locals.mood": 3 },
+      note: "You ran the Carmines off {target}.",
+    },
+    raid_lost: { target: { raid: false, hit: true }, place: { grip: -10 }, world: { "locals.mood": -3 }, note: "The Carmines wrecked {target}.", hook: "raidLost" },
+    repaired: { target: { hit: false }, note: "{target} is open again." },
   },
-  facts: { "story.act": 0 },
+  schedule: {
+    raids: {
+      every: 60,
+      ripple: "raid",
+      on: "front",
+      chance: 0.6,
+      whenTarget: { hit: false, raid: false },
+      when: { "carmine.mood": { atMost: -20 }, "jobs.protection": { is: "active", not: true } },
+    },
+    ...turfPushes,
+  },
+  triggers: turfTriggers,
+  facts: { "story.act": 0, "fronts.takings": { value: 0, min: 0 }, "fronts.repelled": 0 },
 });
 
 /** Mission actor id for the player, whichever body it is in. */

@@ -64,6 +64,15 @@ export interface Handroll {
   telemetry(): VehicleTelemetry;
   tick(ctx: GameContext, dt: number): void;
   addHeat(ctx: GameContext, amount: number): void;
+  /** Take heat off at once; returns the stars left. */
+  forgiveHeat(ctx: GameContext, amount: number): number;
+  /** Heat at the threshold of a star count. */
+  heatForStars(stars: number): number;
+  /** The player is in cover HHPD can't see into this tick. */
+  setHidden(hidden: boolean): void;
+  hidden(): boolean;
+  /** Who keeps quiet when HHPD asks the street. */
+  setWitnessFilter(filter: import("./pursuit").WitnessFilter | null): void;
   clearWanted(ctx: GameContext): void;
   wanted(): WantedSnapshot;
   startRace(ctx: GameContext): boolean;

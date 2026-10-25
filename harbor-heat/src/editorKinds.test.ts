@@ -15,6 +15,8 @@ describe("harbor-heat placeable marker kinds", () => {
     const menuMarkers = listSceneKinds("marker").filter((d) => d.addCategory === "Harbor Heat");
     expect(menuMarkers.map((d) => d.kind).sort()).toEqual([
       "bounty",
+      "front",
+      "hideout",
       "resident_place",
       "stash",
       "traffic_intersection",
