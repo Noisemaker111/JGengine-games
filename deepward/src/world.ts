@@ -2,6 +2,7 @@ import { environment } from "@jgengine/core/world/features";
 import type { EditorDocument, EditorMarker, EditorVolume } from "@jgengine/core/editor/types";
 import authored from "./editor.scene.json";
 import { isStratum, type Stratum } from "./game/strata";
+import { clutterFootprint, planFloorDressing, type FloorDressing, type FloorRect } from "./game/interiorPlan";
 
 export type Point = readonly [number, number, number];
 /** Marrow, or one stratum of Bellwether. Each is its own authored floor plan in the one scene. */
@@ -154,6 +155,56 @@ export const FABRICATOR_REACH = reach("fabricator-marrow");
 export const PRINTER_ZERO = point(marker("printer-zero"));
 export const PRINTER_ZERO_REACH = reach("printer-zero");
 
+/** The floor and ceiling heights of a place's rooms, from their authored volumes. */
+export function placeElevation(place: Place): { floorY: number; ceilingY: number } {
+  const volume = editorLayers.volumes.find(entry => entry.kind === "deepward-room" && entry.meta?.place === place);
+  if (volume?.shape !== "box" || !volume.halfExtents) throw new Error(`Deepward has no authored room elevation for ${place}`);
+  return { floorY: volume.center.y - volume.halfExtents.y, ceilingY: volume.center.y + volume.halfExtents.y };
+}
+const dressings = new Map<Stratum, FloorDressing>();
+/**
+ * A stratum's derived interior dressing: trims, pipes, cables, stains, wall lamps and clutter props
+ * planned from the authored room footprints. Nothing covers a lift, pickup, spawn, hazard or
+ * authored structure, and the plan is the same every run.
+ */
+export function floorDressing(stratum: Stratum): FloorDressing {
+  const known = dressings.get(stratum);
+  if (known !== undefined) return known;
+  const { floorY, ceilingY } = placeElevation(stratum);
+  const near = (at: Point, radius: number) => ({ x: at[0], z: at[2], radius });
+  const keepClear = [
+    ...LIFTS.filter(lift => lift.place === stratum).map(lift => near(lift.at, 2.2)),
+    ...NODES.filter(node => node.place === stratum).map(node => near(node.at, 1.4)),
+    ...SUPPLIES.filter(supply => supply.place === stratum).map(supply => near(supply.at, 1.2)),
+    ...FRAGMENTS.filter(fragment => fragment.place === stratum).map(fragment => near(fragment.at, 1.4)),
+    ...FAUNA.filter(spawn => spawn.place === stratum).map(spawn => near(spawn.at, 1.2)),
+    ...SALVAGE.filter(salvage => salvage.place === stratum).map(salvage => near(salvage.at, 1.4)),
+    ...(STRATUM_SPAWNS[stratum] === undefined ? [] : [near(STRATUM_SPAWNS[stratum]!, 1.8)]),
+    ...(stratum === "vault" ? [near(VAULT_SPAWN, 1.8), near(EXIT, 2.4), near(PRINT_SPAWN, 1.4)] : []),
+    ...(stratum === "choir" ? [near(PRINTER_ZERO, 3.5)] : []),
+  ];
+  const blocks: FloorRect[] = [
+    ...editorLayers.volumes.filter(entry => entry.kind === "deepward-structure" && entry.meta?.place === stratum && entry.center.y - (entry.halfExtents?.y ?? (entry.height ?? 0) / 2) < floorY + 2).map(entry => entry.shape === "box" && entry.halfExtents
+      ? { x: entry.center.x, z: entry.center.z, w: entry.halfExtents.x * 2, d: entry.halfExtents.z * 2 }
+      : { x: entry.center.x, z: entry.center.z, w: (entry.radius ?? 0.5) * 2, d: (entry.radius ?? 0.5) * 2 }),
+    ...HAZARDS.filter(hazard => hazard.place === stratum),
+    ...(stratum === "vault" ? PROPS : []),
+  ];
+  const dressing = planFloorDressing(stratum, ROOMS.filter(room => room.place === stratum), floorY, ceilingY, keepClear, blocks);
+  dressings.set(stratum, dressing);
+  return dressing;
+}
+const clutterSolids = new Map<Stratum, FloorRect[]>();
+function clutterAt(place: Place): readonly FloorRect[] {
+  if (place === "home") return [];
+  let solids = clutterSolids.get(place);
+  if (solids === undefined) {
+    // A prop stands a little inside its slot, so the solid is its slot pulled in by a hand's width.
+    solids = floorDressing(place).props.map(({ slot }) => { const box = clutterFootprint(slot); return { ...box, w: box.w * 0.8, d: box.d * 0.8 }; });
+    clutterSolids.set(place, solids);
+  }
+  return solids;
+}
 export function distance(a: Point, b: Point): number { return Math.hypot(a[0] - b[0], a[2] - b[2]); }
 export function inside(x: number, z: number, r: { x: number; z: number; w: number; d: number }): boolean {
   return Math.abs(x - r.x) < r.w / 2 && Math.abs(z - r.z) < r.d / 2;
@@ -164,6 +215,7 @@ export function floorAt(x: number, z: number, place: Place): boolean {
 export function walkable(x: number, z: number, place: Place, radius = 0.28): boolean {
   if (![[radius, radius], [-radius, radius], [radius, -radius], [-radius, -radius]].every(([dx, dz]) => floorAt(x + dx!, z + dz!, place))) return false;
   if (STATION_SOLIDS.some(r => r.place === place && inside(x, z, { ...r, w: r.w + radius * 2, d: r.d + radius * 2 }))) return false;
+  if (clutterAt(place).some(r => inside(x, z, { ...r, w: r.w + radius * 2, d: r.d + radius * 2 }))) return false;
   return place !== "vault" || !PROPS.some(r => inside(x, z, { ...r, w: r.w + radius * 2, d: r.d + radius * 2 }));
 }
 /** Segment checks cover interior walls and machinery, also used for firing and looting. */

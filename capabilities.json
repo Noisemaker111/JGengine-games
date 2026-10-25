@@ -4514,6 +4514,17 @@
       "intent": "deterministic per-id cadence phase that spreads sibling gate ticks across frames"
     },
     {
+      "id": "interior-dressing",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/render/InteriorDressing",
+      "domain": "render",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "render a planned interior's trims, pipes, cables, lamps and stains in a few instanced draws"
+    },
+    {
       "id": "inventory-grid",
       "packages": [
         "@jgengine/core"
@@ -7098,6 +7109,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "render entity poses between fixed simulation steps without stutter"
+    },
+    {
+      "id": "practical-lights",
+      "packages": [
+        "@jgengine/shell"
+      ],
+      "module": "@jgengine/shell/render/InteriorDressing",
+      "domain": "render",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "light the planned lamps nearest the camera with a fixed, shadow-capped spot-light pool"
     },
     {
       "id": "presence",

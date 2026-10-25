@@ -20,7 +20,7 @@ import { BODY, GALLEY_FEEDS_BELOW, HOME_DRAIN, hungriest, MEAL, STARVE_DAMAGE } 
 import { airBonus, deepestCharted, has, liftLock, newDeep, sealMark, type Deep } from "./deep";
 import { CODEX_ENTRIES, createDeepCodex, GEAR, spendRecipe, type Gear } from "./fabricator";
 import { MODULES, marrowOf, marrowState, restoreMarrow, setMarrowLive, type Module } from "./marrow";
-import { crushDamage, STRATA, type Stratum } from "./strata";
+import { crushDamage, isStratum, STRATA, type Stratum } from "./strata";
 import { broadcast, createSenses, creatureInSight, hazardsAt, lureLanding, tickCreatures, type Senses } from "./descent";
 import { createSpeciesSenses, SPECIES } from "./fauna";
 import { shotTargets } from "./combat";
@@ -404,6 +404,21 @@ export async function stageMidDive(ctx: GameContext): Promise<void> {
     for (let elapsed = 0; elapsed < 1.8; elapsed += 0.1) tick(ctx, 0.1);
   }
 }
+/**
+ * Capture staging for a floor's look: a record that owns the crawler and a Mk III seal departs
+ * straight to `stratum` through the real `begin`, so every floor can be framed without replaying
+ * the story that unlocks it. Dev-only.
+ */
+export async function stageFloor(ctx: GameContext, stratum: Stratum): Promise<void> {
+  await runtime(ctx).boot;
+  const v = viewStore.read(ctx);
+  if (v.mode !== "home" || runtime(ctx).save === null || !isStratum(stratum)) return;
+  const gear: Gear[] = [...new Set<Gear>([...v.deep.gear, "crawler", "seal3"])];
+  viewStore.write(ctx, { ...v, departTo: stratum, deep: { ...v.deep, gear, charted: [...new Set([...v.deep.charted, stratum])] } });
+  teleport(ctx, GARAGE);
+  run(ctx);
+  await begin(ctx);
+}
 function finish(ctx: GameContext, kind: Result["kind"], reason: string): void {
   const v = viewStore.read(ctx);
   if (v.dive === null || (v.mode !== "dive" && v.mode !== "saving")) return;
@@ -750,6 +765,7 @@ export function registerControls(ctx: GameContext): void {
   // Dev-only: jump to a loaded mid-dive for the capture that would otherwise be played into.
   if (import.meta.env.DEV) {
     ctx.game.commands.define("deepward.stage", { apply(state) { void stageMidDive(state); return state; } });
+    ctx.game.commands.define<{ stratum: Stratum }>("deepward.dev.descend", { apply(state, input) { void stageFloor(state, input.stratum); return state; } });
     // Proof staging: travel across a floor without re-walking it, and seed a record as a player
     // would have it a few dives in. Everything after the seed is played through the real verbs.
     // The first-person camera keeps its own heading, so a stand moves the diver and leaves the view.

@@ -25,6 +25,7 @@ import { SceneCaptureBinding } from "@jgengine/shell/render/sceneCapture";
 import { registerSceneCapture } from "@jgengine/shell/render/sceneCaptureRequest";
 import { ITEMS } from "./game/state";
 import { StationStructure, StationBatch } from "./game/stationArt";
+import { InteriorArt } from "./game/interiorArt";
 import { GameUI } from "./game/ui/GameUI";
 import { shiftTheme } from "./game/ui/ItemMark";
 import { deepwardKit } from "./game/ui/menu/deepwardKit";
@@ -53,9 +54,11 @@ function RailCart({ at, home = false }: { at: Triple; home?: boolean }) {
     {!hasStationModel(home ? "home" : "vault", home ? "rail-garage" : "rail-extraction") && <Sign at={[0, 3.04, 0.9]} title={home ? "THE GARAGE" : "RETURN TO MARROW"} sub={home ? "BELLWETHER / LINE 06" : "THE WAY OUT IS THE WAY IN"} width={2.65} turn={home ? 0 : Math.PI} />}
   </group>;
 }
-function Architecture({ place }: { place: Place }) {
+/** The room shell and its trim in the station's own finish; `shell={false}` keeps only the signs and floor guides. */
+function Architecture({ place, shell = true }: { place: Place; shell?: boolean }) {
   const plan = useMemo(() => deriveRoomPresentation(place), [place]);
   const batches = useMemo(() => {
+    if (!shell) return [];
     const groups = new Map<string, (typeof editorLayers.volumes)[number][]>();
     const part = (id: string, at: Triple, size: Triple, color: string, surface: IndustrialSurface = "paint") => {
       const key = `${surface}:${color}`, list = groups.get(key) ?? [];
@@ -78,7 +81,7 @@ function Architecture({ place }: { place: Place }) {
       part(`${l.id}:light`, [l.fixture[0],l.fixture[1]-0.02,l.fixture[2]], [l.width,0.045,0.2],place==="home"?C.amber:place==="vault"?C.cyan:STRATA[place].lamp.color,"lamp");
     }
     return [...groups.entries()];
-  },[plan,place]);
+  },[plan,place,shell]);
   return <group>
     {batches.map(([id,parts])=><StationBatch key={id} parts={parts} />)}
     {place === "vault" && <>
@@ -170,7 +173,8 @@ function WorldOverlay() {
   return <>
     <SceneCaptureBinding bind={registerSceneCapture} />
     <StratumAtmosphere place={place} /><Headlamp on={dive?.lamp === true} />
-    <Architecture place={place} /><StationStructure place={place} /><RoomLights /><StationModels place={place} assets={stationAssets} />
+    {place === "home" ? <><Architecture place={place} /><StationStructure place={place} /></> : <><InteriorArt stratum={place} /><Architecture place={place} shell={false} /></>}
+    <RoomLights /><StationModels place={place} assets={stationAssets} />
     {dive === null && <MarrowBays world={base} />}
     {dive !== null && <StratumDressing dive={dive} deep={view.deep} world={base} />}
     {editorLayers.markers.filter(m => m.kind === "deepward-station-sign" && m.meta?.place === place).map(m => <Sign key={m.id} at={[m.position.x,m.position.y,m.position.z]} title={m.label ?? m.id} sub={String(m.meta?.subtitle ?? "")} width={Number(m.meta?.width ?? 2.6)} turn={m.rotationY ?? 0} color={C.amber} />)}
@@ -273,7 +277,8 @@ export const game = defineGame({
   lighting: { ambient: { color: "#d4d5c8", intensity: 0.72 }, hemisphere: { skyColor: "#c7d9df", groundColor: "#514639", intensity: 0.5 } },
   backdrop: { background: C.black, fog: { color: C.black, near: 24, far: 75 } },
   // Lamp housings and amber signage sit near the bloom threshold; a high strength smeared the ceiling into haze.
-  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 } },
+  // Indoor air: a thin haze the scene fog colours per floor, and a glow around each lit lamp in it.
+  postProcessing: { toneMapping: "aces", exposure: 1.05, bloom: { strength: 0.05, radius: 0.3, threshold: 1.35 }, atmosphere: { indoor: true, fogDensity: 0.012, fogFalloff: 0.02, fogHeight: 0, fogMax: 0.4, shafts: 0, lamps: 1.8 } },
   capture: {
     probe: captureProbe,
     // "Enter Marrow" is `deepward.enter`; declaring it keeps a play capture on the same path the title button takes.
@@ -292,6 +297,20 @@ export const game = defineGame({
       // real 1.4 s channel, so the shot lands in a vault room with a loaded cache. `drive --state
       // mid-dive` reaches the same place without walking the vault.
       "mid-dive": ["deepward.enter", "deepward.stage"],
+      // Dev-only: a crawler departure straight to each floor, for the per-floor look views below.
+      "floor-vault": ["deepward.enter", { name: "deepward.dev.descend", input: { stratum: "vault" } }],
+      "floor-cold": ["deepward.enter", { name: "deepward.dev.descend", input: { stratum: "cold" } }],
+      "floor-wells": ["deepward.enter", { name: "deepward.dev.descend", input: { stratum: "wells" } }],
+      "floor-choir": ["deepward.enter", { name: "deepward.dev.descend", input: { stratum: "choir" } }],
+    },
+    // One eye-height framing per floor, so a look pass compares the same spot before and after.
+    views: {
+      receiving: { description: "I / rail receiving from the extraction rail", state: "floor-vault", look: "-2,1.3,-10", lookFrom: "9,0.3,0.35", settleMs: 2500 },
+      spine: { description: "I / the return spine toward the printhouse", state: "floor-vault", look: "0,1.3,-34", lookFrom: "16,0.3,0", settleMs: 2500 },
+      cold: { description: "II / down the freezer aisles", state: "floor-cold", look: "0,1.3,-14", lookFrom: "14,0.3,0", settleMs: 2500 },
+      wells: { description: "III / along the reservoir catwalk", state: "floor-wells", look: "-2,1.3,-3", lookFrom: "10,0.3,0", settleMs: 2500 },
+      "well-floor": { description: "III / the ink well floor", state: "floor-wells", look: "0,1.2,-33", lookFrom: "8,0.4,0.3", settleMs: 2500 },
+      choir: { description: "IV / the choir hall toward the sanctum", state: "floor-choir", look: "-3.75,1.7,-4", lookFrom: "14,-0.1,0", settleMs: 2500 },
     },
   },
   orientation: "landscape",

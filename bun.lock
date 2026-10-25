@@ -88,6 +88,7 @@
       "name": "@games/deepward",
       "version": "0.1.0",
       "dependencies": {
+        "@jgengine/assets": "catalog:",
         "@jgengine/core": "catalog:",
         "@jgengine/editor": "catalog:",
         "@jgengine/react": "catalog:",

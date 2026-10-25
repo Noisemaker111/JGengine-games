@@ -11,6 +11,7 @@
     "test": "bun test src/game"
   },
   "dependencies": {
+    "@jgengine/assets": "catalog:",
     "@jgengine/core": "catalog:",
     "@jgengine/editor": "catalog:",
     "@jgengine/react": "catalog:",
