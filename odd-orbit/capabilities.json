@@ -9,7 +9,9 @@
     "game-slider",
     "hud-fade",
     "mount-game",
-    "session-loop"
+    "objectives",
+    "session-loop",
+    "storyteller"
   ],
   "probes": {
     "@jgengine/shell/audio/audioProbe": [
