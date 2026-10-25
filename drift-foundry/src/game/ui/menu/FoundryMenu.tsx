@@ -9,6 +9,7 @@ import { gameFontStacks } from "@jgengine/react/gameFonts";
 import { GAME_FONTS } from "../../../art/fonts/fonts";
 import { plate } from "../DashHud";
 import { PartIcon } from "../components/PartIcon";
+import { MedalRow } from "../components/MedalBadge";
 import { PART_SLOTS } from "../../parts/catalog";
 
 import { FOUNDRY_CREDITS } from "../../credits";
@@ -56,11 +57,12 @@ function metres(z: number): string {
 }
 
 /** The pit's New run pane: the run sheet clipped to the board before the engine turns over. */
-function NewRunPane({ shift, best }: { shift: SessionSnapshot["shift"]; best: number | null }): ReactNode {
+function NewRunPane({ shift, best, event }: { shift: SessionSnapshot["shift"]; best: number | null; event: SessionSnapshot["event"] }): ReactNode {
   return (
     <div data-new-run-pane="" className="fd-sheet">
-      <SheetHead tag="Run sheet">New run</SheetHead>
-      <p className="fd-sheet-line">One welded buggy, twelve pieces of salvage, and a compactor that never stops. Bolt on what you drive over; hold E to swap an engine or frame. Three yard karts start ahead of you.</p>
+      <SheetHead tag={<span className="fd-sheet-medals">{event.label}<MedalRow held={event.medal} size={20} /></span>}>New run</SheetHead>
+      <p className="fd-sheet-line">{event.blurb}{event.garage ? " Bolt on what you drive over; hold E to swap an engine or frame." : " The garage is shut: only route salvage bolts on."}</p>
+      <p className="fd-sheet-note">{event.next === null ? "Every medal on this event is yours. Chase the clock." : `Next medal - ${event.next.medal}: ${event.next.text}.`}</p>
       <p data-new-run-shift="" className="fd-sheet-stamp">
         {shift === null ? "CLEAN SHIFT - nobody has changed the yard. Escape pays what the line earns." : `THIS RUN - ${shift.label}. ${shift.hint}`}
       </p>
@@ -91,6 +93,35 @@ function GaragePane({ rows, credits, onBuy }: { rows: readonly GarageRow[]; cred
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The yard calendar: every event is the corridor under other rules, graded bronze to gold. Medals
+ * add up to points, and points open the next tier of events.
+ */
+function CalendarPane({ calendar, onPick }: { calendar: SessionSnapshot["calendar"]; onPick: (id: string) => void }): ReactNode {
+  return (
+    <div data-calendar-pane="" className="fd-sheet fd-sheet-scroll">
+      <SheetHead tag={`${calendar.points}/${calendar.maxPoints} medal points`}>Yard calendar</SheetHead>
+      {calendar.tiers.map((tier) => (
+        <section key={tier.id} className="fd-cal-tier" data-open={tier.open ? "" : undefined}>
+          <h3 className="fd-cal-tier-head"><span>{tier.label}</span><small>{tier.open ? "open" : `locked / ${tier.missing} more medal points`}</small></h3>
+          {tier.events.map((entry) => (
+            <div key={entry.event.id} className="fd-sheet-row fd-cal-row" data-selected={entry.selected ? "" : undefined}>
+              <div className="fd-sheet-row-text">
+                <strong>{entry.event.label}</strong>
+                <small>{!entry.open ? entry.event.blurb : entry.next === null ? `best ${entry.best} - all medals held` : `${entry.best === null ? "no result yet" : `best ${entry.best}`} - ${entry.next.medal}: ${entry.next.text}`}</small>
+              </div>
+              <MedalRow held={entry.medal} size={24} />
+              <button type="button" className="fd-stamp-btn" data-event-pick={entry.event.id} disabled={!entry.open || entry.selected} onClick={() => onPick(entry.event.id)}>
+                {entry.selected ? "ON THE SHEET" : entry.open ? "RACE IT" : "LOCKED"}
+              </button>
+            </div>
+          ))}
+        </section>
+      ))}
     </div>
   );
 }
@@ -209,6 +240,13 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       publish();
     });
 
+  const pickEvent = (id: string) => {
+    const result = session.selectEvent(id);
+    publish();
+    const label = snapshot.calendar.tiers.flatMap((tier) => tier.events).find((entry) => entry.event.id === id)?.event.label ?? id;
+    setNotice(result.ok ? `${label} is on the run sheet` : result.reason ?? "The yard refused that event");
+  };
+
   const buy = (slot: GarageRow["slot"]) => {
     const result = session.buyPart(slot);
     publish();
@@ -229,7 +267,8 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
       tagline="One welded buggy. Three yard karts ahead of you. A compactor that never stops."
       items={[
         { id: "continue", label: "Continue run", hint: parked === null ? "No parked run at the pit" : `${metres(parked.position[2])} / ${parked.runTime.toFixed(1)} s / ${parked.partIds.length} parts`, disabled: parked === null },
-        { id: "new", label: "New run", hint: snapshot.shift === null ? "CLEAN SHIFT - the yard is unchanged" : `THIS RUN - ${snapshot.shift.label}` },
+        { id: "new", label: "New run", hint: `${snapshot.event.label.toUpperCase()} - ${snapshot.shift === null ? "clean shift" : snapshot.shift.label}` },
+        { id: "calendar", label: "Yard calendar", hint: `${snapshot.calendar.points}/${snapshot.calendar.maxPoints} medal points` },
         { id: "garage", label: "Pit garage", hint: `${snapshot.career.credits} cr / standing ${snapshot.career.standing}` },
         { id: "records", label: "Corridor records", hint: snapshot.records.bestTime === null ? "No escape on record" : `Best ${snapshot.records.bestTime.toFixed(1)} s` },
         { id: "settings", label: "Settings", hint: "Picture, sound, controls" },
@@ -248,7 +287,8 @@ export function FoundryMenu({ snapshot, session, publish }: { snapshot: SessionS
             </div>
           );
         }
-        if (id === "new") return <NewRunPane shift={snapshot.shift} best={snapshot.records.bestTime} />;
+        if (id === "new") return <NewRunPane shift={snapshot.shift} best={snapshot.records.bestTime} event={snapshot.event} />;
+        if (id === "calendar") return <CalendarPane calendar={snapshot.calendar} onPick={pickEvent} />;
         if (id === "garage") return <GaragePane rows={snapshot.career.garage} credits={snapshot.career.credits} onBuy={buy} />;
         if (id === "records") return <RecordsPane snapshot={snapshot} />;
         if (id === "settings") return <PitSettings />;

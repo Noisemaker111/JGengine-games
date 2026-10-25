@@ -90,7 +90,7 @@ function Lamp({ on, tone, label }: { on: boolean; tone: "teal" | "red" | "yellow
 }
 
 /** The pit-lane timing board: place, lap and the field in order. */
-export function TimingTower({ race }: { race: RaceSnapshot }): ReactNode {
+export function TimingTower({ race, event, ghost }: { race: RaceSnapshot; event?: { label: string; next: { medal: string; text: string } | null }; ghost?: { best: number; aheadMetres: number | null } | null }): ReactNode {
   return (
     <HudFade watch={[race.place, race.lap, race.standings.map((entry) => entry.id).join()]} idleMs={5000} dimTo={0.55} className="fd-tower-wrap">
       <section className="fd-tower" aria-label="Race position">
@@ -103,6 +103,17 @@ export function TimingTower({ race }: { race: RaceSnapshot }): ReactNode {
             <li key={entry.id} data-you={entry.id === "player" ? "" : undefined}><b>{entry.place}</b><span>{entry.name}</span></li>
           ))}
         </ol>
+        {event === undefined ? null : (
+          <footer className="fd-tower-event" data-medal={event.next?.medal}>
+            <span>{event.label}</span>
+            <em>{event.next === null ? "all medals held" : `${event.next.medal}: ${event.next.text}`}</em>
+            {ghost == null ? null : (
+              <strong className="fd-tower-ghost" data-ahead={ghost.aheadMetres !== null && ghost.aheadMetres >= 0 ? "" : undefined}>
+                GHOST {ghost.best.toFixed(1)}s{ghost.aheadMetres === null ? "" : ` · ${ghost.aheadMetres >= 0 ? "+" : "−"}${Math.abs(ghost.aheadMetres)} m`}
+              </strong>
+            )}
+          </footer>
+        )}
       </section>
     </HudFade>
   );

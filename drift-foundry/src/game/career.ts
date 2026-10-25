@@ -3,6 +3,9 @@ import { createCareerBank, type CareerBankState } from "@jgengine/core/progressi
 import { createGateSet, gateFacts } from "@jgengine/core/progression/gates";
 import { createStanding, type StandingState } from "@jgengine/core/progression/standing";
 import { createUpgradeTree, type UpgradeState } from "@jgengine/core/progression/upgrades";
+import { createMedalBoard, type MedalBoardState } from "@jgengine/core/progression/medalBoard";
+
+import { DEFAULT_EVENT_ID, eventById, MEDAL_BOARD } from "./events/catalog";
 
 import { partById, PART_SLOTS, PARTS, type DriftFoundryPartDef, type PartSlotId } from "./parts/catalog";
 
@@ -78,6 +81,10 @@ export interface CareerSave {
   bank: CareerBankState;
   standing: StandingState;
   ladders: UpgradeState;
+  /** Best result per calendar event; the medals and open tiers are read from it. */
+  medals: MedalBoardState;
+  /** The calendar event the next run races. */
+  event: string;
 }
 
 export const CAREER_KEY = "drift-foundry.career.v1";
@@ -89,6 +96,8 @@ export function newCareer(): CareerSave {
     bank: { banked: 0, haul: 0, deposited: 0, lost: 0, bestHaul: 0, runs: 0 },
     standing: { records: {} },
     ladders: { ranks: {} },
+    medals: { best: {} },
+    event: DEFAULT_EVENT_ID,
   };
 }
 
@@ -102,6 +111,9 @@ export function readCareer(storage?: CareerStorage): CareerSave {
       bank: validBank(data.bank) ? data.bank : fresh.bank,
       standing: validStanding(data.standing) ? data.standing : fresh.standing,
       ladders: validLadders(data.ladders) ? data.ladders : fresh.ladders,
+      // A career saved before the calendar has no medals and races the salvage run.
+      medals: createMedalBoard({ ...MEDAL_BOARD, state: typeof data.medals === "object" && data.medals !== null ? data.medals : fresh.medals }).snapshot(),
+      event: typeof data.event === "string" && eventById(data.event) !== null ? data.event : fresh.event,
     };
   } catch {
     return newCareer();
@@ -148,6 +160,9 @@ export function standingOf(career: CareerSave) {
 }
 export function bankOf(career: CareerSave) {
   return createCareerBank({ currency: CREDITS, state: career.bank });
+}
+export function medalsOf(career: CareerSave) {
+  return createMedalBoard({ ...MEDAL_BOARD, state: career.medals });
 }
 export function laddersOf(career: CareerSave) {
   return createUpgradeTree({ nodes: NODES, state: career.ladders, standing: standingOf(career) });
@@ -217,7 +232,7 @@ export function ownedParts(career: CareerSave): DriftFoundryPartDef[] {
 /** Settle a finished run: the haul banks on an escape and is lost to the compactor. */
 export function settleRun(
   career: CareerSave,
-  run: { kind: "escape" | "crushed"; place: number; haul: number },
+  run: { kind: "escape" | "crushed"; place: number; haul: number; medals?: MedalBoardState },
 ): CareerSave {
   const bank = bankOf(career);
   const standing = standingOf(career);
@@ -230,5 +245,5 @@ export function settleRun(
     bank.loseHaul();
     standing.apply(DRIVER, "crushed");
   }
-  return { ...career, bank: bank.snapshot(), standing: standing.snapshot() };
+  return { ...career, bank: bank.snapshot(), standing: standing.snapshot(), medals: run.medals ?? career.medals };
 }

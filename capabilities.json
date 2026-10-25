@@ -1001,6 +1001,17 @@
       "intent": "grid cells a snapped build piece footprint covers (footprintGrid occupancy bridge)"
     },
     {
+      "id": "build-requirements",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/buildOrder",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "list the unmet prerequisites of an RTS building, unit or research"
+    },
+    {
       "id": "build-socket-catalog",
       "packages": [
         "@jgengine/core"
@@ -1010,6 +1021,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "data-driven named-socket snap catalog for modular base building"
+    },
+    {
+      "id": "build-tech-path",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/buildOrder",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "resolve an RTS want into the first missing prerequisite to make instead"
     },
     {
       "id": "building-generator",
@@ -1054,6 +1076,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "keep any camera out of world collision with a spring-arm pull-in"
+    },
+    {
+      "id": "camera-director",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/runtime/cameraDirector",
+      "domain": "runtime",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "drive the camera at runtime (follow, rig swap, cinematic, chase tuning, FOV kick, RTS pan-to jump)"
     },
     {
       "id": "camera-shake",
@@ -1484,7 +1517,7 @@
       "domain": "game",
       "gameFacing": false,
       "probe": null,
-      "intent": "codex/bestiary/lorebook of defined entries with discovery tracking, categories, secret masking, completion, an onDiscover seam, and serializable state"
+      "intent": "codex/bestiary/lorebook of defined entries with discovery tracking, fragment scans, categories, secret masking, completion, an onDiscover seam, and serializable state"
     },
     {
       "id": "codex-gallery",
@@ -1913,6 +1946,17 @@
       "gameFacing": false,
       "probe": null,
       "intent": "deterministic stat inheritance, mutation, and lineage genetics for taming games"
+    },
+    {
+      "id": "creature-temperament",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/temperament",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "passive, territorial and predator creatures that react to what perception senses, including light, noise and scent"
     },
     {
       "id": "credits-for-asset-ids",
@@ -5487,6 +5531,17 @@
       "intent": "an entity rendered with a custom mesh takes hits in a box matching its rendered bounds, not the fixed humanoid rectangle."
     },
     {
+      "id": "medal-board",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/progression/medalBoard",
+      "domain": "progression",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "per-event bronze/silver/gold targets over a stored best, with tiers that open on medal points"
+    },
+    {
       "id": "menu-key-intent",
       "packages": [
         "@jgengine/core"
@@ -6862,7 +6917,7 @@
       "domain": "game",
       "gameFacing": false,
       "probe": null,
-      "intent": "click an entity or the ground to run a command (click-to-target, click-to-move, grab loot, marquee select)"
+      "intent": "click an entity or the ground to run a command (click-to-target, click-to-move, grab loot, marquee select, Shift/double-click select modifiers, RTS control groups)"
     },
     {
       "id": "pole-line",
@@ -7588,6 +7643,28 @@
       "gameFacing": false,
       "probe": null,
       "intent": "authored daily routines (home, work, meal) resolved against the world clock"
+    },
+    {
+      "id": "rts-attack-clock",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/buildOrder",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "decide when an RTS AI launches growing attack waves, with a max-wait fallback"
+    },
+    {
+      "id": "rts-build-planner",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/ai/buildOrder",
+      "domain": "ai",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "AI build order, tech path, supply and army composition for an RTS opponent economy"
     },
     {
       "id": "rts-control-groups",

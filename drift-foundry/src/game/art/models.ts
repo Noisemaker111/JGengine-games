@@ -10,6 +10,12 @@ export const rivalKartModels: Record<string, ModelConfig> = {
   kart_rival_moss: { ...buggyModel, material: { color: "#b7a13a", roughness: 0.72 } },
   kart_rival_hobbs: { ...buggyModel, material: { color: "#7a3fb0", roughness: 0.72 } },
 };
+
+/** The best-run ghost: the same buggy as see-through teal glass, so it never reads as a rival. */
+export const ghostKartModel: ModelConfig = {
+  ...buggyModel,
+  material: { color: "#5de0ce", emissive: "#5de0ce", emissiveIntensity: 0.55, roughness: 0.4, alphaMode: "blend", opacity: 0.32 },
+};
 export const upgradeModels: Record<string, ModelConfig> = {
   [UPGRADE_KINDS.salvage_v6]: { url: new URL("./upgrade-salvage_v6.glb", import.meta.url).href, anchor: "origin" },
   [UPGRADE_KINDS.truck_engine]: { url: new URL("./upgrade-truck_engine.glb", import.meta.url).href, anchor: "origin" },

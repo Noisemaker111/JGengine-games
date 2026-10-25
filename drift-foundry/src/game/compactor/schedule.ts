@@ -11,6 +11,8 @@ export interface CompactorSurge {
 /** A run's crusher: where it starts, and when it surges. Content, so a shift can change it per run. */
 export interface CompactorPlan {
   startZ: number;
+  /** Speed between surges, m/s; omitted means {@link COMPACTOR_BASE_SPEED}. */
+  baseSpeed?: number;
   surges: readonly CompactorSurge[];
 }
 
@@ -36,20 +38,21 @@ function buildSegments(plan: CompactorPlan): readonly SpeedSegment[] {
   const cached = SEGMENT_CACHE.get(plan);
   if (cached !== undefined) return cached;
   const segments: SpeedSegment[] = [];
+  const base = plan.baseSpeed ?? COMPACTOR_BASE_SPEED;
   let cursor = 0;
   for (const surge of [...plan.surges].sort((a, b) => a.startT - b.startT)) {
-    if (surge.startT > cursor) segments.push({ start: cursor, end: surge.startT, speed: COMPACTOR_BASE_SPEED });
+    if (surge.startT > cursor) segments.push({ start: cursor, end: surge.startT, speed: base });
     segments.push({ start: surge.startT, end: surge.endT, speed: surge.speed });
     cursor = surge.endT;
   }
-  segments.push({ start: cursor, end: Number.POSITIVE_INFINITY, speed: COMPACTOR_BASE_SPEED });
+  segments.push({ start: cursor, end: Number.POSITIVE_INFINITY, speed: base });
   SEGMENT_CACHE.set(plan, segments);
   return segments;
 }
 
 export function compactorSpeedAt(t: number, plan: CompactorPlan = COMPACTOR_PLAN): number {
   for (const segment of buildSegments(plan)) if (t >= segment.start && t < segment.end) return segment.speed;
-  return COMPACTOR_BASE_SPEED;
+  return plan.baseSpeed ?? COMPACTOR_BASE_SPEED;
 }
 
 export function compactorZAt(t: number, plan: CompactorPlan = COMPACTOR_PLAN): number {
