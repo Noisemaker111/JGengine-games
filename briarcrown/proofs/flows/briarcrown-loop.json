@@ -47,8 +47,8 @@
     },
     {
       "clickAt": [
-        860,
-        450
+        1150,
+        560
       ],
       "after": {
         "is": "__jgProbe().building + __jgProbe().built >= 2",

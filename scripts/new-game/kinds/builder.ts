@@ -357,7 +357,7 @@ function loopFlow(made: Idea): Flow {
       { key: `Digit${home + 1}`, ms: 120, after: { is: `__jgProbe().armed === ${home + 1}`, timeoutMs: 5000 }, note: `pick up a ${made.buildings[home]!.label.toLowerCase()}` },
       { clickAt: [420, 330], after: { is: "__jgProbe().building + __jgProbe().built >= 1", timeoutMs: 5000 }, note: "click the ground left of the hall: the home goes up" },
       { key: `Digit${work + 1}`, ms: 120, after: { is: `__jgProbe().armed === ${work + 1}`, timeoutMs: 5000 }, note: `pick up a ${made.buildings[work]!.label.toLowerCase()}` },
-      { clickAt: [860, 450], after: { is: "__jgProbe().building + __jgProbe().built >= 2", timeoutMs: 5000 }, note: "click the ground right of the hall: the workplace goes up" },
+      { clickAt: [1150, 560], after: { is: "__jgProbe().building + __jgProbe().built >= 2", timeoutMs: 5000 }, note: "click the ground right of the hall: the workplace goes up" },
       { rightClickAt: [640, 260], after: { is: "__jgProbe().armed === 0", timeoutMs: 5000 }, note: "right click puts the tool down" },
       { assert: "__jgProbe().built >= 2", before: { is: "__jgProbe().built >= 2 && __jgProbe().building === 0", timeoutMs: 30000 }, note: "arrival: both finished building" },
       { assert: `__jgProbe().${makes} > window.__made0`, before: { is: `window.__made0 === undefined ? (window.__made0 = __jgProbe().${makes}, false) : __jgProbe().${makes} >= window.__made0 + 3`, timeoutMs: 30000 }, note: `arrival: the workplace is working - ${makes} piles up` },

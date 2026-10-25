@@ -373,7 +373,7 @@ function loopFlow(made: Idea): Flow {
       { key: "KeyG", ms: 120, after: { is: "__jgProbe().gathering >= 1", timeoutMs: 5000 }, note: "G sends the selected to the nearest node" },
       { assert: "__jgProbe().gathered >= 5", before: { is: "__jgProbe().gathered >= 5", timeoutMs: 60000 }, note: "arrival: the first load is hauled home" },
       { key: "Digit1", ms: 120, after: { is: "__jgProbe().armed === 1 && __jgProbe().selected === 0", timeoutMs: 5000 }, note: `pick up a ${made.structures[0]!.label.toLowerCase()}` },
-      { rightClickAt: [780, 430], after: { is: "__jgProbe().building >= 1 || __jgProbe().structures >= 1", timeoutMs: 5000 }, note: "right click inside the grid: building starts" },
+      { rightClickAt: [1000, 600], after: { is: "__jgProbe().building >= 1 || __jgProbe().structures >= 1", timeoutMs: 5000 }, note: "right click inside the grid: building starts" },
       { assert: "__jgProbe().homes >= 2", before: { is: "__jgProbe().homes >= 2", timeoutMs: 30000 }, note: "arrival: the house is built" },
       { assert: "__jgProbe().raiding === 1", before: { is: "__jgProbe().raiding === 1", timeoutMs: 90000 }, note: "arrival: the first raid comes" },
       { assert: "__jgProbe().raids >= 1 && __jgProbe().people >= 1", before: { is: "__jgProbe().raids >= 1", timeoutMs: 90000 }, note: "arrival: the raid is beaten off" },

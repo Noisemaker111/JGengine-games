@@ -64,8 +64,8 @@
     },
     {
       "rightClickAt": [
-        780,
-        430
+        1000,
+        600
       ],
       "after": {
         "is": "__jgProbe().building >= 1 || __jgProbe().structures >= 1",
