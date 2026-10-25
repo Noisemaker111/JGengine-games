@@ -8,7 +8,7 @@ import { bestRaceStore, continueStore, registerCommands, safehouseStore, started
 import { content } from "./content";
 import { normalizeAfterRestore } from "../loop";
 import { grantCred } from "./progression/cred";
-import { QUESTS } from "./quests/catalog";
+import { cityOf } from "./cityRuntime";
 import { loadSavedProgress } from "./saveCompatibility";
 
 function bootContext(backend: SaveBackend, key = "jgengine:save:harbor-heat"): GameContext {
@@ -18,7 +18,6 @@ function bootContext(backend: SaveBackend, key = "jgengine:save:harbor-heat"): G
       assets: createAssetCatalog(),
       multiplayer: "off",
       persist: true,
-      features: { quest: true },
     }),
     content,
     player: { userId: "p1", isNew: true },
@@ -61,15 +60,13 @@ describe("harbor-heat whole-world save", () => {
     expect(await backend.read("jgengine:save:vice-isle:default")).toBe(original);
   });
 
-  test("cash, cred, quests, safehouse, and best lap survive a reboot", async () => {
+  test("cash, cred, story jobs, safehouse, and best lap survive a reboot", async () => {
     const backend = memorySaveBackend();
 
     const host = bootContext(backend);
     host.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
-    host.game.quest!.register(QUESTS);
-    host.game.quest!.grant("p1", "m1_welcome");
-    host.game.quest!.progress("p1", "m1_welcome", "meet_marco", 1);
-    expect(host.game.quest!.turnIn("p1", "m1_welcome")).toBeNull();
+    expect(cityOf(host).startJob("welcome")?.kind).toBe("job-started");
+    expect(cityOf(host).signal("meet").jobs).toEqual([{ kind: "job-done", jobId: "welcome", beat: { "story.act": 1 } }]);
     host.game.economy.grant("p1", "cash", 1234);
     grantCred(host, 500);
     safehouseStore.write(host, true);
@@ -78,14 +75,12 @@ describe("harbor-heat whole-world save", () => {
 
     const reboot = bootContext(backend);
     reboot.scene.entity.spawn("street_runner", { id: "p1", position: [0, 0, 0], role: "player" });
-    reboot.game.quest!.register(QUESTS);
     expect(await reboot.game.save!.load()).toBe(true);
 
     expect(reboot.game.economy.balance("p1", "cash")).toBe(1234 + 200);
     expect(reboot.scene.entity.stats.get("p1", "level")?.current).toBeGreaterThanOrEqual(2);
-    const journal = reboot.game.quest!.list("p1");
-    expect(journal.find((q) => q.questId === "m1_welcome")?.status).toBe("completed");
-    expect(journal.find((q) => q.questId === "m2_dock_sweep")?.status).toBe("active");
+    expect(cityOf(reboot).job("welcome")?.status).toBe("done");
+    expect(cityOf(reboot).job("dock_sweep")?.status).toBe("available");
     expect(safehouseStore.read(reboot)).toBe(true);
     expect(bestRaceStore.read(reboot)).toBe(61.4);
   });

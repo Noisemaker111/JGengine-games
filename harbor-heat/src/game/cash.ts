@@ -11,7 +11,7 @@ import { perContext } from "@jgengine/core/runtime/perContext";
  */
 export type CashReason =
   | "bounty"
-  | "quest-reward"
+  | "job-reward"
   | "race-entry"
   | "race-purse"
   | "race-record"

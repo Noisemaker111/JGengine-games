@@ -11,14 +11,12 @@ import { DOCK_FIGHT_CENTER } from "./world/districts";
  * process.
  */
 export interface MissionState {
-  kingpinSpawned: boolean;
   bustedHold: number;
   raceSettled: boolean;
   raceClearAt: number;
 }
 
 const FRESH_MISSION: MissionState = {
-  kingpinSpawned: false,
   bustedHold: 0,
   raceSettled: false,
   raceClearAt: 0,

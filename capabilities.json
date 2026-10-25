@@ -9934,6 +9934,17 @@
       "intent": "pick up dropped items: ctx.scene.worldItem nearestInRadius → pickup into the player's inventory"
     },
     {
+      "id": "world-model",
+      "packages": [
+        "@jgengine/core"
+      ],
+      "module": "@jgengine/core/worldModel/worldModel",
+      "domain": "worldModel",
+      "gameFacing": false,
+      "probe": null,
+      "intent": "one declarative world of people, places, factions, things, jobs and ripples"
+    },
+    {
       "id": "world-object-highlights",
       "packages": [
         "@jgengine/shell"

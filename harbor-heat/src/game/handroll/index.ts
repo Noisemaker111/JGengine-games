@@ -52,7 +52,6 @@ export function createHandroll(): Handroll {
     tick(ctx, dt) {
       driving.tickDriving(ctx, dt);
       pursuit.tickWanted(ctx, dt);
-      pursuit.tickPedPanic(ctx);
       pursuit.tickCops(ctx, dt);
       pursuit.tickCruisers(ctx, dt);
       race.tick(ctx, dt);

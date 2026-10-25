@@ -3,6 +3,8 @@ import { lootDropsOf } from "@jgengine/core/game/events";
 import { ToastStack } from "@jgengine/react/components";
 import { useActivePrompt, useGameStore } from "@jgengine/react/hooks";
 import { ITEM_LABELS } from "../content";
+import { city } from "../city";
+import { PhonePanel } from "./components/PhonePanel";
 import { prompts as buildPrompts } from "../prompts";
 import { RACE_ROUTES } from "../world/districts";
 import { CityMinimap } from "./components/CityMinimap";
@@ -20,6 +22,14 @@ import { CourierHud, SessionUI } from "./components/SessionUI";
 import { CargoPanel } from "./components/CargoPanel";
 import { ResidentsPanel } from "./components/ResidentsPanel";
 
+function cityPromptLabel(id: string): string {
+  return id.startsWith("talk:")
+    ? `Talk to ${city.people?.[id.slice(5)]?.name ?? "them"}`
+    : id.startsWith("job:")
+      ? `Start ${city.jobs?.[id.slice(4)]?.title ?? "the job"}`
+      : "Talk";
+}
+
 function PromptHint() {
   const prompts = useGameStore((ctx) => buildPrompts(ctx));
   const active = useActivePrompt(prompts);
@@ -36,7 +46,7 @@ function PromptHint() {
             ? "Buy Palmview Bungalow ($5,000)"
             : active.id === "safehouse:rest"
               ? "Rest at the bungalow"
-              : active.id === "courier:accept" ? "Take a courier parcel" : active.id === "courier:deliver" ? "Deliver parcel · slow to stop" : "Talk";
+              : active.id === "courier:accept" ? "Take a courier parcel" : active.id === "courier:deliver" ? "Deliver parcel · slow to stop" : cityPromptLabel(active.id);
   return (
     <div className="-skew-x-6 border-2 border-black bg-[#ffb020] px-3 py-1 text-sm font-black uppercase text-black shadow-[3px_3px_0_#000]">
       [E] {label}
@@ -96,6 +106,7 @@ export function GameUI() {
       <HudPanel id="dialogue" anchor="center" compact="keep">
         <div className="flex flex-col items-center gap-3">
           <DialoguePanel />
+          <PhonePanel />
           <ShopPanel />
           <GaragePanel />
         </div>

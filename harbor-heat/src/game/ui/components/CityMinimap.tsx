@@ -3,15 +3,11 @@ import { HudFrame } from "@jgengine/react/hudFrame";
 import { MinimapChrome, type MinimapChromeMarker } from "@jgengine/react/map";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { headingToBearing, projectToMinimap, type MinimapView } from "@jgengine/core/world/minimap";
+import type { WorldBlip } from "@jgengine/core/worldModel/worldModel";
+import { cityOf } from "../../cityRuntime";
 import {
   BOUNTY_SPOTS,
-  BRIEFCASE_POS,
-  CICADA_STAGE_POS,
   DISTRICTS,
-  DOCK_FIGHT_CENTER,
-  GARAGE_POS,
-  KINGPIN_POS,
-  MARCO_POS,
   RACE_ROUTES,
   ROADS,
   SAFEHOUSE_POS,
@@ -63,7 +59,9 @@ interface MapSnapshot {
   player: readonly [number, number, number];
   heading: number;
   cops: readonly (readonly [number, number])[];
-  activeQuest: string | null;
+  blips: readonly WorldBlip[];
+  /** Scared places: where the city is still reacting to something. */
+  scared: readonly { x: number; z: number; radius: number; fear: number }[];
   stars: number;
   raceCheckpoint: number | null;
   raceRouteId: string | null;
@@ -82,8 +80,11 @@ function readMap(ctx: GameContext): MapSnapshot | null {
     .list()
     .filter((e) => e.name.startsWith("cop_"))
     .map((e) => [e.position[0], e.position[2]] as const);
-  const quests = ctx.game.quest!.list(ctx.player.userId);
-  const active = quests.find((q) => q.status === "active");
+  const world = cityOf(ctx);
+  const scared = (Object.keys(world.def.places ?? {}))
+    .map((id) => ({ id, at: world.position(id), fear: world.num(`${id}.fear`), radius: world.def.places?.[id]?.radius ?? 30 }))
+    .filter((place) => place.at !== null && place.fear >= 10)
+    .map((place) => ({ x: place.at![0], z: place.at![1], radius: place.radius, fear: place.fear }));
   const wanted = wantedStore.read(ctx);
   const race = raceStore.read(ctx);
   const bounty = bountyStore.read(ctx);
@@ -92,7 +93,8 @@ function readMap(ctx: GameContext): MapSnapshot | null {
     player: player.position,
     heading: player.rotationY,
     cops,
-    activeQuest: active?.questId ?? null,
+    blips: world.blips(),
+    scared,
     stars: wanted?.stars ?? 0,
     raceCheckpoint: race !== undefined && race.active ? race.checkpoint : null,
     raceRouteId: race !== undefined && race.active ? race.routeId : null,
@@ -104,14 +106,12 @@ function readMap(ctx: GameContext): MapSnapshot | null {
   };
 }
 
-const QUEST_TARGETS: Record<string, readonly [number, number]> = {
-  m1_welcome: [MARCO_POS[0], MARCO_POS[2]],
-  m2_dock_sweep: [DOCK_FIGHT_CENTER[0], DOCK_FIGHT_CENTER[2]],
-  m3_the_ledger: [BRIEFCASE_POS[0], BRIEFCASE_POS[2]],
-  m5_ocean_loop: [GARAGE_POS[0], GARAGE_POS[2]],
-  m6_hot_wheels: [CICADA_STAGE_POS[0], CICADA_STAGE_POS[2]],
-  m7_carmine_convoy: [DOCK_FIGHT_CENTER[0], DOCK_FIGHT_CENTER[2]],
-  m8_kingpin: [KINGPIN_POS[0], KINGPIN_POS[2]],
+const BLIP_STYLE: Record<WorldBlip["kind"], { color: string; radius: number }> = {
+  objective: { color: "#ffb020", radius: 5.5 },
+  job: { color: "#ffe066", radius: 5 },
+  person: { color: "#f4e8c8", radius: 4 },
+  place: { color: "#c23b3b", radius: 4 },
+  thing: { color: "#4fa5e8", radius: 4 },
 };
 
 export function CityMinimap() {
@@ -128,9 +128,7 @@ export function CityMinimap() {
   const target =
     snapshot.raceCheckpoint !== null && raceRoute !== undefined
       ? raceRoute.checkpoints[Math.min(snapshot.raceCheckpoint, raceRoute.checkpoints.length - 1)]
-      : snapshot.activeQuest !== null
-        ? QUEST_TARGETS[snapshot.activeQuest]
-        : undefined;
+      : undefined;
   const district = districtAt(snapshot.player[0], snapshot.player[2]);
   const markers: MinimapChromeMarker[] = snapshot.cops.map((cop, i) => ({
     id: `cop-${i}`,
@@ -143,6 +141,10 @@ export function CityMinimap() {
   markers.push({ id: "courier", position: snapshot.courierTarget, color: "#38d6c4", radius: 6, strokeColor: "#113b47", strokeWidth: 2 });
   if (target !== undefined) {
     markers.push({ id: "target", position: target, color: "#ffb020", radius: 5.5, strokeColor: "#000", strokeWidth: 1.5 });
+  }
+  for (const blip of snapshot.blips) {
+    const style = BLIP_STYLE[blip.kind];
+    markers.push({ id: `${blip.kind}-${blip.id}`, position: [blip.x, blip.z], color: style.color, radius: style.radius, strokeColor: "#000", strokeWidth: 1.5 });
   }
   const bountySpot = snapshot.bountySpotId !== null ? BOUNTY_SPOTS.find((s) => s.id === snapshot.bountySpotId) : undefined;
   if (bountySpot !== undefined) {
@@ -217,6 +219,19 @@ export function CityMinimap() {
             const a = projectToMinimap(seg.from, view);
             const b = projectToMinimap(seg.to, view);
             return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#dfe6ee" strokeWidth={4} strokeOpacity={0.75} strokeLinecap="round" />;
+          })}
+          {snapshot.scared.map((place, i) => {
+            const center = projectToMinimap([place.x, place.z], view);
+            return (
+              <circle
+                key={`fear-${i}`}
+                cx={center.x}
+                cy={center.y}
+                r={(Math.min(place.radius, 60) * SIZE) / (RADIUS * 2)}
+                fill="#e23b3b"
+                fillOpacity={Math.min(0.45, place.fear / 160)}
+              />
+            );
           })}
           {snapshot.search !== null
             ? (() => {
