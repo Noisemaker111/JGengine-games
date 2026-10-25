@@ -5,15 +5,19 @@ on:
     types: [opened, synchronize, reopened, edited]
   push:
     branches: [beta, main]
+  # engine-bump.yml dispatches this on bot/engine-bump: pushes made with GITHUB_TOKEN start no runs.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Every check runs against engine source: the engine beta commit in engine-ref.txt, built
+  # and linked over the install. The npm @jgengine/* packages are for outside users only.
   games:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,40 +26,22 @@ jobs:
         with:
           bun-version: 1.3.8
       - run: bun install --frozen-lockfile
-      # The engine these checks compile against is the one the PR claims. A pinned lane's
-      # game code needs a seam the published catalog does not ship (issue #211: the catalog
-      # typecheck failed, the engine-beta job passed, same commit), so installing the claimed
-      # commit is what makes this job honest instead of a release gate. A body with no
-      # `Engine pin:` line keeps the published catalog, exactly as before.
-      - name: Which engine this PR claims
-        id: engine
-        run: |
-          pin="$(bun scripts/ci-engine.ts)"
-          echo "pin=$pin" >> "$GITHUB_OUTPUT"
-          if [ -z "$pin" ]; then
-            echo "no Engine pin line: these checks run against the published catalog"
-          else
-            echo "claims engine pin $pin: these checks run against that commit"
-          fi
-      - name: Fetch the claimed engine commit
-        if: steps.engine.outputs.pin != ''
+      - name: The engine ref is a commit on engine beta
+        run: bun run check:engine-ref
         env:
-          PIN: ${{ steps.engine.outputs.pin }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch the engine commit in engine-ref.txt
         run: |
-          git init ../jgengine
+          ref="$(bun scripts/engine-ref.ts show)"
+          git init -q ../jgengine
           git -C ../jgengine remote add origin https://github.com/Noisemaker111/jgengine.git
-          git -C ../jgengine fetch --depth 1 origin "$PIN"
-          git -C ../jgengine checkout --detach FETCH_HEAD
+          git -C ../jgengine fetch -q --depth 1 origin "$ref"
+          git -C ../jgengine checkout -q --detach FETCH_HEAD
           git -C ../jgengine rev-parse HEAD
-      - name: Install the pinned engine build
-        if: steps.engine.outputs.pin != ''
-        env:
-          PIN: ${{ steps.engine.outputs.pin }}
-        run: bun run engine:pin --ref "$PIN" --dir ../jgengine
-      - name: Engine identity and the claim's evidence
-        run: |
-          bun run engine:status
-          bun run check:engine-mode
+      - name: Build and link that engine
+        run: bun run engine:sync --dir ../jgengine
+      - run: bun run engine:status
+      - run: bun run check:engine-mode
       - uses: actions/cache@v4
         with:
           path: |
@@ -80,58 +66,17 @@ jobs:
       - run: bun run check-types
       - run: bun run test
       - run: bun run capabilities:probe
-      # The checks above are the pin's evidence; beta still installs the published catalog.
-      # A pinned PR lands only once a release containing its pin is in the catalog, or
-      # merging it turns beta red (#240 needed engine 8be64264, beta had 0.41.0).
-      - name: The pinned engine is released in the catalog beta installs
-        if: steps.engine.outputs.pin != ''
-        env:
-          PIN: ${{ steps.engine.outputs.pin }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bun scripts/ci-pin-released.ts "$PIN"
 
-  # The same checks against engine `beta` source, so a PR can go green on an engine
-  # module that has never been published. The `games` job above keeps the published
-  # catalog honest; this one catches the link, the build and the checks together.
-  games-local-engine:
+  # The bump branch lands by fast-forward once `games` passed on its exact commit, so beta's
+  # tip is a commit CI proved. A non-fast-forward (beta moved) waits for the next bump run.
+  promote-engine-bump:
+    needs: games
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/bot/engine-bump'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.8
-      - name: Engine checkout (beta, unpublished work included)
-        run: git clone --depth 1 --branch beta https://github.com/Noisemaker111/jgengine.git ../jgengine
-      - run: bun install --frozen-lockfile
-        working-directory: ../jgengine
-      - name: Build the engine packages the games import
-        run: |
-          for pkg in core ws assets react shell node navbake editor; do
-            bun --cwd=packages/$pkg run build
-          done
-        working-directory: ../jgengine
-      - run: bun run engine:local --dir ../jgengine
-      - run: bun run engine:status
-      - uses: actions/cache@v4
-        with:
-          path: |
-            */public/models
-            */public/materials
-            */public/sprites
-          key: game-assets-${{ hashFiles('bun.lock', '*/src/game/assets.ts') }}
-          restore-keys: game-assets-
-      # Rocketbox and Khronos library models list files through the GitHub contents API;
-      # anonymous runners share a 60-an-hour limit and get HTTP 403, so the pull sends this token.
-      - run: bun run provision
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: bun run check:framework --base origin/beta
-      - run: bun run check:seam-line
-      - run: bun run check:module-globals
-      - run: bun run check:save-states
-      - run: bun run check:game-design
-      - run: bun run check-types
-      - run: bun run test
+      - run: git push origin "HEAD:refs/heads/beta"

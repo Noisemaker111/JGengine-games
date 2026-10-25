@@ -1,6 +1,6 @@
 # JGengine Games
 
-Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on the `@jgengine/*` packages, either the published catalog build or a pinned build of one engine commit.
+Playable games built with [`jgengine`](https://github.com/Noisemaker111/jgengine) — each game is a standalone Vite app on `@jgengine/*` built from engine source: the engine `beta` commit in [`engine-ref.txt`](engine-ref.txt).
 
 These games use familiar genres with their own titles, settings, characters, and authored content. They also probe engine capabilities. To build a new game, use `npx jgengine create`; assets and upstream source retain their individual licenses.
 
@@ -12,15 +12,12 @@ of implementing the same fix separately in each game. Adopt existing SDK behavio
 and remove redundant local machinery. Games retain their unique rules, stories,
 items, assets, editor-authored worlds and presentation.
 
-An engine change reaches a game by **pinning the commit**, not by waiting for a release:
-`bun run engine:pin --ref <sha>`, adopt the change, prove it in the game, land. The one
-root SDK catalog update that moves every game to a published version is a **milestone
-release**, not a step after each engine merge. API changes may need small consumer
-migrations; a beta engine merge alone does not change the installed packages. A pinned
-build is a real installed package, so no engine source is imported here. Shared behavior
-must support different designs and art directions, not impose identical assets or layouts.
-[AGENTS.md](AGENTS.md#framework-first-development) owns the discovery, upstream
-implementation, adoption and verification workflow.
+An engine change reaches a game when `engine-ref.txt` moves to an engine beta commit that
+contains it - in the same PR as the game change (`bun run engine:bump`), or by the hourly
+`engine-bump` workflow. No release is involved. API changes may need small consumer
+migrations in that PR. Shared behavior must support different designs and art directions,
+not impose identical assets or layouts. [AGENTS.md](AGENTS.md#framework-first-development)
+owns the discovery, upstream implementation, adoption and verification workflow.
 
 ## Games
 
@@ -81,49 +78,43 @@ Deepward uses original procedural industrial geometry and needs no downloaded
 asset packs. Start it with `bun run dev:deepward`; see [its controls and current limits](deepward/README.md).
 
 Each playable game is a standalone Vite harness: `index.html` loads
-`src/main.tsx`, and `vite.config.ts` resolves published packages. Run commands from
+`src/main.tsx`, and `vite.config.ts` resolves the linked engine packages. Run commands from
 the repository root, or run `bun run dev` inside the target game's directory.
 
 See [historical published-package verification](GAME-PR-VERIFICATION.md) for earlier
 Brightway Park and Scrap Signal asset provisioning, checks and playtest limits.
-The root catalog below owns the current SDK version.
 
 ## Engine version
 
-One root `package.json` workspace catalog owns all published `@jgengine/*` SDK
-versions; game and shared workspace manifests use `catalog:` and never own SDK
-versions. A published version is adopted by changing the root catalog and regenerating
-`bun.lock` at a milestone release. The CLI `jgengine` keeps its separate version cadence.
-
-The current catalog installs SDK 0.43.0, including editor and its published navbake dependency. Keep the root catalog and lockfile coherent when updating SDK packages, following [framework-first policy](AGENTS.md#framework-first-development).
-
-**Adopting an engine change without a release.** Pin the commit you need, adopt it, prove
-it, land it. The PR carries one line naming that commit - `Engine pin: <sha>` - and
-`bun run check:engine-mode` fails a pinned or local lane whose body does not name the
-commit it installed, or an install whose packages disagree with the catalog:
+`engine-ref.txt` names one full engine `beta` commit. Every check, test and dev server here
+runs against that commit's source: `bun run engine:sync` fetches it into the engine checkout
+(`../jgengine`, or `--dir <path>`), builds the packages from `git archive <commit>` into a
+cached snapshot (`%LOCALAPPDATA%\jgengine-snapshots`, keyed by commit) and junctions every
+installed `@jgengine/*` to it. Edits in the live engine checkout never reach the snapshot.
 
 ```sh
-bun run engine:pin --ref <sha>  # link a cached build of one commit: the adoption path
-bun run engine:status     # mode, engine commit, stale-or-fresh dist, uncommitted live edits
-bun run engine:local      # link ../jgengine (or --dir <path>): live, sees uncommitted edits
-bun run engine:watch      # rebuild changed engine packages (live mode only)
-bun run engine:snapshots  # cached snapshots, with --prune <sha|all>
-bun run engine:published  # restore the catalog install (--version <x.y.z> pins that release)
-bun run check:engine-mode # does the PR name the commit this lane installed?
+bun install --frozen-lockfile
+bun run engine:sync          # build and link the commit in engine-ref.txt (cached after the first build)
+bun run engine:bump          # move engine-ref.txt to engine beta's tip (or --ref <sha>), then sync
+bun run engine:status        # what is linked: snapshot commit, or a live checkout
+bun run check:engine-mode    # fails unless the build of engine-ref.txt is linked
+bun run check:engine-ref     # fails unless engine-ref.txt is on engine beta (uses gh)
+bun run engine:local         # live link to ../jgengine while editing the engine; never lands
+bun run engine:watch         # rebuild changed engine packages (live mode only)
+bun run engine:snapshots     # cached snapshots, with --prune <sha|all>
 ```
 
-`engine:local` links the checkout itself, so an edit there — even an uncommitted one — lands in every workspace in live mode at once. `engine:pin` builds `git archive <commit>` once into `%LOCALAPPDATA%\jgengine-snapshots`, keys it by commit and build inputs, and links that; concurrent lanes pinning the same commit share the one build, and edits in the live checkout stay invisible. `.engine-mode` (ignored) records the link; never commit it.
+The root catalog's `@jgengine/*` npm versions only give `bun install` entries to link over;
+they are never what a game runs, and moving them is not part of adopting engine work. npm
+publishing is for users outside this repo. `.engine-mode` (ignored) records the link; never
+commit it.
 
-A lane that edits the engine uses `engine:local` and sees its uncommitted work; every other
-lane that needs the same engine change pins a commit and never queues behind it. Local mode
-proves no commit, so it is not adoptable evidence: pin the commit you proved before closing.
-CI follows that claim: the `games` job reads the `Engine pin:` line from the PR body and
-installs that commit before it typechecks, so the checks run against the engine the PR
-proved. A PR without the line runs the published catalog exactly as before, and a claim that
-names a commit lacking the seam the branch uses fails there like any other type error. A pinned PR then
-lands only when the catalog's published release already contains its pin
-(`scripts/ci-pin-released.ts`): beta installs the catalog, so merging earlier turns beta red.
-Pin to prove and review; release, adopt and drop the line to land.
+CI's `games` job checks `engine-ref.txt` is on engine beta, fetches and syncs that commit,
+then runs every check. The `engine-bump` workflow (hourly, or run it by hand) commits engine
+beta's tip and the regenerated `capabilities.json` to `bot/engine-bump` and dispatches CI
+there; when `games` passes, CI fast-forwards `beta` to that commit. A red bump stays on the
+branch until a PR fixes what the new engine broke (a type error, or a new game-facing
+capability each game must answer) and bumps the ref itself.
 
 The engine repo (`Noisemaker111/jgengine`) clones this repo at build time into `./Games` (gitignored, ephemeral) to render `/games` and `/play`. The games repo is the source of truth for game content; the engine repo no longer commits games.
 

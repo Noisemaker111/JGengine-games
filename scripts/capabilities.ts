@@ -200,7 +200,7 @@ let installedCache: { root: string; installed: Installed } | null = null;
  * The SDK version this repository ships: what the root workspace catalog names. A pinned or
  * local lane links another build for a while, so reading the version off the linked files
  * would move every ledger once per pin - the release queue this repo no longer waits in.
- * Published mode is unchanged, because `engine:published` keeps the two identical.
+ * A registry install keeps the two identical.
  */
 function catalogEngineVersion(root: string): string | null {
   try {

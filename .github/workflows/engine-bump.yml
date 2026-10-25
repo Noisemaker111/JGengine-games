@@ -1,0 +1,83 @@
+name: engine-bump
+
+# Moves engine-ref.txt to engine beta's tip. The bump goes on bot/engine-bump with an open PR
+# for the record; ci.yml runs on that commit and fast-forwards beta to it when `games` passes.
+# A red bump stays open as the PR, naming what the new engine broke.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: engine-bump
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH: bot/engine-bump
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: beta
+          fetch-depth: 0
+      - name: Engine beta tip
+        id: tip
+        run: |
+          tip="$(git ls-remote https://github.com/Noisemaker111/jgengine.git refs/heads/beta | cut -f1)"
+          current="$(grep -Eo '^[0-9a-f]{40}' engine-ref.txt)"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          tried="$(git show "origin/$BRANCH:engine-ref.txt" 2>/dev/null | grep -Eo '^[0-9a-f]{40}' || true)"
+          if [ "$tip" = "$current" ]; then
+            echo "engine-ref.txt already names engine beta $tip"
+          elif [ "$tip" = "$tried" ] && git merge-base --is-ancestor origin/beta "origin/$BRANCH"; then
+            echo "$BRANCH already tries $tip on the current beta; its ci run decides"
+            tip="$current"
+          fi
+          echo "tip=$tip" >> "$GITHUB_OUTPUT"
+      - uses: oven-sh/setup-bun@v2
+        if: steps.tip.outputs.tip != steps.tip.outputs.current
+        with:
+          bun-version: 1.3.8
+      # The capability ledger is generated from the linked engine, so the bump carries it;
+      # a new game-facing capability still fails CI until each game answers it.
+      - name: Build the new engine and regenerate the capability ledger
+        if: steps.tip.outputs.tip != steps.tip.outputs.current
+        env:
+          TIP: ${{ steps.tip.outputs.tip }}
+        run: |
+          bun install --frozen-lockfile
+          git init -q ../jgengine
+          git -C ../jgengine fetch -q --depth 1 https://github.com/Noisemaker111/jgengine.git "$TIP"
+          git -C ../jgengine checkout -q --detach FETCH_HEAD
+          bun run engine:bump --ref "$TIP" --dir ../jgengine
+          bun run capabilities:sync
+      - name: Commit the bump on the bot branch
+        if: steps.tip.outputs.tip != steps.tip.outputs.current
+        env:
+          TIP: ${{ steps.tip.outputs.tip }}
+          CURRENT: ${{ steps.tip.outputs.current }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add engine-ref.txt capabilities.json
+          git commit -qm "Engine: engine-ref.txt to engine beta ${TIP:0:12}"
+          git push -f origin "$BRANCH"
+          body="$(printf 'Moves engine-ref.txt from %s to engine beta %s.\n\nhttps://github.com/Noisemaker111/jgengine/compare/%s...%s\n\nEngine seam: none - engine ref bump only\n\nci.yml fast-forwards beta to this commit when games passes on it.' "${CURRENT:0:12}" "${TIP:0:12}" "$CURRENT" "$TIP")"
+          existing="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')"
+          # The PR is the record; the fast-forward in ci.yml lands the bump without it.
+          if [ -z "$existing" ]; then
+            gh pr create --base beta --head "$BRANCH" --title "Engine: engine-ref.txt to engine beta ${TIP:0:12}" --body "$body"               || echo "::notice::no PR opened (Actions may not create PRs here); ci.yml still lands the bump when green"
+          else
+            gh pr edit "$existing" --title "Engine: engine-ref.txt to engine beta ${TIP:0:12}" --body "$body" || true
+          fi
+          gh workflow run ci.yml --ref "$BRANCH"

@@ -1,18 +1,15 @@
 /**
- * Point this workspace's installed `@jgengine/*` at a local engine checkout, or back
- * at the published catalog, so engine work is tested here without a release.
+ * Link this workspace's installed `@jgengine/*` to engine source.
  *
- *   bun run engine:local [--dir <engine path>]   link every @jgengine/* to that checkout
- *   bun run engine:pin [--ref <sha|branch>]      link an immutable snapshot of a commit
- *   bun run engine:published                     restore the published install
+ *   bun run engine:sync                          link the build of engine-ref.txt (the one engine games use; scripts/engine-ref.ts)
+ *   bun run engine:local [--dir <engine path>]   link a live checkout while editing the engine (never lands: check:engine-mode refuses it)
  *   bun run engine:status [--json]               one line: mode, engine commit, staleness
  *
- * Local mode replaces each installed `@jgengine/*` entry — root, per-game and bun's
- * store copy — with a junction to the engine package, so every consumer and every
- * transitive import resolves to the checkout. Pinned mode does the same against a
- * cached build of one commit (scripts/engine-pin.ts), so edits in the live checkout
- * are invisible to it. The root catalog and bun.lock are never edited, so all modes
- * install with `--frozen-lockfile` and `git status` stays clean.
+ * Each installed `@jgengine/*` entry (root, per-game and bun's store copy) is replaced
+ * with a junction to the engine package, so every consumer and every transitive import
+ * resolves to engine source. The catalog in package.json only gives `bun install`
+ * entries to replace; its npm version is never what a game runs. The catalog and
+ * bun.lock are never edited, so installs stay `--frozen-lockfile` and git stays clean.
  */
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -265,7 +262,7 @@ export function statusLine(): { line: string; ok: boolean; state: unknown } {
     return {
       line: ok
         ? `engine published ${catalogVersions[catalogPackages()[0]!] ?? "?"} — from the registry; no live or uncommitted engine code can reach this lane`
-        : `engine published — MISMATCH: ${mismatched.map((entry) => `${entry.name} ${entry.installed} != catalog ${entry.catalog}`).join(", ")} (run bun run engine:published)`,
+        : `engine published — MISMATCH: ${mismatched.map((entry) => `${entry.name} ${entry.installed} != catalog ${entry.catalog}`).join(", ")} (run bun run engine:sync)`,
       ok,
       state: { mode, catalogVersions, versions },
     };
@@ -288,7 +285,7 @@ export function statusLine(): { line: string; ok: boolean; state: unknown } {
     if (!existsSync(join(snapshot, "packages")) || broken.length > 0) {
       const first = broken[0];
       return {
-        line: `engine pinned ${state?.engine ?? "?"} — BROKEN: ${first === undefined ? `${snapshot} is gone` : `${first.name} resolves to ${first.sites.find((site) => !site.ok)?.resolved ?? "nothing"}`} (run bun run engine:pin --ref ${state?.engine ?? "HEAD"})`,
+        line: `engine pinned ${state?.engine ?? "?"} — BROKEN: ${first === undefined ? `${snapshot} is gone` : `${first.name} resolves to ${first.sites.find((site) => !site.ok)?.resolved ?? "nothing"}`} (run bun run engine:sync)`,
         ok: false,
         state: { mode, engine: state?.engine, ref: state?.ref, snapshot, path: enginePath, dirty: dirty.length, broken },
       };
@@ -506,7 +503,7 @@ function main(): number {
   const [command, ...args] = process.argv.slice(2);
   if (args.includes("--help") || args.includes("-h") || command === undefined) {
     console.log(
-      "bun run engine:local [--dir <engine path>] | bun run engine:pin [--ref <sha|branch>] [--version <x.y.z>] | bun run engine:snapshots [--prune <sha|all>] | bun run engine:published | bun run engine:status [--json]",
+      "bun run engine:sync [--dir <engine path>] | bun run engine:bump [--ref <sha>] | bun run engine:local [--dir <engine path>] | bun run engine:snapshots [--prune <sha|all>] | bun run engine:status [--json]",
     );
     return command === undefined ? 2 : 0;
   }
