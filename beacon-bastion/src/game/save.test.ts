@@ -54,7 +54,7 @@ describe("the keep's save document", () => {
     await save.save();
 
     // A fresh defense, as a reload would build it, then the document read back.
-    runner.ui.invoke("beacon.act", { action: "sell_tower_archer", target: "tower_archer-1" });
+    runner.ui.invoke("beacon.act", { action: "sell", target: "tower_archer-1" });
     advanceKeep(runner, 0.25);
     resetSession();
     await save.load();

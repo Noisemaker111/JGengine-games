@@ -59,10 +59,10 @@ describe("the keep is one declaration the engine runs", () => {
     expect(world().num("keep.lives")).toBe(STARTING_LIVES - 2);
     expect(world().log().at(-1)?.text).toBe("Raiders broke through to the keep.");
 
-    // Selling pays back the build share per level reached, frees the plot and despawns the tower.
+    // Selling pays back a share of the build and the upgrade, frees the plot and despawns the tower.
     const before = world().num("keep.gold");
     expect(run("beacon.act", { action: sellAction("tower_archer"), target: "tower_archer-2" })).toMatchObject({ status: "applied" });
-    expect(world().num("keep.gold")).toBe(before + 2 * Math.round(archer.cost * 0.7));
+    expect(world().num("keep.gold")).toBe(before + Math.round((archer.cost + 38) * 0.7));
     expect(world().occupant("plot-1")).toBeNull();
     advanceKeep(runner, 0.25);
     expect(runner.ctx.scene.entity.get("tower_archer-2")).toBeNull();
@@ -74,7 +74,7 @@ describe("the keep is one declaration the engine runs", () => {
     run("beacon.act", { action: upgradeAction("tower_archer"), target: "tower_archer-1" });
     run("beacon.act", { action: upgradeAction("tower_archer"), target: "tower_archer-1" });
     expect(world().num("tower_archer-1.level")).toBe(3);
-    expect(run("beacon.act", { action: upgradeAction("tower_archer"), target: "tower_archer-1" })).toMatchObject({ status: "rejected", reason: "locked" });
+    expect(run("beacon.act", { action: upgradeAction("tower_archer"), target: "tower_archer-1" })).toMatchObject({ status: "rejected", reason: "locked", message: "Already at the top level" });
   });
 
   test("cancelling a build still rising pays all of it back", () => {

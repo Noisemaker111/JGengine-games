@@ -18,7 +18,7 @@ import { session } from "./session";
  */
 
 export const MAX_TOWER_LEVEL = 3;
-/** Share of a tower's build price a sale returns per level it reached. */
+/** Share of everything a tower cost (build and upgrades) that a sale returns. */
 export const SELL_SHARE = 0.7;
 /** An upgrade costs this share of the build price, times the level it leaves. */
 const UPGRADE_SHARE = 0.75;
@@ -26,16 +26,18 @@ const UPGRADE_SHARE = 0.75;
 const PER_LEVEL = { damage: 0.5, rate: 0.15, range: 0.5, splash: 0.3 } as const;
 
 export const upgradeAction = (kind: string) => `upgrade_${kind}`;
-export const sellAction = (kind: string) => `sell_${kind}`;
+/** One sale for every tower type: the `tower` tag covers them all. */
+export const sellAction = (_kind?: string) => "sell";
 
 function towerKind(def: TowerDef): WorldKindDecl {
   return {
     label: def.label,
+    tags: ["tower"],
     slot: "plot",
     cost: { "keep.gold": -def.cost },
     ...(def.buildSeconds !== undefined && def.buildSeconds > 0 ? { takes: def.buildSeconds } : {}),
     refund: SELL_SHARE,
-    facts: { level: 1, upgrades: 0, damage: def.damage, range: def.range, rate: def.fireRateHz, splash: def.splashRadius },
+    facts: { level: 1, damage: def.damage, range: def.range, rate: def.fireRateHz, splash: def.splashRadius },
   };
 }
 
@@ -45,11 +47,11 @@ function towerActions(def: TowerDef): Record<string, WorldActionDecl> {
       label: "Upgrade",
       on: def.id,
       whenTarget: { level: { atMost: MAX_TOWER_LEVEL - 1 } },
+      refuse: "Already at the top level",
       cost: { "keep.gold": -Math.round(def.cost * UPGRADE_SHARE) },
       scaleBy: "level",
       effect: {
         level: 1,
-        upgrades: 1,
         damage: def.damage * PER_LEVEL.damage,
         rate: def.fireRateHz * PER_LEVEL.rate,
         range: PER_LEVEL.range,
@@ -57,24 +59,14 @@ function towerActions(def: TowerDef): Record<string, WorldActionDecl> {
       },
       note: "{target} raised a level.",
     },
-    // The kind's refund pays back the build; each upgrade it took adds the same share again.
-    [sellAction(def.id)]: {
-      label: "Sell",
-      on: def.id,
-      removes: true,
-      scaleBy: "upgrades",
-      world: { "keep.gold": Math.round(def.cost * SELL_SHARE) },
-      note: "{target} sold.",
-    },
   };
 }
 
 const defs = TOWER_IDS.map((id) => towerDef(id, editorLayers));
-const totals: Record<string, WorldTotalDecl> = {};
-for (const def of defs) {
-  totals[`keep.${def.id}_standing`] = { of: def.id };
-  totals[`keep.${def.id}_firepower`] = { of: def.id, sum: "damage" };
-}
+const totals: Record<string, WorldTotalDecl> = {
+  "keep.towers": { of: "tower" },
+  "keep.firepower": { of: "tower", sum: "damage" },
+};
 
 export const keep = defineGameSpec({
   id: "beacon",
@@ -100,7 +92,11 @@ export const keep = defineGameSpec({
     },
     slots: { plot: Object.fromEntries(BUILD_PLOTS.map((plot) => [plot.id, { position: [plot.position[0], plot.position[2]] as const }])) },
     kinds: Object.fromEntries(defs.map((def) => [def.id, towerKind(def)])),
-    actions: Object.assign({}, ...defs.map(towerActions)),
+    actions: Object.assign(
+      // The kind's refund (SELL_SHARE) is a share of everything the tower cost, upgrades included.
+      { sell: { label: "Sell", on: "tower", removes: true, note: "{target} sold." } },
+      ...defs.map(towerActions),
+    ),
     queues: { build: { lanes: BUILD_PLOTS.length } },
     ripples: {
       bounty: { world: { "keep.gold": 1, "keep.bounty_earned": 1 } },
@@ -123,13 +119,13 @@ export const keep = defineGameSpec({
     if (plot === undefined) return;
     ctx.scene.entity.spawn(tower.kind, { id: tower.id, position: plot.position, role: "prop" });
   },
-  onRemoved(ctx, id) {
+  onRemoved(ctx, { id }) {
     ctx.scene.entity.despawn(id);
     session.towerCooldowns.delete(id);
     if (session.inspectedTowerId === id) session.inspectedTowerId = null;
   },
   onLanded(ctx, action) {
-    if (action.startsWith("sell_")) ctx.game.audio.play("sell");
+    if (action === "sell") ctx.game.audio.play("sell");
     else ctx.game.audio.play("upgrade");
   },
 });
@@ -143,12 +139,12 @@ export function runEnded(world: WorldModel): boolean {
 
 /** Ready towers standing, every type. */
 export function towersStanding(world: WorldModel): number {
-  return TOWER_IDS.reduce((sum, id) => sum + world.num(`keep.${id}_standing`), 0);
+  return world.num("keep.towers");
 }
 
 /** Damage per shot summed over every ready tower. */
 export function firepower(world: WorldModel): number {
-  return TOWER_IDS.reduce((sum, id) => sum + world.num(`keep.${id}_firepower`), 0);
+  return world.num("keep.firepower");
 }
 
 /** One tower's live numbers, as the world holds them. */
@@ -172,11 +168,13 @@ export function goldCost(world: WorldModel, action: string, target?: string): nu
   return -(world.costOf(action, target)["keep.gold"] as number | undefined ?? 0);
 }
 
-/** What selling a tower returns right now. */
+/** What selling a tower returns right now: its share of the build and every upgrade it took. */
 export function sellValue(world: WorldModel, id: string, kind: string): number {
   const def = towerDef(kind, editorLayers);
-  const base = Math.round(def.cost * SELL_SHARE);
-  return base + base * world.num(`${id}.upgrades`);
+  const step = Math.round(def.cost * UPGRADE_SHARE);
+  let paid = def.cost;
+  for (let level = 1; level < world.num(`${id}.level`); level += 1) paid += step * level;
+  return Math.round(paid * SELL_SHARE);
 }
 
 /** Wipe the field back to a fresh keep, opening with the purse and walls the relic and bank allow. */

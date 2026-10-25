@@ -129,11 +129,11 @@ describe("upgradeTower (keybind)", () => {
     expect(runner.ui.tryInvoke("upgradeTower", { instanceId: id })).toMatchObject({ status: "rejected", reason: "locked" });
   });
 
-  test("selling an upgraded tower refunds its build share once per level", () => {
+  test("selling an upgraded tower refunds a share of its build and its upgrade", () => {
     const id = build(1, 0);
     runner.ui.invoke("upgradeTower", { instanceId: id });
     const before = gold();
     runner.ui.invoke("sellTower", { instanceId: id });
-    expect(gold()).toBe(before + 2 * Math.round(archer.cost * 0.7));
+    expect(gold()).toBe(before + Math.round((archer.cost + Math.round(archer.cost * 0.75)) * 0.7));
   });
 });
