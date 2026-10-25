@@ -32,12 +32,6 @@ export const skillsOpenStore = defineStore<boolean>("skillsOpen", false);
 
 export const characterIdStore = defineStore<string | null>("characterId", null);
 
-/** True once the player picked a reclaimer or continued a kept run in this page (menu state, not a save). */
-export const menuRunStartedStore = defineStore<boolean>("scrap.menu.started", () => false);
-
-/** True once the boot pass has run, so the one-shot menu guard cannot repeat. */
-export const menuBootedStore = defineStore<boolean>("scrap.menu.booted", () => false);
-
 export const talentRanksStore = defineStore<Record<string, number>>("talentRanks", () => ({}));
 
 export const reactorOpenStore = defineStore<{ atMs: number } | null>("reactorOpen", null);

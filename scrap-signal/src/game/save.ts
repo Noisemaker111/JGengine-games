@@ -211,10 +211,13 @@ export function createScrapSave(ctx: GameContext, options: { backend?: SaveBacke
 
 const boundSave = perContext(() => ({ save: null as GameSave | null }));
 
-/** The game's save document, one per context, writing beside the world snapshot. */
-export function scrapSave(ctx: GameContext): GameSave {
+/**
+ * The game's save document, one per context, writing beside the world snapshot. `initialSlot` is the
+ * kept-run bay a fresh document opens in, so a checkpoint lands in a slot the menu lists.
+ */
+export function scrapSave(ctx: GameContext, initialSlot = "default"): GameSave {
   const slot = boundSave(ctx);
-  if (slot.save === null) slot.save = createScrapSave(ctx);
+  if (slot.save === null) slot.save = createScrapSave(ctx, { slot: initialSlot });
   return slot.save;
 }
 

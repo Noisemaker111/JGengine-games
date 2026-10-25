@@ -7,11 +7,30 @@ import { ReclaimerPortrait } from "../components/Portrait";
 import { ControlKeys } from "./FieldTerminal";
 import { Crt, navItem, Plate, SIGNAL, SignalBars, SignalWordmark, Stamp } from "./kit";
 
+/** A kept run the broadcast offers to resume: its call sign and one line of where it stands. */
+export interface KeptSignal {
+  name: string;
+  detail: string;
+}
+
 /**
  * The title as a jammed broadcast: Scrap Signal's carrier is down, the screen is static and three
- * reclaimer channels flicker on a bank of salvaged monitors. Tuning one in starts the run.
+ * reclaimer channels flicker on a bank of salvaged monitors. Tuning one in starts a new run; a kept
+ * run shows as a signal to resume above them.
  */
-export function BroadcastTitle({ onPick }: { onPick: (characterId: string) => void }) {
+export function BroadcastTitle({
+  onPick,
+  kept = null,
+  onContinue,
+  callSign = "",
+  onCallSign,
+}: {
+  onPick: (characterId: string) => void;
+  kept?: KeptSignal | null;
+  onContinue?: () => void;
+  callSign?: string;
+  onCallSign?: (next: string) => void;
+}) {
   const profile = useDisplayProfile();
   const compact = profile.compact;
   const nav = useMenuNav({ ids: CHARACTERS.map((c) => c.id), columns: compact ? 1 : CHARACTERS.length, initialId: CHARACTERS[0]?.id, onConfirm: onPick });
@@ -28,7 +47,40 @@ export function BroadcastTitle({ onPick }: { onPick: (characterId: string) => vo
         <SignalWordmark />
         <p className="ss-caption">A broken carrier. A desert of stolen machines. Reclaim the copper-ring relay north of the crash site, then follow B0-LT’s campaign across Ferralon.</p>
       </header>
-      <div className="ss-tune-label"><span>Tune a reclaimer</span></div>
+      {kept === null ? null : (
+        <Plate
+          as="button"
+          material="hull"
+          tint="#1b2225"
+          cut="notch"
+          depth={compact ? 8 : 12}
+          rim={SIGNAL.amber}
+          rimWidth={3}
+          padding="0"
+          className="ss-resume"
+          data-scrap-continue=""
+          autoFocus
+          onClick={() => onContinue?.()}
+        >
+          <Stamp tone="amber">Resume signal</Stamp>
+          <span className="ss-resume-name">{kept.name}</span>
+          <span className="ss-resume-detail">{kept.detail}</span>
+          <span className="ss-resume-go" aria-hidden="true">▸ Continue</span>
+        </Plate>
+      )}
+      <div className="ss-tune-label"><span>{kept === null ? "Tune a reclaimer" : "Or tune a new reclaimer"}</span></div>
+      {onCallSign === undefined ? null : (
+        <label className="ss-callsign">
+          <span>Call sign</span>
+          <input
+            data-scrap-callsign=""
+            value={callSign}
+            maxLength={24}
+            placeholder="Name the reclaimer"
+            onChange={(event) => onCallSign(event.target.value)}
+          />
+        </label>
+      )}
       <nav className="ss-monitors" aria-label="Choose your reclaimer" {...nav.containerProps}>
         {CHARACTERS.map((character, index) => {
           const tuned = nav.activeId === character.id;

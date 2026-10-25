@@ -5,10 +5,9 @@ import type { EntityDiedEvent } from "@jgengine/core/game/events";
 import { seededRng } from "@jgengine/core/random/rng";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
-import { relayStore, registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
+import { registerRelay, relayEnemyDied, tickRelay } from "./game/relay";
 import { noteMastKill, registerMastWatch, restoreMastWatch, tickMastWatch } from "./game/mast";
-import { activeCharacter, resetCharacterState, talentTree } from "./game/characters";
-import { characterIdStore, menuBootedStore, menuRunStartedStore } from "./game/stores";
+import { activeCharacter, talentTree } from "./game/characters";
 import { perContext } from "@jgengine/core/runtime/perContext";
 import { registerCommands, resumeBuild } from "./game/commands";
 import { resetCombat, syncCombatTargets, tickCombat } from "./game/combat/hitModel";
@@ -38,6 +37,7 @@ import { loadouts } from "./game/loadouts";
 import { grantXp } from "./game/progression/curves";
 import { MAIN_QUEST_IDS, QUEST_IDS, quests } from "./game/quests/catalog";
 import { session } from "./game/session";
+import { SCRAP_SLOTS } from "./game/scrapSlots";
 import {
   currentZoneStore,
   discoveredStationsStore,
@@ -261,7 +261,8 @@ function onInit(ctx: GameContext): void {
   syncCombatTargets(ctx);
   // Mount the three boot-probed systems: the damage model (its devtools probe reports every hit), the
   // save document and the scrip journal. Each is per-context state that the world snapshot cannot see.
-  void scrapSave(ctx);
+  // The document opens in the first kept-run bay, so a checkpoint is a slot the menu can list.
+  void scrapSave(ctx, SCRAP_SLOTS[0].id);
   openBooks(ctx);
   // The world snapshot autosaves on the engine's trailing timer; this document mirrors each of those
   // writes, so a reload mid-run restores the loaded rounds, reserve and statuses from the same moment.
@@ -292,11 +293,14 @@ function onNewPlayer(ctx: GameContext): void {
 }
 
 /**
- * The fresh spawn above is a baseline; the whole-world save decides the real boot. `load()` restores
- * every persisted subsystem (entities, stats, inventory, economy, quests, the character-id/talent-rank
- * stores) over that baseline, then `resumeBuild` re-derives the module-level character/talent singletons
- * and drops straight into play. Otherwise (or when the save predates a character pick) we open character
- * select — but never override a phase the capture harness's `character.pick` may have set concurrently.
+ * The fresh spawn above is a baseline; the whole-world save decides what the boot *offers*. `load()`
+ * restores every persisted subsystem (entities, stats, inventory, economy, quests, the character-id and
+ * talent-rank stores) over that baseline, then `resumeBuild` re-derives the module-level character and
+ * talent singletons so the restored run is ready to continue.
+ *
+ * A boot never resumes a run on its own: the saved phase is a fact about the document, not an
+ * instruction to start, so the phase is `menu` whatever the snapshot said. Continue and New run are
+ * the only ways out, and they are the player's.
  */
 async function resumeOrStart(ctx: GameContext): Promise<void> {
   const worldLoaded = await loadSavedProgress(ctx);
@@ -307,15 +311,9 @@ async function resumeOrStart(ctx: GameContext): Promise<void> {
     if (!systemsLoaded) session.selectSlot(ctx, selectedSlotStore.read(ctx));
     noteEquipped(ctx.player.inventory.state("hotbar").slots[session.selectedSlot()]?.itemId ?? null);
     restoreMastWatch(ctx);
-    const relay = relayStore.read(ctx);
-    const ended = relay.phase === "won" || relay.phase === "lost";
-    setGamePhase(ctx, ended ? "ended" : "playing");
-    if (ended) ctx.time.pause();
-    else ctx.time.play();
-    stageReserveForCapture(ctx);
-    return;
   }
-  if (activeCharacter() === null) setGamePhase(ctx, "menu");
+  setGamePhase(ctx, "menu");
+  ctx.time.pause();
 }
 
 /** One staged boot per session: the dev hook above must not re-wound a reconstructed chassis. */
@@ -328,6 +326,7 @@ const stagedReserve = perContext(() => ({ staged: false }));
  */
 function stageReserveForCapture(ctx: GameContext): void {
   if (!import.meta.env.DEV) return;
+  if (gamePhase(ctx) !== "playing") return;
   const staged = stagedReserve(ctx);
   if (staged.staged) return;
   if (new URLSearchParams(window.location.search).get("stage") !== "downed") return;
@@ -338,24 +337,6 @@ function stageReserveForCapture(ctx: GameContext): void {
 }
 
 function onTick(ctx: GameContext, dt: number): void {
-  // A reload restores the run and the phase store with it. The front end still comes first: one
-  // frame after the restore, a run nobody has continued yet sits behind the menu.
-  // A headless run (a test) has no menu to open; the boot pass is a browser concern.
-  if (typeof document !== "undefined" && !menuBootedStore.read(ctx)) {
-    menuBootedStore.write(ctx, true);
-    const openMenu = () => {
-      // A restored run waits behind the roster: the menu is the way back in, and Continue is the
-      // only thing that puts the reclaimer back in the field.
-      if (!menuRunStartedStore.read(ctx) && activeCharacter() !== null) {
-        characterIdStore.write(ctx, null);
-        resetCharacterState();
-        setGamePhase(ctx, "menu");
-        ctx.time.pause();
-      }
-    };
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(openMenu));
-    else openMenu();
-  }
   stageReserveForCapture(ctx);
   const nowMs = ctx.time.now() * 1000;
   noteGameNow(nowMs);

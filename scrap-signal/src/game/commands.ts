@@ -5,7 +5,7 @@ import { buyGear, spend } from "./cash";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { stageRelay } from "./relay";
-import { setGamePhase } from "@jgengine/core/game/gamePhase";
+import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, resetCharacterState, talentTree, bonus } from "./characters";
 import { scrapSave } from "./save";
 import { captureScrapThumb, scrapProfile } from "./scrapProfile";
@@ -22,7 +22,6 @@ import {
   discoveredStationsStore,
   echoStore,
   lastPickupStore,
-  menuRunStartedStore,
   openedChestsStore,
   skillsOpenStore,
   talentRanksStore,
@@ -31,7 +30,6 @@ import {
 } from "./stores";
 import { TRAVEL_STATIONS } from "./world/sites";
 import { zoneLevelAt } from "./world/zones";
-
 export const BLACK_MARKET_UPGRADES = [
   { id: "ammo", name: "Ammo SDU", blurb: "+30% max ammo, every pool" },
   { id: "health", name: "Health SDU", blurb: "+25 max health" },
@@ -404,7 +402,8 @@ export function registerCommands(ctx: GameContext): void {
   // The menu's own verbs: keep the run where it stands, and open a kept one.
   ctx.game.commands.define<{ slot?: string }>("run.save", {
     apply(state, input) {
-      scrapProfile.name = activeCharacter()?.name ?? scrapProfile.name;
+      // A call sign the player typed is the run's name; only fall back to the reclaimer's when empty.
+      scrapProfile.name = scrapProfile.name ?? activeCharacter()?.name ?? null;
       void captureScrapThumb().then(async () => {
         const save = scrapSave(state);
         if (typeof input?.slot === "string" && input.slot !== save.slot()) await save.switchSlot(input.slot, { flush: false });
@@ -454,12 +453,20 @@ export function registerCommands(ctx: GameContext): void {
       },
     });
   }
-  ctx.game.commands.define<{ characterId?: string }>("character.pick", {
+  ctx.game.commands.define<{ characterId?: string; slot?: string }>("character.pick", {
     apply(state: GameContext, input) {
-      if (activeCharacter() !== null) return;
       const def = characterById(input.characterId ?? "");
       if (def === undefined) return;
-      menuRunStartedStore.write(state, true);
+      // A pick only starts a run from the front end: a restored run waits behind the menu, so the
+      // menu's New run replaces its reclaimer. Mid-run, the roster is not reachable and a pick is
+      // ignored.
+      if (activeCharacter() !== null && gamePhase(state) !== "menu") return;
+      // The bay the player chose in the menu owns the kept run, so a checkpoint lands in a slot the
+      // menu lists instead of the document's default one.
+      const save = scrapSave(state, input.slot);
+      if (typeof input.slot === "string" && input.slot !== save.slot()) {
+        void save.switchSlot(input.slot, { flush: false }).then(() => refreshScrapSlots(state));
+      }
       pickCharacter(def.id);
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
