@@ -56,6 +56,11 @@ const DRIVE_CAMERA_TUNING: ChaseCameraTuning = {
   bank: { perYawRate: 0.1, max: 0.18, damping: 6.5 },
 };
 
+/** A long body pulls the chase camera back and up so the bus is framed, not filling the screen. */
+const LONG_BODY_CAMERA: Record<string, ChaseCameraTuning> = {
+  car_bus: { ...DRIVE_CAMERA_TUNING, distance: 12.5, height: 4.6, lookHeight: 2.1 },
+};
+
 /** Drive axes bound to this game's own action names, not raw key codes — the `ctx.input.axis` contract (#533.7). */
 const DRIVE_AXIS_BINDINGS: AxisBindingMap = {
   throttle: { positive: ["moveForward"] },
@@ -421,7 +426,7 @@ export function createDriving(): Driving {
         carVehicleFor(ctx, vehicleId);
       }
       ctx.camera.follow(result.cameraTarget);
-      ctx.camera.setChaseTuning(DRIVE_CAMERA_TUNING);
+      ctx.camera.setChaseTuning(LONG_BODY_CAMERA[definition.id] ?? DRIVE_CAMERA_TUNING);
       setRiderSeated(ctx, ctx.player.userId, result.riderMovementPatch.frozen);
       drivingStore.write(ctx, vehicleId);
       setTouchControlsMode(ctx, definition.dynamics.type === "aircraft" ? "aircraft" : "car");

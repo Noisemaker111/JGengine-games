@@ -53,10 +53,11 @@ export function GameUI() {
           <HudPanel id="hotbar" anchor={short ? "top" : "bottom"} compact="keep"><Hotbar /></HudPanel>
           <HudPanel id="speedo" anchor={short ? "top-right" : "bottom-right"} order={short ? 2 : 0} compact="keep" interactive={false}><Speedo /></HudPanel>
           <HudPanel id="radio" anchor={short ? "top-right" : "bottom-right"} order={short ? 3 : -1} compact="keep"><RadioReadout /></HudPanel>
-          <HudPanel id="counter" anchor="center" compact="keep"><Counters /></HudPanel>
           <HudPanel id="phone" anchor="right" compact="keep"><PhonePanel /></HudPanel>
         </HudCanvas>
       ) : null}
+      {/* Counters and talk are full-screen moments over the HUD, laid out at their own phone sizes. */}
+      {started && !paused ? <Counters /> : null}
     </>
   );
 }

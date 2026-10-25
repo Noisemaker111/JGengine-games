@@ -1,6 +1,8 @@
 import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { useDisplayProfile } from "@jgengine/react/display";
 import { createGameMenuSound, type GameMenuSound } from "@jgengine/react/gameMenuSound";
+import { useGameContext } from "@jgengine/react/provider";
+import { activeTouchControlsMode, setTouchControlsMode } from "@jgengine/core/input/touchControlsMode";
 
 /**
  * Mainsail's street hardware, drawn in code: the amber-backlit LCD of a burner phone and a courier
@@ -144,3 +146,19 @@ export function clockText(hour: number, minute: number): string {
 
 /** Signed thousands with a dollar sign: 1420 → "$1,420". */
 export const money = (amount: number): string => `$${Math.round(amount).toLocaleString("en-US")}`;
+
+/**
+ * While a full-screen moment (a counter, a talk, a receipt) is up, the touch stick and verb buttons
+ * step aside so they never sit on its buttons; the mode that was active comes back when it closes.
+ */
+export function useScreenTouch(active = true): void {
+  const ctx = useGameContext();
+  useEffect(() => {
+    if (!active) return;
+    const before = activeTouchControlsMode(ctx);
+    setTouchControlsMode(ctx, "screen");
+    return () => {
+      if (activeTouchControlsMode(ctx) === "screen") setTouchControlsMode(ctx, before);
+    };
+  }, [ctx, active]);
+}

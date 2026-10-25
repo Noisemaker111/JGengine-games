@@ -1,19 +1,20 @@
-import type { ReactNode } from "react";
 import type { GameContext } from "@jgengine/core/runtime/gameContext";
 import { runDialogueChoice, useOpenDialogueId, type DialogueDef } from "@jgengine/react/components";
-import { useCurrency, useEntityStat, useGame, useGameStore, usePlayer } from "@jgengine/react/hooks";
+import { useCurrency, useEntityStat, useGame, useGameStore, useInventory, usePlayer } from "@jgengine/react/hooks";
 import { useStore } from "@jgengine/react/store";
-import { KitButton, KitPanel } from "@jgengine/react/uiKitRoot";
 import { cityOf } from "../../cityRuntime";
 import { bestRaceStore, garageStore, shopStore } from "../../commands";
 import { ITEM_LABELS } from "../../content";
-import { VEHICLES } from "../../entities/vehicles/catalog";
+import { VEHICLES, type VehicleDef } from "../../entities/vehicles/catalog";
 import { wantedStore } from "../../handroll";
 import { marketStore } from "../../items/nightMarket";
-import { GEAR, WEAPONS } from "../../items/weapons/catalog";
+import { GEAR, WEAPONS, type GearDef, type WeaponDef } from "../../items/weapons/catalog";
 import { CRED_GATES } from "../../progression/cred";
+import { FaceToFace, type Reply, type Speaker } from "../fiction/FaceToFace";
+import { PriceBoard, type BoardSection } from "../fiction/PriceBoard";
 
-const GUNS = [...WEAPONS, ...GEAR].filter((item) => item.trade?.buy !== undefined && item.trade.shops?.includes("shop_ammunation"));
+const GUNS = WEAPONS.filter((item) => item.trade?.buy !== undefined && item.trade.shops?.includes("shop_ammunation"));
+const KIT = GEAR.filter((item) => item.trade?.buy !== undefined && item.trade.shops?.includes("shop_ammunation"));
 const CARS = VEHICLES.filter((car) => car.price > 0);
 
 /**
@@ -38,50 +39,120 @@ export function conversation(ctx: GameContext, dialogueId: string): DialogueDef 
   };
 }
 
-interface Row { id: string; label: string; price: number; run: [string, unknown] }
+/** Whose face a contact's portrait is shot from: their own cast body, else their crew's. */
+const PORTRAITS: Record<string, string> = { marco: "contact_marco", sal: "kingpin_sal", rita: "ped_city", dee: "cop_patrol" };
+const CREW_PORTRAITS: Record<string, string> = { carmine: "ganger_dock", hhpd: "cop_patrol", locals: "ped_city" };
 
-/** A street counter: what is on sale, what you can afford, and the way out. */
-function Counter({ title, rows, extra, leave }: { title: string; rows: Row[]; extra?: ReactNode; leave: string }) {
+function speakerOf(ctx: GameContext, dialogueId: string): Speaker | null {
+  const id = dialogueId.slice("person:".length);
+  const world = cityOf(ctx);
+  const person = world.def.people?.[id];
+  if (person === undefined) return null;
+  const faction = person.faction;
+  return {
+    name: person.name,
+    faction,
+    crew: faction === undefined ? undefined : world.def.factions?.[faction]?.label,
+    portrait: PORTRAITS[id] ?? (faction === undefined ? undefined : CREW_PORTRAITS[faction]),
+  };
+}
+
+/** What a gun or a box does, in a line short enough for the board. */
+function weaponLine(item: WeaponDef): string {
+  if (item.weapon.explosion !== undefined) return `Thrown · ${item.weapon.damage} blast · ${item.weapon.explosion.radius} m`;
+  const perSecond = Math.round((item.weapon.damage * 1000) / item.fireIntervalMs);
+  return `${item.weapon.damage} a shot · ${perSecond} a second · ${item.ammo === "shell" ? "12-gauge" : "9 mm"}`;
+}
+function gearLine(item: GearDef): string {
+  if (item.heal !== undefined) return `Patches ${item.heal} health · Q to use`;
+  if (item.armor !== undefined) return `${item.armor} armor over your health`;
+  if (item.ammoGrant !== undefined) return `${item.ammoGrant.amount} rounds into your pocket`;
+  return "";
+}
+function carLine(car: VehicleDef): string {
+  if (car.dynamics.type !== "ground") {
+    const tuning = car.dynamics.tuning;
+    const what = tuning.kind === "rotorcraft" ? "Helicopter" : tuning.kind === "fixedWing" ? "Plane, needs a runway" : "Jump jet, lifts off straight up";
+    return `${what} · tops out near ${Math.round(tuning.maxSpeed * 3.6)} km/h`;
+  }
+  const top = Math.round(car.dynamics.tuning.topSpeed * 3.6);
+  return `Tops out near ${top} km/h · ${car.collisionRadius >= 2 ? "heavy" : car.collisionRadius >= 1.5 ? "sturdy" : "light"} build`;
+}
+
+function countIn(slots: readonly ({ itemId: string; count?: number } | null | undefined)[], itemId: string): number {
+  let total = 0;
+  for (const slot of slots) if (slot?.itemId === itemId) total += slot.count ?? 1;
+  return total;
+}
+
+/** The Ammu-Isle gun counter: tonight's night-market pieces, the rack, the shelf, and the bribe. */
+function GunCounter() {
   const { commands } = useGame();
   const cash = useCurrency("cash");
   const cred = useEntityStat(usePlayer().userId, "level")?.current ?? 1;
-  return (
-    <KitPanel variant="card" title={title} aside={`$${cash.toLocaleString()}`} style={{ width: "min(22rem, 88vw)" }} footer={<>{extra}<KitButton size="sm" tone="bad" onClick={() => commands.run(leave, {})}>Leave</KitButton></>}>
-      <div style={{ display: "grid", gap: 10, justifyItems: "start" }}>
-        {rows.map((row) => {
-          const gate = CRED_GATES[row.id];
-          const locked = gate !== undefined && cred < gate;
-          return <KitButton key={row.id} size="sm" disabled={locked || cash < row.price} onClick={() => commands.run(...row.run)}>{row.label} · {locked ? `Cred ${gate}` : `$${row.price.toLocaleString()}`}</KitButton>;
-        })}
-      </div>
-    </KitPanel>
-  );
+  const market = useStore(marketStore);
+  const stars = useStore(wantedStore, (wanted) => wanted?.stars ?? 0);
+  const hotbar = useInventory("hotbar");
+  const backpack = useInventory("backpack");
+  const sections: BoardSection[] = [
+    {
+      id: "market",
+      title: "Night market",
+      note: "one of each · tonight only",
+      rows: (market?.items ?? []).map((item) => ({ id: item.id, name: item.name, tag: item.rarity, line: `Level ${item.level} · ${item.damage} a shot`, price: item.price, pick: () => commands.run("market.buy", { itemId: item.id }) })),
+    },
+    {
+      id: "rack",
+      title: "The rack",
+      rows: GUNS.map((item) => ({ id: item.id, name: ITEM_LABELS[item.id] ?? item.label, line: weaponLine(item), price: item.trade?.buy?.cash ?? 0, gate: CRED_GATES[item.id], owned: item.id.startsWith("grenade") ? undefined : countIn(hotbar, item.id) > 0, count: item.id.startsWith("grenade") ? countIn(hotbar, item.id) : undefined, pick: () => commands.run("shop.buy", { item: item.id }) })),
+    },
+    {
+      id: "shelf",
+      title: "The shelf",
+      rows: KIT.map((item) => ({ id: item.id, name: ITEM_LABELS[item.id] ?? item.label, line: gearLine(item), price: item.trade?.buy?.cash ?? 0, gate: CRED_GATES[item.id], count: countIn(backpack, item.id), pick: () => commands.run("shop.buy", { item: item.id }) })),
+    },
+    {
+      id: "under",
+      title: "Under the counter",
+      note: "HHPD takes cash",
+      rows: stars === 0 ? [] : [{ id: "bribe", name: "Make HHPD forget you", line: `Clears all ${stars} star${stars === 1 ? "" : "s"} of heat`, price: stars * 250, pick: () => commands.run("shop.bribe", {}) }],
+    },
+  ];
+  return <PriceBoard look="pawn" kicker="Mainsail · guns · ammo · armor" title="Ammu-Isle" sub="Cash only. No names, no questions." sections={sections} cash={cash} cred={cred} onLeave={() => commands.run("shop.close", {})} />;
+}
+
+/** Sunset Motors: Rita's lot, each car with its price on the windscreen. */
+function CarLot() {
+  const { commands } = useGame();
+  const cash = useCurrency("cash");
+  const cred = useEntityStat(usePlayer().userId, "level")?.current ?? 1;
+  const bestLap = useStore(bestRaceStore, (v) => v);
+  const sections: BoardSection[] = [{
+    id: "lot",
+    title: "On the lot",
+    note: "delivered to the bay out front",
+    rows: CARS.map((car) => ({ id: car.id, name: car.label, line: carLine(car), price: car.price, gate: CRED_GATES[car.id], pick: () => commands.run("garage.buy", { vehicle: car.id }) })),
+  }];
+  return <PriceBoard look="lot" kicker="Rita Salgado · used & fast" title="Sunset Motors" sub="Every car runs. Most of them are clean." sections={sections} cash={cash} cred={cred} onLeave={() => commands.run("garage.close", {})} aside={bestLap === undefined ? null : `Ocean Loop record on the wall: ${bestLap.toFixed(1)} s`} />;
+}
+
+function Talk({ dialogue, dialogueId }: { dialogue: DialogueDef; dialogueId: string }) {
+  const { commands } = useGame();
+  const speaker = useGameStore((ctx) => speakerOf(ctx, dialogueId), (a, b) => a?.name === b?.name && a?.portrait === b?.portrait);
+  if (speaker === null) return null;
+  const lines = dialogue.lines.flatMap((line) => ("text" in line ? [line.text] : []));
+  const choices = dialogue.lines.flatMap((line) => ("choices" in line ? line.choices : []));
+  const replies: Reply[] = choices.map((choice) => ({ label: choice.label, job: choice.invoke?.command === "city.job.start", run: () => runDialogueChoice(commands, choice, null) }));
+  return <FaceToFace key={dialogue.id} speaker={speaker} lines={lines} replies={replies} onLeave={() => commands.run("dialogue.close", {})} />;
 }
 
 export function Counters() {
-  const { commands } = useGame();
   const dialogueId = useOpenDialogueId();
   const shop = useStore(shopStore, (v) => v ?? null);
   const garage = useStore(garageStore, (v) => v === true);
-  const market = useStore(marketStore);
-  const stars = useStore(wantedStore, (wanted) => wanted?.stars ?? 0);
-  const bestLap = useStore(bestRaceStore, (v) => v);
   const dialogue = useGameStore((ctx) => (dialogueId === null ? null : conversation(ctx, dialogueId)), (a, b) => a?.id === b?.id);
-  if (dialogue !== null) {
-    const speaker = dialogue.lines.find((line) => "speaker" in line);
-    return (
-      <KitPanel key={dialogue.id} variant="card" title={speaker !== undefined && "speaker" in speaker ? speaker.speaker : undefined} style={{ width: "min(28rem, 88vw)", textTransform: "none" }}>
-        {dialogue.lines.map((line, index) => "choices" in line
-          ? <div key={index} style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 12 }}>{line.choices.map((choice, at) => <KitButton key={choice.label} size="sm" variant={at === 0 ? "primary" : "secondary"} onClick={() => runDialogueChoice(commands, choice, null)}>{choice.label}</KitButton>)}</div>
-          : <p key={index} style={{ margin: "0 0 8px" }}>{line.text}</p>)}
-      </KitPanel>
-    );
-  }
-  if (shop !== null) {
-    const deals: Row[] = (market?.items ?? []).map((item) => ({ id: item.id, label: `Night market: ${item.name}`, price: item.price, run: ["market.buy", { itemId: item.id }] }));
-    const guns: Row[] = GUNS.map((item) => ({ id: item.id, label: ITEM_LABELS[item.id] ?? item.id, price: item.trade?.buy?.cash ?? 0, run: ["shop.buy", { item: item.id }] }));
-    return <Counter title="Ammu-Isle" rows={[...deals, ...guns]} leave="shop.close" extra={stars === 0 ? null : <KitButton size="sm" onClick={() => commands.run("shop.bribe", {})}>Bribe HHPD · ${stars * 250}</KitButton>} />;
-  }
-  if (!garage) return null;
-  return <Counter title="Sunset Motors" rows={CARS.map((car) => ({ id: car.id, label: car.label, price: car.price, run: ["garage.buy", { vehicle: car.id }] }))} leave="garage.close" extra={bestLap === undefined ? null : <span>Ocean Loop best {bestLap.toFixed(1)} s</span>} />;
+  if (dialogue !== null && dialogueId !== null) return <Talk dialogue={dialogue} dialogueId={dialogueId} />;
+  if (shop !== null) return <GunCounter />;
+  if (garage) return <CarLot />;
+  return null;
 }

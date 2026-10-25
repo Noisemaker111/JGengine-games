@@ -1,4 +1,4 @@
-// Builds the far-detail ("level 2") meshes Harbor Heat draws past 60 m: a decimated palm.
+// Builds far-detail ("level 2") meshes Harbor Heat draws past 60 m by decimating a source GLB.
 // Reads the source GLBs and writes tracked far GLBs, so the art can be regenerated:
 //
 //   bun run provision harbor-heat && node scripts/build-far-meshes.mjs
@@ -40,12 +40,13 @@ function resolveImageUris(json, source) {
   }
 }
 
-/** Triangle ceilings: about 45% of each source mesh, chosen so the crown and trunk line hold. */
-const MODELS = [
-  // 1,010 triangles keeps the palm's worst-case silhouette at 95% of the full mesh across eight
-  // yaws and all three street heights; 673 measured 80.6%, a visibly notched trunk at 60 m.
-  { name: "mainsail-palm", src: "src/art/mainsail-palm.glb", out: "src/art/mainsail-palm-far.glb", triangles: 1000 },
-];
+/**
+ * Triangle ceilings: about 45% of each source mesh. Empty today: the Mainsail palm's far level is
+ * authored alongside its near level by `scripts/author-harbor.mjs` (same crown, fewer leaflets and
+ * rings), so it no longer comes from here. Add an entry to decimate a model that has no authored
+ * far level: { name, src: "src/art/x.glb", out: "src/art/x-far.glb", triangles }.
+ */
+const MODELS = [];
 
 const COMPONENT = { 5120: [Int8Array, 1], 5121: [Uint8Array, 1], 5122: [Int16Array, 2], 5123: [Uint16Array, 2], 5125: [Uint32Array, 4], 5126: [Float32Array, 4] };
 const TYPE_SIZE = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT2: 4, MAT3: 9, MAT4: 16 };

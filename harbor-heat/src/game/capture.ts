@@ -7,6 +7,7 @@ import { harborSave, saveHarborState } from "./save";
 import { startedStore } from "./commands";
 import { sessionStore } from "./session";
 import { handrollOf } from "./handroll";
+import { courierStore } from "./jobs/courier";
 
 /** What a staged chase should look like when the capture takes it. */
 export type StageMode = "chase";
@@ -83,6 +84,28 @@ export function registerCaptureCommands(ctx: GameContext): void {
   ctx.game.commands.define<{ mode?: StageMode }>("chase.stage", {
     apply(state, input) {
       stageChase(state, input.mode ?? "chase");
+      return state;
+    },
+  });
+  // The courier behind the wheel of a fresh car on the boulevard, so a capture sees the dash.
+  ctx.game.commands.define<{ vehicle?: string }>("drive.stage", {
+    apply(state, input) {
+      const handroll = handrollOf(state);
+      const player = state.scene.entity.get(state.player.userId);
+      if (player === null || handroll.drivingVehicleId() !== null) return state;
+      const kind = vehicleById(input?.vehicle ?? "") === undefined ? "car_sport" : input!.vehicle!;
+      const [x, , z] = player.position;
+      const id = state.scene.entity.spawn(kind, { position: [x, state.world.groundHeightAt(x, z), z], rotationY: player.rotationY ?? 0, role: "prop" });
+      handroll.enterVehicle(state, id);
+      return state;
+    },
+  });
+  // The end-of-run receipt, paid or missed, without carrying a parcel across town.
+  ctx.game.commands.define<{ won?: boolean }>("result.stage", {
+    apply(state, input) {
+      const won = input?.won !== false;
+      courierStore.write(state, { ...courierStore.read(state), phase: won ? "won" : "lost", receipt: { won, reward: won ? 340 : 0, reason: won ? null : "Deadline passed" } });
+      sessionStore.write(state, { ...sessionStore.read(state), notice: "courier" });
       return state;
     },
   });
