@@ -1,11 +1,13 @@
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useCanvasCover } from "@jgengine/react";
+import { CreditsPanel } from "@jgengine/react/creditsPanel";
 import { useGame } from "@jgengine/react/hooks";
 import { useGameContext } from "@jgengine/react/provider";
 import { useSaveSlots } from "@jgengine/react/saveSlots";
 
 import { gamePhase } from "@jgengine/core/game/gamePhase";
 
+import { SCRAP_CREDITS } from "../../credits";
 import { scrapProfile } from "../../scrapProfile";
 import { SCRAP_SLOTS, refreshScrapSlots, scrapSlots } from "../../scrapSlots";
 import { BroadcastTitle, type KeptSignal } from "../fiction/BroadcastTitle";
@@ -29,6 +31,7 @@ export function ScrapMenu(): ReactNode {
   const phase = useSyncExternalStore(ctx.subscribe, () => gamePhase(ctx), () => gamePhase(ctx));
   const slots = useSaveSlots(scrapSlots);
   const [callSign, setCallSign] = useState("");
+  const [credits, setCredits] = useState(false);
 
   // Refresh the kept-run index when the menu appears, not on every render: the refresh writes the
   // index, the index notifies the pane, and an effect keyed on the context identity would loop.
@@ -56,8 +59,13 @@ export function ScrapMenu(): ReactNode {
         ].filter((part) => part !== undefined && part !== "").join(" · "),
       };
 
+  if (credits) {
+    return <CreditsPanel open document={SCRAP_CREDITS} title="Scrap Signal credits" onBack={() => setCredits(false)} />;
+  }
+
   return (
     <BroadcastTitle
+      onCredits={() => setCredits(true)}
       kept={signal}
       onContinue={() => { if (recent !== null) commands.run("run.continue", { slot: recent.id }); }}
       callSign={callSign}

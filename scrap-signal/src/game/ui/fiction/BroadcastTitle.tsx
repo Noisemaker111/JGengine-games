@@ -24,12 +24,14 @@ export function BroadcastTitle({
   onContinue,
   callSign = "",
   onCallSign,
+  onCredits,
 }: {
   onPick: (characterId: string) => void;
   kept?: KeptSignal | null;
   onContinue?: () => void;
   callSign?: string;
   onCallSign?: (next: string) => void;
+  onCredits?: () => void;
 }) {
   const profile = useDisplayProfile();
   const compact = profile.compact;
@@ -125,6 +127,9 @@ export function BroadcastTitle({
       <footer className="ss-broadcast-foot">
         <ControlKeys />
         <span className="ss-osd-hint">Arrows or mouse to tune · Enter to lock the channel</span>
+        {onCredits === undefined ? null : (
+          <button type="button" className="ss-credits-link" data-scrap-credits="" onClick={onCredits}>Credits</button>
+        )}
       </footer>
     </div>
   );

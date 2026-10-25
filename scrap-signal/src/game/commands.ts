@@ -5,6 +5,7 @@ import { buyGear, spend } from "./cash";
 import { gearById, AMMO_PRICES } from "./items/gear/catalog";
 import { noteShotNoise, stageFrontBoss, stageFrontFight } from "./encounters/front";
 import { stageRelay } from "./relay";
+import { noteRunStarted } from "./bootPhase";
 import { gamePhase, setGamePhase } from "@jgengine/core/game/gamePhase";
 import { activeCharacter, characterById, pickCharacter, resetCharacterState, talentTree, bonus } from "./characters";
 import { scrapSave } from "./save";
@@ -416,6 +417,7 @@ export function registerCommands(ctx: GameContext): void {
   });
   ctx.game.commands.define<{ slot?: string }>("run.continue", {
     apply(state, input) {
+      noteRunStarted(state);
       void (async () => {
         const save = scrapSave(state);
         if (typeof input?.slot === "string" && input.slot !== save.slot()) await save.switchSlot(input.slot, { flush: false });
@@ -435,6 +437,7 @@ export function registerCommands(ctx: GameContext): void {
         const def = characterById(id);
         if (def === undefined) return state;
         scrapProfile.name = input?.name ?? def.name;
+        noteRunStarted(state);
         pickCharacter(def.id);
         characterIdStore.write(state, def.id);
         applyPassiveEffects(state);
@@ -467,6 +470,7 @@ export function registerCommands(ctx: GameContext): void {
       if (typeof input.slot === "string" && input.slot !== save.slot()) {
         void save.switchSlot(input.slot, { flush: false }).then(() => refreshScrapSlots(state));
       }
+      noteRunStarted(state);
       pickCharacter(def.id);
       characterIdStore.write(state, def.id);
       applyPassiveEffects(state);
