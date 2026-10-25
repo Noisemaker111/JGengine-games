@@ -9,6 +9,7 @@ import { activeSurge, compactorGap, compactorZAt, type CompactorPlan, type Compa
 import { lineReading } from "./haul";
 import { compactorPlanForShift, rivalsForShift, shiftInfo, SHIFT_TABLE, type ShiftEffect } from "./shifts";
 import { readRunState, saveRunState } from "./shiftState";
+import { createGhostRecorder, readGhosts, replayGhost, saveGhost, type GhostPose, type GhostReplay } from "./ghost";
 import { resolveCrusherContact } from "../compactor/contact";
 import { partInSlotId, tuningFrom, type KartTuning } from "../parts/build";
 import type { DriftFoundryPartDef } from "../parts/catalog";
@@ -24,7 +25,8 @@ import { EXIT_Z, NEAR_MISS_ENTER, NEAR_MISS_EXIT, RUN_SEED, SPAWN_Z } from "./co
 import { zoneAt, zoneProgress, type ZoneDef } from "../zones/catalog";
 import { browserRecordStorage, completeRun, readRecords, saveRecords, type PersonalBest, type RunRecords, type RecordStorage } from "./records";
 import { checkpointParts, readParkedRun, saveParkedRun, type ParkedRun } from "./progress";
-import { ESCAPE_BONUS, bankOf, buyPart as buyGaragePart, garageRows, ownedParts, readCareer, SALVAGE_CREDITS, saveCareer, settleRun, standingOf, DRIVER, type CareerSave } from "../career";
+import { ESCAPE_BONUS, bankOf, buyPart as buyGaragePart, garageRows, medalsOf, ownedParts, readCareer, SALVAGE_CREDITS, saveCareer, settleRun, standingOf, DRIVER, type CareerSave } from "../career";
+import { DEFAULT_EVENT_ID, eventById, eventCompactor, eventRivals, formatMetric, MEDALS, targetText, YARD_EVENTS, YARD_TIERS, type MedalId, type YardEvent } from "../events/catalog";
 
 /**
  * Where a run stands, in the player's words. It is derived, never stored: a settled run reports the
@@ -60,6 +62,46 @@ export interface RunOutcome {
   lost: number;
   /** What the next run changes, drawn as this one was settled. */
   nextShift: { id: string; label: string; hint: string } | null;
+  /** The calendar event this run raced and what it did to that event's medals. */
+  event: EventResult;
+}
+
+/** One calendar event's result on the results card. */
+export interface EventResult {
+  id: string;
+  label: string;
+  /** The run's number on the event's metric, as words, or `null` when a wreck set none. */
+  result: string | null;
+  /** The medal this run earned on its own. */
+  medal: MedalId | null;
+  /** Medals held on the event for the first time, with what each one paid. */
+  firstTime: readonly { medal: MedalId; credits: number }[];
+  /** Credits the first-time medals paid on top of the line. */
+  reward: number;
+  /** Calendar tiers this run opened. */
+  openedTiers: readonly string[];
+  /** The next medal still on offer and what it asks for. */
+  next: { medal: MedalId; text: string } | null;
+  newBest: boolean;
+}
+
+/** One event on the calendar, as the pit's board reads it. */
+export interface CalendarEvent {
+  event: YardEvent;
+  open: boolean;
+  selected: boolean;
+  medal: MedalId | null;
+  best: string | null;
+  next: { medal: MedalId; text: string } | null;
+}
+
+export interface CalendarTier {
+  id: string;
+  label: string;
+  requires: number;
+  open: boolean;
+  missing: number;
+  events: readonly CalendarEvent[];
 }
 
 export interface SessionSnapshot {
@@ -103,6 +145,12 @@ export interface SessionSnapshot {
   rivals: readonly RivalBody[];
   /** Career money, standing and the garage's next rung per slot, as the pit screen reads them. */
   career: { credits: number; standing: number; tier: string; garage: ReturnType<typeof garageRows>; saved: boolean };
+  /** The event this run races, and the medal it asks for next. */
+  event: { id: string; label: string; blurb: string; garage: boolean; medal: MedalId | null; next: { medal: MedalId; text: string } | null };
+  /** Your best run on this timed event, replayed on the run clock; `null` on untimed events or before a first escape. */
+  ghost: { pose: GhostPose | null; best: number; aheadMetres: number | null } | null;
+  /** The yard calendar: tiers, events, medals held and medal points. */
+  calendar: { points: number; maxPoints: number; tiers: readonly CalendarTier[] };
 }
 
 export interface RunSession {
@@ -110,6 +158,8 @@ export interface RunSession {
   start(): void;
   restart(): void;
   returnToTitle(): void;
+  /** Pick the calendar event the next run races; refused while it is locked or a run is under way. */
+  selectEvent(eventId: string): { ok: boolean; reason?: string };
   /** Buy the next rung of a slot's ladder; the pit screen re-reads the career from the snapshot. */
   buyPart(slot: PartSlotId): { ok: boolean; reason?: string };
   /** Park the stopped, grounded run where it stands; false when it is moving or airborne. */
@@ -153,6 +203,22 @@ export function createRunSession(
   let outcome: RunOutcome | null = null;
   let career: CareerSave = readCareer(storage);
   let careerSaved = true;
+  /** The event the open run races; a locked or unknown saved choice falls back to the salvage run. */
+  function currentEvent(): YardEvent {
+    const chosen = eventById(career.event);
+    return chosen !== null && medalsOf(career).isOpen(chosen.id) ? chosen : eventById(DEFAULT_EVENT_ID)!;
+  }
+  let event: YardEvent = currentEvent();
+  const startingParts = (): readonly DriftFoundryPartDef[] => (event.garage ? ownedParts(career) : []);
+  const ghostRecorder = createGhostRecorder();
+  let ghosts = readGhosts(storage);
+  let ghostReplay: GhostReplay | null = null;
+  /** A run resumed from a parked checkpoint has no frames before the park, so it never becomes the ghost. */
+  let ghostRecording = true;
+  function loadGhost(): void {
+    const saved = event.metric === "time" ? ghosts[event.id] : undefined;
+    ghostReplay = saved === undefined ? null : replayGhost(saved);
+  }
   let runSaved = true;
   // The run loop owns what a run carries, what a settled run banks or loses, and the shift the next
   // run draws. The money stays in the career bank; this only decides how much of it arrives. Every
@@ -169,7 +235,7 @@ export function createRunSession(
     },
   });
   let shift: { id: string; label: string; hint: string } | null = shiftInfo(loop.offer().changeId);
-  let compactor: CompactorPlan = compactorPlanForShift(loop.offer().changeId);
+  let compactor: CompactorPlan = eventCompactor(event, compactorPlanForShift(loop.offer().changeId));
 
   // Handling is composed from the installed parts and the damage baked into the body, then handed to
   // the sim as one object. The controller retunes by reference, so an installed part or a bent nose
@@ -189,7 +255,7 @@ export function createRunSession(
   function createField(): OpponentField {
     return createOpponentField({
       groundHeightAt,
-      defs: rivalsForShift(loop.offer().changeId),
+      defs: eventRivals(event, rivalsForShift(loop.offer().changeId)),
       // A rival's bumper is real: contact moves the player's kart too, without costing either kart the
       // momentum their driver had built up.
       onPlayerKnock: (dx, dz) => {
@@ -203,12 +269,15 @@ export function createRunSession(
   // the player; `createStandings` wraps the shared race state machine, which owns order, laps and
   // the finish condition. The field is rebuilt per run because a shift can change a rival's line.
   let opponents: OpponentField = createField();
-  const standings: Standings = createStandings({
-    ...Object.fromEntries(RIVAL_DEFS.map((def) => [def.id, def.name])),
-    // Added last so the player starts bottom of the grid, behind all three rivals.
-    [PLAYER_RACER_ID]: "YOU",
-  });
-  const FIELD_SIZE = RIVAL_DEFS.length + 1;
+  function createGrid(): Standings {
+    return createStandings({
+      ...Object.fromEntries(eventRivals(event, RIVAL_DEFS).map((def) => [def.id, def.name])),
+      // Added last so the player starts bottom of the grid, behind every rival.
+      [PLAYER_RACER_ID]: "YOU",
+    });
+  }
+  let standings: Standings = createGrid();
+  let FIELD_SIZE = eventRivals(event, RIVAL_DEFS).length + 1;
   let announcedPlace = standings.placeOf(PLAYER_RACER_ID);
   let pose: VehiclePose = {
     position: SPAWN_POSITION,
@@ -288,14 +357,18 @@ export function createRunSession(
     begun = false;
     paused = false;
     runTime = 0;
-    installed = ownedParts(career);
+    event = currentEvent();
+    installed = startingParts();
+    ghostRecorder.reset();
+    ghostRecording = !keepRun;
+    loadGhost();
     // Salvage a run still carried when the player walks away from it is gone, and the run counts.
     if (!keepRun) {
       if (loop.haul() > 0) loop.settle("lost");
       loop.start();
     }
     shift = shiftInfo(loop.offer().changeId);
-    compactor = compactorPlanForShift(loop.offer().changeId);
+    compactor = eventCompactor(event, compactorPlanForShift(loop.offer().changeId));
     collected = new Set<string>();
     gateAnnounced = new Set<string>();
     announcedSurge = null;
@@ -314,7 +387,8 @@ export function createRunSession(
     vehicle.resetTo(SPAWN_POSITION, SPAWN_HEADING);
     pose = { position: SPAWN_POSITION, heading: SPAWN_HEADING, speedKmh: 0, slip: 0, surface: 1, loadGrip: 1, airborne: false, blockedByGate: false };
     opponents = createField();
-    standings.reset();
+    standings = createGrid();
+    FIELD_SIZE = eventRivals(event, RIVAL_DEFS).length + 1;
     announcedPlace = standings.placeOf(PLAYER_RACER_ID);
   }
 
@@ -348,6 +422,93 @@ export function createRunSession(
     else notify("THIS BROWSER COULD NOT SAVE YOUR PARKED RUN", "warn");
   }
 
+  const nextOf = (board: ReturnType<typeof medalsOf>, id: string): { medal: MedalId; text: string } | null => {
+    const next = board.next(id);
+    const def = eventById(id);
+    return next === null || def === null ? null : { medal: next.medal as MedalId, text: targetText(def.metric, next.value) };
+  };
+
+  /** The run's number on this event's metric. Grudge is seconds of margin on HOBBS at the gate. */
+  function eventValue(place: number): number {
+    if (event.metric === "place") return place;
+    if (event.metric === "time") return Math.round(runTime * 100) / 100;
+    if (event.metric === "sweep") return collected.size;
+    const hobbs = standings.snapshot().standings.find((entry) => entry.id === "rival_hobbs");
+    if (hobbs?.finishTime != null) return Math.round((hobbs.finishTime - runTime) * 100) / 100;
+    const body = opponents.bodies().find((entry) => entry.id === "rival_hobbs");
+    if (body === undefined) return 0;
+    const metresLeft = Math.max(0, EXIT_Z - body.position[2]);
+    return Math.round((metresLeft / Math.max(6, body.speedKmh / 3.6)) * 100) / 100;
+  }
+
+  /** Grade an escape on the event's board; the medals and payout settle with the run. */
+  let pendingMedals: CareerSave["medals"] | undefined;
+  function scoreEvent(escaped: boolean, place: number): EventResult {
+    const board = medalsOf(career);
+    if (!escaped) {
+      pendingMedals = undefined;
+      return { id: event.id, label: event.label, result: null, medal: null, firstTime: [], reward: 0, openedTiers: [], next: nextOf(board, event.id), newBest: false };
+    }
+    const value = eventValue(place);
+    const submission = board.submit(event.id, value);
+    pendingMedals = board.snapshot();
+    const firstTime = submission.newlyEarned.map((medal) => ({ medal: medal as MedalId, credits: event.rewards[medal as MedalId] }));
+    const reward = firstTime.reduce((sum, entry) => sum + entry.credits, 0);
+    for (const entry of firstTime) pushRadio(`${entry.medal.toUpperCase()} ON ${event.label.toUpperCase()} — +${entry.credits} CR`);
+    for (const tier of submission.openedTiers) pushRadio(`${YARD_TIERS.find((entry) => entry.id === tier)?.label.toUpperCase() ?? tier} EVENTS OPEN ON THE CALENDAR`);
+    return {
+      id: event.id,
+      label: event.label,
+      result: formatMetric(event.metric, value),
+      medal: submission.medal as MedalId | null,
+      firstTime,
+      reward,
+      openedTiers: submission.openedTiers.map((tier) => YARD_TIERS.find((entry) => entry.id === tier)?.label ?? tier),
+      next: nextOf(board, event.id),
+      newBest: submission.newBest,
+    };
+  }
+
+  function ghostNow(): SessionSnapshot["ghost"] {
+    if (ghostReplay === null) return null;
+    const ghostPose = phaseNow() === "start" ? null : ghostReplay.poseAt(runTime);
+    return {
+      pose: ghostPose,
+      best: ghostReplay.time,
+      aheadMetres: ghostPose === null ? null : Math.round(pose.position[2] - ghostPose.position[2]),
+    };
+  }
+
+  function calendar(): SessionSnapshot["calendar"] {
+    const board = medalsOf(career);
+    const tiers = board.tiers();
+    return {
+      points: board.points(),
+      maxPoints: YARD_EVENTS.length * MEDALS[MEDALS.length - 1]!.points,
+      tiers: YARD_TIERS.map((tier) => {
+        const status = tiers.find((entry) => entry.tier.id === tier.id);
+        return {
+          id: tier.id,
+          label: tier.label,
+          requires: tier.requires,
+          open: status?.open ?? true,
+          missing: status?.missing ?? 0,
+          events: YARD_EVENTS.filter((entry) => entry.tier === tier.id).map((entry) => {
+            const best = board.best(entry.id);
+            return {
+              event: entry,
+              open: board.isOpen(entry.id),
+              selected: entry.id === event.id,
+              medal: board.medalOf(entry.id) as MedalId | null,
+              best: best === null ? null : formatMetric(entry.metric, best),
+              next: nextOf(board, entry.id),
+            };
+          }),
+        };
+      }),
+    };
+  }
+
   function recordOutcome(settlement: RunSettlement<ShiftEffect>): void {
     const completed = completeRun(records, { kind: outcome?.kind === "won" ? "won" : "crushed", time: runTime, distance: Math.min(EXIT_Z, pose.position[2]) });
     records = completed.records;
@@ -358,8 +519,10 @@ export function createRunSession(
     career = settleRun(career, {
       kind: outcome?.kind === "won" ? "escape" : "crushed",
       place: standings.placeOf(PLAYER_RACER_ID),
-      haul: outcome?.kind === "won" ? settlement.banked : settlement.lost,
+      haul: outcome?.kind === "won" ? settlement.banked + (outcome?.event.reward ?? 0) : settlement.lost,
+      medals: pendingMedals,
     });
+    pendingMedals = undefined;
     careerSaved = saveCareer(career, storage);
     runSaved = saveRunState(loop.snapshot(), storage);
     parkedRun = null;
@@ -407,6 +570,16 @@ export function createRunSession(
           garage: garageRows(career),
           saved: careerSaved,
         },
+        event: {
+          id: event.id,
+          label: event.label,
+          blurb: event.blurb,
+          garage: event.garage,
+          medal: medalsOf(career).medalOf(event.id) as MedalId | null,
+          next: nextOf(medalsOf(career), event.id),
+        },
+        calendar: calendar(),
+        ghost: ghostNow(),
       };
     },
     start() {
@@ -435,12 +608,26 @@ export function createRunSession(
         if (parkedRun === null) pushRadio("BOLT IT ON, GO GO");
       }
     },
+    selectEvent(eventId) {
+      const chosen = eventById(eventId);
+      if (chosen === null) return { ok: false, reason: "The yard runs no such event" };
+      if (phaseNow() === "running") return { ok: false, reason: "Finish or park the run before you change events" };
+      if (!medalsOf(career).isOpen(eventId)) return { ok: false, reason: `${chosen.label} is still locked` };
+      if (chosen.id === event.id) return { ok: true };
+      career = { ...career, event: chosen.id };
+      careerSaved = saveCareer(career, storage);
+      // A parked run belongs to the event it started in; picking another event drops it.
+      parkedRun = null;
+      saveParkedRun(null, storage);
+      reset();
+      return { ok: true };
+    },
     buyPart(slot) {
       try {
         career = buyGaragePart(career, slot);
         careerSaved = saveCareer(career, storage);
         if (phaseNow() === "start") {
-          installed = ownedParts(career);
+          installed = startingParts();
           rebuildTuning();
         }
         return { ok: true };
@@ -468,6 +655,7 @@ export function createRunSession(
       // A bent frame pulls the wheel on its own; the last stage of a nose zone adds that bias here.
       const approachKmh = pose.speedKmh;
       pose = vehicle.tick(dt, damagedAxis({ ...axis, handbrake: axis.handbrake ?? 0 }, damageEffect), tuning, input, groundHeightAt);
+      if (ghostRecording) ghostRecorder.record(runTime, { position: pose.position, rotationY: pose.heading });
 
       // A barricade the build cannot clear stops the kart on the nose. One impulse per approach at the
       // approach speed: leaning on a gate afterwards must not keep folding metal.
@@ -541,6 +729,7 @@ export function createRunSession(
           banked: settlement.banked,
           lost: settlement.lost,
           nextShift: shiftInfo(settlement.next.changeId),
+          event: scoreEvent(false, standings.placeOf(PLAYER_RACER_ID)),
         };
         recordOutcome(settlement);
         return;
@@ -552,12 +741,19 @@ export function createRunSession(
         const place = standings.placeOf(PLAYER_RACER_ID);
         const line = lineReading({
           barriers: gateAnnounced.size,
-          place,
+          // Winning a race of one is not a finish worth paying for.
+          place: FIELD_SIZE > 1 ? place : 0,
           time: runTime,
           damageStage: Math.max(0, ...damage.zones().map((zone) => zone.stage)),
           armorSaves: armorSavesUsed,
         });
         const settlement = loop.settle("banked", line.multiplier);
+        const previousGhost = ghosts[event.id];
+        if (event.metric === "time" && ghostRecording && (previousGhost === undefined || runTime < previousGhost.time)) {
+          const ghost = ghostRecorder.take(runTime);
+          if (saveGhost(event.id, ghost, storage)) ghosts = readGhosts(storage);
+          else ghosts = { ...ghosts, [event.id]: ghost };
+        }
         outcome = {
           kind: "won",
           time: runTime,
@@ -574,6 +770,7 @@ export function createRunSession(
           banked: settlement.banked,
           lost: settlement.lost,
           nextShift: shiftInfo(settlement.next.changeId),
+          event: scoreEvent(true, place),
         };
         recordOutcome(settlement);
       }

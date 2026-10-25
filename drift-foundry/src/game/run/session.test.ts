@@ -308,7 +308,9 @@ describe("drift-foundry run session", () => {
     expect(outcome.banked).toBeGreaterThan(outcome.carried);
     expect(outcome.lost).toBe(0);
     expect(outcome.lineNotes.length).toBeGreaterThan(0);
-    expect(snapshot.career.credits).toBe(outcome.banked);
+    // The first escape on the salvage run also earns its first medals, paid on top of the line.
+    expect(outcome.event.reward).toBeGreaterThan(0);
+    expect(snapshot.career.credits).toBe(outcome.banked + outcome.event.reward);
     expect(snapshot.runsPlayed).toBe(1);
     expect(outcome.nextShift).not.toBeNull();
     expect(snapshot.salvageAtRisk).toBe(0);

@@ -3,6 +3,7 @@ import { HudSurface } from "@jgengine/react/hudSurface";
 import type { SessionSnapshot } from "../../run/session";
 import { PART_SLOTS } from "../../parts/catalog";
 import { PartIcon } from "./PartIcon";
+import { MedalBadge, MedalRow } from "./MedalBadge";
 
 export function RunResults({ snapshot, onRestart, onTitle }: { snapshot: SessionSnapshot; onRestart: () => void; onTitle: () => void }) {
   const outcome = snapshot.outcome;
@@ -15,6 +16,12 @@ export function RunResults({ snapshot, onRestart, onTitle }: { snapshot: Session
     <div className="df-result-grid"><div><b>{outcome.place}/{outcome.fieldSize}</b><span>FINISH</span></div><div><b>{outcome.time.toFixed(1)}s</b><span>RUN TIME</span></div><div><b>{won ? "470" : Math.floor(snapshot.pose.position[2])}m</b><span>DISTANCE</span></div><div><b>{snapshot.clearedGateIds.size}/8</b><span>BARRIERS CLEARED</span></div><div><b>{outcome.armorSaves}</b><span>ARMOR SAVES</span></div><div><b>{outcome.carried} cr</b><span>SALVAGE CARRIED</span></div></div>
     <div className="df-result-grid"><div><b>{won ? `×${outcome.lineMultiplier.toFixed(2)}` : "×0.00"}</b><span>{won ? "LINE" : "LINE CUT"}</span></div><div><b>{outcome.banked} cr</b><span>BANKED</span></div><div><b>{outcome.lost} cr</b><span>LOST</span></div><div><b>{snapshot.career.credits} cr</b><span>YARD CREDITS</span></div></div>
     {won && outcome.lineNotes.length > 0 && <p className="df-eyebrow">{outcome.lineNotes.join(" · ")}</p>}
+    <div className="df-event" data-medal={outcome.event.medal ?? undefined}>
+      <div className="df-event-head"><span>{outcome.event.label.toUpperCase()}</span><b>{outcome.event.result ?? "NO RESULT"}</b>{outcome.event.newBest && outcome.event.result !== null ? <em>EVENT BEST</em> : null}<MedalRow held={outcome.event.medal} size={22} /></div>
+      {outcome.event.firstTime.length > 0 && <div className="df-event-pay">{outcome.event.firstTime.map(entry => <span key={entry.medal}><MedalBadge medal={entry.medal} size={18} />FIRST {entry.medal.toUpperCase()} +{entry.credits} cr</span>)}</div>}
+      {outcome.event.openedTiers.length > 0 && <p className="df-event-open" role="status">{outcome.event.openedTiers.join(", ").toUpperCase()} EVENTS NOW OPEN ON THE YARD CALENDAR</p>}
+      <p className="df-event-next">{outcome.event.next === null ? "Every medal on this event is yours." : `Next: ${outcome.event.next.medal} - ${outcome.event.next.text}.`}</p>
+    </div>
     <div className="df-field-order">{snapshot.race.standings.map(entry => <span key={entry.id} className={entry.id === "player" ? "df-you" : ""}><i>{entry.place}</i>{entry.name}{entry.id === "player" && !entry.finished ? (won ? " · RUNNING" : " · OUT") : ""}</span>)}</div>
     <div className="df-result-build">{PART_SLOTS.map(slot => <span key={slot}><PartIcon partId={snapshot.installed[slot]?.id ?? null}/>{snapshot.installed[slot]?.label ?? "Empty slot"}</span>)}</div>
     {won && snapshot.personalBest !== "unchanged" && <p className="df-eyebrow">{snapshot.personalBest === "first" ? "FIRST ESCAPE ON RECORD" : snapshot.personalBest === "improved" ? "NEW PERSONAL BEST" : "PERSONAL BEST MATCHED"}</p>}
